@@ -76,19 +76,24 @@ static void Timer_ISR()
     // }
 }
 
+// 最高频率应是26M
+#define MAX_PERIOD (26*1000*1000)
+
 int luat_pwm_open(const int channel,const size_t period, const size_t pulse,const int pnum) {
 
-    PadConfig_t config;
-    TimerPwmConfig_t pwmConfig;
+    PadConfig_t config = {0};
+    TimerPwmConfig_t pwmConfig = {0};
     unsigned int clockId,clockId_slect,time_req;
     // LUAT_DEBUG_PRINT("luat_pwm_open channel:%d perio:%d pulse:%d pnum:%d",channel,period,pulse,pnum);
     int ret =0;
     if ( channel > 5 || channel < 0)
         return -1;
-    if (period > 26000 || period < 0)
+    if (period > MAX_PERIOD || period < 0)
         return -2;
-    if (pulse > 100 || pulse < 0 )
-        return -3;
+    if (pulse > 100)
+        pulse = 100;
+    else if (pulse < 0)
+        pulse = 0;
     if(if_initialized_timer(channel) < 0)
     {
         return -4;   // hardware timer is used
