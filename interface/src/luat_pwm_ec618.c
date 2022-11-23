@@ -103,26 +103,32 @@ int luat_pwm_open(int channel, size_t period,  size_t pulse, int pnum) {
             clockId =  FCLK_TIMER0;
             clockId_slect = FCLK_TIMER0_SEL_26M;
             time_req = PXIC0_TIMER0_IRQn;
+            break;
         case  1:
             clockId =  FCLK_TIMER1;
             clockId_slect = FCLK_TIMER1_SEL_26M;
             time_req = PXIC0_TIMER1_IRQn;
+            break;
         case  2:
             clockId =  FCLK_TIMER2;
             clockId_slect = FCLK_TIMER2_SEL_26M;
             time_req = PXIC0_TIMER2_IRQn;
+            break;
         case  3:
             clockId =  FCLK_TIMER3;
             clockId_slect = FCLK_TIMER3_SEL_26M;
             time_req = PXIC0_TIMER3_IRQn;
+            break;
         case  4:
             clockId =  FCLK_TIMER4;
             clockId_slect = FCLK_TIMER4_SEL_26M;
             time_req = PXIC0_TIMER4_IRQn;
+            break;
         case  5:
             clockId =  FCLK_TIMER5;
             clockId_slect = FCLK_TIMER5_SEL_26M;
             time_req = PXIC0_TIMER5_IRQn;
+            break;
         default :
             break;
     }
