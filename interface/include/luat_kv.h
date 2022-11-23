@@ -43,9 +43,9 @@ int luat_kv_del(const char* key);
 
 /**
  * @brief 写入指定key的数据
- * @param key[IN] 待写入的key值,不能为NULL,必须是\0结尾
+ * @param key[IN] 待写入的key值,不能为NULL,必须是\0结尾,最大长度64字节
  * @param data[IN] 待写入的数据, 不需要\0结尾
- * @param len[IN] 待写入的数据长度, 不含\0
+ * @param len[IN] 待写入的数据长度, 不含\0,当前支持最大长度255字节
  * @return int == 0 正常 != 0失败
  */
 int luat_kv_set(const char* key, void* data, size_t len);
