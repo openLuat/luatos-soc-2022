@@ -70,9 +70,11 @@ flash xip address(from ap view): 0x08800000---0x08900000
 
 //bl addr and size
 #define BOOTLOADER_FLASH_LOAD_ADDR      (0x00804000)
+#ifdef __USER_CODE__
+#define BOOTLOADER_FLASH_LOAD_SIZE      (0x1e000)//120kB
+#else
 #define BOOTLOADER_FLASH_LOAD_SIZE      (0x20000)//128kB
-
-
+#endif
 //ap image addr and size
 #define AP_FLASH_LOAD_ADDR              (0x00824000)
 #ifdef __USER_CODE__

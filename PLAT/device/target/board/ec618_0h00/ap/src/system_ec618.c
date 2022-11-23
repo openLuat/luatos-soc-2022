@@ -81,7 +81,9 @@ extern void usblpw_retwkup_bootstat_reset(void);
 extern uint32_t usblpw_retwkup_boot_start(void);
 extern void usblpw_wr_reg_usb_wkdetflag(uint32_t  usb_wkdetflag);
 extern void usblpw_retwkup_clear_ctxstat_var(void);
-
+#ifdef __USER_CODE__
+uint8_t fotaNvmNfsIsSmall(void);
+#endif
 
 
 
@@ -103,7 +105,17 @@ static uint8_t sysROAddrCheck(uint32_t addr)
         return 1;
     }
 
-
+#ifdef __USER_CODE__
+	if (fotaNvmNfsIsSmall())
+	{
+	    if((addr >=(AP_FLASH_LOAD_ADDR-AP_FLASH_XIP_ADDR))
+	        && (addr <(AP_FLASH_LOAD_ADDR+0x200000-AP_FLASH_XIP_ADDR)))
+	    {
+	        return 1;
+	    }
+	    return 0;
+	}
+#endif
     if((addr >=(AP_FLASH_LOAD_ADDR-AP_FLASH_XIP_ADDR))
         && (addr <(AP_FLASH_LOAD_ADDR+AP_FLASH_LOAD_SIZE-AP_FLASH_XIP_ADDR)))
     {
