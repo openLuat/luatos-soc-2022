@@ -7,7 +7,7 @@
 #define LED_PIN_ALT_FUN	0
 
 #define LED1_PIN	HAL_GPIO_24
-#define LED2_PIN	HAL_GPIO_23
+#define LED2_PIN	HAL_GPIO_28
 #define LED3_PIN	HAL_GPIO_27
 
 static luat_rtos_task_handle led_task_handle;

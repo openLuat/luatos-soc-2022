@@ -8,7 +8,10 @@
 
 #define KEY1_MESSAGE (0x1)
 #define KEY2_MESSAGE (0x2)
-#define PWR_MESSAGE (0x3)
+#define KEY3_MESSAGE (0x3)
+#define PWR_MESSAGE (0x4)
+
+
 
 #define PAD_PIN_ALT_FUN 0
 #define KEY_QUEUE_SIZE 2
@@ -68,14 +71,17 @@ void gpio_cb(int num)
     {
         if (0 == luat_gpio_get(HAL_GPIO_20))
         {
-            uint8_t id = KEY1_MESSAGE;
+            uint8_t id = KEY2_MESSAGE;
             luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
         }
     }
-    else if (HAL_GPIO_26 == num)
+    else if (HAL_GPIO_21 == num)
     {
-        uint8_t id = KEY2_MESSAGE;
-        luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
+        if (0 == luat_gpio_get(HAL_GPIO_21))
+        {
+            uint8_t id = KEY3_MESSAGE;
+            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
+        }
     }
 }
 
@@ -182,6 +188,21 @@ static void key_task(void *param)
                 }
                 break;
             }
+            case KEY3_MESSAGE:
+            {
+                audioQueueData volPlus = {0};
+                volPlus.playType = TTS_PLAY;
+                volPlus.priority = MONEY_PLAY;
+                char str[] = "功能键";
+                volPlus.message.tts.data = malloc(sizeof(str));
+                memcpy(volPlus.message.tts.data, str, sizeof(str));
+                volPlus.message.tts.len = sizeof(str);
+                if (-1 == luat_rtos_queue_send(audio_queue_handle, &volPlus, NULL, 0))
+                {
+                    LUAT_DEBUG_PRINT("cloud_speaker_key_task start send audio fail");
+                }
+                break;
+            }
             case PWR_MESSAGE:
             {
                 if (1 == luat_rtos_timer_is_active(pwrkey_timer_handle))
@@ -227,6 +248,15 @@ static void key_task(void *param)
     luat_rtos_task_delete(key_task_handle);
 }
 
+luat_pm_wakeup_pad_isr_callback_t down_key_callback(int num)
+{
+    if (LUAT_PM_WAKEUP_PAD_0 == num)
+    {
+        uint8_t id = KEY1_MESSAGE;
+        luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
+    }
+}
+
 void key_task_init(void)
 {
 
@@ -244,9 +274,16 @@ void key_task_init(void)
     gpio_cfg.pin = HAL_GPIO_20;
     luat_gpio_open(&gpio_cfg);
 
-    gpio_cfg.pin = HAL_GPIO_26;
+    gpio_cfg.pin = HAL_GPIO_21;
     luat_gpio_open(&gpio_cfg);
 
+    luat_pm_wakeup_pad_set_callback(down_key_callback);
+    luat_pm_wakeup_pad_cfg_t cfg = {0};
+    cfg.neg_edge_enable = 1;
+    cfg.pos_edge_enable = 0;
+    cfg.pull_up_enable = 1;
+    cfg.pull_down_enable = 0;
+    luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_0, &cfg);
     luat_pm_pwrkey_cfg_t pwrkey_cfg = {0};
     pwrkey_cfg.long_press_timeout = 3000;
     pwrkey_cfg.repeat_timeout = 3000;
