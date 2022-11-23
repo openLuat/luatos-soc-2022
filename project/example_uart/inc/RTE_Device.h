@@ -239,7 +239,7 @@
 
 #define RTE_UART0                       1
 #define RTE_UART1                       1
-#define RTE_UART2                       0
+#define RTE_UART2                       1
 /* to enable external thermal */
 #define EXTERNAL_NTC_EXIST              0
 
