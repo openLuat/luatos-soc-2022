@@ -18,55 +18,68 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef LUAT_KV_H
-#define LUAT_KV_H
-
+#ifndef LUAT_PWM_H
+#define LUAT_PWM_H
 /**
- * @defgroup luatos_kv 持久化数据存储接口
+ *@version V1.0
+ *@attention
+ */
+/**
+ * @ingroup luatos_device 外设接口
  * @{
  */
 
 /**
- * @brief 初始化kv数据存储
+ * @defgroup luatos_device_PWM PWM接口
+ * @{
+*/
+#include "luat_base.h"
+/**
+ * @brief PWM控制参数
+*/
+typedef struct luat_pwm_conf {
+    int channel;       /**<PWM通道*/
+    size_t period;   /**<频率, 1-26000hz*/
+    size_t pulse;    /**<占空比*/
+    size_t pnum;     /**<输出周期 0为持续输出, 1为单次输出, 其他为指定脉冲数输出*/
+    size_t precision;  /**<分频精度, 100/256/1000, 默认为100, 若设备不支持会有日志提示*/
+} luat_pwm_conf_t;
+
+
+/**
+ * @brief 配置pwm 参数
  * 
- * @return int == 0 正常 != 0失败
+ * @param id i2c_id
+ * @return int 
  */
-int luat_kv_init(void);
+
+int luat_pwm_setup(luat_pwm_conf_t* conf);
 
 /**
- * @brief 删除指定的key
- * @param key[IN] 待删除的key值
- * @return int == 0 正常 != 0失败
+ * @brief 打开pwm 通道
+ * 
+ * @param id i2c_id
+ * @return int 
  */
-int luat_kv_del(const char* key);
+
+int luat_pwm_open(int channel, size_t period, size_t pulse, int pnum);
 
 /**
- * @brief 写入指定key的数据
- * @param key[IN] 待写入的key值,不能为NULL,必须是\0结尾,最大长度64字节
- * @param data[IN] 待写入的数据, 不需要\0结尾
- * @param len[IN] 待写入的数据长度, 不含\0,当前支持最大长度255字节
- * @return int == 0 正常 != 0失败
+ * @brief 获取pwm 频率
+ * 
+ * @param id i2c_id
+ * @return int 
  */
-int luat_kv_set(const char* key, void* data, size_t len);
+
+int luat_pwm_capture(int channel,int freq);
 
 /**
- * @brief 读取指定key的数据
- * @param key[IN] 待读取的key值,不能为NULL,必须是\0结尾
- * @param data[IN] 待读取的数据, 可写入空间必须大于等于len值
- * @param len[IN] 待读取的数据长度最大长度, 不含\0
- * @return int > 0 实际读取的长度, <=0 失败
+ * @brief 关闭pwm 接口
+ * 
+ * @param id i2c_id
+ * @return int 
  */
-int luat_kv_get(const char* key, void* data, size_t len);
-
-/**
- * @brief 清空所有数据
- * @return int == 0 正常 != 0失败
- */
-int luat_kv_clear(void);
-
-/**
- * @}
- */
-
+int luat_pwm_close(int channel);
+/** @}*/
+/** @}*/
 #endif
