@@ -145,7 +145,7 @@ int luat_pm_dtimer_wakeup_id(int* id) {
 
 
 void luat_pm_init(void) {
-
+	LLOGI("pm mode %d", apmuGetDeepestSleepMode());
     apmuSetDeepestSleepMode(AP_STATE_HIBERNATE);
     soc_set_usb_sleep(0);
     slpManSlpState_t slpstate = slpManGetLastSlpState();
