@@ -28,14 +28,21 @@
  * @ingroup luatos_device 外设接口
  * @{
  */
-#include "luat_base.h"
 
+/**
+ * @defgroup luatos_device_PWM PWM接口
+ * @{
+*/
+#include "luat_base.h"
+/**
+ * @brief PWM控制参数
+*/
 typedef struct luat_pwm_conf {
-    int channel;       /*PWM通道*/
-    size_t period;   /*频率, 1-26000hz*/
-    size_t pulse;    /*占空比*/
-    size_t pnum;     /*输出周期 0为持续输出, 1为单次输出, 其他为指定脉冲数输出*/
-    size_t precision;  /*分频精度, 100/256/1000, 默认为100, 若设备不支持会有日志提示*/
+    int channel;       /**<PWM通道*/
+    size_t period;   /**<频率, 1-26000hz*/
+    size_t pulse;    /**<占空比*/
+    size_t pnum;     /**<输出周期 0为持续输出, 1为单次输出, 其他为指定脉冲数输出*/
+    size_t precision;  /**<分频精度, 100/256/1000, 默认为100, 若设备不支持会有日志提示*/
 } luat_pwm_conf_t;
 
 
@@ -73,5 +80,6 @@ int luat_pwm_capture(int channel,int freq);
  * @return int 
  */
 int luat_pwm_close(int channel);
-
+/** @}*/
+/** @}*/
 #endif
