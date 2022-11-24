@@ -229,24 +229,23 @@
 #define RTE_PWM                         1
 
 /*+ PWM  配置 */
+// 对应的pad 需要查文档: 
+// https://cdn.openluat-luatcommunity.openluat.com/attachment/20221111180133218_Air780E&Air600E_GPIO_table_1110.pdf
+// TODO 改成用 GPIO_ToPadEC618 ?
 
-//  air780E 模块 PAD:29 ->> PIN 26 | air600E 模块  PAD:29 ->> PIN 69
-#define RTE_PWM0                           29
-//  air780E 模块 PAD:30 ->> PIN 20 | air600E 模块  PAD:30 ->> PIN 40
+//  GPIO 23
+#define RTE_PWM0                           43
 //  GPIO 24
-#define RTE_PWM1                           30
-//  air780E 模块 PAD:31 ->> PIN 106 | air600E 模块  PAD:31 ->> PIN 53
+#define RTE_PWM1                           44
 //  GPIO 25
-#define RTE_PWM2                           31
-//  air780E 模块 PAD:32 ->> PIN 25 | air600E 模块  PAD:32 ->> PIN 54
+#define RTE_PWM2                           45
 //  GPIO 26
-#define RTE_PWM3                           32
-//  air780E 模块 PAD:33 ->> PIN 16 | air600E 模块  PAD:33 ->> PIN 52
+#define RTE_PWM3                           46
 //  GPIO 27
 #define RTE_PWM4                           47
-//  air780E 模块 PAD:34 ->> PIN 78 | air600E 模块  PAD:34 ->> PIN 53
 //  GPIO 28
-#define RTE_PWM5                           34
+#define RTE_PWM5                           48
+
 #define RTE_PWM_FUNC              PAD_MUX_ALT5
 
 /*- PWM  配置 */
