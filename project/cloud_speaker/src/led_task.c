@@ -19,22 +19,26 @@ static void led_task(void *param)
 	luat_rtos_task_handle task_handle;
 
 	gpio_cfg.pull = LUAT_GPIO_DEFAULT;
+
+	//如果是780E+音频扩展小板,需要注释掉下面四行代码，因为这个板子上只有一个可控LED
 	gpio_cfg.pin = LED1_PIN;
 	luat_gpio_open(&gpio_cfg);
 	gpio_cfg.pin = LED2_PIN;
 	luat_gpio_open(&gpio_cfg);
+
+
 	gpio_cfg.pin = LED3_PIN;
 	luat_gpio_open(&gpio_cfg);
 
 	while (1)
 	{
 		luat_rtos_task_sleep(200);
-		luat_gpio_set(LED1_PIN, 1);
-		luat_gpio_set(LED2_PIN, 1);
+		luat_gpio_set(LED1_PIN, 1);				//如果是780E+音频扩展小板,需要注释掉此行代码
+		luat_gpio_set(LED2_PIN, 1);				//如果是780E+音频扩展小板,需要注释掉此行代码
 		luat_gpio_set(LED3_PIN, 1);
 		luat_rtos_task_sleep(200);
-		luat_gpio_set(LED1_PIN, 0);
-		luat_gpio_set(LED2_PIN, 0);
+		luat_gpio_set(LED1_PIN, 0);				//如果是780E+音频扩展小板,需要注释掉此行代码
+		luat_gpio_set(LED2_PIN, 0);				//如果是780E+音频扩展小板,需要注释掉此行代码
 		luat_gpio_set(LED3_PIN, 0);
 	}
 	luat_rtos_task_delete(led_task_handle);
