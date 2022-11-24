@@ -175,7 +175,7 @@ static void task_test_https(void *param)
         }
     }
 
-	luat_rtos_task_delete(&https_task_handle);
+	luat_rtos_task_delete(https_task_handle);
 }
 
 static void task_demo_https(void)
