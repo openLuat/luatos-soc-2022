@@ -36,8 +36,8 @@ static void kv_demo(void *param)
 	LUAT_DEBUG_PRINT("luat_kv demo");
 
 	// 设置一个key-value
-	// key 最大长度是 255, 建议不超过64
-	// value 最大长度是 4096 - 1
+	// key 最大长度是   64
+	// value 最大长度是 255
 
 	// 设置方式, \0结尾的数据,直接来
 	ret = luat_kv_set("my123", "123", strlen("123"));
