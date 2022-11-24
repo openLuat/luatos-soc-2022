@@ -319,7 +319,7 @@ int luat_uart_exist(int uartid) {
     // 暂时只支持UART1和UART2
 
     if (uartid >= LUAT_VUART_ID_0) uartid = MAX_DEVICE_COUNT;
-    if (uartid == 1 || uartid == 2) {
+    if (uartid == 0 || uartid == 1 || uartid == 2) {
         if (!uart_drvs[uartid])
             uart_init();
         return 1;
