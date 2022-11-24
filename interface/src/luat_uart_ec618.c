@@ -35,7 +35,8 @@
 
 #include <stdio.h>
 #include "bsp_custom.h"
-
+#include "plat_config.h"
+#include "luat_pm.h"
 #define MAX_DEVICE_COUNT 4
 
 #if RTE_UART0
@@ -319,7 +320,7 @@ int luat_uart_exist(int uartid) {
     // 暂时只支持UART1和UART2
 
     if (uartid >= LUAT_VUART_ID_0) uartid = MAX_DEVICE_COUNT;
-    if (uartid == 1 || uartid == 2) {
+    if (uartid == 1 || uartid == 2 || uartid == 0) {
         if (!uart_drvs[uartid])
             uart_init();
         return 1;
@@ -392,6 +393,29 @@ int luat_uart_ctrl(int uart_id, LUAT_UART_CTRL_CMD_E cmd, void* param){
             uart_cb[uart_id].recv_callback_fun = param;
         }else if(cmd == LUAT_UART_SET_SENT_CALLBACK){
             uart_cb[uart_id].sent_callback_fun = param;
+        }
+        if(uart_id == 0 && cmd == LUAT_UART_SET_DATA_PORT)
+        {
+            if (*(uint16_t *)param == 1)
+            {
+                uint32_t result = BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL);
+                if (result != PLAT_CFG_ULG_PORT_USB)
+                {
+                    BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL,PLAT_CFG_ULG_PORT_USB);
+                    BSP_SavePlatConfigToRawFlash();
+                    luat_pm_reboot();
+                }
+            }
+            else
+            {
+                uint32_t result = BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL);
+                if (result != PLAT_CFG_ULG_PORT_UART)
+                {
+                    BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL,PLAT_CFG_ULG_PORT_UART);
+                    BSP_SavePlatConfigToRawFlash();
+                    luat_pm_reboot();
+                }
+            }
         }
     }
     return 0;

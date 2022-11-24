@@ -135,7 +135,8 @@ int luat_uart_exist(int uart_id);
 typedef enum LUAT_UART_CTRL_CMD
 {
     LUAT_UART_SET_RECV_CALLBACK,/**< 接收回调 */
-    LUAT_UART_SET_SENT_CALLBACK/**< 发送回调 */
+    LUAT_UART_SET_SENT_CALLBACK,/**< 发送回调 */
+    LUAT_UART_SET_DATA_PORT      /**< 设置uart0是否可以作为通用串口给用户使用, 当作为通用串口使用时，开机会有一段日志输出，无法消除*/
 }LUAT_UART_CTRL_CMD_E;
 
 /**
@@ -165,7 +166,7 @@ typedef struct luat_uart_ctrl_param
  * 
  * @param uart_id 串口id
  * @param cmd 串口控制命令
- * @param param 串口控制参数
+ * @param param 串口控制参数，当cmd为LUAT_UART_SET_DATA_PORT时，取值为0/1， 1表示将uart0作为通用串口使用，0表示关闭uart0作为通用串口使用的功能
  * @return int 
  */
 int luat_uart_ctrl(int uart_id, LUAT_UART_CTRL_CMD_E cmd, void* param);
