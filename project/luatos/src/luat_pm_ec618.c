@@ -66,7 +66,7 @@ int luat_pm_request(int mode) {
 
 int luat_pm_release(int mode) {
 	soc_set_usb_sleep(0);
-	lastRequestMode = LUAT_PM_SLEEP_MODE_LIGHT;
+	lastRequestMode = LUAT_PM_SLEEP_MODE_IDLE;
     return 0;
 }
 
