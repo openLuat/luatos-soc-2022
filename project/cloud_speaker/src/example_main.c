@@ -37,14 +37,12 @@ extern luat_rtos_queue_t audio_queue_handle;
 
 #define MQTT_HOST    	"lbsmqtt.airm2m.com"   				// MQTT服务器的地址和端口号
 #define MQTT_PORT		 1884
-#define CLIENT_ID    	"123456789"          
-#define USERNAME    	"username"                 
-#define PASSWORD    	"password"   
 
-const static char mqtt_sub_topic[] = "/sub/topic/money";    //订阅的主题
-const static char mqtt_pub_topic[] = "/pub/topic/message";  //发布的主题
+
+const static char mqtt_sub_topic_head[] = "/sub/topic/money/";    //订阅的主题头，待与设备imei进行拼接
+const static char mqtt_pub_topic[] = "/pub/topic/message";       //发布的主题
 static char mqtt_send_payload[] = "hello mqtt_test!!!";
-
+static char mqtt_sub_topic[40];                            //订阅的主题，待存放订阅的主题头和设备imei，共计17+15,32个字符
 static bool netStatus = false;
 static bool serverStatus = false;
 
@@ -174,7 +172,6 @@ int fomatMoney(int num, audioQueueData *data, int *index, BOOL flag)
             }
             *index += 1;
         }
-        LUAT_DEBUG_PRINT("cloud_speaker_mqtt 333  %d\r\n", *index);
         if (ten != 0)
         {
             if(flag)
@@ -380,7 +377,8 @@ void messageArrived(MessageData* data)
                 audioQueueData moneyPlay = {0};
                 moneyPlay.priority = MONEY_PLAY;
                 moneyPlay.playType = FILE_PLAY;
-                char* str = strstr(money->valuestring, ".");
+                char* str = NULL;
+                str = strstr(money->valuestring, ".");
                 //判断金额长度是否大于8个，也就是千万级别的金额，如果是，则播报收款成功，如果不是，则播报对应金额，这里并未对金额字段做合法性判断
                 if (str != NULL)
                 {
@@ -393,27 +391,8 @@ void messageArrived(MessageData* data)
                     }
                     else
                     {
-                        //调用strToFile来将金额格式化为对应的文件播报数据，需要调用两次，第一次获取需要malloc的空间，第二次将文件数据放进空间里
-                        int index = 0;
-                        strToFile(money->valuestring, &moneyPlay, &index, false);
-                        moneyPlay.message.file.info = (audio_play_info_t *)calloc(index, sizeof(audio_play_info_t));
-                        index = 0;
-                        strToFile(money->valuestring, &moneyPlay, &index, true);
-                        moneyPlay.message.file.count = index;
-                    }
-                }
-                else
-                {
-                    if(strlen(money->valuestring) > 8)
-                    {
-                        moneyPlay.message.file.info = (audio_play_info_t *)calloc(1, sizeof(audio_play_info_t));
-                        moneyPlay.message.file.info->address = audioshoukuanchenggong;
-                        moneyPlay.message.file.info->rom_data_len = audioshoukuanchenggongSize;
-                        moneyPlay.message.file.count = 1;
-                    }
-                    else
-                    {
                         str++;
+                        //如果小数点位数大于两位，则说明数字金额不合法，播报收款成功
                         if(strlen(str) > 2)
                         {
                             moneyPlay.message.file.info = (audio_play_info_t *)calloc(1, sizeof(audio_play_info_t));
@@ -431,6 +410,26 @@ void messageArrived(MessageData* data)
                             strToFile(money->valuestring, &moneyPlay, &index, true);
                             moneyPlay.message.file.count = index;
                         }
+                    }
+                }
+                else
+                {
+                    if(strlen(money->valuestring) > 8)
+                    {
+                        moneyPlay.message.file.info = (audio_play_info_t *)calloc(1, sizeof(audio_play_info_t));
+                        moneyPlay.message.file.info->address = audioshoukuanchenggong;
+                        moneyPlay.message.file.info->rom_data_len = audioshoukuanchenggongSize;
+                        moneyPlay.message.file.count = 1;
+                    }
+                    else
+                    {
+                        //调用strToFile来将金额格式化为对应的文件播报数据，需要调用两次，第一次获取需要malloc的空间，第二次将文件数据放进空间里
+                        int index = 0;
+                        strToFile(money->valuestring, &moneyPlay, &index, false);
+                        moneyPlay.message.file.info = (audio_play_info_t *)calloc(index, sizeof(audio_play_info_t));
+                        index = 0;
+                        strToFile(money->valuestring, &moneyPlay, &index, true);
+                        moneyPlay.message.file.count = index;
                     }
                 }
                 if (-1 == luat_rtos_queue_send(audio_queue_handle, &moneyPlay, NULL, 0)){
@@ -469,15 +468,20 @@ static void mqtt_demo(void){
     char clientId[17] = {0};
     char username[17] = {0};
     char password[17] = {0};
-    ret = luat_kv_get("clientId", str, 17);             //从数据库中读取clientId，如果没读到，则用默认的
+    ret = luat_kv_get("clientId", str, 17);             //从数据库中读取clientId
     if(ret > 0 )
     {
         memcpy(clientId, str, 16);                      //留一位确保字符串结尾能有0x00
         connectData.clientID.cstring = clientId;
     }
-    else
+    else                                                //数据库中没有写入过clientId，获取设备imei作为clientId
     {
-        connectData.clientID.cstring = CLIENT_ID;
+        int result = 0;
+        result = luat_mobile_get_imei(0, clientId, 15); //imei是15位，留一个位置放0x00
+        if(result <= 0)
+        {
+            LUAT_DEBUG_PRINT("cloud_speaker_mqtt clientid get fail");
+        }
     }
     memset(str, 0, 32);
     ret = luat_kv_get("username", str, 17);             //从数据库中读取username，如果没读到，则用默认的
@@ -488,7 +492,7 @@ static void mqtt_demo(void){
     }
     else
     {
-        connectData.username.cstring = USERNAME;
+        connectData.username.cstring = NULL;
     }
     memset(str, 0, 32);
     ret = luat_kv_get("password", str, 17);             //从数据库中读取password，如果没读到，则用默认的
@@ -499,12 +503,12 @@ static void mqtt_demo(void){
     }
     else
     {
-        connectData.password.cstring = PASSWORD;
+        connectData.password.cstring = NULL;
     }
     memset(str, 0, 32);
-    LUAT_DEBUG_PRINT("cloud_speaker_mqtt clientid %s", clientId);
-    LUAT_DEBUG_PRINT("cloud_speaker_mqtt username %s", username);
-    LUAT_DEBUG_PRINT("cloud_speaker_mqtt password %s", password);
+    memset(mqtt_sub_topic, 0x00, sizeof(mqtt_sub_topic));
+    snprintf(mqtt_sub_topic, 40, "%s%s", mqtt_sub_topic_head, clientId);
+    LUAT_DEBUG_PRINT("cloud_speaker_mqtt subscribe_topic %s %s %s %s", mqtt_sub_topic, clientId, username, password);
     connectData.keepAliveInterval = 120;
 
     mqtt_connect(&mqttClient, &mqttNetwork, MQTT_HOST, MQTT_PORT, &connectData);

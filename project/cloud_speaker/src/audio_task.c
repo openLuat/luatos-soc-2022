@@ -37,19 +37,19 @@ void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
     int ret = luat_kv_get("volume", &value, 1);
     if(ret > 0)
     {
-        LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume success %d", value);
+        // LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume success %d", value);       //这里的打印打开会出来很多，影响日志查看，有需要可自行打开
         HAL_I2sSrcAdjustVolumn(data, len, value);
     }
     else
     {
-        LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume fail %d", value);
+        // LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume fail %d", value);          //这里的打印打开会出来很多，影响日志查看，有需要可自行打开
         HAL_I2sSrcAdjustVolumn(data, len, 4);
     }
     LUAT_DEBUG_PRINT("cloud_speaker_audio_task %x,%d,%d,%d,%d", data, len, bits, channels);
 }
 void app_pa_on(uint32_t arg)
 {
-    luat_gpio_set(PA_PWR_PIN, 1);
+    luat_gpio_set(PA_PWR_PIN, 1);    //如果是780E+音频扩展小板,可以注释掉此行代码，因为PA长开
 }
 void audio_event_cb(uint32_t event, void *param)
 {
@@ -61,7 +61,7 @@ void audio_event_cb(uint32_t event, void *param)
 		luat_audio_play_write_blank_raw(0, 6, 1);
         break;
     case MULTIMEDIA_CB_AUDIO_OUTPUT_START:
-        luat_rtos_timer_start(g_s_delay_timer, 200, 0, app_pa_on, NULL);
+        luat_rtos_timer_start(g_s_delay_timer, 200, 0, app_pa_on, NULL);     //如果是780E+音频扩展小板,可以注释掉此行代码，因为PA长开
         break;
     case MULTIMEDIA_CB_TTS_INIT:
         break;
@@ -74,7 +74,7 @@ void audio_event_cb(uint32_t event, void *param)
     case MULTIMEDIA_CB_AUDIO_DONE:
         luat_rtos_timer_stop(g_s_delay_timer);
 		LUAT_DEBUG_PRINT("audio play done, result=%d!", luat_audio_play_get_last_error(0));
-		luat_gpio_set(PA_PWR_PIN, 0);
+		luat_gpio_set(PA_PWR_PIN, 0);                                          //如果是780E+音频扩展小板,可以注释掉此行代码，因为PA长开
 		luat_gpio_set(CODEC_PWR_PIN, 0);
         luat_rtos_semaphore_release(audio_semaphore_handle);
         break;
@@ -130,8 +130,11 @@ void audio_task_init(void)
 	luat_gpio_set_default_cfg(&gpio_cfg);
 
 	gpio_cfg.pull = LUAT_GPIO_DEFAULT;
-	gpio_cfg.pin = PA_PWR_PIN;
-	luat_gpio_open(&gpio_cfg);
+
+     //如果是780E+音频扩展小板,可以注释掉下面两行代码，因为PA长开
+	gpio_cfg.pin = PA_PWR_PIN;                                     
+	luat_gpio_open(&gpio_cfg);         
+
 	gpio_cfg.pin = CODEC_PWR_PIN;
 	luat_gpio_open(&gpio_cfg);
 	gpio_cfg.alt_fun = CODEC_PWR_PIN_ALT_FUN;
@@ -140,7 +143,8 @@ void audio_task_init(void)
     luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, luat_audio_play_tts_default_fun, NULL);
     ivCStrA sdk_id = AISOUND_SDK_USERID_16K;
     luat_audio_play_tts_set_resource(ivtts_16k, sdk_id, NULL);
-    luat_i2s_base_setup(0, I2S_MODE_MSB, I2S_FRAME_SIZE_16_16);
+    // luat_i2s_base_setup(0, I2S_MODE_I2S, I2S_FRAME_SIZE_16_16);   //如果是780E+音频扩展小板，打开这行注释代码，这个配置对应ES7148/ES7149
+    luat_i2s_base_setup(0, I2S_MODE_MSB, I2S_FRAME_SIZE_16_16);      //此处配置对应TM8211
     luat_rtos_semaphore_create(&audio_semaphore_handle, 1);
 
     luat_rtos_queue_create(&audio_queue_handle, AUDIO_QUEUE_SIZE, sizeof(audioQueueData));

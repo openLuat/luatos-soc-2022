@@ -50,30 +50,33 @@
 
 
 
-static char if_initialized_timer(const int channel)
+
+static signed char if_initialized_timer(const int channel)
 {
-    
-  if( 0 != EIGEN_TIMER(channel)->TCTLR )
+   if( 0 != EIGEN_TIMER(channel)->TCTLR )
     {
         return -1;
     }
     return 0;
 }
 
+volatile static int update = 0;
 static void Timer_ISR()
 {
-    // for( char i =0 ;i< 6;i++)
-    // {
-    //     if (TIMER_getInterruptFlags((uint32_t)pwm_source[i]) & TIMER_MATCH0_INTERRUPT_FLAG)
-    //     {
-    //         TIMER_clearInterruptFlags((uint32_t)i, TIMER_MATCH0_INTERRUPT_FLAG);
-    //         LUAT_DEBUG_PRINT("Timer_ISR in %d",i);
-    //     }
-    //     else
-    //     {
-    //         LUAT_DEBUG_PRINT("Timer_ISR not in %d",i);
-    //     }
-    // }
+  
+    if (TIMER_getInterruptFlags(1) & TIMER_MATCH0_INTERRUPT_FLAG)
+    {
+        update ++;
+        if (update == 3)
+        {
+           TIMER_stop(1);
+        }
+        
+        TIMER_clearInterruptFlags(1, TIMER_MATCH0_INTERRUPT_FLAG);
+    }
+
+
+ 
 }
 
 // 最高频率应是26M
@@ -81,9 +84,13 @@ static void Timer_ISR()
 
 int luat_pwm_open(int channel, size_t period,  size_t pulse, int pnum) {
 
+   
+    TimerConfig_t timerConfig;
+    unsigned int clockId,clockId_slect;
+    IRQn_Type time_req;
+    
     PadConfig_t config = {0};
     TimerPwmConfig_t pwmConfig = {0};
-    unsigned int clockId,clockId_slect,time_req;
     // LUAT_DEBUG_PRINT("luat_pwm_open channel:%d perio:%d pulse:%d pnum:%d",channel,period,pulse,pnum);
     if ( channel > 5 || channel < 0)
         return -1;
@@ -176,6 +183,19 @@ int luat_pwm_open(int channel, size_t period,  size_t pulse, int pnum) {
     pwmConfig.dutyCyclePercent = pulse;
     TIMER_setupPwm(channel, &pwmConfig);
     
+    /****************定时器中断相关配置*********************/
+    TIMER_getDefaultConfig(&timerConfig);  //初始化定时器
+    timerConfig.reloadOption = TIMER_RELOAD_ON_MATCH0;
+    timerConfig.match0 = 0x4000;
+    TIMER_init(channel, &timerConfig);
+
+    TIMER_interruptConfig(channel, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_LEVEL);
+    TIMER_interruptConfig(channel, TIMER_MATCH1_SELECT, TIMER_INTERRUPT_DISABLED);
+    TIMER_interruptConfig(channel, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_DISABLED);
+
+    XIC_SetVector(time_req,Timer_ISR);
+    XIC_EnableIRQ(time_req);
+    /*****************************************************/
     // TIMER_interruptConfig(timer_id, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_LEVEL);
     // TIMER_interruptConfig(timer_id, TIMER_MATCH1_SELECT, TIMER_INTERRUPT_DISABLED);
     // TIMER_interruptConfig(timer_id, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_DISABLED);
@@ -194,7 +214,6 @@ int luat_pwm_setup(luat_pwm_conf_t* conf)
 
 int luat_pwm_capture(int channel,int freq)
 {
-	
     return EIGEN_TIMER(channel)->TMR[0];
 }
 
