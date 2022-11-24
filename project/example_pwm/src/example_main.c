@@ -29,8 +29,8 @@ luat_rtos_task_handle pwm_task_handle;
 
 static void task_test_pwm(void *param)
 {
-    luat_rtos_task_sleep(5000);
-    switch(luat_pwm_open(2,1000,50,1))
+    luat_rtos_task_sleep(2000);
+    switch(luat_pwm_open(4,1,50,1))
     {
         case -1:
             LUAT_DEBUG_PRINT("pwm channel err");
@@ -58,7 +58,7 @@ static void task_test_pwm(void *param)
 
 static void task_demo_pwm(void)
 {
-    luat_rtos_task_create(&pwm_task_handle, 1024, 20, "spi", task_test_pwm, NULL, NULL);
+    luat_rtos_task_create(&pwm_task_handle, 1024, 20, "pwm", task_test_pwm, NULL, NULL);
 }
 
 INIT_TASK_EXPORT(task_demo_pwm,"1");
