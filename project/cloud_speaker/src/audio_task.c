@@ -37,12 +37,12 @@ void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
     int ret = luat_kv_get("volume", &value, 1);
     if(ret > 0)
     {
-        LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume success %d", value);
+        // LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume success %d", value);       //这里的打印打开会出来很多，影响日志查看，有需要可自行打开
         HAL_I2sSrcAdjustVolumn(data, len, value);
     }
     else
     {
-        LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume fail %d", value);
+        // LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume fail %d", value);          //这里的打印打开会出来很多，影响日志查看，有需要可自行打开
         HAL_I2sSrcAdjustVolumn(data, len, 4);
     }
     LUAT_DEBUG_PRINT("cloud_speaker_audio_task %x,%d,%d,%d,%d", data, len, bits, channels);
