@@ -180,8 +180,10 @@ static void task_test_https(void *param)
 
 static void task_demo_https(void)
 {
-	luat_rtos_task_create(&https_task_handle, 2048, 20, "https", task_test_https, NULL, NULL);
+    // https所需的栈空间会大很多
+	luat_rtos_task_create(&https_task_handle, 32*1024, 20, "https", task_test_https, NULL, NULL);
 }
+
 //启动task_demoF_init，启动位置任务2级
 INIT_TASK_EXPORT(task_demo_https, "1");
 
