@@ -307,11 +307,18 @@ void MQTTCloseSession(MQTTClient* c)
         MQTTCleanSession(c);
 }
 
+
 int cycle(MQTTClient* c, Timer* timer)
 {
     int len = 0,
         rc = SUCCESS;
 
+    int socket_stat = sock_get_errno(c->ipstack->my_socket);
+    int socket_err  = socket_error_is_fatal(socket_stat);
+    if (socket_err == 1){
+        return -2;
+    }
+    
     int packet_type = readPacket(c, timer);     /* read the socket, see what work is due */
     //ECOMM_TRACE(UNILOG_MQTT, mqttRecvTask_0001, P_SIG, 1, ".....mqttRecvTask..packet_type=%d....",packet_type);
     ////ECPLAT_PRINTF(UNILOG_DM1, cycle0, P_SIG, ".....autoReg..packet_type=%d ",packet_type);
@@ -470,13 +477,18 @@ void MQTTRun(void* parm)
 #endif
 
         TimerCountdownMS(&timer, 1500); /* Don't wait too long if no traffic is incoming */
-        cycle(c, &timer);
+        int rc = cycle(c, &timer);
+        if (rc == -2){
+            MQTTCloseSession(c);
+            break;
+        }
         
 #if defined(MQTT_TASK)
         MutexUnlock(&c->mutex);
 #endif
         osDelay(200);
     }
+    vTaskDelete(NULL);
 }
 
 #if defined(MQTT_TASK)
