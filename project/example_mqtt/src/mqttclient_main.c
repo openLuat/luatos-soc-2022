@@ -84,11 +84,18 @@ static void mqtt_demo(void){
             message.retained = 0;
             message.payload = mqtt_send_payload;
             message.payloadlen = len;
+			if (MQTTIsConnected(&mqttClient)==0)
+				break;
             LUAT_DEBUG_PRINT("mqtt_demo send data");
-            MQTTPublish(&mqttClient, mqtt_pub_topic, &message);
+            if (rc = MQTTPublish(&mqttClient, mqtt_pub_topic, &message) != 0){
+				LUAT_DEBUG_PRINT("MQTTPublish %d\n", rc);
+				break;
+			}
     #if !defined(MQTT_TASK)
-            if ((rc = MQTTYield(&mqttClient, 1000)) != 0)
-                LUAT_DEBUG_PRINT("mqtt_demo Return code from yield is %d\n", rc);
+            if ((rc = MQTTYield(&mqttClient, 1000)) != 0){
+				LUAT_DEBUG_PRINT("mqtt_demo Return code from yield is %d\n", rc);
+				break;
+			}
     #endif
             luat_rtos_task_sleep(5000);
         }
@@ -101,7 +108,7 @@ static void mqtt_demo(void){
 static void mqttclient_task_init(void)
 {
 	luat_rtos_task_handle mqttclient_task_handle;
-	luat_rtos_task_create(&mqttclient_task_handle, 2048, 20, "mqttclient", mqtt_demo, NULL, NULL);
+	luat_rtos_task_create(&mqttclient_task_handle, 4096, 20, "mqttclient", mqtt_demo, NULL, NULL);
 }
 
 static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
