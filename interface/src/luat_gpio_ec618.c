@@ -43,6 +43,59 @@ int luat_gpio_open(luat_gpio_cfg_t* gpio)
 {
 	if (((uint32_t)(gpio->pin)) > (HAL_GPIO_MAX + 1)) return -1;
 	GPIO_GlobalInit(NULL);
+	if (gpio->pin >= HAL_GPIO_MAX)
+	{
+		APmuWakeupPadSettings_t padConfig = {0};
+		if (LUAT_GPIO_OUTPUT == gpio->mode) return -1;
+		uint8_t pad_id = (gpio->pin > HAL_GPIO_MAX)?2:0;
+		switch (gpio->pull)
+		{
+		case LUAT_GPIO_PULLUP:
+			padConfig.pullUpEn = 1;
+			break;
+		case LUAT_GPIO_PULLDOWN:
+			padConfig.pullDownEn = 1;
+			break;
+		default:
+			break;
+		}
+		if (LUAT_GPIO_IRQ == gpio->mode)
+		{
+			if (gpio->irq_cb) {
+				GPIO_ExtiSetCB(gpio->pin, gpio->irq_cb, gpio->irq_args);
+			}
+			else
+			{
+				GPIO_ExtiSetCB(gpio->pin, luat_gpio_irq_callback, gpio->irq_args);
+			}
+			switch (gpio->irq_type)
+			{
+			case LUAT_GPIO_RISING_IRQ:
+				padConfig.posEdgeEn = 1;
+				break;
+			case LUAT_GPIO_FALLING_IRQ:
+				padConfig.negEdgeEn = 1;
+				break;
+			case LUAT_GPIO_BOTH_IRQ:
+				padConfig.posEdgeEn = 1;
+				padConfig.negEdgeEn = 1;
+				break;
+			default:
+				return -1;
+				break;
+			}
+			apmuSetWakeupPadCfg(pad_id, true, &padConfig);
+			NVIC_EnableIRQ(pad_id);
+		}
+		else
+		{
+			NVIC_DisableIRQ(pad_id);
+			apmuSetWakeupPadCfg(pad_id, false, &padConfig);
+			GPIO_ExtiSetCB(gpio->pin, NULL, gpio->irq_args);
+		}
+		return 0;
+	}
+
 	uint8_t is_pull;
 	uint8_t is_pullup;
 	uint8_t is_input = (LUAT_GPIO_OUTPUT == gpio->mode)?0:1;
@@ -177,7 +230,7 @@ int luat_gpio_setup(luat_gpio_t *gpio){
 		is_pullup = 0;
 		break;
     }
-    GPIO_Config(gpio->pin, is_input, is_pullup);
+
     if (LUAT_GPIO_IRQ == gpio->mode)
     {
         if (gpio->irq_cb) {
@@ -215,7 +268,7 @@ int luat_gpio_setup(luat_gpio_t *gpio){
     	GPIO_ExtiConfig(gpio->pin, 0,0,0);
     	GPIO_ExtiSetCB(gpio->pin, NULL, NULL);
     }
-
+    GPIO_Config(gpio->pin, is_input, is_pullup);
     GPIO_PullConfig(GPIO_ToPadEC618(gpio->pin, 0), is_pull, is_pullup);
     GPIO_IomuxEC618(GPIO_ToPadEC618(gpio->pin, 0), 0, 0, 0);
 	return 0;
@@ -243,15 +296,15 @@ int luat_gpio_get(int pin){
     }
     else if (pin >= HAL_GPIO_20 && pin <= HAL_GPIO_22)
     {
-		uint8_t pad_id = pin - 17;
-		if (NVIC_GetEnableIRQ(pad_id))
+//		uint8_t pad_id = pin - 17;
+//		if (NVIC_GetEnableIRQ(pad_id))
 		{
 			re = slpManGetWakeupPinValue() & (1 << (pin - 17));
 		}
-		else
-		{
-			re = GPIO_Input(pin);
-		}
+//		else
+//		{
+//			re = GPIO_Input(pin);
+//		}
 
     }
     else
