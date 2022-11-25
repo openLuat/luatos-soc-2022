@@ -9,7 +9,7 @@
         }
     },
     "rom": {
-        "file" : "luatos.bin",
+        "file" : "luatos.binpkg",
         "fs" : {
             "script" : {
                 "offset" : "0",

@@ -243,7 +243,16 @@ int luat_gpio_get(int pin){
     }
     else if (pin >= HAL_GPIO_20 && pin <= HAL_GPIO_22)
     {
-    	re = slpManGetWakeupPinValue() & (1 << (pin - 17));
+		uint8_t pad_id = pin - 17;
+		if (NVIC_GetEnableIRQ(pad_id))
+		{
+			re = slpManGetWakeupPinValue() & (1 << (pin - 17));
+		}
+		else
+		{
+			re = GPIO_Input(pin);
+		}
+
     }
     else
     {
