@@ -53,5 +53,12 @@
 		"fs_addr" : "003B0000",
 		"force_br" : "1152000",
 		"extra_param" : "002f0200"
-	}
+	},
+    "fota" : {
+        "magic_num" : "eaf18c16",
+        "core_type" : "diff",
+        "ap_type" : "diff",
+        "cp_type" : "diff",
+        "full_addr" : "002F0000"
+    }
 }
