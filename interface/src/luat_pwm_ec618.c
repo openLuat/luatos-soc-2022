@@ -47,63 +47,65 @@
 #include "RTE_Device.h"
 #define EIGEN_TIMER(n)             ((TIMER_TypeDef *) (AP_TIMER0_BASE_ADDR + 0x1000*n))
 
-
-
-
-
 static signed char if_initialized_timer(const int channel)
 {
    if( 0 != EIGEN_TIMER(channel)->TCTLR )
     {
+
         return -1;
     }
+
     return 0;
 }
-
-volatile static int update = 0;
-static void Timer_ISR()
+static uint32_t g_s_Timer_Chanele = 0; //定时中断通道
+static int      g_s_pnum = 0;          //目标脉冲数
+//定时器中断检测PWM脉冲个数
+PLAT_PA_RAMCODE volatile static void Timer_ISR()
 {
-  
-    if (TIMER_getInterruptFlags(1) & TIMER_MATCH0_INTERRUPT_FLAG)
+    volatile static int update = 0;//当前PWM个数
+    if (TIMER_getInterruptFlags(g_s_Timer_Chanele) & TIMER_MATCH2_INTERRUPT_FLAG)
     {
+        TIMER_clearInterruptFlags(g_s_Timer_Chanele, TIMER_MATCH2_INTERRUPT_FLAG);
         update ++;
-        if (update == 3)
+        if (update >= g_s_pnum)
         {
-           TIMER_stop(1);
+           TIMER_stop(g_s_Timer_Chanele);
+           //TIMER_updatePwmDutyCycle(g_s_Timer_Chanele,0);
+           //LUAT_DEBUG_PRINT("PWM STOP %d",update);
         }
-        
-        TIMER_clearInterruptFlags(1, TIMER_MATCH0_INTERRUPT_FLAG);
     }
-
-
- 
 }
 
 // 最高频率应是26M
-#define MAX_PERIOD (26*1000*1000)
+#define MAX_FREQ (26*1000*1000)
 
-int luat_pwm_open(int channel, size_t period,  size_t pulse, int pnum) {
+int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 
-   
     TimerConfig_t timerConfig;
     unsigned int clockId,clockId_slect;
     IRQn_Type time_req;
-    
+
     PadConfig_t config = {0};
     TimerPwmConfig_t pwmConfig = {0};
+
+     g_s_Timer_Chanele = channel; //选择定时器通道
+     g_s_pnum = pnum;             //目标PWM脉冲数量
+
     // LUAT_DEBUG_PRINT("luat_pwm_open channel:%d perio:%d pulse:%d pnum:%d",channel,period,pulse,pnum);
     if ( channel > 5 || channel < 0)
         return -1;
-    if (period > MAX_PERIOD || period < 0)
+    if (freq > MAX_FREQ || freq < 0)
         return -2;
     if (pulse > 100)
         pulse = 100;
     else if (pulse < 0)
         pulse = 0;
+
     if(if_initialized_timer(channel) < 0)
     {
         return -4;   // hardware timer is used
     }
+
     switch(channel)
     {
         case  0:
@@ -178,31 +180,27 @@ int luat_pwm_open(int channel, size_t period,  size_t pulse, int pnum) {
     CLOCK_setClockDiv(clockId, 1);
     TIMER_driverInit();
 
-    pwmConfig.pwmFreq_HZ = period;
+    pwmConfig.pwmFreq_HZ = freq;
     pwmConfig.srcClock_HZ = GPR_getClockFreq(clockId);  
     pwmConfig.dutyCyclePercent = pulse;
     TIMER_setupPwm(channel, &pwmConfig);
-    
-    /****************定时器中断相关配置*********************/
-    TIMER_getDefaultConfig(&timerConfig);  //初始化定时器
-    timerConfig.reloadOption = TIMER_RELOAD_ON_MATCH0;
-    timerConfig.match0 = 0x4000;
-    TIMER_init(channel, &timerConfig);
 
-    TIMER_interruptConfig(channel, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_LEVEL);
+    //TIMER_getDefaultConfig(&timerConfig);  //初始化定时器
+    //timerConfig.reloadOption = TIMER_RELOAD_ON_MATCH2;
+    //timerConfig.match2 = (int)((32768)*(double)(1/freq)); //计数方式
+    //timerConfig.match2 = (int)(((double)(1/freq))*(26*1000*1000)*pnum);   //定时方式
+    //TIMER_init(channel, &timerConfig);
+    
+    //配置定时器中断通道
+    TIMER_interruptConfig(channel, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_DISABLED);
     TIMER_interruptConfig(channel, TIMER_MATCH1_SELECT, TIMER_INTERRUPT_DISABLED);
-    TIMER_interruptConfig(channel, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_DISABLED);
+    TIMER_interruptConfig(channel, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_LEVEL);
 
     XIC_SetVector(time_req,Timer_ISR);
     XIC_EnableIRQ(time_req);
-    /*****************************************************/
-    // TIMER_interruptConfig(timer_id, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_LEVEL);
-    // TIMER_interruptConfig(timer_id, TIMER_MATCH1_SELECT, TIMER_INTERRUPT_DISABLED);
-    // TIMER_interruptConfig(timer_id, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_DISABLED);
 
-    // XIC_SetVector(time_req, Timer_ISR);
-    // XIC_EnableIRQ(time_req);
     TIMER_start(channel);
+
 
     return 0;
 }

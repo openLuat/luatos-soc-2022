@@ -26,8 +26,10 @@
 #include "reset.h"
 #include "HTTPClient.h"
 
+#define PROJECT_VERSION  "1.0.0"
 //ciphersuite: TLS-RSA-WITH-AES-128-CBC-SHA  msglen = 2609
 //support session ticket/fragment
+
 #define TEST_SERVER_NAME        "http://airtest.openluat.com:2900/download/csdk_delta_test.par"
 
 #define TEST_HOST "http://airtest.openluat.com:2900"
@@ -36,9 +38,6 @@
 
 static HttpClientContext        gHttpClient = {0};
 luat_fota_img_proc_ctx_ptr test_luat_fota_handle = NULL;
-
-
-
 
 /**
   \fn      INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
@@ -122,21 +121,25 @@ void mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t sta
 
 static void task_test_fota(void *param)
 {
-    luat_rtos_task_sleep(5000);
     luat_rtos_semaphore_create(&net_semaphore_handle, 1);
 
 	char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
 	HTTPResult result = HTTP_INTERNAL;
     
+    luat_rtos_task_sleep(3000);
+
     luat_mobile_event_register_handler(mobile_event_callback);
+
+    LUAT_DEBUG_PRINT("version = %s", PROJECT_VERSION);
 
     gHttpClient.timeout_s = 2;
     gHttpClient.timeout_r = 20;
     gHttpClient.seclevel = 1;
     gHttpClient.ciphersuite[0] = 0xFFFF;
     gHttpClient.ignore = 1;
+
     luat_rtos_semaphore_take(net_semaphore_handle, LUAT_WAIT_FOREVER);
-    LUAT_DEBUG_PRINT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
     result = httpConnect(&gHttpClient, TEST_HOST);
     if (result == HTTP_OK)
     {
@@ -162,7 +165,7 @@ static void task_test_fota(void *param)
 
 static void task_demo_fota(void)
 {
-	luat_rtos_task_create(&https_task_handle, 2048, 20, "https", task_test_fota, NULL, NULL);
+	luat_rtos_task_create(&https_task_handle, 32*1024, 20, "https", task_test_fota, NULL, NULL);
 }
 //启动task_demoF_init，启动位置任务2级
 INIT_TASK_EXPORT(task_demo_fota, "1");
