@@ -138,6 +138,14 @@ static INT32 ps_callback(PsEventID eventID, void *param, UINT32 paramLen)
 //#endif
 //}
 extern int soc_get_model_name(char *model);
+
+static void luat_main_print_model(void)
+{
+	char temp[40] = {0};
+	soc_get_model_name(temp);
+	DBG("model %s", temp);
+}
+
 static void luatos_task(void *param)
 {
 	net_lwip_init();
@@ -145,6 +153,7 @@ static void luatos_task(void *param)
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
 	registerPSEventCallback(PS_GROUP_PS_MASK, ps_callback);
 	luat_heap_init();
+	luat_main_print_model();
 //	set_usb_serial_input_callback(dft_usb_recv_cb);
 	//DBG("LuatOS starting ...");
 
@@ -164,7 +173,8 @@ static void luatos_task(void *param)
 	luat_main();
 	while (1) {
 		DBG("LuatOS exit"); // TODO 咋就没重启呢
-		luat_rtos_task_sleep(5000);
+		luat_rtos_task_sleep(15000);
+		luat_os_reboot(0);
 	}
 }
 
@@ -172,7 +182,6 @@ void luat_mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t stat
 
 static void luatos_task_init(void)
 {
-	char temp[40] = {0};
 	WDT_deInit();
 	luat_mobile_event_register_handler(luat_mobile_event_cb);
 	luat_mobile_set_period_work(0, 10000, 4);
@@ -180,8 +189,7 @@ static void luatos_task_init(void)
 	luat_rtos_task_handle task_handle;
 	// xTaskCreateStatic(task1, "luatos", VM_STACK_SIZE, NULL, 20, s_vm_stackbuff, pxVMTaskTCBBuffer);
 	luat_rtos_task_create(&task_handle, 16 * 1024, 80, "luatos", luatos_task, NULL, 0);
-	soc_get_model_name(temp);
-	DBG("model %s", temp);
+
 }
 
 INIT_TASK_EXPORT(luatos_task_init, "1");

@@ -97,6 +97,7 @@ int luat_fota_write(uint8_t *data, uint32_t len)
 {
 	uint32_t save_len;
 	OS_BufferWrite(&g_s_fota.data_buffer, data, len);
+REPEAT:
 	switch(g_s_fota.ota_state)
 	{
 	case OTA_STATE_IDLE:
@@ -141,6 +142,10 @@ int luat_fota_write(uint8_t *data, uint32_t len)
 			mbedtls_md5_update_ret(g_s_fota.md5_ctx, (uint8_t *)(__SOC_OTA_COMMON_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len), save_len );
 			OS_BufferRemove(&g_s_fota.data_buffer, save_len);
 		}
+		else
+		{
+			break;
+		}
 		g_s_fota.ota_done_len += save_len;
 		if (g_s_fota.ota_done_len >= g_s_fota.p_fota_file_head->CommonDataLen)
 		{
@@ -170,6 +175,10 @@ int luat_fota_write(uint8_t *data, uint32_t len)
 				}
 			}
 		}
+		else
+		{
+			goto REPEAT;
+		}
 		break;
 	case OTA_STATE_WRITE_SDK_DATA:
 		save_len = (g_s_fota.ota_done_len < (g_s_fota.p_fota_file_head->SDKDataLen - __FLASH_SECTOR_SIZE__))?__FLASH_SECTOR_SIZE__:(g_s_fota.p_fota_file_head->CommonDataLen - g_s_fota.ota_done_len);
@@ -179,6 +188,10 @@ int luat_fota_write(uint8_t *data, uint32_t len)
 			BSP_QSPI_Write_Safe(g_s_fota.data_buffer.Data, __SOC_OTA_SDK_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len, save_len);
 			OS_BufferRemove(&g_s_fota.data_buffer, save_len);
 			//			mbedtls_md5_update_ret(g_s_fota.md5_ctx, (uint8_t *)(__SOC_OTA_COMMON_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len), save_len );
+		}
+		else
+		{
+			break;
 		}
 		g_s_fota.ota_done_len += save_len;
 		if (g_s_fota.ota_done_len >= g_s_fota.p_fota_file_head->SDKDataLen)
@@ -211,6 +224,14 @@ int luat_fota_write(uint8_t *data, uint32_t len)
 			luat_fota_finish();
 			return 0;
 		}
+		else
+		{
+			goto REPEAT;
+		}
+		break;
+	default:
+		return 0;
+		break;
 	}
 	return 1;
 }
