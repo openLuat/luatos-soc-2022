@@ -163,8 +163,8 @@ static void luatos_task(void *param)
 	luat_pm_init();
 	luat_main();
 	while (1) {
-		DBG("LuatOS exit");
-		luat_rtos_task_sleep(1000);
+		DBG("LuatOS exit"); // TODO 咋就没重启呢
+		luat_rtos_task_sleep(5000);
 	}
 }
 
