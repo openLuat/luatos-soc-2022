@@ -94,6 +94,8 @@ target(TARGET_NAME)
 
     -- lvgl
     add_files(LUATOS_ROOT.."components/lvgl/**.c")
+    -- 默认不编译lv的demos, 节省大量的编译时间
+    remove_files(LUATOS_ROOT.."components/lvgl/lv_demos/**.c")
 
     -- eink
     add_files(LUATOS_ROOT.."components/eink/*.c")
