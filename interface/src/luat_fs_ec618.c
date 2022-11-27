@@ -358,7 +358,7 @@ int luat_fs_init(void) {
 
 #ifdef __LUATOS__
     // 以下为临时配置, 从APP区的末端,切出128k作为临时脚本区，80K作为OTA区
-    #define LUADB_ADDR ((uint32_t)(FLASH_FOTA_REGION_START - 208 * 1024) | AP_FLASH_XIP_ADDR)
+    #define LUADB_ADDR ((uint32_t)LUA_SCRIPT_ADDR | AP_FLASH_XIP_ADDR)
     //DBG("luadb tmp addr %p", LUADB_ADDR);
 	luat_fs_conf_t conf2 = {
 		.busname = (char*)(const char*)LUADB_ADDR,

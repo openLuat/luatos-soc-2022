@@ -196,6 +196,7 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_RSA
   {"rsa", luaopen_rsa},
 #endif
+  {"fota", luaopen_fota},
   {NULL, NULL}
 };
 
