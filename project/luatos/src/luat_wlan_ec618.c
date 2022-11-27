@@ -7,13 +7,14 @@
 
 #define WLAN_SCAN_DONE 1
 
-static SetWifiScanParams wifiscanreq = {
+static const SetWifiScanParams wifiscanreq = {
     .maxTimeOut = 10000,
     .round = 1,
     .maxBssidNum = CMI_DEV_MAX_WIFI_BSSID_NUM,
     .scanTimeOut = 5,
     .wifiPriority = 0
 };
+
 static GetWifiScanInfo *pWifiScanInfo = PNULL;
 
 static luat_rtos_task_handle wlan_task_handle;
@@ -40,19 +41,25 @@ static void wlan_task(void *param){
     rtos_msg_t msg = {0};
     msg.handler = l_wlan_handler;
     msg.arg1 = WLAN_SCAN_DONE;
-    pWifiScanInfo = (GetWifiScanInfo *)malloc(sizeof(GetWifiScanInfo));
-    memset(pWifiScanInfo,0,sizeof(GetWifiScanInfo));
-    appGetWifiScanInfo(&wifiscanreq, pWifiScanInfo);
-    luat_msgbus_put(&msg, 0);
+    if (pWifiScanInfo == NULL)
+        pWifiScanInfo = (GetWifiScanInfo *)malloc(sizeof(GetWifiScanInfo));
+    if (pWifiScanInfo) {
+        memset(pWifiScanInfo, 0, sizeof(GetWifiScanInfo));
+        appGetWifiScanInfo(&wifiscanreq, pWifiScanInfo);
+        luat_msgbus_put(&msg, 0);
+    }
+    else {
+        DBG("out of memory when malloc GetWifiScanInfo");
+    }
     luat_rtos_task_delete(wlan_task_handle);
 }
 
 int luat_wlan_init(luat_wlan_config_t *conf){
+    DBG("wifi support scan only");
     return 0;
 }
 
 int luat_wlan_scan(void){
-    DBG("wifi support scan only");
     if (luat_rtos_task_create(&wlan_task_handle, 2048, 20, "wlan", wlan_task, NULL, NULL)){
     	return -1;
     }
@@ -60,6 +67,9 @@ int luat_wlan_scan(void){
 }
 
 int luat_wlan_scan_get_result(luat_wlan_scan_result_t *results, int ap_limit){
+    if (pWifiScanInfo == NULL) {
+        return 0;
+    }
     if (ap_limit > pWifiScanInfo->bssidNum){
         ap_limit = pWifiScanInfo->bssidNum;
     }
@@ -68,9 +78,5 @@ int luat_wlan_scan_get_result(luat_wlan_scan_result_t *results, int ap_limit){
         memcpy(results[i].bssid, pWifiScanInfo->bssid[i], 6);
         results[i].rssi = pWifiScanInfo->rssi[i];
     }
-    free(pWifiScanInfo);
     return ap_limit;
 }
-
-
-
