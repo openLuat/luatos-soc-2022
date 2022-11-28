@@ -30,9 +30,10 @@ luat_rtos_task_handle pwm_task_handle;
 static void task_test_pwm(void *param)
 {
     luat_rtos_task_sleep(5000);
-    //打开PWM，依次设置PWM通道，设置PWM频率，设置占空比，PWM个数
-    //注意：若需要使用设置PWM个数时，PWM频率不宜高于50K
-    switch(luat_pwm_open(1,50000,50,10))
+    /*打开PWM，依次设置PWM通道，设置PWM频率，设置占空比，PWM个数*/
+    /*注意：若需要使用设置PWM个数时，PWM频率不宜高于50K*/
+    /*      若高于50K可能会多出几个个数的现象*/
+    switch(luat_pwm_open(4,1,50,10))
     {
         case -1:
             LUAT_DEBUG_PRINT("pwm channel err");
@@ -60,7 +61,7 @@ static void task_test_pwm(void *param)
 
 static void task_demo_pwm(void)
 {
-    luat_rtos_task_create(&pwm_task_handle, 1024, 20, "spi", task_test_pwm, NULL, NULL);
+    luat_rtos_task_create(&pwm_task_handle, 1024, 20, "pwm", task_test_pwm, NULL, NULL);
 }
 
 INIT_TASK_EXPORT(task_demo_pwm,"1");

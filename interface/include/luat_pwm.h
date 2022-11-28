@@ -23,6 +23,9 @@
 /**
  *@version V1.0
  *@attention
+   1.在使用int luat_pwm_open(int channel, size_t period, size_t freq, int pnum);
+    函数时依次依次设置PWM通道，设置PWM频率，设置占空比，PWM个数
+    若需要使用设置PWM个数时，PWM频率不宜高于50K,若高于50K可能会多出几个个数的现象
  */
 /**
  * @ingroup luatos_device 外设接口
