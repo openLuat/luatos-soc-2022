@@ -67,21 +67,18 @@ PLAT_PA_RAMCODE volatile static void Timer_ISR()
     volatile static int i = 0;
     for(i = 0;i < 6;i++)
     {
-        if(0 != g_s_pnum_set[i])
+        if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
         {
-            if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
+            TIMER_clearInterruptFlags(i, TIMER_MATCH2_INTERRUPT_FLAG);
+            update[i]++;
+            if (update[i] >= g_s_pnum_set[i])
             {
-                TIMER_clearInterruptFlags(i, TIMER_MATCH2_INTERRUPT_FLAG);
-                update[i]++;
-                if (update[i] >= g_s_pnum_set[i])
-                {
-                    TIMER_stop(i);
-                    update[i] = 0;
-                    //TIMER_updatePwmDutyCycle(i,0);
-                    //LUAT_DEBUG_PRINT("PWM STOP %d",update[i]);
-                }
+                TIMER_stop(i);
+                update[i] = 0;
+                //TIMER_updatePwmDutyCycle(i,0);
+                //LUAT_DEBUG_PRINT("PWM STOP %d",update[i]);
             }
-        } 
+        }
     }
 }
 
@@ -196,16 +193,17 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
     pwmConfig.srcClock_HZ = GPR_getClockFreq(clockId);  
     pwmConfig.dutyCyclePercent = pulse;
     TIMER_setupPwm(channel, &pwmConfig);
+    if(0 != pnum)
+    {
+        TIMER_interruptConfig(channel, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_DISABLED);
+        TIMER_interruptConfig(channel, TIMER_MATCH1_SELECT, TIMER_INTERRUPT_DISABLED);
+        TIMER_interruptConfig(channel, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_LEVEL);
 
-    TIMER_interruptConfig(channel, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_DISABLED);
-    TIMER_interruptConfig(channel, TIMER_MATCH1_SELECT, TIMER_INTERRUPT_DISABLED);
-    TIMER_interruptConfig(channel, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_LEVEL);
-
-    XIC_SetVector(time_req,Timer_ISR);
-    XIC_EnableIRQ(time_req);
+        XIC_SetVector(time_req,Timer_ISR);
+        XIC_EnableIRQ(time_req);
+    }
 
     TIMER_start(channel);
-
 
     return 0;
 }
