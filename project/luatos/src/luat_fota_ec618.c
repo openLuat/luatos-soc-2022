@@ -21,6 +21,7 @@
 
 #include "luat_base.h"
 #include "luat_mcu.h"
+#include "luat_malloc.h"
 #include "luat_spi.h"
 #include "luat_fota.h"
 #include "FreeRTOS.h"
@@ -30,7 +31,7 @@
 #include "luat_log.h"
 #include "mbedtls/md5.h"
 #include "fota_nvm.h"
-
+extern void fotaNvmNfsPeInit(uint8_t isSmall);
 #define __SOC_OTA_COMMON_DATA_LOAD_ADDRESS__	(LUA_SCRIPT_OTA_ADDR + AP_FLASH_XIP_ADDR)
 #define __SOC_OTA_COMMON_DATA_SAVE_ADDRESS__	(LUA_SCRIPT_OTA_ADDR)
 #define __SOC_OTA_SDK_DATA_LOAD_ADDRESS__	(FLASH_FOTA_REGION_START + AP_FLASH_XIP_ADDR)
@@ -71,8 +72,11 @@ static void luat_fota_finish(void)
 	BSP_QSPI_Write_Safe((uint8_t *)&Head, __SOC_OTA_INFO_DATA_SAVE_ADDRESS__, sizeof(Head));
 	g_s_fota.ota_state = OTA_STATE_OK;
 	luat_heap_free(g_s_fota.crc32_table);
+	g_s_fota.crc32_table = NULL;
 	luat_heap_free(g_s_fota.md5_ctx);
+	g_s_fota.md5_ctx = NULL;
 	luat_heap_free(g_s_fota.p_fota_file_head);
+	g_s_fota.p_fota_file_head = NULL;
 	OS_DeInitBuffer(&g_s_fota.data_buffer);
 	LLOGI("fota ok!, wait reboot");
 }
@@ -83,6 +87,7 @@ int luat_fota_init(uint32_t start_address, uint32_t len, luat_spi_device_t* spi_
 	{
 		g_s_fota.p_fota_file_head = luat_heap_malloc(sizeof(CoreUpgrade_FileHeadCalMD5Struct));
 		g_s_fota.crc32_table = luat_heap_malloc(256 * sizeof(uint32_t));
+		memset(g_s_fota.crc32_table, 0, 1024);
 		g_s_fota.md5_ctx = luat_heap_malloc(sizeof(mbedtls_md5_context));
 		CRC32_CreateTable(g_s_fota.crc32_table, CRC32_GEN);
 	}
@@ -111,7 +116,7 @@ REPEAT:
 				g_s_fota.data_buffer.Pos = 0;
 				return -1;
 			}
-			uint32_t crc32 = CRC32_Cal(g_s_fota.crc32_table, &g_s_fota.p_fota_file_head->MainVersion, sizeof(CoreUpgrade_FileHeadCalMD5Struct) - 8, 0xffffffff);
+			uint32_t crc32 = CRC32_Cal(g_s_fota.crc32_table, g_s_fota.p_fota_file_head->MainVersion, sizeof(CoreUpgrade_FileHeadCalMD5Struct) - 8, 0xffffffff);
 			if (crc32 != g_s_fota.p_fota_file_head->CRC32)
 			{
 				LLOGI("file head crc32 error %x,%x", crc32, g_s_fota.p_fota_file_head->CRC32);
@@ -124,22 +129,25 @@ REPEAT:
 			if (g_s_fota.p_fota_file_head->CommonDataLen)
 			{
 				g_s_fota.ota_state = OTA_STATE_WRITE_COMMON_DATA;
+				fotaNvmNfsPeInit(1);
 				LLOGI("write stript data");
+				goto REPEAT;
 			}
 			else
 			{
 				g_s_fota.ota_state = OTA_STATE_WRITE_SDK_DATA;
 				LLOGI("write core data");
+				goto REPEAT;
 			}
 		}
 		break;
 	case OTA_STATE_WRITE_COMMON_DATA:
-		save_len = (g_s_fota.ota_done_len < (g_s_fota.p_fota_file_head->CommonDataLen - __FLASH_SECTOR_SIZE__))?__FLASH_SECTOR_SIZE__:(g_s_fota.p_fota_file_head->CommonDataLen - g_s_fota.ota_done_len);
+		save_len = ((g_s_fota.ota_done_len + __FLASH_SECTOR_SIZE__) < g_s_fota.p_fota_file_head->CommonDataLen)?__FLASH_SECTOR_SIZE__:(g_s_fota.p_fota_file_head->CommonDataLen - g_s_fota.ota_done_len);
 		if (g_s_fota.data_buffer.Pos >= save_len)
 		{
 			BSP_QSPI_Erase_Safe(__SOC_OTA_COMMON_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len, __FLASH_SECTOR_SIZE__);
 			BSP_QSPI_Write_Safe(g_s_fota.data_buffer.Data, __SOC_OTA_COMMON_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len, save_len);
-			mbedtls_md5_update_ret(g_s_fota.md5_ctx, (uint8_t *)(__SOC_OTA_COMMON_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len), save_len );
+			mbedtls_md5_update_ret(g_s_fota.md5_ctx, (uint8_t *)(__SOC_OTA_COMMON_DATA_LOAD_ADDRESS__ + g_s_fota.ota_done_len), save_len );
 			OS_BufferRemove(&g_s_fota.data_buffer, save_len);
 		}
 		else
@@ -150,6 +158,7 @@ REPEAT:
 		if (g_s_fota.ota_done_len >= g_s_fota.p_fota_file_head->CommonDataLen)
 		{
 			LLOGI("stript data done, now checking");
+			fotaNvmNfsPeInit(0);
 			uint8_t md5[16];
 			mbedtls_md5_finish_ret(g_s_fota.md5_ctx, md5);
 			if (memcmp(md5, g_s_fota.p_fota_file_head->CommonMD5, 16))
@@ -181,7 +190,7 @@ REPEAT:
 		}
 		break;
 	case OTA_STATE_WRITE_SDK_DATA:
-		save_len = (g_s_fota.ota_done_len < (g_s_fota.p_fota_file_head->SDKDataLen - __FLASH_SECTOR_SIZE__))?__FLASH_SECTOR_SIZE__:(g_s_fota.p_fota_file_head->CommonDataLen - g_s_fota.ota_done_len);
+		save_len = ((g_s_fota.ota_done_len + __FLASH_SECTOR_SIZE__) < (g_s_fota.p_fota_file_head->SDKDataLen))?__FLASH_SECTOR_SIZE__:(g_s_fota.p_fota_file_head->CommonDataLen - g_s_fota.ota_done_len);
 		if (g_s_fota.data_buffer.Pos >= save_len)
 		{
 			BSP_QSPI_Erase_Safe(__SOC_OTA_SDK_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len, __FLASH_SECTOR_SIZE__);
@@ -255,10 +264,15 @@ int luat_fota_end(uint8_t is_ok)
 	if (g_s_fota.ota_state != OTA_STATE_OK)
 	{
 		luat_heap_free(g_s_fota.crc32_table);
+		g_s_fota.crc32_table = NULL;
 		luat_heap_free(g_s_fota.md5_ctx);
+		g_s_fota.md5_ctx = NULL;
 		luat_heap_free(g_s_fota.p_fota_file_head);
+		g_s_fota.p_fota_file_head = NULL;
+		OS_DeInitBuffer(&g_s_fota.data_buffer);
 		OS_DeInitBuffer(&g_s_fota.data_buffer);
 		BSP_QSPI_Erase_Safe(__SOC_OTA_INFO_DATA_SAVE_ADDRESS__, __FLASH_SECTOR_SIZE__);
+		LLOGI("fota failed");
 	}
 	return 0;
 }
