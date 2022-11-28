@@ -58,92 +58,31 @@ static signed char if_initialized_timer(const int channel)
     return 0;
 }
 
-//设置PWM脉冲个数
+/*设置PWM脉冲个数*/
 static int g_s_pnum_set[6] = {0};
 
 PLAT_PA_RAMCODE volatile static void Timer_ISR()
 {
-    volatile static int update[6] = {0};//当前PWM个数
-    if (TIMER_getInterruptFlags(0) & TIMER_MATCH2_INTERRUPT_FLAG)
+    volatile static int update[6] = {0};/*当前PWM个数*/
+    volatile static int i = 0;
+    for(i = 0;i < 6;i++)
     {
-        TIMER_clearInterruptFlags(0, TIMER_MATCH2_INTERRUPT_FLAG);
-        update[0] ++;
-        if (update[0] >= g_s_pnum_set[0])
-        {
-           TIMER_stop(0);
-           update[0] = 0;
-           //TIMER_updatePwmDutyCycle(g_s_Timer_Chanele,0);
-           //LUAT_DEBUG_PRINT("PWM STOP %d",update[0]);
-        }
-    }
-
-    if (TIMER_getInterruptFlags(1) & TIMER_MATCH2_INTERRUPT_FLAG)
-    {
-        TIMER_clearInterruptFlags(1, TIMER_MATCH2_INTERRUPT_FLAG);
-        update[1] ++;
-        if (update[1] >= g_s_pnum_set[1])
-        {
-           TIMER_stop(1);
-           update[1] = 0;
-           //TIMER_updatePwmDutyCycle(g_s_Timer_Chanele,0);
-           //LUAT_DEBUG_PRINT("PWM STOP %d",update[1]);
-        }
-    }
-    
-    if (TIMER_getInterruptFlags(2) & TIMER_MATCH2_INTERRUPT_FLAG)
-    {
-        TIMER_clearInterruptFlags(2, TIMER_MATCH2_INTERRUPT_FLAG);
-        update[2] ++;
-        if (update[2] >= g_s_pnum_set[2])
-        {
-           TIMER_stop(2);
-           update[2] = 0;
-           //TIMER_updatePwmDutyCycle(g_s_Timer_Chanele,0);
-           //LUAT_DEBUG_PRINT("PWM STOP %d",update[2]);
-        }
-    }
-
-    if (TIMER_getInterruptFlags(3) & TIMER_MATCH2_INTERRUPT_FLAG)
-    {
-        TIMER_clearInterruptFlags(3, TIMER_MATCH2_INTERRUPT_FLAG);
-        update[3] ++;
-        if (update[3] >= g_s_pnum_set[3])
-        {
-           TIMER_stop(3);
-           update[3] = 0;
-           //TIMER_updatePwmDutyCycle(g_s_Timer_Chanele,0);
-           //LUAT_DEBUG_PRINT("PWM STOP %d",update[3]);
-        }
-    }
-
-    if (TIMER_getInterruptFlags(4) & TIMER_MATCH2_INTERRUPT_FLAG)
-    {
-        TIMER_clearInterruptFlags(4, TIMER_MATCH2_INTERRUPT_FLAG);
-        update[4] ++;
-        if (update[4] >= g_s_pnum_set[4])
-        {
-           TIMER_stop(4);
-           update[4] = 0;
-           //TIMER_updatePwmDutyCycle(g_s_Timer_Chanele,0);
-           //LUAT_DEBUG_PRINT("PWM STOP %d",update[4]);
-        }
-    }
-
-    if (TIMER_getInterruptFlags(5) & TIMER_MATCH2_INTERRUPT_FLAG)
-    {
-        TIMER_clearInterruptFlags(5, TIMER_MATCH2_INTERRUPT_FLAG);
-        update[5] ++;
-        if (update[5] >= g_s_pnum_set[5])
-        {
-           TIMER_stop(5);
-           update[5] = 0;
-           //TIMER_updatePwmDutyCycle(g_s_Timer_Chanele,0);
-           //LUAT_DEBUG_PRINT("PWM STOP %d",update[5]);
+         if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
+         {
+            TIMER_clearInterruptFlags(i, TIMER_MATCH2_INTERRUPT_FLAG);
+            update[i] ++;
+            if (update[i] >= g_s_pnum_set[i])
+            {
+                TIMER_stop(i);
+                update[i] = 0;
+                //TIMER_updatePwmDutyCycle(i,0);
+                //LUAT_DEBUG_PRINT("PWM STOP %d",update[i]);
+            }
         }
     }
 }
 
-// 最高频率应是26M
+/*最高频率应是26M*/ 
 #define MAX_FREQ (26*1000*1000)
 
 int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
