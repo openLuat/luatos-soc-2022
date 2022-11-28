@@ -129,7 +129,6 @@ typedef void (*luat_pm_wakeup_pad_isr_callback_t)(LUAT_PM_WAKEUP_PAD_E num);
  */
 int luat_pm_wakeup_pad_set_callback(luat_pm_wakeup_pad_isr_callback_t callback_fun);
 
-
 /**
  * @brief 配置wakeupPad中断参数，和GPIO20-22输入配置冲突，不可以和GPIO的API同时使用，建议使用GPIO的API
  * 
@@ -140,7 +139,13 @@ int luat_pm_wakeup_pad_set_callback(luat_pm_wakeup_pad_isr_callback_t callback_f
  */
 int luat_pm_wakeup_pad_set(uint8_t enable, LUAT_PM_WAKEUP_PAD_E source_id, luat_pm_wakeup_pad_cfg_t *cfg);
 
-
+/**
+ * @brief 获取wakeupPad引脚电平
+ * 
+ * @param source_id wakeupPad
+ * @return int =-1失败，0为低电平，1为高电平
+ */
+int luat_pm_wakeup_pad_get_value(LUAT_PM_WAKEUP_PAD_E source_id);
 
 /**
  * @brief powerkey设置模式

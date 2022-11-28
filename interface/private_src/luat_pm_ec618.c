@@ -180,6 +180,15 @@ int luat_pm_wakeup_pad_set(uint8_t enable, LUAT_PM_WAKEUP_PAD_E source_id, luat_
     return 0;
 }
 
+int luat_pm_wakeup_pad_get_value(LUAT_PM_WAKEUP_PAD_E source_id)
+{
+    if ((source_id < LUAT_PM_WAKEUP_PAD_0) && (source_id > LUAT_PM_WAKEUP_PAD_5))
+    {
+        return -1;
+    }
+    return slpManGetWakeupPinValue() & (1 << source_id);
+}
+
 int luat_pm_set_pwrkey(LUAT_PM_POWERKEY_MODE_E mode, bool pullUpEn, luat_pm_pwrkey_cfg_t *cfg, luat_pm_pwrkey_callback_t callback)
 {
     pwrKeyDly_t dlyCfg = {0};

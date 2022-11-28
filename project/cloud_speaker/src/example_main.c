@@ -641,7 +641,7 @@ INIT_DRV_EXPORT(fdb_init, "2");
 INIT_TASK_EXPORT(mqttclient_task_init, "2");
 INIT_TASK_EXPORT(audio_task_init, "2");
 INIT_TASK_EXPORT(led_task_init, "2");
-INIT_TASK_EXPORT(key_task_init, "2");
+INIT_TASK_EXPORT(key_task_init, "3");
 INIT_TASK_EXPORT(charge_task_init, "2");
 INIT_TASK_EXPORT(usb_uart_init, "2");
 
