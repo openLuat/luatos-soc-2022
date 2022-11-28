@@ -12,7 +12,6 @@
 #define CHARGE_START_MESSAGE (0x5)
 #define CHARGE_END_MESSAGE (0x6)
 
-
 #define PAD_PIN_ALT_FUN 0
 #define KEY_QUEUE_SIZE 2
 extern uint16_t get_vbat();
@@ -52,7 +51,6 @@ static luat_rtos_timer_callback_t pwrkey_long_press_callback(void *param)
     }
 }
 
-
 luat_pm_pwrkey_callback_t pwrkey_callback(LUAT_PM_POWERKEY_STATE_E status)
 {
     if (LUAT_PM_PWRKEY_PRESS == status)
@@ -63,39 +61,6 @@ luat_pm_pwrkey_callback_t pwrkey_callback(LUAT_PM_POWERKEY_STATE_E status)
     {
         uint8_t id = PWR_MESSAGE;
         luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
-    }
-}
-
-void gpio_cb(int num)
-{
-    if (HAL_GPIO_20 == num)
-    {
-        if (0 == luat_gpio_get(HAL_GPIO_20))
-        {
-            uint8_t id = KEY2_MESSAGE;
-            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
-        }
-    }
-    else if (HAL_GPIO_21 == num)
-    {
-        if (0 == luat_gpio_get(HAL_GPIO_21))
-        {
-            uint8_t id = KEY3_MESSAGE;
-            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
-        }
-    }
-    else if (HAL_GPIO_22 == num)
-    {
-        if (0 == luat_gpio_get(HAL_GPIO_22))
-        {
-            uint8_t id = CHARGE_START_MESSAGE;
-            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
-        }
-        else
-        {
-            uint8_t id = CHARGE_END_MESSAGE;
-            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
-        }
     }
 }
 
@@ -296,9 +261,42 @@ luat_pm_wakeup_pad_isr_callback_t down_key_callback(int num)
 {
     if (LUAT_PM_WAKEUP_PAD_0 == num)
     {
-        uint8_t id = KEY1_MESSAGE;
-        luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
+        if (0 == luat_pm_wakeup_pad_get_value(LUAT_PM_WAKEUP_PAD_0))
+        {
+            uint8_t id = KEY1_MESSAGE;
+            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
+        }
     }
+    else if (LUAT_PM_WAKEUP_PAD_3 == num)
+    {
+        if (0 == luat_pm_wakeup_pad_get_value(LUAT_PM_WAKEUP_PAD_3))
+        {
+            uint8_t id = KEY2_MESSAGE;
+            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
+        }
+    }
+    else if (LUAT_PM_WAKEUP_PAD_4 == num)
+    {
+        if (0 == luat_pm_wakeup_pad_get_value(LUAT_PM_WAKEUP_PAD_4))
+        {
+            uint8_t id = KEY3_MESSAGE;
+            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
+        }
+    }
+    // 新的开发板如果不接电池只插usb，这个中断会一直触发
+    /* else if (LUAT_PM_WAKEUP_PAD_5 == num)
+    {
+        if (0 == luat_pm_wakeup_pad_get_value(LUAT_PM_WAKEUP_PAD_5))
+        {
+            uint8_t id = CHARGE_START_MESSAGE;
+            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
+        }
+        else
+        {
+            uint8_t id = CHARGE_END_MESSAGE;
+            luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
+        }
+    } */
 }
 
 void key_task_init(void)
@@ -307,24 +305,6 @@ void key_task_init(void)
     luat_rtos_timer_create(&pwrkey_timer_handle);
     luat_rtos_timer_create(&powoff_timer_handle);
 
-    luat_gpio_cfg_t gpio_cfg = {0};
-    gpio_cfg.alt_fun = 0;
-    gpio_cfg.irq_args = NULL;
-    gpio_cfg.irq_cb = gpio_cb;
-    gpio_cfg.irq_type = LUAT_GPIO_FALLING_IRQ;
-    gpio_cfg.mode = LUAT_GPIO_IRQ;
-    gpio_cfg.pull = LUAT_GPIO_PULLUP;
-
-    gpio_cfg.pin = HAL_GPIO_20;
-    luat_gpio_open(&gpio_cfg);
-
-    gpio_cfg.pin = HAL_GPIO_21;
-    luat_gpio_open(&gpio_cfg);
-
-    gpio_cfg.irq_type = LUAT_GPIO_BOTH_IRQ;
-    gpio_cfg.pin = HAL_GPIO_22;
-    luat_gpio_open(&gpio_cfg);
-
     luat_pm_wakeup_pad_set_callback(down_key_callback);
     luat_pm_wakeup_pad_cfg_t cfg = {0};
     cfg.neg_edge_enable = 1;
@@ -332,6 +312,11 @@ void key_task_init(void)
     cfg.pull_up_enable = 1;
     cfg.pull_down_enable = 0;
     luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_0, &cfg);
+    luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_3, &cfg);
+    luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_4, &cfg);
+    // 新的开发板如果不接电池只插usb，这个中断会一直触发
+    /* cfg.pos_edge_enable = 1;
+    luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_5, &cfg); */
     luat_pm_pwrkey_cfg_t pwrkey_cfg = {0};
     pwrkey_cfg.long_press_timeout = 3000;
     pwrkey_cfg.repeat_timeout = 3000;

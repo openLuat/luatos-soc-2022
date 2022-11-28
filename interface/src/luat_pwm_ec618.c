@@ -57,26 +57,32 @@ static signed char if_initialized_timer(const int channel)
 
     return 0;
 }
-static uint32_t g_s_Timer_Chanele = 0; //定时中断通道
-static int      g_s_pnum = 0;          //目标脉冲数
-//定时器中断检测PWM脉冲个数
+
+/*设置PWM脉冲个数*/
+static int g_s_pnum_set[6] = {0};
+
 PLAT_PA_RAMCODE volatile static void Timer_ISR()
 {
-    volatile static int update = 0;//当前PWM个数
-    if (TIMER_getInterruptFlags(g_s_Timer_Chanele) & TIMER_MATCH2_INTERRUPT_FLAG)
+    volatile static int update[6] = {0};/*当前PWM个数*/
+    volatile static int i = 0;
+    for(i = 0;i < 6;i++)
     {
-        TIMER_clearInterruptFlags(g_s_Timer_Chanele, TIMER_MATCH2_INTERRUPT_FLAG);
-        update ++;
-        if (update >= g_s_pnum)
-        {
-           TIMER_stop(g_s_Timer_Chanele);
-           //TIMER_updatePwmDutyCycle(g_s_Timer_Chanele,0);
-           //LUAT_DEBUG_PRINT("PWM STOP %d",update);
+         if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
+         {
+            TIMER_clearInterruptFlags(i, TIMER_MATCH2_INTERRUPT_FLAG);
+            update[i] ++;
+            if (update[i] >= g_s_pnum_set[i])
+            {
+                TIMER_stop(i);
+                update[i] = 0;
+                //TIMER_updatePwmDutyCycle(i,0);
+                //LUAT_DEBUG_PRINT("PWM STOP %d",update[i]);
+            }
         }
     }
 }
 
-// 最高频率应是26M
+/*最高频率应是26M*/ 
 #define MAX_FREQ (26*1000*1000)
 
 int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
@@ -87,9 +93,6 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 
     PadConfig_t config = {0};
     TimerPwmConfig_t pwmConfig = {0};
-
-     g_s_Timer_Chanele = channel; //选择定时器通道
-     g_s_pnum = pnum;             //目标PWM脉冲数量
 
     // LUAT_DEBUG_PRINT("luat_pwm_open channel:%d perio:%d pulse:%d pnum:%d",channel,period,pulse,pnum);
     if ( channel > 5 || channel < 0)
@@ -112,31 +115,37 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
             clockId =  FCLK_TIMER0;
             clockId_slect = FCLK_TIMER0_SEL_26M;
             time_req = PXIC0_TIMER0_IRQn;
+            g_s_pnum_set[0] = pnum;
             break;
         case  1:
             clockId =  FCLK_TIMER1;
             clockId_slect = FCLK_TIMER1_SEL_26M;
             time_req = PXIC0_TIMER1_IRQn;
+            g_s_pnum_set[1] = pnum;
             break;
         case  2:
             clockId =  FCLK_TIMER2;
             clockId_slect = FCLK_TIMER2_SEL_26M;
             time_req = PXIC0_TIMER2_IRQn;
+            g_s_pnum_set[2] = pnum;
             break;
         case  3:
             clockId =  FCLK_TIMER3;
             clockId_slect = FCLK_TIMER3_SEL_26M;
             time_req = PXIC0_TIMER3_IRQn;
+            g_s_pnum_set[3] = pnum;
             break;
         case  4:
             clockId =  FCLK_TIMER4;
             clockId_slect = FCLK_TIMER4_SEL_26M;
             time_req = PXIC0_TIMER4_IRQn;
+            g_s_pnum_set[4] = pnum;
             break;
         case  5:
             clockId =  FCLK_TIMER5;
             clockId_slect = FCLK_TIMER5_SEL_26M;
             time_req = PXIC0_TIMER5_IRQn;
+            g_s_pnum_set[5] = pnum;
             break;
         default :
             break;
@@ -185,13 +194,6 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
     pwmConfig.dutyCyclePercent = pulse;
     TIMER_setupPwm(channel, &pwmConfig);
 
-    //TIMER_getDefaultConfig(&timerConfig);  //初始化定时器
-    //timerConfig.reloadOption = TIMER_RELOAD_ON_MATCH2;
-    //timerConfig.match2 = (int)((32768)*(double)(1/freq)); //计数方式
-    //timerConfig.match2 = (int)(((double)(1/freq))*(26*1000*1000)*pnum);   //定时方式
-    //TIMER_init(channel, &timerConfig);
-    
-    //配置定时器中断通道
     TIMER_interruptConfig(channel, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_DISABLED);
     TIMER_interruptConfig(channel, TIMER_MATCH1_SELECT, TIMER_INTERRUPT_DISABLED);
     TIMER_interruptConfig(channel, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_LEVEL);
