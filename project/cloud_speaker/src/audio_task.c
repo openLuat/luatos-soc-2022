@@ -53,7 +53,7 @@ void app_pa_on(uint32_t arg)
 }
 void audio_event_cb(uint32_t event, void *param)
 {
-    LUAT_DEBUG_PRINT("cloud_speaker_audio_task %d", event);
+    LUAT_DEBUG_PRINT("cloud_speaker_audio_task event_cb %d", event);
     switch (event)
     {
     case MULTIMEDIA_CB_AUDIO_DECODE_START:

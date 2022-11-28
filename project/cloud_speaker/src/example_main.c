@@ -30,7 +30,7 @@
 #include "luat_rtos.h"
 #include "luat_mobile.h"
 #include "luat_debug.h"
-
+static uint8_t g_s_is_link_up = 0;
 static luat_rtos_semaphore_t net_semaphore_handle;
 static luat_rtos_task_handle mqtt_task_handle;
 extern luat_rtos_queue_t audio_queue_handle;
@@ -38,7 +38,7 @@ extern luat_rtos_queue_t audio_queue_handle;
 #define MQTT_HOST    	"lbsmqtt.airm2m.com"   				// MQTT服务器的地址和端口号
 #define MQTT_PORT		 1884
 
-
+#define CLIENTID    "12345678"
 const static char mqtt_sub_topic_head[] = "/sub/topic/money/";    //订阅的主题头，待与设备imei进行拼接
 const static char mqtt_pub_topic[] = "/pub/topic/message";       //发布的主题
 static char mqtt_send_payload[] = "hello mqtt_test!!!";
@@ -445,17 +445,69 @@ void messageArrived(MessageData* data)
     }
 }
 
-void mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status){
-    if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_ON){
-        LUAT_DEBUG_PRINT("network ready");
-        luat_rtos_semaphore_release(net_semaphore_handle);
-    }
+static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
+{
+	switch(event)
+	{
+	case LUAT_MOBILE_EVENT_CFUN:
+		LUAT_DEBUG_PRINT("CFUN消息，status %d", status);
+		break;
+	case LUAT_MOBILE_EVENT_SIM:
+		LUAT_DEBUG_PRINT("SIM卡消息");
+		switch(status)
+		{
+		case LUAT_MOBILE_SIM_READY:
+			LUAT_DEBUG_PRINT("SIM卡正常工作");
+			break;
+		case LUAT_MOBILE_NO_SIM:
+			LUAT_DEBUG_PRINT("SIM卡不存在");
+			break;
+		case LUAT_MOBILE_SIM_NEED_PIN:
+			LUAT_DEBUG_PRINT("SIM卡需要输入PIN码");
+			break;
+		}
+		break;
+	case LUAT_MOBILE_EVENT_REGISTER_STATUS:
+		LUAT_DEBUG_PRINT("移动网络服务状态变更，当前为%d", status);
+		break;
+	case LUAT_MOBILE_EVENT_CELL_INFO:
+		switch(status)
+		{
+		case LUAT_MOBILE_CELL_INFO_UPDATE:
+			break;
+		case LUAT_MOBILE_SIGNAL_UPDATE:
+			break;
+		}
+		break;
+	case LUAT_MOBILE_EVENT_PDP:
+		LUAT_DEBUG_PRINT("CID %d PDP激活状态变更为 %d", index, status);
+		break;
+	case LUAT_MOBILE_EVENT_NETIF:
+		LUAT_DEBUG_PRINT("internet工作状态变更为 %d", status);
+		switch (status)
+		{
+		case LUAT_MOBILE_NETIF_LINK_ON:
+			LUAT_DEBUG_PRINT("可以上网");
+            g_s_is_link_up = 1;
+			break;
+		default:
+            g_s_is_link_up = 0;
+			LUAT_DEBUG_PRINT("不能上网");
+			break;
+		}
+		break;
+	case LUAT_MOBILE_EVENT_TIME_SYNC:
+		LUAT_DEBUG_PRINT("通过移动网络同步了UTC时间");
+		break;
+	case LUAT_MOBILE_EVENT_CSCON:
+		LUAT_DEBUG_PRINT("RRC状态 %d", status);
+		break;
+	default:
+		break;
+	}
 }
 
 static void mqtt_demo(void){
-    luat_rtos_semaphore_create(&net_semaphore_handle, 1);
-    luat_mobile_event_register_handler(mobile_event_callback);
-    luat_rtos_semaphore_take(net_semaphore_handle, LUAT_WAIT_FOREVER);
 	int rc = 0;
     MQTTClient mqttClient = {0};
     Network mqttNetwork = {0};
@@ -479,9 +531,9 @@ static void mqtt_demo(void){
         int result = 0;
         result = luat_mobile_get_imei(0, clientId, 15); //imei是15位，留一个位置放0x00
         if(result <= 0)
-        {
             LUAT_DEBUG_PRINT("cloud_speaker_mqtt clientid get fail");
-        }
+        else
+            connectData.clientID.cstring = CLIENTID;
     }
     memset(str, 0, 32);
     ret = luat_kv_get("username", str, 17);             //从数据库中读取username，如果没读到，则用默认的
@@ -510,13 +562,20 @@ static void mqtt_demo(void){
     snprintf(mqtt_sub_topic, 40, "%s%s", mqtt_sub_topic_head, clientId);
     LUAT_DEBUG_PRINT("cloud_speaker_mqtt subscribe_topic %s %s %s %s", mqtt_sub_topic, clientId, username, password);
     connectData.keepAliveInterval = 120;
+    while(1)
+    {
+        while(!g_s_is_link_up)
+		{
+			luat_rtos_task_sleep(1000);
+		}
 
-    mqtt_connect(&mqttClient, &mqttNetwork, MQTT_HOST, MQTT_PORT, &connectData);
+        if ((rc = mqtt_connect(&mqttClient, &mqttNetwork, MQTT_HOST, MQTT_PORT, &connectData)) != 0 )
+            LUAT_DEBUG_PRINT("mqtt Return code from MQTT mqtt_connect is %d\n", rc);
 
-    if ((rc = MQTTSubscribe(&mqttClient, mqtt_sub_topic, 0, messageArrived)) != 0)
+        if ((rc = MQTTSubscribe(&mqttClient, mqtt_sub_topic, 0, messageArrived)) != 0)
         {
-        LUAT_DEBUG_PRINT("cloud_speaker_mqtt Return code from MQTT subscribe is %d\n", rc);
-            serverStatus = false;
+            LUAT_DEBUG_PRINT("cloud_speaker_mqtt Return code from MQTT subscribe is %d\n", rc);
+                serverStatus = false;
         }
         else
         {
@@ -529,29 +588,41 @@ static void mqtt_demo(void){
             memcpy(welcome.message.tts.data, str, sizeof(str));
             welcome.message.tts.len = sizeof(str);
             if (-1 == luat_rtos_queue_send(audio_queue_handle, &welcome, NULL, 0)){
-                LUAT_DEBUG_PRINT("cloud_speaker_mqtt sub queue send error");
+                LUAT_DEBUG_PRINT("cloud_speaker_mqtt sub audio queue send error");
             }
         }
-    
-    while(1){
-        int len = strlen(mqtt_send_payload);
-        message.qos = 1;
-		message.retained = 0;
-        message.payload = mqtt_send_payload;
-        message.payloadlen = len;
-        LUAT_DEBUG_PRINT("cloud_speaker_mqtt publish data");
-        MQTTPublish(&mqttClient, mqtt_pub_topic, &message);
-#if !defined(MQTT_TASK)
-		if ((rc = MQTTYield(&mqttClient, 1000)) != 0)
-			LUAT_DEBUG_PRINT("cloud_speaker_mqtt Return code from yield is %d\n", rc);
-#endif
-        luat_rtos_task_sleep(60000);
+
+        while(1){
+            int len = strlen(mqtt_send_payload);
+            message.qos = 1;
+    		message.retained = 0;
+            message.payload = mqtt_send_payload;
+            message.payloadlen = len;
+            if(MQTTIsConnected(&mqttClient) == 0)
+                break;
+            LUAT_DEBUG_PRINT("cloud_speaker_mqtt publish data");
+            if(rc = MQTTPublish(&mqttClient, mqtt_pub_topic, &message) != 0)
+            {
+                LUAT_DEBUG_PRINT("cloud_speaker_mqtt publish fail %d", rc);
+                break;
+            }
+    #if !defined(MQTT_TASK)
+    		if ((rc = MQTTYield(&mqttClient, 1000)) != 0)
+            {
+    			LUAT_DEBUG_PRINT("cloud_speaker_mqtt Return code from yield is %d\n", rc);
+                break;
+            }
+    #endif
+            luat_rtos_task_sleep(60000);
+        }
+        luat_rtos_task_delete(mqtt_task_handle);
     }
-    luat_rtos_task_delete(mqtt_task_handle);
 }
 
 
-
+static void task_init(void){
+    luat_mobile_event_register_handler(mobile_event_cb);
+}
 
 static void mqttclient_task_init(void){
     int result = luat_rtos_task_create(&mqtt_task_handle, 4096, 20, "mqtt", mqtt_demo, NULL, NULL);
@@ -564,6 +635,8 @@ extern void charge_task_init(void);
 extern void usb_uart_init(void);
 extern void fdb_init(void);
 
+
+INIT_HW_EXPORT(task_init, "1");
 INIT_DRV_EXPORT(fdb_init, "2");
 INIT_TASK_EXPORT(mqttclient_task_init, "2");
 INIT_TASK_EXPORT(audio_task_init, "2");
