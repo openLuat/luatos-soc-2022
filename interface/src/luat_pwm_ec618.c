@@ -67,18 +67,21 @@ PLAT_PA_RAMCODE volatile static void Timer_ISR()
     volatile static int i = 0;
     for(i = 0;i < 6;i++)
     {
-         if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
-         {
-            TIMER_clearInterruptFlags(i, TIMER_MATCH2_INTERRUPT_FLAG);
-            update[i] ++;
-            if (update[i] >= g_s_pnum_set[i])
+        if(0 != g_s_pnum_set[i])
+        {
+            if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
             {
-                TIMER_stop(i);
-                update[i] = 0;
-                //TIMER_updatePwmDutyCycle(i,0);
-                //LUAT_DEBUG_PRINT("PWM STOP %d",update[i]);
+                TIMER_clearInterruptFlags(i, TIMER_MATCH2_INTERRUPT_FLAG);
+                update[i]++;
+                if (update[i] >= g_s_pnum_set[i])
+                {
+                    TIMER_stop(i);
+                    update[i] = 0;
+                    //TIMER_updatePwmDutyCycle(i,0);
+                    //LUAT_DEBUG_PRINT("PWM STOP %d",update[i]);
+                }
             }
-        }
+        } 
     }
 }
 
