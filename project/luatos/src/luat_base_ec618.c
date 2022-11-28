@@ -55,7 +55,8 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_NETWORK
   {"socket", luaopen_socket_adapter},
   {"mqtt", luaopen_mqtt},
-  {"http2", luaopen_http},
+  {"http", luaopen_http},
+  {"http2", luaopen_http2},
 #endif
 #ifdef LUAT_USE_WLAN
   {"wlan", luaopen_wlan},
