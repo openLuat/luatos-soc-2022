@@ -128,6 +128,10 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/network/libhttp")
     add_files(LUATOS_ROOT.."components/network/libhttp/luat_lib_http.c")
 
+    -- http_parser
+    add_includedirs(LUATOS_ROOT.."components/network/http_parser")
+    add_files(LUATOS_ROOT.."components/network/libhttp/*.c")
+
     -- iotauth
     add_files(LUATOS_ROOT.."components/iotauth/luat_lib_iotauth.c")
 
