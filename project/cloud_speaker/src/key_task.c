@@ -84,7 +84,10 @@ void gpio_cb(int num)
             luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
         }
     }
-    else if (HAL_GPIO_22 == num)
+
+    // 新的开发板如果不接电池只插usb，这个中断会一直触发
+    
+   /*  else if (HAL_GPIO_22 == num)
     {
         if (0 == luat_gpio_get(HAL_GPIO_22))
         {
@@ -96,7 +99,7 @@ void gpio_cb(int num)
             uint8_t id = CHARGE_END_MESSAGE;
             luat_rtos_queue_send(key_queue_handle, &id, NULL, 0);
         }
-    }
+    } */
 }
 
 static void key_task(void *param)
@@ -321,9 +324,10 @@ void key_task_init(void)
     gpio_cfg.pin = HAL_GPIO_21;
     luat_gpio_open(&gpio_cfg);
 
-    gpio_cfg.irq_type = LUAT_GPIO_BOTH_IRQ;
+// 新的开发板如果不接电池只插usb，这个中断会一直触发
+/*     gpio_cfg.irq_type = LUAT_GPIO_BOTH_IRQ;
     gpio_cfg.pin = HAL_GPIO_22;
-    luat_gpio_open(&gpio_cfg);
+    luat_gpio_open(&gpio_cfg); */
 
     luat_pm_wakeup_pad_set_callback(down_key_callback);
     luat_pm_wakeup_pad_cfg_t cfg = {0};
