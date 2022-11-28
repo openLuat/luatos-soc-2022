@@ -58,12 +58,7 @@ static void mqtt_demo(void){
     connectData.keepAliveInterval = 120;
 
     
-    //mqtts的话自行配置Network,详情查看Network结构体
-    // n.isMqtts = TRUE;
-    // n.timeout_r = 20;
-    // n.seclevel = 1;
-    // n.ciphersuite[0] = 0xFFFF;
-    // n.ignore = 1;
+    //mqtts demo 参考mqtts_client_main
 
     while(1)
     {
@@ -107,6 +102,7 @@ static void mqtt_demo(void){
 
 static void mqttclient_task_init(void)
 {
+	LUAT_DEBUG_PRINT("This mqtt demo");
 	luat_rtos_task_handle mqttclient_task_handle;
 	luat_rtos_task_create(&mqttclient_task_handle, 4096, 20, "mqttclient", mqtt_demo, NULL, NULL);
 }

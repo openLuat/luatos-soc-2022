@@ -17,8 +17,10 @@ target(TARGET_NAME)
 
     --加入自己代码和头文件
     add_includedirs("./inc",{public = true})
-    add_files("./src/*.c",{public = true})
-
+	-- MQTT demo
+    add_files("./src/mqttclient_main.c",{public = true})
+	-- MQTTS demo
+	--add_files("./src/mqtts_client_main.c",{public = true})
     --可以继续增加add_includedirs和add_files
 
     --自动链接
