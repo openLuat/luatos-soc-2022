@@ -193,6 +193,9 @@ extern unsigned int g_lvgl_flash_time;
 #define LUAT_USE_LWIP 1
 #define LUAT_USE_DNS 1
 
+//目前没用到的宏，但是得写在这里
+//#define LUAT_USE_MOBILE
+
 #define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - 208 * 1024)
 #define LUA_SCRIPT_OTA_ADDR (FLASH_FOTA_REGION_START - 80 * 1024)
 #endif

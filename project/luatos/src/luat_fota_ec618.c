@@ -174,7 +174,9 @@ REPEAT:
 				if (g_s_fota.p_fota_file_head->SDKDataLen)
 				{
 					g_s_fota.ota_state = OTA_STATE_WRITE_SDK_DATA;
+					g_s_fota.ota_done_len = 0;
 					LLOGI("write core data");
+					goto REPEAT;
 				}
 				else
 				{
@@ -190,7 +192,7 @@ REPEAT:
 		}
 		break;
 	case OTA_STATE_WRITE_SDK_DATA:
-		save_len = ((g_s_fota.ota_done_len + __FLASH_SECTOR_SIZE__) < (g_s_fota.p_fota_file_head->SDKDataLen))?__FLASH_SECTOR_SIZE__:(g_s_fota.p_fota_file_head->CommonDataLen - g_s_fota.ota_done_len);
+		save_len = ((g_s_fota.ota_done_len + __FLASH_SECTOR_SIZE__) < (g_s_fota.p_fota_file_head->SDKDataLen))?__FLASH_SECTOR_SIZE__:(g_s_fota.p_fota_file_head->SDKDataLen - g_s_fota.ota_done_len);
 		if (g_s_fota.data_buffer.Pos >= save_len)
 		{
 			BSP_QSPI_Erase_Safe(__SOC_OTA_SDK_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len, __FLASH_SECTOR_SIZE__);
@@ -224,6 +226,7 @@ REPEAT:
 				if(!chkBase.isMatched)
 				{
 					LLOGI("however, base fw is unmatched!");
+					fotaNvmClearDelta(0, 4096);
 					g_s_fota.ota_state = OTA_STATE_IDLE;
 					g_s_fota.data_buffer.Pos = 0;
 					return -1;
