@@ -49,7 +49,7 @@
 
 static signed char if_initialized_timer(const int channel)
 {
-   if( 0 != EIGEN_TIMER(channel)->TCTLR )
+   if( 0 != EIGEN_TIMER(channel)->TCCR )
     {
 
         return -1;
@@ -58,25 +58,27 @@ static signed char if_initialized_timer(const int channel)
     return 0;
 }
 
-/*设置PWM脉冲个数*/
-static int g_s_pnum_set[6] = {0};
+
+static int g_s_pnum_set[6] = {0}; /*设置PWM脉冲个数*/
+volatile static int g_s_pnum_update[6] = {0};/*当前PWM个数*/
 
 PLAT_PA_RAMCODE volatile static void Timer_ISR()
 {
-    volatile static int update[6] = {0};/*当前PWM个数*/
+
     volatile static int i = 0;
+
     for(i = 0;i < 6;i++)
     {
         if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
         {
             TIMER_clearInterruptFlags(i, TIMER_MATCH2_INTERRUPT_FLAG);
-            update[i]++;
-            if (update[i] >= g_s_pnum_set[i])
+
+            if (g_s_pnum_update[i]++ >= g_s_pnum_set[i])
             {
                 TIMER_stop(i);
-                update[i] = 0;
+                //LUAT_DEBUG_PRINT("PWM STOP %d",g_s_pnum_update[i]);
+                g_s_pnum_update[i] = 0;
                 //TIMER_updatePwmDutyCycle(i,0);
-                //LUAT_DEBUG_PRINT("PWM STOP %d",update[i]);
             }
         }
     }
@@ -221,6 +223,10 @@ int luat_pwm_capture(int channel,int freq)
 int luat_pwm_close(int channel)
 {
     TIMER_stop(channel);
+
+    /*主动关闭PWM输出时，将PWM输出个数置零*/
+    g_s_pnum_update[channel] = 0; 
+
     return 0;
 }
 
