@@ -130,7 +130,7 @@ target(TARGET_NAME)
 
     -- http_parser
     add_includedirs(LUATOS_ROOT.."components/network/http_parser")
-    add_files(LUATOS_ROOT.."components/network/libhttp/*.c")
+    add_files(LUATOS_ROOT.."components/network/http_parser/*.c")
 
     -- websocket
     add_includedirs(LUATOS_ROOT.."components/network/websocket")
