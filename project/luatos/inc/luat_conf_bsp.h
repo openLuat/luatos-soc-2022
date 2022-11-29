@@ -53,7 +53,7 @@
 #define LUAT_USE_SFUD  1
 // #define LUAT_USE_STATEM 1
 // 性能测试
-#define LUAT_USE_COREMARK 1
+//#define LUAT_USE_COREMARK 1
 #define LUAT_USE_IR 1
 // FDB 提供kv数据库, 与nvm库类似
 #define LUAT_USE_FDB 1
@@ -80,7 +80,7 @@
 
 //----------------------------
 // 高级功能, 其中shell是推荐启用, 除非你打算uart0也读数据
-#define LUAT_USE_SHELL 1
+// #define LUAT_USE_SHELL 1
 // #define LUAT_USE_DBG
 // 多虚拟机支持,实验性,一般不启用
 // #define LUAT_USE_VMX 1
@@ -107,8 +107,8 @@
 /**********U8G2&LCD&EINK FONT*************/
 #define USE_U8G2_OPPOSANSM_ENGLISH 1
 // #define USE_U8G2_OPPOSANSM8_CHINESE
-#define USE_U8G2_OPPOSANSM10_CHINESE
-#define USE_U8G2_OPPOSANSM12_CHINESE
+// #define USE_U8G2_OPPOSANSM10_CHINESE
+// #define USE_U8G2_OPPOSANSM12_CHINESE
 // #define USE_U8G2_OPPOSANSM16_CHINESE
 // #define USE_U8G2_OPPOSANSM24_CHINESE
 // #define USE_U8G2_OPPOSANSM32_CHINESE
@@ -118,7 +118,7 @@
 // #define LV_FONT_OPPOSANS_M_12
 // #define LV_FONT_OPPOSANS_M_16
 
-
+#define LUAT_USE_MEDIA    1
 //---------------------
 // LVGL
 // 主推的UI库, 功能强大但API繁琐
@@ -196,6 +196,6 @@ extern unsigned int g_lvgl_flash_time;
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_MOBILE
 
-#define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - 208 * 1024)
-#define LUA_SCRIPT_OTA_ADDR (FLASH_FOTA_REGION_START - 80 * 1024)
+#define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - 732 * 1024)
+#define LUA_SCRIPT_OTA_ADDR (FLASH_FOTA_REGION_START - 284 * 1024)
 #endif

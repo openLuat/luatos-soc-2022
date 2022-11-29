@@ -154,6 +154,9 @@ static void luatos_task(void *param)
 	registerPSEventCallback(PS_GROUP_PS_MASK, ps_callback);
 	luat_heap_init();
 	luat_main_print_model();
+#ifdef LUAT_USE_MEDIA
+	luat_audio_global_init();
+#endif
 //	set_usb_serial_input_callback(dft_usb_recv_cb);
 	//DBG("LuatOS starting ...");
 

@@ -13,7 +13,7 @@
         "fs" : {
             "script" : {
                 "offset" : "0",
-                "size" : 128,
+                "size" : 448,
 				"type": "luadb"
             }
         },
@@ -48,7 +48,7 @@
 		"partition_addr" : "00008000",
 		"core_addr" : "00024000",
 		"app_addr" : "00000000",
-		"script_addr" : "002D0000",
+		"script_addr" : "0024D000",
 		"nvm_addr" : "00000000",
 		"fs_addr" : "003B0000",
 		"force_br" : "1152000",
@@ -60,6 +60,6 @@
         "core_type" : "diff",
         "ap_type" : "diff",
         "cp_type" : "diff",
-        "full_addr" : "002F0000"
+        "full_addr" : "002BD000"
     }
 }
