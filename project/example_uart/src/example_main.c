@@ -24,13 +24,15 @@
 
 #include "luat_uart.h"
 
+#define UART_ID 0
+
 static luat_rtos_task_handle uart_task_handle;
 
-void luat_uart_send_cb(int uart_id, uint32_t data_len){
+void luat_uart_recv_cb(int uart_id, uint32_t data_len){
     char* data_buff = malloc(data_len+1);
     memset(data_buff,0,data_len+1);
     luat_uart_read(uart_id, data_buff, data_len);
-    LUAT_DEBUG_PRINT("luat_uart_cb uart_id:%d data:%s data_len:%d",uart_id,data_buff,data_len);
+    LUAT_DEBUG_PRINT("uart_id:%d data:%s data_len:%d",uart_id,data_buff,data_len);
     free(data_buff);
 }
 
@@ -38,7 +40,7 @@ static void task_test_uart(void *param)
 {
     char send_buff[] = "hello LUAT!!!\n";
     luat_uart_t uart = {
-        .id = 1,
+        .id = UART_ID,
         .baud_rate = 115200,
         .data_bits = 8,
         .stop_bits = 1,
@@ -47,12 +49,12 @@ static void task_test_uart(void *param)
 
     luat_uart_setup(&uart);
 
-    luat_uart_ctrl(1, LUAT_UART_SET_RECV_CALLBACK, luat_uart_send_cb);
+    luat_uart_ctrl(UART_ID, LUAT_UART_SET_RECV_CALLBACK, luat_uart_recv_cb);
 
     while (1)
     {
         luat_rtos_task_sleep(1000);
-        luat_uart_write(1, send_buff, strlen(send_buff)+1);
+        luat_uart_write(UART_ID, send_buff, strlen(send_buff));
     }
     delete_event_task(&uart_task_handle);
 }
