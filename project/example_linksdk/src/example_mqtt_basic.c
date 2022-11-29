@@ -156,7 +156,7 @@ void *demo_mqtt_process_thread(void *args)
         if (res == STATE_USER_INPUT_EXEC_DISABLED) {
             break;
         }
-        luat_rtos_task_sleep(1);
+        luat_rtos_task_sleep(1000);
     }
     luat_rtos_task_delete(g_mqtt_process_thread);
     return NULL;
@@ -292,7 +292,7 @@ int linksdk_mqtt_task(void *param)
 
     /* 主循环进入休眠 */
     while (1) {
-        luat_rtos_task_sleep(1);
+        luat_rtos_task_sleep(1000);
     }
 
     /* 断开MQTT连接, 一般不会运行到这里 */
