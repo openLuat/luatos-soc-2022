@@ -13,7 +13,11 @@ if not "%1"=="" (
 if not "%2"=="" (
 	set LSPD_MODE=%2
 ) ELSE (
-	@echo LSPD_MODE not set
+	if "%1" == "luatos" (
+		set LSPD_MODE=enable
+	) ELSE (
+		@echo LSPD_MODE not set
+	)
 )
 
 @echo PROJECT : %PROJECT_NAME%  
