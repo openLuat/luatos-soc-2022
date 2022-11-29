@@ -86,8 +86,8 @@ int luat_i2c_recv(int id, int addr, void* buff, size_t len);
  * 
  * @param id i2c_id
  * @param addr 7位设备地址
- * @param reg 数据buff
- * @param reg_len 数据长度
+ * @param reg 寄存器地址
+ * @param reg_len 长度
  * @param buff 数据buff
  * @param len 数据长度
  * @return int 

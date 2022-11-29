@@ -24,14 +24,7 @@
 
 #include "luat_base.h"
 
-/**
- * @ingroup luatos_device 外设接口
- * @{
- */
-/**
- * @defgroup luatos_device_i2c i2c接口
- * @{
-*/
+
 
 /**
  * @brief I2C发送数据
@@ -59,6 +52,5 @@ int luat_i2c_read_reg(int id, int addr, int reg, uint16_t* value);
  * @brief 非阻塞I2C收发数据
  */
 int luat_i2c_no_block_transfer(int id, int addr, uint8_t is_read, uint8_t *reg, size_t reg_len, uint8_t *buff, size_t len, uint16_t Toms, void *CB, void *pParam);
-/** @}*/
-/** @}*/
+
 #endif
