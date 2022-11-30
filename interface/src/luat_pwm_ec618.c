@@ -210,7 +210,7 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 
     return 0;
 }
-int luat_pwm_updat_dutycycle(int channel,size_t pulse)
+int luat_pwm_update_dutycycle(int channel,size_t pulse)
 {
     pwmConfig.dutyCyclePercent = pulse;
     TIMER_setupPwm(channel, &pwmConfig);
