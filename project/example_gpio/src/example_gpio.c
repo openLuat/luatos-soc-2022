@@ -131,6 +131,7 @@ void task_gpio_interrupt_run(void)
 	gpio_cfg.pin = LCD_CS_PIN;
 	gpio_cfg.mode = LUAT_GPIO_IRQ;
 	gpio_cfg.irq_type = LUAT_GPIO_BOTH_IRQ;
+	gpio_cfg.pull = LUAT_GPIO_PULLUP;			// 默认配置为上拉
 	gpio_cfg.irq_cb = gpio_irq;	
 	luat_gpio_open(&gpio_cfg);
 
@@ -138,13 +139,14 @@ void task_gpio_interrupt_run(void)
 	luat_gpio_set_default_cfg(&gpio_cfg);
 	gpio_cfg.pin = LCD_RS_PIN;
 	luat_gpio_open(&gpio_cfg);
+
 	while(1)
 	{
 		luat_gpio_set(LCD_RS_PIN, 1);
-		LUAT_DEBUG_PRINT("LCD_RS output 1, LCD_CS input %d",luat_gpio_get(LCD_CS_PIN));
+		LUAT_DEBUG_PRINT("LCD_RS output %d, LCD_CS input %d",luat_gpio_get(LCD_RS_PIN), luat_gpio_get(LCD_CS_PIN));
 		luat_rtos_task_sleep(1000);
 		luat_gpio_set(LCD_RS_PIN, 0);
-		LUAT_DEBUG_PRINT("LCD_RS output 0, LCD_CS input %d",luat_gpio_get(LCD_CS_PIN));
+		LUAT_DEBUG_PRINT("LCD_RS output %d, LCD_CS input %d",luat_gpio_get(LCD_RS_PIN), luat_gpio_get(LCD_CS_PIN));
 		luat_rtos_task_sleep(1000);
 	}	
 
@@ -155,6 +157,7 @@ void task_gpio_interrupt_init(void)
 	luat_rtos_task_handle task_gpio_interrupt_handle;
 	luat_rtos_task_create(&task_gpio_interrupt_handle, 4 * 1204, 50, "gpio_interrupt_test", task_gpio_interrupt_run, NULL, 32);
 }
+
 
 INIT_TASK_EXPORT(task_gpio_output_init, "0");
 INIT_TASK_EXPORT(task_gpio_input_init, "1");
