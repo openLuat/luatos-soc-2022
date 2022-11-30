@@ -229,7 +229,7 @@ int luat_pwm_capture(int channel,int freq)
 
 int luat_pwm_close(int channel)
 {
-    luat_pwm_updat_dutycycle(channel,0);
+    luat_pwm_update_dutycycle(channel,0);
     luat_rtos_task_sleep(1);
     TIMER_stop(channel);
 
