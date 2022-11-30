@@ -114,6 +114,25 @@ static void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t cha
 	}
 }
 
+HANDLE soc_audio_fopen(const char *fname, const char *mode)
+{
+	return luat_fs_fopen(fname, mode);
+}
+
+int soc_audio_fread(void *buffer, uint32_t size, uint32_t num, void *fp)
+{
+	return luat_fs_fread(buffer, size, num, fp);
+}
+
+int soc_audio_fseek(void *fp, long offset, int origin)
+{
+	return luat_fs_fseek(fp, offset, origin);
+}
+
+int soc_audio_fclose(void *fp)
+{
+	return luat_fs_fclose(fp);
+}
 
 void luat_audio_global_init(void)
 {
