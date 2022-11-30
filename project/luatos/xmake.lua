@@ -161,7 +161,7 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/wlan/**.c")
     -- audio
     add_includedirs(LUATOS_ROOT.."components/multimedia/")
-    add_includedirs(LUATOS_ROOT.."components/multimedia/mp3_decode/include")
+    add_includedirs(LUATOS_ROOT.."components/multimedia/mp3_decode")
     add_includedirs(LUATOS_ROOT.."components/multimedia/amr_decode/amr_common/dec/include")
     add_includedirs(LUATOS_ROOT.."components/multimedia/amr_decode/amr_nb/common/include")
     add_includedirs(LUATOS_ROOT.."components/multimedia/amr_decode/amr_nb/dec/include")
