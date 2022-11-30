@@ -34,7 +34,7 @@ static void task_test_pwm(void *param)
     /*注意：若需要使用设置PWM个数时，PWM频率不宜高于50K*/
     /*      若高于50K可能会多出几个个数的现象*/
 
-    /*int luat_pwm_updat_dutycycle(int channel,size_t pulse);函数使用方法*/
+    /*int luat_pwm_update_dutycycle(int channel,size_t pulse);函数使用方法*/
     /*此函数为修改PWM占空比函数，可在完成配置并打开PWM输出后，根据使用者需求改变PWM输出占空比*/
     /*可用于whiile 循环中，int channel 参数为要修改的PWM通道，size_t pulse 参数为将要输出的目标占空比*/
     /*使用者根据自身使用需求填入相应参数数值即可*/
