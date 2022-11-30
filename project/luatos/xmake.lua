@@ -156,6 +156,11 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/lora/**.c")
 
     
+    -- fonts
+    add_includedirs(LUATOS_ROOT.."components/luatfonts")
+    add_files(LUATOS_ROOT.."components/luatfonts/**.c")
+
+    
     -- wlan
     add_includedirs(LUATOS_ROOT.."components/wlan")
     add_files(LUATOS_ROOT.."components/wlan/**.c")
