@@ -72,13 +72,15 @@ PLAT_PA_RAMCODE volatile static void Timer_ISR()
         if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
         {
             TIMER_clearInterruptFlags(i, TIMER_MATCH2_INTERRUPT_FLAG);
-
-            if (g_s_pnum_update[i]++ >= g_s_pnum_set[i])
+            g_s_pnum_update[i]++;
+            if (g_s_pnum_update[i] >= g_s_pnum_set[i])
             {
+                //luat_pwm_close(i);
+                TIMER_updatePwmDutyCycle(i,0);
+                //luat_pwm_updat_dutycycle(i,0);
                 TIMER_stop(i);
                 //LUAT_DEBUG_PRINT("PWM STOP %d",g_s_pnum_update[i]);
                 g_s_pnum_update[i] = 0;
-                //TIMER_updatePwmDutyCycle(i,0);
             }
         }
     }
@@ -86,15 +88,14 @@ PLAT_PA_RAMCODE volatile static void Timer_ISR()
 
 /*最高频率应是26M*/ 
 #define MAX_FREQ (26*1000*1000)
+TimerPwmConfig_t pwmConfig = {0};
 
 int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 
-    TimerConfig_t timerConfig;
     unsigned int clockId,clockId_slect;
     IRQn_Type time_req;
 
     PadConfig_t config = {0};
-    TimerPwmConfig_t pwmConfig = {0};
 
     // LUAT_DEBUG_PRINT("luat_pwm_open channel:%d perio:%d pulse:%d pnum:%d",channel,period,pulse,pnum);
     if ( channel > 5 || channel < 0)
@@ -209,7 +210,13 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 
     return 0;
 }
+int luat_pwm_updat_dutycycle(int channel,size_t pulse)
+{
+    pwmConfig.dutyCyclePercent = pulse;
+    TIMER_setupPwm(channel, &pwmConfig);
 
+    return 0;
+}
 int luat_pwm_setup(luat_pwm_conf_t* conf)
 {
     return luat_pwm_open(conf->channel,conf->period,conf->pulse,conf->pnum);
@@ -222,10 +229,9 @@ int luat_pwm_capture(int channel,int freq)
 
 int luat_pwm_close(int channel)
 {
+    luat_pwm_updat_dutycycle(channel,0);
+    luat_rtos_task_sleep(1);
     TIMER_stop(channel);
-
-    /*主动关闭PWM输出时，将PWM输出个数置零*/
-    g_s_pnum_update[channel] = 0; 
 
     return 0;
 }

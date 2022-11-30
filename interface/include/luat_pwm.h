@@ -83,6 +83,17 @@ int luat_pwm_capture(int channel,int freq);
  * @return int 
  */
 int luat_pwm_close(int channel);
+
+/** 
+ * @brief 修改占空比
+ * @param channel:pwm通道
+ *        pulse  ：修改pwm占空比值
+ * @return int 
+ */
+int luat_pwm_updat_dutycycle(int channel,size_t pulse);
+
+/** @}*/
+
 /** @}*/
 /** @}*/
 #endif
