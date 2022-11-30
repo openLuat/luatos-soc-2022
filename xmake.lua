@@ -338,6 +338,9 @@ target(USER_PROJECT_NAME..".elf")
         else
             FLAGS = ""
         end
+        if USER_PROJECT_NAME == "luatos" then
+            FLAGS = FLAGS .. " -D__LUATOS__"
+        end
         os.exec(GCC_DIR .. "bin/arm-none-eabi-gcc -E " .. FLAGS .. " -I " .. SDK_PATH .. "/PLAT/device/target/board/ec618_0h00/common/inc" .. " -P " .. SDK_PATH .. "/PLAT/core/ld/ec618_0h00_flash.c" ..  " -o " .. SDK_PATH .. "/PLAT/core/ld/ec618_0h00_flash.ld")
     end)
 	after_build(function(target)

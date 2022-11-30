@@ -9,7 +9,11 @@ MEMORY
 {
   ASMB_AREA(rwx)              : ORIGIN = 0x00000000, LENGTH = 0x010000      /* 64KB */
   MSMB_AREA(rwx)              : ORIGIN = 0x00400000, LENGTH = 0x140000      /* 1.25MB */
-  FLASH_AREA(rx)              : ORIGIN = 0x00824000, LENGTH = 2944K         /* 2.5MB */
+#ifdef __LUATOS__
+  FLASH_AREA(rx)              : ORIGIN = 0x00824000, LENGTH = 2212K         /* 2212K */
+#else
+  FLASH_AREA(rx)              : ORIGIN = 0x00824000, LENGTH = 2944K         /* 2944K */
+#endif
 }
 
 /* Define output sections */
