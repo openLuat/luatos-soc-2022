@@ -30,6 +30,7 @@
 #include "luat_network_adapter.h"
 #include "ps_event_callback.h"
 #include "networkmgr.h"
+#include "driver_gpio.h"
 #ifdef LUAT_USE_LVGL
 #include "lvgl.h"
 #include "luat_lvgl.h"
@@ -185,6 +186,7 @@ void luat_mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t stat
 
 static void luatos_task_init(void)
 {
+	GPIO_GlobalInit(NULL);
 	WDT_deInit();
 	luat_mobile_event_register_handler(luat_mobile_event_cb);
 	luat_mobile_set_period_work(0, 10000, 4);

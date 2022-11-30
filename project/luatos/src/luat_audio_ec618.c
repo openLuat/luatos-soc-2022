@@ -36,6 +36,7 @@ typedef struct
 	uint16_t vol;
 	uint8_t pa_on_level;
 	uint8_t dac_on_level;
+	uint8_t raw_mode;
 }luat_audio_hardware_t;
 
 static luat_audio_hardware_t g_s_audio_hardware;
@@ -56,6 +57,7 @@ static void app_pa_on(uint32_t arg)
 
 static void audio_event_cb(uint32_t event, void *param)
 {
+	//DBG("%d", event);
 	rtos_msg_t msg = {0};
 	switch(event)
 	{
@@ -67,10 +69,14 @@ static void audio_event_cb(uint32_t event, void *param)
 		luat_rtos_timer_start(g_s_audio_hardware.pa_delay_timer, g_s_audio_hardware.pa_delay_time, 0, app_pa_on, NULL);
 		break;
 	case MULTIMEDIA_CB_AUDIO_NEED_DATA:
-		msg.handler = l_multimedia_raw_handler;
-		msg.arg1 = MULTIMEDIA_CB_AUDIO_NEED_DATA;
-		msg.arg2 = (int)param;
-		luat_msgbus_put(&msg, 1);
+		if (g_s_audio_hardware.raw_mode)
+		{
+			msg.handler = l_multimedia_raw_handler;
+			msg.arg1 = MULTIMEDIA_CB_AUDIO_NEED_DATA;
+			msg.arg2 = (int)param;
+			luat_msgbus_put(&msg, 1);
+		}
+
 		break;
 	case MULTIMEDIA_CB_AUDIO_DONE:
 		luat_rtos_timer_stop(g_s_audio_hardware.pa_delay_timer);
@@ -136,7 +142,6 @@ int soc_audio_fclose(void *fp)
 
 void luat_audio_global_init(void)
 {
-	soc_i2s_init();
 	audio_play_global_init_ex(audio_event_cb, audio_data_cb, audio_play_file_default_fun, NULL, NULL);
 	g_s_audio_hardware.dac_delay_len = 6;
 	g_s_audio_hardware.pa_delay_time = 200;
@@ -148,6 +153,7 @@ void luat_audio_global_init(void)
 
 int luat_audio_play_multi_files(uint8_t multimedia_id, uData_t *info, uint32_t files_num, uint8_t error_stop)
 {
+	g_s_audio_hardware.raw_mode = 0;
 	uint32_t i;
 	audio_play_info_t play_info[files_num];
 	for(i = 0; i < files_num; i++)
@@ -167,6 +173,7 @@ int luat_audio_play_multi_files(uint8_t multimedia_id, uData_t *info, uint32_t f
 
 int luat_audio_play_file(uint8_t multimedia_id, const char *path)
 {
+	g_s_audio_hardware.raw_mode = 0;
 	audio_play_info_t play_info[1];
 	play_info[0].path = path;
 	play_info[0].fail_continue = 0;
@@ -201,7 +208,12 @@ int luat_audio_start_raw(uint8_t multimedia_id, uint8_t audio_format, uint8_t nu
 
 int luat_audio_write_raw(uint8_t multimedia_id, uint8_t *data, uint32_t len)
 {
-	return audio_play_write_raw(multimedia_id, data, len);
+	int result = audio_play_write_raw(multimedia_id, data, len);
+	if (!result)
+	{
+		g_s_audio_hardware.raw_mode = 1;
+	}
+	return result;
 }
 
 int luat_audio_stop_raw(uint8_t multimedia_id)
@@ -229,11 +241,10 @@ void luat_audio_config_pa(uint8_t multimedia_id, uint32_t pin, int level, uint32
 void luat_audio_config_dac(uint8_t multimedia_id, int pin, int level)
 {
 	if (pin < 0)
-	{
-		g_s_audio_hardware.dac_pin = HAL_GPIO_12;
+	{	g_s_audio_hardware.dac_pin = HAL_GPIO_12;
 		g_s_audio_hardware.dac_on_level = 1;
-		GPIO_Config(g_s_audio_hardware.dac_pin, 0, 0);
 		GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_audio_hardware.dac_pin, 4), 4, 0, 0);
+		GPIO_Config(g_s_audio_hardware.dac_pin, 0, 0);
 	}
 	else
 	{
