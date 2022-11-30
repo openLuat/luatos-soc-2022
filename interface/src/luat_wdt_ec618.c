@@ -21,6 +21,7 @@
 
 #include "wdt.h"
 #include "clock.h"
+#include "slpman.h"
 
 int luat_wdt_setup(size_t timeout)
 {
@@ -55,6 +56,7 @@ int luat_wdt_set_timeout(size_t timeout)
 int luat_wdt_feed(void)
 {
     WDT_kick();
+    slpManAonWdtFeed();
     return 0;
 }
 
