@@ -57,6 +57,7 @@
 #define LCD_RS_PIN HAL_GPIO_10
 #define LCD_CS_PIN HAL_GPIO_8
 
+int interrupt;
 
 //控制NET指示灯闪烁
 static void task_gpio_output_run(void *param)
@@ -118,6 +119,7 @@ void task_gpio_input_init(void)
 
 int gpio_irq(int pin, void* args)
 {
+	interrupt++;
 	LUAT_DEBUG_PRINT("gpio_irq pin:%d, level:%d", pin, luat_gpio_get(pin));
 }
 
@@ -148,6 +150,7 @@ void task_gpio_interrupt_run(void)
 		luat_gpio_set(LCD_RS_PIN, 0);
 		LUAT_DEBUG_PRINT("LCD_RS output %d, LCD_CS input %d",luat_gpio_get(LCD_RS_PIN), luat_gpio_get(LCD_CS_PIN));
 		luat_rtos_task_sleep(1000);
+		LUAT_DEBUG_PRINT("Number of Interrupts %d", interrupt);
 	}	
 
 }
