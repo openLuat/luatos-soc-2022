@@ -86,7 +86,7 @@ void MQTTClientInit(MQTTClient* c, Network* network, unsigned int command_timeou
     c->isconnected = 0;
     c->cleansession = 0;
     c->ping_outstanding = 0;
-    c->defaultMessageHandler = mqttDefMessageArrived;
+    c->defaultMessageHandler = NULL;
       c->next_packetid = 1;
     TimerInit(&c->last_sent);
     TimerInit(&c->last_received);
@@ -476,7 +476,7 @@ void MQTTRun(void* parm)
         MutexLock(&c->mutex);
 #endif
 
-        TimerCountdownMS(&timer, 4000); /* Don't wait too long if no traffic is incoming */
+        TimerCountdownMS(&timer, 8000); /* Don't wait too long if no traffic is incoming */
         int rc = cycle(c, &timer);
         if (rc == -2){
             MQTTCloseSession(c);
