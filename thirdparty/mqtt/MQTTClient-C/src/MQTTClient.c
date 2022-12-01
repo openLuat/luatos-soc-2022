@@ -20,7 +20,7 @@
 #include <stdarg.h>
 #include "commonTypedef.h"
 #include "MQTTClient.h"
-
+// #include "luat_debug.h"
 #include "debug_trace.h"
 #include DEBUG_LOG_HEADER_FILE
 
@@ -476,7 +476,7 @@ void MQTTRun(void* parm)
         MutexLock(&c->mutex);
 #endif
 
-        TimerCountdownMS(&timer, 1500); /* Don't wait too long if no traffic is incoming */
+        TimerCountdownMS(&timer, 4000); /* Don't wait too long if no traffic is incoming */
         int rc = cycle(c, &timer);
         if (rc == -2){
             MQTTCloseSession(c);
@@ -658,7 +658,6 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
     int rc = FAILURE;
     Timer timer;
     int len = 0;
-    int mqttQos = (int)qos;
     MQTTString topic = MQTTString_initializer;
     topic.cstring = (char *)topicFilter;
 
@@ -671,7 +670,7 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
     TimerInit(&timer);
     TimerCountdownMS(&timer, c->command_timeout_ms);
 
-    len = MQTTSerialize_subscribe(c->sendbuf, c->sendbuf_size, 0, getNextPacketId(c), 1, &topic, (int*)&mqttQos);
+    len = MQTTSerialize_subscribe(c->sendbuf, c->sendbuf_size, 0, getNextPacketId(c), 1, &topic, (int*)&qos);
     if (len <= 0)
         goto exit;
     if ((rc = sendPacket(c, len, &timer)) != SUCCESS) // send the subscribe packet
@@ -681,11 +680,10 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
     {
         int count = 0;
         unsigned short mypacketid;
-        //data->grantedQoS = QOS0;
-        mqttQos = QOS0;
-        if (MQTTDeserialize_suback(&mypacketid, 1, &count, (int*)&mqttQos, c->readbuf, c->readbuf_size) == 1)
+        data->grantedQoS = QOS0;
+        if (MQTTDeserialize_suback(&mypacketid, 1, &count, (int*)&data->grantedQoS, c->readbuf, c->readbuf_size) == 1)
         {
-            if (mqttQos != 0x80)
+            if (data->grantedQoS != 0x80)
                 rc = MQTTSetMessageHandler(c, topicFilter, messageHandler);
         }
     }
