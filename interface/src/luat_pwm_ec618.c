@@ -77,7 +77,7 @@ PLAT_PA_RAMCODE volatile static void Timer_ISR()
             {
                 //luat_pwm_close(i);
                 TIMER_updatePwmDutyCycle(i,0);
-                //luat_pwm_updat_dutycycle(i,0);
+                //luat_pwm_update_dutycycle(i,0);
                 TIMER_stop(i);
                 //LUAT_DEBUG_PRINT("PWM STOP %d",g_s_pnum_update[i]);
                 g_s_pnum_update[i] = 0;
