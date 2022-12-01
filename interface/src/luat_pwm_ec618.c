@@ -77,7 +77,7 @@ PLAT_PA_RAMCODE volatile static void Timer_ISR()
             {
                 //luat_pwm_close(i);
                 TIMER_updatePwmDutyCycle(i,0);
-                //luat_pwm_updat_dutycycle(i,0);
+                //luat_pwm_update_dutycycle(i,0);
                 TIMER_stop(i);
                 //LUAT_DEBUG_PRINT("PWM STOP %d",g_s_pnum_update[i]);
                 g_s_pnum_update[i] = 0;
@@ -229,7 +229,7 @@ int luat_pwm_capture(int channel,int freq)
 
 int luat_pwm_close(int channel)
 {
-    luat_pwm_updat_dutycycle(channel,0);
+    luat_pwm_update_dutycycle(channel,0);
     luat_rtos_task_sleep(1);
     TIMER_stop(channel);
 
