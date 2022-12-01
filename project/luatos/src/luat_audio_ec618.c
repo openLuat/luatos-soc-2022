@@ -158,17 +158,10 @@ int luat_audio_play_multi_files(uint8_t multimedia_id, uData_t *info, uint32_t f
 	audio_play_info_t play_info[files_num];
 	for(i = 0; i < files_num; i++)
 	{
-		play_info[i].path = luat_heap_calloc(1, info[i].value.asBuffer.length + 1);
-		memcpy(play_info[i].path, info[i].value.asBuffer.buffer, info[i].value.asBuffer.length);
-		play_info[i].fail_continue = !error_stop;
+		play_info[i].path = info[i].value.asBuffer.buffer;
 		play_info[i].address = 0;
 	}
-	int result = audio_play_multi_files(multimedia_id, play_info, files_num);
-	for(i = 0; i < files_num; i++)
-	{
-		luat_heap_free(play_info[i].path);
-	}
-	return result;
+	return audio_play_multi_files(multimedia_id, play_info, files_num);
 }
 
 int luat_audio_play_file(uint8_t multimedia_id, const char *path)
