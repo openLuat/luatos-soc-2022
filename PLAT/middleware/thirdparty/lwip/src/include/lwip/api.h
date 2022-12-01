@@ -284,6 +284,9 @@ struct netconn {
 #endif /* LWIP_TCP */
   /** A callback function that is informed about events for this netconn */
   netconn_callback callback;
+/*+\add\rww\2022.9.7\适配ats socket*/
+  netconn_callback callback0;
+/*-\add\rww\2022.9.7\适配ats socket*/
 };
 
 /** Register an Network connection event */
