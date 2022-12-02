@@ -112,7 +112,9 @@ typedef enum _SIG_EPAT_cmsSigId_Enum
     SIG_CUSTOMER_REQ,
     SIG_CUSTOMER_CNF,
     SIG_CUSTOMER_IND,
-
+#ifdef __USER_CODE__
+	SIG_CUSTOMER_LOG,
+#endif
     CUSTOMER_SIGNAL_END = 0x09FF
 
 }cmsSigId;
