@@ -86,12 +86,6 @@ static void mqtt_demo(void){
 				LUAT_DEBUG_PRINT("MQTTPublish %d\n", rc);
 				break;
 			}
-    #if !defined(MQTT_TASK)
-            if ((rc = MQTTYield(&mqttClient, 1000)) != 0){
-				LUAT_DEBUG_PRINT("mqtt_demo Return code from yield is %d\n", rc);
-				break;
-			}
-    #endif
             luat_rtos_task_sleep(5000);
         }
     }

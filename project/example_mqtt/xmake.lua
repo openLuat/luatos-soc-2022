@@ -20,7 +20,7 @@ target(TARGET_NAME)
 	-- MQTT demo
     add_files("./src/mqttclient_main.c",{public = true})
 	-- MQTTS demo
-	--add_files("./src/mqtts_client_main.c",{public = true})
+	-- add_files("./src/mqtts_client_main.c",{public = true})
     --可以继续增加add_includedirs和add_files
 
     --自动链接

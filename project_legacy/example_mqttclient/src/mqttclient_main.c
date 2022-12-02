@@ -155,10 +155,6 @@ static void mqtt_demo(void){
         message.payloadlen = len;
         DBG("mqtt_demo send data");
         MQTTPublish(&mqttClient, mqtt_pub_topic, &message);
-#if !defined(MQTT_TASK)
-		if ((rc = MQTTYield(&mqttClient, 1000)) != 0)
-			DBG("mqtt_demo Return code from yield is %d\n", rc);
-#endif
         osDelay(5000);
     }
 }
