@@ -202,6 +202,12 @@ int socket_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
             recvLen = rc;
             break;
         }
+        else{
+            int mErr = sock_get_errno(n->my_socket);
+            if(socket_error_is_fatal(mErr)==1){
+                return -2;
+            }//maybe closed or reset by peer
+        }
     } while (recvLen < len && xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) == pdFALSE);
 
     return recvLen;
@@ -558,8 +564,9 @@ int NetworkConnect(Network* n, char* addr, int port){
     else
         return socket_connect(n, addr);
 }
-
+#include "luat_wdt.h"
 int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms){
+    luat_wdt_feed();
     if (n->isMqtts)
         return socket_ssl_read(n, buffer, len, timeout_ms);
     else
