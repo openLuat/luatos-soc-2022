@@ -154,3 +154,10 @@ int luat_i2c_recv(int id, int addr, void* buff, size_t len) {
     
 }
 
+int luat_i2c_transfer(int id, int addr, uint8_t *reg, size_t reg_len, uint8_t *buff, size_t len)
+{
+    int result;
+    result = luat_i2c_send(id, addr, reg, reg_len, 0);
+    if (result != 0) return-1;
+    return luat_i2c_recv(id, addr, buff, len);
+}
