@@ -137,8 +137,8 @@ int gpio_irq(int pin, void* args)
 		both_interrupt_cnt++;
 	}	
 	
-	//注意：中断服务程序中的LUAT_DEBUG_PRINT日志输出只可以通过EPAT工具查看，不能通过Luatools查看
-	LUAT_DEBUG_PRINT("pin:%d, level:%d", pin, luat_gpio_get(pin));
+	//注意：中断服务程序中的一行LUAT_DEBUG_PRINT日志，如果通过Luatools查看，最多仅支持64字节
+	LUAT_DEBUG_PRINT("pin:%d, level:%d,", pin, luat_gpio_get(pin));
 }
 
 //GPIO单边沿中断测试
