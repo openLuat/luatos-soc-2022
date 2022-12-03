@@ -48,16 +48,24 @@
    (5). charge pad；
    (6). rtc；
    详情参考example_pm的说明。
+
+4、所有IO都支持中断：
+   GPIO20、GPIO21、GPIO22三个IO支持同时配置为双边沿中断或者同时配置为高低电平中断；
+
+   其余GPIO仅支持单边沿、单电平中断；如果这些GPIO配置了双边沿或者双电平中断，则会被系统自动调整配置为上升沿或者高电平中断；
+   所以为了防止被系统自动调整配置，其余的这些GPIO，使用中断时仅配置为单边沿或者单电平中断。
 */
 
 //本example基于EVB_Air780E_V1.5硬件
 
 #define NET_LED_PIN HAL_GPIO_27
 #define LCD_RST_PIN HAL_GPIO_1
+
 #define LCD_RS_PIN HAL_GPIO_10
 #define LCD_CS_PIN HAL_GPIO_8
 
-int interrupt;
+#define DTR_PIN HAL_GPIO_22
+#define LCD_DATA_PIN HAL_GPIO_9
 
 //控制NET指示灯闪烁
 static void task_gpio_output_run(void *param)
@@ -116,15 +124,25 @@ void task_gpio_input_init(void)
 	luat_rtos_task_create(&task_gpio_input_handle, 4 * 1204, 50, "gpio_input_test", task_gpio_input_run, NULL, 32);
 }
 
-
+int single_interrupt_cnt = 0;
+int both_interrupt_cnt = 0;
 int gpio_irq(int pin, void* args)
 {
-	interrupt++;
-	LUAT_DEBUG_PRINT("gpio_irq pin:%d, level:%d", pin, luat_gpio_get(pin));
+	if (pin == LCD_CS_PIN)
+	{
+		single_interrupt_cnt++;
+	}
+	else if (pin == DTR_PIN)
+	{
+		both_interrupt_cnt++;
+	}	
+	
+	//注意：中断服务程序中的LUAT_DEBUG_PRINT日志输出只可以通过EPAT工具查看，不能通过Luatools查看
+	LUAT_DEBUG_PRINT("pin:%d, level:%d", pin, luat_gpio_get(pin));
 }
 
-//GPIO中断测试还有问题，待下个版本解决
-void task_gpio_interrupt_run(void)
+//GPIO单边沿中断测试
+void task_gpio_single_interrupt_run(void)
 {
 	luat_gpio_cfg_t gpio_cfg;
 
@@ -132,8 +150,14 @@ void task_gpio_interrupt_run(void)
 	luat_gpio_set_default_cfg(&gpio_cfg);
 	gpio_cfg.pin = LCD_CS_PIN;
 	gpio_cfg.mode = LUAT_GPIO_IRQ;
-	gpio_cfg.irq_type = LUAT_GPIO_BOTH_IRQ;
-	gpio_cfg.pull = LUAT_GPIO_PULLUP;			// 默认配置为上拉
+
+	//LCD_CS_PIN引脚仅支持单边沿或者单电平类型的中断；
+	//所以此处只能配置为LUAT_GPIO_RISING_IRQ、LUAT_GPIO_FALLING_IRQ、LUAT_GPIO_HIGH_IRQ、LUAT_GPIO_LOW_IRQ、
+	//不要配置为LUAT_GPIO_BOTH_IRQ，因为配置为LUAT_GPIO_BOTH_IRQ会被系统自动修改为LUAT_GPIO_RISING_IRQ；
+	//当前版本还不支持LUAT_GPIO_HIGH_IRQ、LUAT_GPIO_LOW_IRQ电平类型中断的配置，会死机，正在解决中......
+	gpio_cfg.irq_type = LUAT_GPIO_RISING_IRQ; 
+
+	gpio_cfg.pull = LUAT_GPIO_PULLUP;
 	gpio_cfg.irq_cb = gpio_irq;	
 	luat_gpio_open(&gpio_cfg);
 
@@ -147,21 +171,69 @@ void task_gpio_interrupt_run(void)
 		luat_gpio_set(LCD_RS_PIN, 1);
 		LUAT_DEBUG_PRINT("LCD_RS output %d, LCD_CS input %d",luat_gpio_get(LCD_RS_PIN), luat_gpio_get(LCD_CS_PIN));
 		luat_rtos_task_sleep(1000);
+		LUAT_DEBUG_PRINT("after high input, number of single interrupts %d", single_interrupt_cnt);
+
 		luat_gpio_set(LCD_RS_PIN, 0);
 		LUAT_DEBUG_PRINT("LCD_RS output %d, LCD_CS input %d",luat_gpio_get(LCD_RS_PIN), luat_gpio_get(LCD_CS_PIN));
 		luat_rtos_task_sleep(1000);
-		LUAT_DEBUG_PRINT("Number of Interrupts %d", interrupt);
+		LUAT_DEBUG_PRINT("after low input, number of single interrupts %d", single_interrupt_cnt);		
 	}	
 
 }
 
-void task_gpio_interrupt_init(void)
+void task_gpio_single_interrupt_init(void)
 {
-	luat_rtos_task_handle task_gpio_interrupt_handle;
-	luat_rtos_task_create(&task_gpio_interrupt_handle, 4 * 1204, 50, "gpio_interrupt_test", task_gpio_interrupt_run, NULL, 32);
+	luat_rtos_task_handle task_gpio_single_interrupt_handle;
+	luat_rtos_task_create(&task_gpio_single_interrupt_handle, 4 * 1204, 50, "gpio_single_interrupt_test", task_gpio_single_interrupt_run, NULL, 32);
+}
+
+
+//GPIO双边沿中断测试
+void task_gpio_both_interrupt_run(void)
+{
+	luat_gpio_cfg_t gpio_cfg;
+
+	//配置DTR为中断引脚
+	luat_gpio_set_default_cfg(&gpio_cfg);
+	gpio_cfg.pin = DTR_PIN;
+	gpio_cfg.mode = LUAT_GPIO_IRQ;
+
+	//DTR_PIN引脚支持双边沿或者高低电平类型的中断；
+	//所以此处可以配置为LUAT_GPIO_BOTH_IRQ、LUAT_GPIO_RISING_IRQ、LUAT_GPIO_FALLING_IRQ、LUAT_GPIO_HIGH_IRQ、LUAT_GPIO_LOW_IRQ、
+	gpio_cfg.irq_type = LUAT_GPIO_BOTH_IRQ; 
+
+	gpio_cfg.pull = LUAT_GPIO_PULLUP;
+	gpio_cfg.irq_cb = gpio_irq;	
+	luat_gpio_open(&gpio_cfg);
+
+	//配置LCD_DATA_PIN为输出引脚
+	luat_gpio_set_default_cfg(&gpio_cfg);
+	gpio_cfg.pin = LCD_DATA_PIN;
+	luat_gpio_open(&gpio_cfg);
+
+	while(1)
+	{
+		luat_gpio_set(LCD_DATA_PIN, 1);
+		LUAT_DEBUG_PRINT("LCD_DATA output %d, DTR input %d",luat_gpio_get(LCD_DATA_PIN), luat_gpio_get(DTR_PIN));
+		luat_rtos_task_sleep(1000);
+		LUAT_DEBUG_PRINT("after high input, number of both interrupts %d", both_interrupt_cnt);
+
+		luat_gpio_set(LCD_DATA_PIN, 0);
+		LUAT_DEBUG_PRINT("LCD_DATA output %d, DTR input %d",luat_gpio_get(LCD_DATA_PIN), luat_gpio_get(DTR_PIN));
+		luat_rtos_task_sleep(1000);
+		LUAT_DEBUG_PRINT("after low input, number of both interrupts %d", both_interrupt_cnt);		
+	}	
+
+}
+
+void task_gpio_both_interrupt_init(void)
+{
+	luat_rtos_task_handle task_gpio_both_interrupt_handle;
+	luat_rtos_task_create(&task_gpio_both_interrupt_handle, 4 * 1204, 50, "gpio_both_interrupt_test", task_gpio_both_interrupt_run, NULL, 32);
 }
 
 
 INIT_TASK_EXPORT(task_gpio_output_init, "0");
 INIT_TASK_EXPORT(task_gpio_input_init, "1");
-INIT_TASK_EXPORT(task_gpio_interrupt_init, "2");
+INIT_TASK_EXPORT(task_gpio_single_interrupt_init, "2");
+INIT_TASK_EXPORT(task_gpio_both_interrupt_init, "3");
