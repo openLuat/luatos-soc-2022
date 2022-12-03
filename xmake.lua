@@ -141,6 +141,10 @@ add_ldflags(" -Wl,--wrap=time ",{force = true})
 add_ldflags("--specs=nano.specs", {force=true})
 add_asflags("-Wl,--cref -Wl,--check-sections -Wl,--gc-sections -lm -Wl,--print-memory-usage -Wl,--wrap=_malloc_r -Wl,--wrap=_free_r -Wl,--wrap=_realloc_r  -mcpu=cortex-m3 -mthumb -DTRACE_LEVEL=5 -DSOFTPACK_VERSION=\"\" -DHAVE_STRUCT_TIMESPEC")
 
+add_defines("sprintf=sprintf_")
+add_defines("snprintf=snprintf_")
+add_defines("vsnprintf=vsnprintf_")
+
 -- ==============================
 -- === includes =====
 
@@ -225,6 +229,7 @@ add_includedirs(
                 SDK_TOP .. "/PLAT/core/multimedia/include",
                 SDK_TOP .. "/PLAT/core/driver/include",
                 SDK_TOP .. "/thirdparty/linksdk",
+                SDK_TOP .. "/thirdparty/printf",
 {public = true})
 
 if USER_PROJECT_NAME ~= 'luatos' then
@@ -299,6 +304,7 @@ target(USER_PROJECT_NAME..".elf")
         add_files(SDK_TOP .. "interface/src/*.c",{public = true})
         add_files(SDK_TOP .. "interface/private_src/*.c",{public = true})
         add_files(SDK_TOP .. "thirdparty/mbedtls/library/*.c",{public = true})
+        add_files(SDK_TOP .. "thirdparty/printf/*.c",{public = true})
     end
 	--driver
 	add_files(SDK_TOP .. "/PLAT/driver/board/ec618_0h00/src/**.c",
