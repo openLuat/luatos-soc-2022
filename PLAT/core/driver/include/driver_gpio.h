@@ -30,7 +30,7 @@ void GPIO_GlobalInit(CBFuncEx_t Fun);
 void GPIO_Config(uint32_t Pin, uint8_t IsInput, uint8_t InitValue);
 
 /**
- * @brief GPIO初始化，并且同步控制上下拉电阻，增强驱动力，同时希望能接解决休眠无法保持电平的问题
+ * @brief GPIO初始化，并且同步控制上下拉电阻，增强驱动力
  *
  * @param Pin Pin序号
  * @param IsInput 是否为输入功能，1是，0否
@@ -50,11 +50,11 @@ void GPIO_ConfigWithPullEC618(uint32_t Pin, uint8_t IsInput, uint8_t InitValue, 
 void GPIO_PullConfig(uint32_t Pad, uint8_t IsPull, uint8_t IsUp);
 
 /**
- * @brief GPIO外部中断初始化
+ * @brief GPIO外部中断初始化，GPIO20~22只有配置成中断时，因为开启了wakeuppad功能，才有了双边沿中断，才有了弱上拉！
  *
  * @param Pin Pin序号
  * @param IsLevel 是否是电平中断，0边沿型，1电平型
- * @param IsRiseHigh 上升沿或者高电平，EC618的大部分GPIO只能单边沿中断，所以上升沿和下降沿同时配置，设置成上升沿。GPIO20~22使用了wakeuppad功能可以实现双边沿触发，但是不能电平触发。
+ * @param IsRiseHigh 上升沿或者高电平，EC618的大部分GPIO只能单边沿中断，所以上升沿和下降沿同时配置，设置成上升沿。GPIO20~22由于和wakeuppad重叠，当前选择实现双边沿触发，舍去了电平中断
  * @param IsFallLow 下降沿或者低电平
  */
 void GPIO_ExtiConfig(uint32_t Pin, uint8_t IsLevel, uint8_t IsRiseHigh, uint8_t IsFallLow);
