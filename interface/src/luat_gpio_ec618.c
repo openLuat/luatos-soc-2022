@@ -114,6 +114,9 @@ int luat_gpio_open(luat_gpio_cfg_t* gpio)
 		is_pullup = 0;
 		break;
     }
+    GPIO_Config(gpio->pin, is_input, gpio->output_level);
+    GPIO_PullConfig(GPIO_ToPadEC618(gpio->pin, gpio->alt_fun), is_pull, is_pullup);
+
     if (LUAT_GPIO_IRQ == gpio->mode)
     {
         if (gpio->irq_cb) {
@@ -151,10 +154,9 @@ int luat_gpio_open(luat_gpio_cfg_t* gpio)
     	GPIO_ExtiConfig(gpio->pin, 0,0,0);
     	GPIO_ExtiSetCB(gpio->pin, NULL, NULL);
     }
-    GPIO_Config(gpio->pin, is_input, gpio->output_level);
-    GPIO_PullConfig(GPIO_ToPadEC618(gpio->pin, gpio->alt_fun), is_pull, is_pullup);
+
     GPIO_IomuxEC618(GPIO_ToPadEC618(gpio->pin, gpio->alt_fun), gpio->alt_fun, 0, 0);
-	return 0;
+    return 0;
 }
 
 int luat_gpio_setup(luat_gpio_t *gpio){
@@ -230,7 +232,8 @@ int luat_gpio_setup(luat_gpio_t *gpio){
 		is_pullup = 0;
 		break;
     }
-
+    GPIO_Config(gpio->pin, is_input, is_pullup);
+    GPIO_PullConfig(GPIO_ToPadEC618(gpio->pin, 0), is_pull, is_pullup);
     if (LUAT_GPIO_IRQ == gpio->mode)
     {
         if (gpio->irq_cb) {
@@ -268,8 +271,7 @@ int luat_gpio_setup(luat_gpio_t *gpio){
     	GPIO_ExtiConfig(gpio->pin, 0,0,0);
     	GPIO_ExtiSetCB(gpio->pin, NULL, NULL);
     }
-    GPIO_Config(gpio->pin, is_input, is_pullup);
-    GPIO_PullConfig(GPIO_ToPadEC618(gpio->pin, 0), is_pull, is_pullup);
+
     GPIO_IomuxEC618(GPIO_ToPadEC618(gpio->pin, 0), 0, 0, 0);
 	return 0;
 }
