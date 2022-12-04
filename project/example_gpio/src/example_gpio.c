@@ -67,6 +67,8 @@
 #define DTR_PIN HAL_GPIO_22
 #define LCD_DATA_PIN HAL_GPIO_9
 
+#define DEMO_IRQ_PIN HAL_GPIO_20
+
 //控制NET指示灯闪烁
 static void task_gpio_output_run(void *param)
 {	
@@ -154,7 +156,6 @@ void task_gpio_single_interrupt_run(void)
 	//LCD_CS_PIN引脚仅支持单边沿或者单电平类型的中断；
 	//所以此处只能配置为LUAT_GPIO_RISING_IRQ、LUAT_GPIO_FALLING_IRQ、LUAT_GPIO_HIGH_IRQ、LUAT_GPIO_LOW_IRQ、
 	//不要配置为LUAT_GPIO_BOTH_IRQ，因为配置为LUAT_GPIO_BOTH_IRQ会被系统自动修改为LUAT_GPIO_RISING_IRQ；
-	//当前版本还不支持LUAT_GPIO_HIGH_IRQ、LUAT_GPIO_LOW_IRQ电平类型中断的配置，会死机，正在解决中......
 	gpio_cfg.irq_type = LUAT_GPIO_RISING_IRQ; 
 
 	gpio_cfg.pull = LUAT_GPIO_PULLUP;
@@ -231,9 +232,53 @@ void task_gpio_both_interrupt_init(void)
 	luat_rtos_task_handle task_gpio_both_interrupt_handle;
 	luat_rtos_task_create(&task_gpio_both_interrupt_handle, 4 * 1204, 50, "gpio_both_interrupt_test", task_gpio_both_interrupt_run, NULL, 32);
 }
+int gpio_level_irq(void *data, void* args)
+{
+	int pin = (int)data;
+	LUAT_DEBUG_PRINT("pin:%d, level:%d,", pin, luat_gpio_get(pin));
+	luat_gpio_ctrl(DEMO_IRQ_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, LUAT_GPIO_NO_IRQ);
+}
+//GPIO电平中断测试
+void task_gpio_level_interrupt_run(void)
+{
+	luat_gpio_cfg_t gpio_cfg;
+
+	//配置HAL_GPIO_20为中断引脚
+	luat_gpio_set_default_cfg(&gpio_cfg);
+	gpio_cfg.pin = DEMO_IRQ_PIN;
+	gpio_cfg.mode = LUAT_GPIO_IRQ;
+
+	//DTR_PIN引脚支持双边沿或者高低电平类型的中断；
+	//所以此处可以配置为LUAT_GPIO_BOTH_IRQ、LUAT_GPIO_RISING_IRQ、LUAT_GPIO_FALLING_IRQ、LUAT_GPIO_HIGH_IRQ、LUAT_GPIO_LOW_IRQ、
+	gpio_cfg.irq_type = LUAT_GPIO_HIGH_IRQ;
+
+	gpio_cfg.pull = LUAT_GPIO_PULLUP;
+	gpio_cfg.irq_cb = gpio_level_irq;
+	luat_gpio_open(&gpio_cfg);
+
+	while(1)
+	{
+		if (!luat_gpio_get(DEMO_IRQ_PIN))
+		{
+			LUAT_DEBUG_PRINT("IO已经低电平，可以再次开启高电平中断");
+			luat_gpio_ctrl(DEMO_IRQ_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, LUAT_GPIO_HIGH_IRQ);
+		}
+		luat_rtos_task_sleep(1000);
+
+	}
+
+}
+
+void task_gpio_level_interrupt_init(void)
+{
+	luat_rtos_task_handle task_gpio_level_interrupt_handle;
+	luat_rtos_task_create(&task_gpio_level_interrupt_handle, 1024, 50, "gpio_level_interrupt_test", task_gpio_level_interrupt_run, NULL, 0);
+}
+
 
 
 INIT_TASK_EXPORT(task_gpio_output_init, "0");
 INIT_TASK_EXPORT(task_gpio_input_init, "1");
 INIT_TASK_EXPORT(task_gpio_single_interrupt_init, "2");
 INIT_TASK_EXPORT(task_gpio_both_interrupt_init, "3");
+INIT_TASK_EXPORT(task_gpio_level_interrupt_init, "4");

@@ -28,10 +28,11 @@ __attribute__((weak)) int luat_gpio_irq_default(int pin, void* args)
 	return 0;
 }
 
-static void luat_gpio_irq_callback(void *ptr, void *pParam)
+static int luat_gpio_irq_callback(void *ptr, void *pParam)
 {
     int pin = (int)ptr;
     luat_gpio_irq_default(pin, (void*)luat_gpio_get(pin));
+    return 0;
 }
 
 void luat_gpio_set_default_cfg(luat_gpio_cfg_t* gpio)
