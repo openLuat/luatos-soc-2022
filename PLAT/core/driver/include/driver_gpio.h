@@ -54,7 +54,7 @@ void GPIO_PullConfig(uint32_t Pad, uint8_t IsPull, uint8_t IsUp);
  *
  * @param Pin Pin序号
  * @param IsLevel 是否是电平中断，0边沿型，1电平型
- * @param IsRiseHigh 上升沿或者高电平，EC618的大部分GPIO只能单边沿中断，所以上升沿和下降沿同时配置，设置成上升沿。GPIO20~22可以实现双边沿触发
+ * @param IsRiseHigh 上升沿或者高电平，EC618的大部分GPIO只能单边沿中断，所以上升沿和下降沿同时配置，设置成上升沿。GPIO20~22使用了wakeuppad功能可以实现双边沿触发，但是不能电平触发。
  * @param IsFallLow 下降沿或者低电平
  */
 void GPIO_ExtiConfig(uint32_t Pin, uint8_t IsLevel, uint8_t IsRiseHigh, uint8_t IsFallLow);
