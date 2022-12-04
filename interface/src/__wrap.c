@@ -14,14 +14,15 @@ struct tm *__wrap_localtime (const time_t *_timer)
 	Time_UserDataStruct Time;
 	Date_UserDataStruct Date;
 	uint64_t Sec;
+	utc_timer_value_t *timeUtc = OsaSystemTimeReadUtc();
 	if (_timer)
 	{
 		Sec = *_timer;
-		Tamp2UTC(Sec, &Date, &Time, 0);
+		Tamp2UTC(Sec + timeUtc->timeZone * 900, &Date, &Time, 0);
 	}
 	else
 	{
-		RTC_GetDateTime(&Date, &Time);
+		Tamp2UTC(timeUtc->UTCsecs + timeUtc->timeZone * 900, &Date, &Time, 0);
 	}
 	prvTM.tm_year = Date.Year - 1900;
 	prvTM.tm_mon = Date.Mon - 1;
