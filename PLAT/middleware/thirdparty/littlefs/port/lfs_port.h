@@ -39,6 +39,9 @@ typedef enum
     LFS_REQUEST_DIR_READ,
 
     LFS_REQUEST_BLOCK_CALLBACK,
+#ifdef __USER_CODE__
+    LFS_REQUEST_DIR_CREATE,
+#endif
 } lfs_request_type_t;
 
 typedef struct
@@ -168,6 +171,10 @@ lfs_soff_t LFS_fileTellUnsafe(lfs_file_t *file);
 int LFS_fileRewindUnsafe(lfs_file_t *file);
 
 lfs_soff_t LFS_fileSizeUnsafe(lfs_file_t *file);
+
+#ifdef __USER_CODE__
+int LFS_mkdir(const char* dir);
+#endif
 
 #ifdef __cplusplus
 } /* extern "C" */

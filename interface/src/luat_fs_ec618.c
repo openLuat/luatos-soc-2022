@@ -26,6 +26,7 @@
 #include "osasys.h"
 #include "lfs_port.h"
 #include "luat_rtos.h"
+#include "luat_debug.h"
 
 #ifdef __LUATOS__
 #include "luat_malloc.h"
@@ -38,18 +39,18 @@
 
 
 static inline const char* check_path(const char* path) {
-    if (path == NULL || strlen(path) < 2)
-        return NULL;
-    const char* dst = path;
-    if (dst[0] == '/')
-        dst = path + 1;
-    size_t len = strlen(dst);
-    for (size_t i = 0; i < len; i++)
-    {
-        if (dst[i] == '/')
-            return NULL; // 不支持文件夹操作
-    }
-    return dst;
+    // if (path == NULL || strlen(path) < 1)
+    //     return NULL;
+    // const char* dst = path;
+    // if (dst[0] == '/')
+    //     dst = path + 1;
+    return path;
+}
+
+static inline int is_file(const char* path) {
+    if (path == NULL || strlen(path) < 1 || path[strlen(path) - 1] == '/')
+        return 0;
+    return 1;
 } 
 
 
@@ -59,7 +60,7 @@ static inline const char* check_path(const char* path) {
 FILE* luat_vfs_ec618_fopen(__attribute__((unused)) void* userdata, const char *filename, const char *mode) {
     int flag = 0;
     const char* dst = check_path(filename);
-    if (dst == NULL)
+    if (dst == NULL || is_file(dst) == 0)
         return NULL;
     //LLOGD("luat_fs_fopen %s %s", filename, mode);
     lfs_file_t *file = (lfs_file_t*)luat_heap_malloc(sizeof(lfs_file_t));
@@ -217,23 +218,37 @@ int luat_vfs_ec618_umount(__attribute__((unused))void* userdata, __attribute__((
     return 0;
 }
 
+int LFS_mkdir(const char* dir);
 int luat_vfs_ec618_mkdir(__attribute__((unused))void* userdata, __attribute__((unused))char const* _DirName) {
-    //DBG("not support yet : mkdir");
-    return -1;
+    const char* dir = check_path(_DirName);
+    char buff[64] = {0};
+    //LUAT_DEBUG_PRINT("mkdir %s %s", dir, _DirName);
+    if (dir == NULL)
+        return -1;
+    size_t len = strlen(dir);
+    if (strlen(dir) > 63 || strlen(dir) < 2) {
+        return -2;
+    }
+    memcpy(buff, dir, len);
+    if (buff[len - 1] == '/')
+        buff[len - 1] = 0x00;
+    int ret = LFS_mkdir(buff);
+    //LUAT_DEBUG_PRINT("mkdir %s %s %d", dir, _DirName, ret);
+    return ret;
 }
 int luat_vfs_ec618_rmdir(__attribute__((unused))void* userdata, __attribute__((unused))char const* _DirName) {
-    //DBG("not support yet : rmdir");
-    return -1;
+    const char* dir = check_path(_DirName);
+    if (dir == NULL)
+        return -1;
+    return LFS_remove(dir);
 }
 
 int luat_vfs_ec618_lsdir(__attribute__((unused))void* userdata, char const* dir_name, luat_fs_dirent_t* ents, size_t offset, size_t len) {
     int ret = 0;
     size_t num = 0;
-    lfs_dir_t *dir;
+    lfs_dir_t *dir = NULL;
     struct lfs_info info = {0};
-    if (dir_name == NULL || strlen(dir_name) == 0) {
-        return 0;
-    }
+    const char* dirpath = check_path(dir_name);
     // if (fs->filecount > offset) {
         // if (offset + len > fs->filecount)
             // len = fs->filecount - offset;
@@ -242,7 +257,7 @@ int luat_vfs_ec618_lsdir(__attribute__((unused))void* userdata, char const* dir_
             // LLOGE("out of memory when lsdir");
             return 0;
         }
-        ret = LFS_dirOpen(dir, ""); // 固定值, 因为不支持文件夹
+        ret = LFS_dirOpen(dir, dirpath); // 固定值, 因为不支持文件夹
         if (ret < 0) {
             luat_heap_free(dir);
             // LLOGE("no such dir %s _DirName");
