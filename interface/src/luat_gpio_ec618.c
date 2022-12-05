@@ -23,6 +23,9 @@
 #include "driver_gpio.h"
 #include "slpman.h"
 #include "FreeRTOS.h"
+#include "pwrkey.h"
+typedef void(* pwrKeyIsrCb)(void);
+extern pwrKeyIsrCb pwrKeyIsrCallback;
 __attribute__((weak)) int luat_gpio_irq_default(int pin, void* args)
 {
 	return 0;
@@ -33,6 +36,12 @@ static int luat_gpio_irq_callback(void *ptr, void *pParam)
     int pin = (int)ptr;
     luat_gpio_irq_default(pin, (void*)luat_gpio_get(pin));
     return 0;
+}
+
+static void luat_gpio_pwrkey_irq_callback(void)
+{
+    luat_gpio_irq_default((HAL_GPIO_MAX + 2), (void*)pwrKeyGetPinLevel());
+    return ;
 }
 
 void luat_gpio_set_default_cfg(luat_gpio_cfg_t* gpio)
@@ -161,8 +170,21 @@ int luat_gpio_open(luat_gpio_cfg_t* gpio)
 }
 
 int luat_gpio_setup(luat_gpio_t *gpio){
-	if (((uint32_t)(gpio->pin)) > (HAL_GPIO_MAX + 1)) return -1;
+	if (((uint32_t)(gpio->pin)) > (HAL_GPIO_MAX + 2)) return -1;
 	GPIO_GlobalInit(NULL);
+#ifdef __LUATOS__
+	if ((HAL_GPIO_MAX + 2) == gpio->pin)
+	{
+		if (gpio->mode != LUAT_GPIO_IRQ)
+		{
+			return -1;
+		}
+		pwrKeyIsrCallback = luat_gpio_pwrkey_irq_callback;
+		pwrKeyHwInit((LUAT_GPIO_PULLUP == gpio->pull)?1:0);
+		NVIC_EnableIRQ(PwrkeyWakeup_IRQn);
+		return 0;
+	}
+#endif
 	if (gpio->pin >= HAL_GPIO_MAX)
 	{
 		APmuWakeupPadSettings_t padConfig = {0};
@@ -284,8 +306,12 @@ int luat_gpio_set(int pin, int level){
 }
 
 int luat_gpio_get(int pin){
-	if (((uint32_t)(pin)) > HAL_GPIO_MAX + 1) return 0;
+	if (((uint32_t)(pin)) > HAL_GPIO_MAX + 2) return 0;
     uint8_t re;
+    if ((HAL_GPIO_MAX + 2) == pin)
+    {
+    	return pwrKeyGetPinLevel();
+    }
     if (pin >= HAL_GPIO_MAX)
     {
     	if (pin > HAL_GPIO_MAX)
@@ -318,7 +344,18 @@ int luat_gpio_get(int pin){
 }
 
 void luat_gpio_close(int pin){
+#ifdef __LUATOS__
+	if (pin > (HAL_GPIO_MAX + 2)) return ;
+	if ((HAL_GPIO_MAX + 2) == pin)
+	{
+		NVIC_DisableIRQ(PwrkeyWakeup_IRQn);
+	    pwrKeyHwDeinit(1);
+	    pwrKeyIsrCallback = NULL;
+		return;
+	}
+#else
     if (pin > (HAL_GPIO_MAX + 1)) return ;
+#endif
     GPIO_ExtiSetCB(pin, NULL, 0);
     GPIO_ExtiConfig(pin, 0,0,0);
     return ;
