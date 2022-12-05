@@ -552,6 +552,7 @@ void socket_ssl_disconnect(Network *n) {
 }
 
 int NetworkConnect(Network* n, char* addr, int port){
+    n->addr = addr;
     n->port = port;
     if (n->isMqtts){
         if (socket_ssl_connect(n, addr)==MQTT_CONN_OK){

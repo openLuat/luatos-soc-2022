@@ -80,6 +80,7 @@ struct Network
     int my_socket;
 
     int timeout_r;
+    char *addr;
     uint16_t port;
     bool isMqtts;
 #ifdef FEATURE_MQTT_TLS_ENABLE

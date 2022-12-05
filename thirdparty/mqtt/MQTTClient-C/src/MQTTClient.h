@@ -184,7 +184,7 @@ enum MQTT_MSG_CMD_
 #define MQTT_ERR_CLSD          (-15)
 #define MQTT_ERR_BADE          (9)
 
-#define MQTT_SEND_TIMEOUT       2000
+#define MQTT_SEND_TIMEOUT       5000
 #define MQTT_RECV_TIMEOUT       5000
 
 /**
@@ -277,6 +277,7 @@ DLLExport int MQTTIsConnected(MQTTClient* client);
 *  @return success code
 */
 DLLExport int MQTTStartTask(MQTTClient* client);
+DLLExport int MQTTStopTask(MQTTClient* client);
 #endif
 
 int mqtt_connect(MQTTClient* c,Network *n, char *serverAddr, int port, MQTTPacket_connectData* connData);

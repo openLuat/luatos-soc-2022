@@ -25,12 +25,14 @@
 #include "luat_debug.h"
 #include "MQTTClient.h"
 
-
 #define MQTT_HOST    	"lbsmqtt.airm2m.com"   				// MQTT服务器的地址和端口号
 #define MQTT_PORT		1884
 #define CLIENT_ID    	"123456789"          
 #define USERNAME    	"username"                 
 #define PASSWORD    	"password"   
+
+#define MQTT_SEND_BUFF_LEN       (1024)
+#define MQTT_RECV_BUFF_LEN       (1024)
 
 static char mqtt_sub_topic[] = "test_topic";
 static char mqtt_pub_topic[] = "test_topic";
@@ -46,7 +48,8 @@ void messageArrived(MessageData* data)
 }
 
 static void mqtt_demo(void){
-	int rc = 0;
+	int rc = 0,count = 0;
+	unsigned char mqttSendbuf[MQTT_SEND_BUFF_LEN] = {0}, mqttReadbuf[MQTT_RECV_BUFF_LEN] = {0};
     static MQTTClient mqttClient;
     static Network n = {0};
     MQTTMessage message;
@@ -56,41 +59,70 @@ static void mqtt_demo(void){
     connectData.username.cstring = USERNAME;
     connectData.password.cstring = PASSWORD;
     connectData.keepAliveInterval = 120;
-
     
     //mqtts demo 参考mqtts_client_main
 
-    while(1)
-    {
-        while(!g_s_is_link_up)
-		{
-			luat_rtos_task_sleep(1000);
-		}
+	NetworkInit(&n);
+	MQTTClientInit(&mqttClient, &n, 30000, mqttSendbuf, MQTT_SEND_BUFF_LEN, mqttReadbuf, MQTT_RECV_BUFF_LEN);
+	
+	LUAT_DEBUG_PRINT("mqtt_connect \n");
 
-        if ((rc = mqtt_connect(&mqttClient, &n,MQTT_HOST, MQTT_PORT, &connectData)) != 0)
-            LUAT_DEBUG_PRINT("mqtt Return code from MQTT mqtt_connect is %d\n", rc);
-        
-        if ((rc = MQTTSubscribe(&mqttClient, mqtt_sub_topic, 0, messageArrived)) != 0)
+	while(!g_s_is_link_up){
+		luat_rtos_task_sleep(1000);
+	}
+
+	if ((NetworkConnect(&n, MQTT_HOST, MQTT_PORT)) != 0){
+		mqttClient.keepAliveInterval = connectData.keepAliveInterval;
+		mqttClient.ping_outstanding = 1;
+		goto error;
+	}else{
+		if ((MQTTConnect(&mqttClient, &connectData)) != 0){
+			mqttClient.ping_outstanding = 1;
+			goto error;
+		}else{
+			LUAT_DEBUG_PRINT("MQTTStartTask \n");
+			#if defined(MQTT_TASK)
+				if ((MQTTStartTask(&mqttClient)) != pdPASS){
+					goto error;
+				}
+			#endif
+		}
+	}
+
+    while(1){
+        if ((rc = MQTTSubscribe(&mqttClient, mqtt_sub_topic, 1, messageArrived)) != 0)
             LUAT_DEBUG_PRINT("mqtt Return code from MQTT subscribe is %d\n", rc);
-        while(1)
-        {
+
+        while(count++ <= 5){
             int len = strlen(mqtt_send_payload);
             message.qos = 1;
             message.retained = 0;
             message.payload = mqtt_send_payload;
             message.payloadlen = len;
-			if (MQTTIsConnected(&mqttClient)==0)
-				break;
+			if (MQTTIsConnected(&mqttClient)==0){
+				goto error;
+			}
+
             LUAT_DEBUG_PRINT("mqtt_demo send data");
             if (rc = MQTTPublish(&mqttClient, mqtt_pub_topic, &message) != 0){
 				LUAT_DEBUG_PRINT("MQTTPublish %d\n", rc);
-				break;
+				goto error;
 			}
-            luat_rtos_task_sleep(5000);
+            luat_rtos_task_sleep(2000);
         }
-    }
+		count = 0;
+		MQTTDisconnect(&mqttClient);
+error:
+		while(!g_s_is_link_up){
+			luat_rtos_task_sleep(1000);
+		}
 
-    
+		if (rc = MQTTReConnect(&mqttClient, &connectData) != 0){
+			luat_rtos_task_sleep(5000);
+			LUAT_DEBUG_PRINT("MQTTReConnect %d\n", rc);
+			goto error;
+		}
+    }
 }
 
 

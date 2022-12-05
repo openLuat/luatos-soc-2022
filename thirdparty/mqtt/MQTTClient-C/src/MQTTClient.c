@@ -20,22 +20,22 @@
 #include <stdarg.h>
 #include "commonTypedef.h"
 #include "MQTTClient.h"
-// #include "luat_debug.h"
+#include "luat_debug.h"
 #include "debug_trace.h"
 #include DEBUG_LOG_HEADER_FILE
 
-QueueHandle_t mqttSendMsgHandle = NULL;
+// QueueHandle_t mqttSendMsgHandle = NULL;
 
-void mqttDefMessageArrived(MessageData* data)
-{
-    char *bufTemp = NULL;
-    bufTemp = malloc(data->message->payloadlen+1);
-    memset(bufTemp, 0, data->message->payloadlen+1);
-    memcpy(bufTemp, data->message->payload, data->message->payloadlen);
-    ////ECPLAT_PRINTF(UNILOG_MQTT, mqttRecvTask_2, P_SIG, ".........MQTT topic is:%s", (const uint8_t *)data->topicName->lenstring.data);
-    ////ECPLAT_PRINTF(UNILOG_MQTT, mqttRecvTask_1, P_SIG, ".........MQTT_messageArrived is:%s", (const uint8_t *)bufTemp);
-    free(bufTemp);
-}
+// void mqttDefMessageArrived(MessageData* data)
+// {
+//     char *bufTemp = NULL;
+//     bufTemp = malloc(data->message->payloadlen+1);
+//     memset(bufTemp, 0, data->message->payloadlen+1);
+//     memcpy(bufTemp, data->message->payload, data->message->payloadlen);
+//     ////ECPLAT_PRINTF(UNILOG_MQTT, mqttRecvTask_2, P_SIG, ".........MQTT topic is:%s", (const uint8_t *)data->topicName->lenstring.data);
+//     ////ECPLAT_PRINTF(UNILOG_MQTT, mqttRecvTask_1, P_SIG, ".........MQTT_messageArrived is:%s", (const uint8_t *)bufTemp);
+//     free(bufTemp);
+// }
 
 static void NewMessageData(MessageData* md, MQTTString* aTopicName, MQTTMessage* aMessage) {
     md->topicName = aTopicName;
@@ -403,7 +403,7 @@ int cycle(MQTTClient* c, Timer* timer)
             memset(&mqttMsg, 0, sizeof(mqttMsg));
             mqttMsg.cmdType = MQTT_DEMO_MSG_RECONNECT;
 
-            xQueueSend(mqttSendMsgHandle, &mqttMsg, MQTT_MSG_TIMEOUT);
+            // xQueueSend(mqttSendMsgHandle, &mqttMsg, MQTT_MSG_TIMEOUT);
         }
         else
         {
@@ -415,7 +415,7 @@ int cycle(MQTTClient* c, Timer* timer)
                 memset(&mqttMsg, 0, sizeof(mqttMsg));
                 mqttMsg.cmdType = MQTT_DEMO_MSG_RECONNECT;
                 
-                xQueueSend(mqttSendMsgHandle, &mqttMsg, MQTT_MSG_TIMEOUT);
+                // xQueueSend(mqttSendMsgHandle, &mqttMsg, MQTT_MSG_TIMEOUT);
             }
             else
             {
@@ -462,10 +462,10 @@ void MQTTRun(void* parm)
     Timer timer;
 
     MQTTClient* c = (MQTTClient*)parm;
-    if(mqttSendMsgHandle == NULL)
-    {
-        mqttSendMsgHandle = xQueueCreate(16, sizeof(mqttSendMsg));
-    }
+    // if(mqttSendMsgHandle == NULL)
+    // {
+    //     mqttSendMsgHandle = xQueueCreate(16, sizeof(mqttSendMsg));
+    // }
     
 
     TimerInit(&timer);
@@ -479,10 +479,8 @@ void MQTTRun(void* parm)
         TimerCountdownMS(&timer, 8000); /* Don't wait too long if no traffic is incoming */
         int rc = cycle(c, &timer);
         if (rc == -2){
-            MQTTCloseSession(c);
-            break;
+            c->isconnected = 0;
         }
-        
 #if defined(MQTT_TASK)
         MutexUnlock(&c->mutex);
 #endif
@@ -528,7 +526,7 @@ int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTC
 
     TimerInit(&connect_timer);
     TimerCountdownMS(&connect_timer, c->command_timeout_ms);
-
+    
     if (options == 0)
         options = &default_options; /* set default options if none were supplied */
 
@@ -539,20 +537,18 @@ int MQTTConnectWithResults(MQTTClient* c, MQTTPacket_connectData* options, MQTTC
         goto exit;
     if ((rc = sendPacket(c, len, &connect_timer)) != SUCCESS)  // send the connect packet
         goto exit; // there was a problem
-
     // this will be a blocking call, wait for the connack
     if (waitfor(c, CONNACK, &connect_timer) == CONNACK)
     {
         data->rc = 0;
         data->sessionPresent = 0;
-        if (MQTTDeserialize_connack(&data->sessionPresent, &data->rc, c->readbuf, c->readbuf_size) == 1)
+        if ( MQTTDeserialize_connack(&data->sessionPresent, &data->rc, c->readbuf, c->readbuf_size) == 1)
             rc = data->rc;
         else
             rc = FAILURE;
     }
     else
         rc = FAILURE;
-
 exit:
     if (rc == SUCCESS)
     {
@@ -573,33 +569,25 @@ int MQTTReConnect(MQTTClient* client, MQTTPacket_connectData* connectData)
     
     //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_13hh0, P_INFO, 0, "...start tcp disconnect ..");
     client->ipstack->disconnect(client->ipstack);
-    
-    //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_14hh1, P_INFO, 0, "...start tcp connect ...");
-    if ((NetworkSetConnTimeout(client->ipstack, MQTT_SEND_TIMEOUT, MQTT_RECV_TIMEOUT)) != 0)
+
+    client->isconnected = 0;
+    if((NetworkConnect(client->ipstack, client->ipstack->addr, client->ipstack->port)) < 0)
     {
-        //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_15hh2, P_INFO, 0, "...tcp socket set timeout fail...");
+        LUAT_DEBUG_PRINT("NetworkConnect fail");
+        //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_17hh4, P_INFO, 0, "...tcp reconnect fail!!!...\r\n");
     }
     else
     {
-        //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_16hh3, P_INFO, 0, "...tcp connect ok...");
-        client->isconnected = 0;
-        if((NetworkConnect(client->ipstack, MQTT_SERVER_URI, MQTT_SERVER_PORT)) < 0)
+        //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_18hh5, P_INFO, 0, "...start mqtt connect ..");
+        if ((MQTTConnect(client, connectData)) != 0)
         {
-            //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_17hh4, P_INFO, 0, "...tcp reconnect fail!!!...\r\n");
+            LUAT_DEBUG_PRINT("MQTTConnect fail");
+            //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_19hh6, P_INFO, 0, "...mqtt reconnect fial!!!...");
         }
         else
         {
-            //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_18hh5, P_INFO, 0, "...start mqtt connect ..");
-    
-            if ((MQTTConnect(client, connectData)) != 0)
-            {
-                //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_19hh6, P_INFO, 0, "...mqtt reconnect fial!!!...");
-            }
-            else
-            {
-                //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_20hh7, P_INFO, 0, "...mqtt reconnect ok!!!...");
-                ret = SUCCESS;
-            }
+            //ECOMM_TRACE(UNILOG_MQTT, mqttSendTask_20hh7, P_INFO, 0, "...mqtt reconnect ok!!!...");
+            ret = SUCCESS;
         }
     }
     return ret;
