@@ -179,6 +179,9 @@ target(TARGET_NAME)
     ------------------------------------------------------------
     ------------------------------------------------------------
 
+    -- hmeta
+    add_includedirs(LUATOS_ROOT.."components/hmeta")
+    add_files(LUATOS_ROOT.."components/hmeta/*.c")
 
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "interface/include")

@@ -202,6 +202,9 @@ static const luaL_Reg loadedlibs[] = {
   {"audio", luaopen_multimedia_audio},
   {"codec", luaopen_multimedia_codec},
 #endif
+#ifdef LUAT_USE_HMETA
+  {"hmeta", luaopen_hmeta},
+#endif
   {"fota", luaopen_fota},
   {NULL, NULL}
 };
