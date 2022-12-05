@@ -23,5 +23,7 @@ target(TARGET_NAME)
     --自动链接
     LIB_USER = LIB_USER .. SDK_TOP .. LIB_DIR .. LIB_NAME .. " "
     LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_16K.a "
+    --8K版本用下面的库，注释掉16K的库
+    -- LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_8K.a "
     --甚至可以加入自己的库
 target_end()

@@ -126,6 +126,8 @@ static void demo_task(void *arg)
 {
 //	luat_rtos_task_sleep(3000);
 	ivCStrA sdk_id = AISOUND_SDK_USERID_16K;
+	//8K用下面的
+//	ivCStrA sdk_id = AISOUND_SDK_USERID_8K;
 	char tts_string[] = "支付宝到账123.45元,微信收款9876.12元ABC";
 	luat_audio_play_info_t info[5];
 //	slpManRegisterUsrdefinedBackupCb(before_sleep, NULL);
@@ -134,7 +136,9 @@ static void demo_task(void *arg)
 	luat_rtos_timer_create(&g_s_delay_timer);
     luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, luat_audio_play_tts_default_fun, NULL);
     // 无压缩版本
-	luat_audio_play_tts_set_resource(ivtts_16k, sdk_id, NULL);
+    luat_audio_play_tts_set_resource(ivtts_16k, sdk_id, NULL);
+    //8K用下面的
+//	luat_audio_play_tts_set_resource(ivtts_8k, sdk_id, NULL);
 	// 透明解压版本
 	//luat_audio_play_tts_set_resource(&ivtts_16k_tz, sdk_id, luat_transz_read);
     //使用ES7149/ES7148，用如下配置，如果不是，请根据实际情况配置，bus_id直接写0
@@ -171,7 +175,7 @@ static void demo_task(void *arg)
     	luat_audio_play_multi_files(0, info, 5);
     	luat_rtos_task_sleep(9000);
     	luat_audio_play_tts_text(0, tts_string, sizeof(tts_string));
-    	luat_rtos_task_sleep(60000);
+    	luat_rtos_task_sleep(10000);
 
 //    	info[0].path = NULL;
 //    	info[0].address = (uint32_t)Fqdqwer;
