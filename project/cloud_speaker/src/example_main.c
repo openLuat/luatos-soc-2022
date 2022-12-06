@@ -30,6 +30,8 @@
 #include "luat_rtos.h"
 #include "luat_mobile.h"
 #include "luat_debug.h"
+#include "luat_pm.h"
+
 static uint8_t g_s_is_link_up = 0;
 static luat_rtos_semaphore_t net_semaphore_handle;
 static luat_rtos_task_handle mqtt_task_handle;
@@ -562,6 +564,10 @@ static void mqtt_demo(void){
     snprintf(mqtt_sub_topic, 40, "%s%s", mqtt_sub_topic_head, clientId);
     LUAT_DEBUG_PRINT("cloud_speaker_mqtt subscribe_topic %s %s %s %s", mqtt_sub_topic, clientId, username, password);
     connectData.keepAliveInterval = 120;
+
+    // 设置my_app标记可以休眠到LIGHT等级
+    luat_pm_set_sleep_mode(LUAT_PM_SLEEP_MODE_LIGHT, "my_app");
+
     while(1)
     {
         while(!g_s_is_link_up)
@@ -606,13 +612,6 @@ static void mqtt_demo(void){
                 LUAT_DEBUG_PRINT("cloud_speaker_mqtt publish fail %d", rc);
                 break;
             }
-    #if !defined(MQTT_TASK)
-    		if ((rc = MQTTYield(&mqttClient, 1000)) != 0)
-            {
-    			LUAT_DEBUG_PRINT("cloud_speaker_mqtt Return code from yield is %d\n", rc);
-                break;
-            }
-    #endif
             luat_rtos_task_sleep(60000);
         }
         luat_rtos_task_delete(mqtt_task_handle);

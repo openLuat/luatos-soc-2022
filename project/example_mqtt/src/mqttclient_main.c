@@ -152,7 +152,7 @@ static void mqtt_demo(void){
     connectData.password.cstring = PASSWORD;
     connectData.keepAliveInterval = 120;
 
-	rc = luat_mobile_get_imei(0, clientId, 15);
+	rc = luat_mobile_get_imei(0, clientId, sizeof(clientId)-1);
 	if(rc <= 0){
 		LUAT_DEBUG_PRINT("imei get fail");
 		connectData.clientID.cstring = CLIENT_ID;
@@ -204,7 +204,7 @@ static void mqtt_demo(void){
 
     while(1){
         if ((rc = MQTTSubscribe(&mqttClient, mqtt_sub_topic, 1, messageArrived)) != 0)
-            LUAT_DEBUG_PRINT("mqtt Return code from MQTT subscribe is %d\n", rc);
+            LUAT_DEBUG_PRINT("mqtt Return code from MQTT subscribe error is %d\n", rc);
 
         while(count++ <= 5){
             int len = strlen(mqtt_send_payload);
@@ -218,12 +218,13 @@ static void mqtt_demo(void){
 
             LUAT_DEBUG_PRINT("mqtt_demo send data");
             if (rc = MQTTPublish(&mqttClient, mqtt_pub_topic, &message) != 0){
-				LUAT_DEBUG_PRINT("MQTTPublish %d\n", rc);
+				LUAT_DEBUG_PRINT("MQTTPublish error %d\n", rc);
 				goto error;
 			}
             luat_rtos_task_sleep(2000);
         }
 		count = 0;
+		LUAT_DEBUG_PRINT("MQTTDisconnect");
 		MQTTDisconnect(&mqttClient);
 error:
 		while(!g_s_is_link_up){
@@ -235,6 +236,10 @@ error:
 			LUAT_DEBUG_PRINT("MQTTReConnect %d\n", rc);
 			goto error;
 		}
+		else
+		{
+			LUAT_DEBUG_PRINT("MQTTReConnect OK");
+		}
     }
 }
 
@@ -244,6 +249,27 @@ static void mqttclient_task_init(void)
 	LUAT_DEBUG_PRINT("This mqtt demo");
 	luat_rtos_task_handle mqttclient_task_handle;
 	luat_rtos_task_create(&mqttclient_task_handle, 4096, 20, "mqttclient", mqtt_demo, NULL, NULL);
+}
+
+static void flymode_demo(void)
+{
+	luat_rtos_task_sleep(5000);
+	LUAT_DEBUG_PRINT("entry");
+	while (1)
+	{
+		luat_rtos_task_sleep(30000);
+		LUAT_DEBUG_PRINT("enter flymode");
+		luat_mobile_set_flymode(0,1);
+		luat_rtos_task_sleep(5000);
+		luat_mobile_set_flymode(0,0);
+		LUAT_DEBUG_PRINT("exit flymode");
+	}	
+}
+
+static void flymode_task_init(void)
+{
+	luat_rtos_task_handle flymode_task_handle;
+	luat_rtos_task_create(&flymode_task_handle, 2048, 20, "flymode", flymode_demo, NULL, NULL);
 }
 
 static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
@@ -314,4 +340,7 @@ static void task_init(void){
 
 INIT_HW_EXPORT(task_init, "0");
 INIT_TASK_EXPORT(mqttclient_task_init, "1");
+// 此task通过不断的进入和退出飞行模式，来模拟断网场景
+// 仅用模拟测试使用，有需要可以自行打开
+// INIT_TASK_EXPORT(flymode_task_init, "1");
 

@@ -154,7 +154,7 @@ void task_gpio_single_interrupt_run(void)
 	gpio_cfg.mode = LUAT_GPIO_IRQ;
 
 	//LCD_CS_PIN引脚仅支持单边沿或者单电平类型的中断；
-	//所以此处只能配置为LUAT_GPIO_RISING_IRQ、LUAT_GPIO_FALLING_IRQ、LUAT_GPIO_HIGH_IRQ、LUAT_GPIO_LOW_IRQ、
+	//此处仅演示单边沿中断，配置为LUAT_GPIO_RISING_IRQ、LUAT_GPIO_FALLING_IRQ
 	//不要配置为LUAT_GPIO_BOTH_IRQ，因为配置为LUAT_GPIO_BOTH_IRQ会被系统自动修改为LUAT_GPIO_RISING_IRQ；
 	gpio_cfg.irq_type = LUAT_GPIO_RISING_IRQ; 
 
@@ -200,7 +200,7 @@ void task_gpio_both_interrupt_run(void)
 	gpio_cfg.mode = LUAT_GPIO_IRQ;
 
 	//DTR_PIN引脚支持双边沿或者高低电平类型的中断；
-	//所以此处可以配置为LUAT_GPIO_BOTH_IRQ、LUAT_GPIO_RISING_IRQ、LUAT_GPIO_FALLING_IRQ、LUAT_GPIO_HIGH_IRQ、LUAT_GPIO_LOW_IRQ、
+	//此处仅演示双边沿中断，可以配置为LUAT_GPIO_BOTH_IRQ、LUAT_GPIO_RISING_IRQ、LUAT_GPIO_FALLING_IRQ
 	gpio_cfg.irq_type = LUAT_GPIO_BOTH_IRQ; 
 
 	gpio_cfg.pull = LUAT_GPIO_PULLUP;
