@@ -67,7 +67,7 @@ luat_pm_pwrkey_callback_t pwrkey_callback(LUAT_PM_POWERKEY_STATE_E status)
 static void key_task(void *param)
 {
     uint8_t msgId = 0;
-    int volume = 4;
+    int volume = 15;
     int ret = 0;
     while (1)
     {
@@ -80,20 +80,20 @@ static void key_task(void *param)
                 audioQueueData volMinus = {0};
                 volMinus.playType = TTS_PLAY;
                 volMinus.priority = MONEY_PLAY;
-                volume = 4;
+                volume = 15;
                 ret = luat_kv_get("volume", &volume, 1);
                 if (ret > 0)
                 {
-                    if (volume > 1)
+                    if (volume > 3)
                     {
-                        volume--;
-                        if (volume < 1)
+                        volume = volume - 3;
+                        if (volume < 3)
                         {
-                            volume = 1;
+                            volume = 3;
                         }
                         luat_kv_set("volume", &volume, 1);
                     }
-                    if (volume == 1)
+                    if (volume == 3)
                     {
                         char str[] = "音量最小";
                         volMinus.message.tts.data = malloc(sizeof(str));
@@ -130,16 +130,16 @@ static void key_task(void *param)
                 ret = luat_kv_get("volume", &volume, 1);
                 if (ret > 0)
                 {
-                    if (volume < 7)
+                    if (volume < 21)
                     {
-                        volume++;
-                        if (volume > 7)
+                        volume = volume + 3;
+                        if (volume > 21)
                         {
-                            volume = 7;
+                            volume = 21;
                         }
                         luat_kv_set("volume", &volume, 1);
                     }
-                    if (volume == 7)
+                    if (volume == 21)
                     {
                         char str[] = "音量最大";
                         volPlus.message.tts.data = malloc(sizeof(str));
