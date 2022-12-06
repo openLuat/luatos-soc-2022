@@ -26,6 +26,11 @@
 #include "reset.h"
 #include "HTTPClient.h"
 
+/*
+FOTA应用开发可以参考：https://doc.openluat.com/wiki/37?wiki_page_id=4562
+*/
+
+
 #define PROJECT_VERSION  "1.0.0"
 //ciphersuite: TLS-RSA-WITH-AES-128-CBC-SHA  msglen = 2609
 //support session ticket/fragment
