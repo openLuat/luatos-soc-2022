@@ -141,17 +141,25 @@ void messageArrived(MessageData* data)
 
 static void mqtt_demo(void){
 	int rc = 0,count = 0;
+	char clientId[16] = {0};
 	unsigned char mqttSendbuf[MQTT_SEND_BUFF_LEN] = {0}, mqttReadbuf[MQTT_RECV_BUFF_LEN] = {0};
     static MQTTClient mqttClient;
     static Network n = {0};
     MQTTMessage message;
     MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
     connectData.MQTTVersion = 4;
-    connectData.clientID.cstring = CLIENT_ID;
     connectData.username.cstring = USERNAME;
     connectData.password.cstring = PASSWORD;
     connectData.keepAliveInterval = 120;
-    
+
+	rc = luat_mobile_get_imei(0, clientId, 15);
+	if(rc <= 0){
+		LUAT_DEBUG_PRINT("imei get fail");
+		connectData.clientID.cstring = CLIENT_ID;
+	}
+	else
+		connectData.clientID.cstring = clientId;
+
     //mqtts的话自行配置Network,详情查看Network结构体
 #if (MQTT_DEMO_SSL == 1)
 	n.isMqtts = TRUE;
@@ -168,7 +176,7 @@ static void mqtt_demo(void){
 #endif
 
 	NetworkInit(&n);
-	MQTTClientInit(&mqttClient, &n, 30000, mqttSendbuf, MQTT_SEND_BUFF_LEN, mqttReadbuf, MQTT_RECV_BUFF_LEN);
+	MQTTClientInit(&mqttClient, &n, 40000, mqttSendbuf, MQTT_SEND_BUFF_LEN, mqttReadbuf, MQTT_RECV_BUFF_LEN);
 	
 	LUAT_DEBUG_PRINT("mqtt_connect \n");
 
