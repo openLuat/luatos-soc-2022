@@ -3,15 +3,16 @@
 #include "socket_service.h"
 
 /*
-功能模块名称：数据发送测试；
+功能模块名称：数据发送和模拟断网测试；
 
-本功能模块用来测试socket功能模块的数据发送接口；
-仅用于测试socket服务功能模块的数据发送接口socket_service_send_data；
-具体的测试业务逻辑如下：
+数据发送测试主体逻辑如下：
 1、上电开机后，启动一个task，在task内部每隔3秒调用一次socket_service_send_data接口，发送数据"send data from test task"到服务器;
    发送结果通过回调函数send_data_from_task_callback通知本功能模块；
 2、上电开机后，启动一个定时器，3秒后调用一次socket_service_send_data接口，发送数据"send data from test timer"到服务器;
    发送结果通过回调函数send_data_from_timer_callback通知本功能模块；之后再启动一个3秒的定时器，发送数据，如此循环；
+
+模拟断网测试主体逻辑如下（此功能默认关闭，如需打开，请参考本文件末尾几行代码注释）：
+1、上电开机后，启动一个task，在task内部进入飞行模式5秒后，然后退出飞行模式，30秒后，再进入飞行模式，如此循环；
 
 */
 
@@ -77,6 +78,21 @@ static void send_data_timer_callback(void)
 	}
 }
 
+static void flymode_task_proc(void *arg)
+{
+	luat_rtos_task_sleep(5000);
+	LUAT_DEBUG_PRINT("entry");
+	while (1)
+	{
+		luat_rtos_task_sleep(30000);
+		LUAT_DEBUG_PRINT("enter flymode");
+		luat_mobile_set_flymode(0,1);
+		luat_rtos_task_sleep(5000);
+		luat_mobile_set_flymode(0,0);
+		LUAT_DEBUG_PRINT("exit flymode");
+	}
+}
+
 void test_service_init(void)
 {
 	luat_rtos_task_handle test_send_data_task_handle;
@@ -84,5 +100,10 @@ void test_service_init(void)
 
 	luat_rtos_timer_create(&g_s_send_data_timer);
 	luat_rtos_timer_start(g_s_send_data_timer, 3000, 0, send_data_timer_callback, NULL);
+
+	// 此task通过不断的进入和退出飞行模式，来模拟断网场景
+	// 仅用模拟测试使用，有需要可以自行打开
+	// luat_rtos_task_handle flymode_task_handle;
+	// luat_rtos_task_create(&flymode_task_handle, 2048, 20, "flymode", flymode_task_proc, NULL, NULL);
 }
 
