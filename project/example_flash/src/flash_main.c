@@ -45,7 +45,7 @@ flash xip address(from ap view): 0x00800000---0x00c00000
 0x00004000          |---------------------------------|
                     |      bl part1 32KB              |
 0x0000c000          |---------------------------------|
-                    |      bl part2 96KB              |------OTA write
+                    |      bl part2 96KB              |
 0x00024000          |---------------------------------|
                     |      app img 2.5MB + 384k       |------OTA write
 0x00304000          |---------------------------------|
@@ -72,36 +72,19 @@ flash xip address(from ap view): 0x00800000---0x00c00000
 按上图可知, 只有两个区域可以动:
 1. KV数据库区, 若完全不使用luat_kv, 则可以直接使用
 2. AP空间, 若确定不需要使用全部空间, 可进行裁剪, 但需要改mem_map.h
-
-修改AP空间的方法, 以释放512k为例:
-1. 打开 mem_map.h 修改 AP_FLASH_LOAD_SIZE, 原本的 0x2E0000 改成 0x260000
-2. 打开 ec618_0h00_flash.c ,修改 2944K 为 2432k, 即减少512k
-3. 执行 clean XXX , 清除历史编译文件, 然后执行 build XXX 重新编译, 否则不生效.
-
-修改后的分区变化
-0x00024000          |---------------------------------|
-                    |      app img 2432k              |------OTA write
-0x00284000          |---------------------------------|
-                    |      Custom Flash 512k          |------自定义区域
-0x00304000          |---------------------------------|
 */
 
-uint8_t sysROSpaceCheck(uint32_t addr, uint32_t size);
 static void flash_example(void *param)
 {
 	luat_rtos_task_sleep(1500);
+	fotaNvmNfsPeInit(1);	//允许开放出app.img的最后896KB空间可写
 
-	#if (AP_FLASH_LOAD_SIZE > 0x260000)
-		#error("flash demo need modify mem_map.h!!!")
-	#endif
-
-	LUAT_DEBUG_PRINT("flash demo Go ... %d", sysROSpaceCheck(0x00A00000, 4096));
 	luat_rtos_task_sleep(2000);
 	
 	char buff[256] = {0};
 	
-	// 注意, 这个addr是要结合注释里的修改才能使用
-	uint32_t addr = 0x003cc000; // 这是KV分区的地址, 使用0x00284000 会炸, 为啥呢-_-
+
+	uint32_t addr = 0x00284000; // 这是app.img的最后512KB空间
 
 	// flash读写没有太多技巧
 	luat_flash_read(buff, addr, 256);
@@ -114,7 +97,7 @@ static void flash_example(void *param)
 	luat_flash_write(buff, addr, 256);
 
 	luat_flash_read(buff, addr, 256);
-
+	fotaNvmNfsPeInit(0);	//测试完成，就可以关闭开放了
 	while(1)
 	{
 		luat_rtos_task_sleep(1000);
