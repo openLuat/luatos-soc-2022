@@ -26,16 +26,82 @@
 #include "luat_flash.h"
 #include "luat_crypto.h"
 
-#define FLASH_FOTA_REGION_END           (0x384000)
+#include "mem_map.h"
 
+/*
+本Demo属于高级操作, 请务必先看完提示
+
+Flash的整体布局如下, 对应非LuatOS应用:
+
+AP flash layout, toatl 4MB
+flash raw address: 0x00000000---0x00400000
+flash xip address(from ap view): 0x00800000---0x00c00000
+
+
+0x00000000          |---------------------------------|
+                    |      header1 8KB                |
+0x00002000          |---------------------------------|
+                    |      header2 8KB                |
+0x00004000          |---------------------------------|
+                    |      bl part1 32KB              |
+0x0000c000          |---------------------------------|
+                    |      bl part2 96KB              |------OTA write
+0x00024000          |---------------------------------|
+                    |      app img 2.5MB + 384k       |------OTA write
+0x00304000          |---------------------------------|
+                    |      fota 512KB                 |-----OTA download write
+0x00384000          |---------------------------------|
+                    |      lfs 288KB                  |-----FS write
+0x003cc000          |---------------------------------|
+                    |      kv  64KB                   |-----kv write
+0x003dc000          |---------------------------------|
+                    |      rel_ap(factory) 16KB       |-----factory write
+0x003e0000          |---------------------------------|
+                    |      rel_ap 16KB                |-----factory write
+0x003e4000          |---------------------------------|
+                    |      hib backup 96KB            |-----hib write
+0x003fc000          |---------------------------------|
+                    |      plat config 16KB           |-----similar as FS
+0x00400000          |---------------------------------|
+
+
+**注意**:
+1. 若直接读取数据, 可通过 上述地址+0x00800000 直接读取, 不需要经过luat_flash.h
+2. 若需要写入或抹除数据, 则需要调用luat_flash.h
+
+按上图可知, 只有两个区域可以动:
+1. KV数据库区, 若完全不使用luat_kv, 则可以直接使用
+2. AP空间, 若确定不需要使用全部空间, 可进行裁剪, 但需要改mem_map.h
+
+修改AP空间的方法, 以释放512k为例:
+1. 打开 mem_map.h 修改 AP_FLASH_LOAD_SIZE, 原本的 0x2E0000 改成 0x260000
+2. 打开 ec618_0h00_flash.c ,修改 2944K 为 2432k, 即减少512k
+3. 执行 clean XXX , 清除历史编译文件, 然后执行 build XXX 重新编译, 否则不生效.
+
+修改后的分区变化
+0x00024000          |---------------------------------|
+                    |      app img 2432k              |------OTA write
+0x00284000          |---------------------------------|
+                    |      Custom Flash 512k          |------自定义区域
+0x00304000          |---------------------------------|
+*/
+
+uint8_t sysROSpaceCheck(uint32_t addr, uint32_t size);
 static void flash_example(void *param)
 {
 	luat_rtos_task_sleep(1500);
+
+	#if (AP_FLASH_LOAD_SIZE > 0x260000)
+		#error("flash demo need modify mem_map.h!!!")
+	#endif
+
+	LUAT_DEBUG_PRINT("flash demo Go ... %d", sysROSpaceCheck(0x00A00000, 4096));
+	luat_rtos_task_sleep(2000);
 	
 	char buff[256] = {0};
 	
-	// 注意, 这个addr是演示性质的
-	uint32_t addr = FLASH_FOTA_REGION_END - 4096;
+	// 注意, 这个addr是要结合注释里的修改才能使用
+	uint32_t addr = 0x003cc000; // 这是KV分区的地址, 使用0x00284000 会炸, 为啥呢-_-
 
 	// flash读写没有太多技巧
 	luat_flash_read(buff, addr, 256);
@@ -59,7 +125,7 @@ static void flash_example(void *param)
 static void task_demoE_init(void)
 {
 	luat_rtos_task_handle handle;
-	luat_rtos_task_create(&handle, 4*1024, 50, "flash", flash_example, NULL, 0);
+	luat_rtos_task_create(&handle, 16*1024, 50, "flash", flash_example, NULL, 0);
 }
 
 
