@@ -116,6 +116,16 @@ void luat_rtos_task_sleep(uint32_t ms);
  * @return luat_rtos_task_handle 当前task的句柄
  */
 luat_rtos_task_handle luat_rtos_get_current_handle(void);
+
+/**
+ * @brief 获取task堆栈剩余的最小值，叫做“高水位线”
+ * 
+ * @param luat_rtos_task_handle task的句柄
+ * @return task堆栈剩余的最小值,单位为字
+ */
+
+uint32_t luat_rtos_task_HighWaterMark(luat_rtos_task_handle task_handle);
+
 /** @}*/
 /* ------------------------------------------------ task   end------------------------------------------------ */
 /**
