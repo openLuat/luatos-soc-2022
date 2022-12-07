@@ -62,7 +62,11 @@ int luat_rtos_task_resume(luat_rtos_task_handle task_handle)
 	vTaskResume(task_handle);
 	return 0;
 }
-
+uint32_t luat_rtos_task_HighWaterMark(luat_rtos_task_handle task_handle)
+{
+	if (!task_handle) return -1;
+	return uxTaskGetStackHighWaterMark(task_handle);
+}
 void luat_rtos_task_sleep(uint32_t ms)
 {
 	vTaskDelay(ms);
