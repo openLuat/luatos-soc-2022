@@ -24,92 +24,40 @@
 
 #include "luat_base.h"
 
+#define LUAT_SMS_MAX_PDU_SIZE 180
+#define LUAT_SMS_MAX_PDU_SIZE                180
+#define LUAT_SMS_MAX_LENGTH_OF_ADDRESS_VALUE 40
+#define LUAT_SMS_MAX_ADDR_STR_MAX_LEN ((LUAT_SMS_MAX_LENGTH_OF_ADDRESS_VALUE + 1) * 4)
+typedef void (*LUAT_SMS_HANDLE_CB)(void*);
+
+typedef struct
+{
+    LUAT_SMS_HANDLE_CB cb;
+}LUAT_SMS_MAIN_CFG_T;
+
 /**
  * @defgroup luatos_sms 短信功能
  * @{
  */
 /**
- * @brief 设置SMS的配置信息
- * @param msg_mode
- * @return 0成功,-1失败
+ * @brief 初始化短信
  */
-int luat_set_sms_msg_mode(uint8_t msg_mode);
+void luat_sms_init(void);
 
 /**
- * @brief 获取SMS的配置信息
- * @param msg_mode
+ * @brief 发送短信
+ * @param p_input           短信的内容(当 is_pdu = false 时, 只支持英文，数字以及常用符号)
+ * @param p_des             接收短信的手机号
+ * @param is_pdu            是否是PDU格式的短信(当 false 时, 有效参数为 p_input & pdes, 当 true 时, 有效参数为 p_input & pudLen)
+ * @param input_pdu_len     PDU格式短信的长度，注意和p_input长度没有关系
  * @return 0成功,-1失败
  */
-int luat_get_sms_msg_mode(uint8_t msg_mode);
+int luat_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_len);
 
 /**
- * @brief 设置TEXT格式信息的编码格式
- * @param codemode
- * @return 0成功,-1失败
+ * @brief 接受短信回调
+ * @param callback_fun    回调函数
  */
-int luat_set_sms_code_mode(char* codemode);
-
-/**
- * @brief 获取TEXT格式信息的编码格式
- * @param codemode
- * @return 0成功,-1失败
- */
-int luat_get_sms_code_mode(char* codemode);
-
-/**
- * @brief 发送TEXT格式的信息
- * @param phone_num 号码
- * @param data 信息内容
- * @param codemode 编码模式
- * @return 0成功,-1失败
- */
-int luat_sms_send_text_msg(uint8_t *phone_num, uint8_t *data, char* codemode);
-
-/**
- * @brief 发送PDU格式的信息
- * @param phone_num 号码
- * @param data 信息内容
- * @param len 长度 
- * @return 0成功,-1失败
- */
-int luat_sms_send_pdu_msg(uint8_t *phone_num,uint8_t *data, int len);
-
-/**
- * @brief 删除信息
- * @param index 信息编号
- * @return 0成功,-1失败
- */
-int luat_sms_delete_msg(size_t index);
-
-/**
- * @brief 获取中心地址
- * @param address 地址
- * @return 0成功,-1失败
- */
-int luat_get_sms_center_address(uint8_t* address);
-
-/**
- * @brief 设置中心地址
- * @param address 地址
- * @return 0成功,-1失败
- */
-int luat_set_sms_center_address(uint8_t* address);
-
-/**
- * @brief 设置短信保存的地址(MEM1/2/3)
- * @param address 地址
- * @return 0成功,-1失败
- */
-int luat_set_sms_save_location(uint8_t* address);
-
-/**
- * @brief 列举出所选类型的所有信息
- * @param msg_type 信息的类型
- * @param msg 信息
- * @return 0成功,-1失败
- */
-int luat_sms_list_stored_in_sim_sms_msg(uint8_t msg_type, void* msg);
-
-/**@}*/
+void luat_sms_recv_msg_register_handler(LUAT_SMS_HANDLE_CB callback_fun);
 
 #endif
