@@ -26,7 +26,6 @@
 #include "luat_debug.h"
 
 #include "luat_sms.h"
-#include "luat_mobile.h"
 
 luat_rtos_task_handle task_handle;
 
@@ -45,7 +44,6 @@ static void demo_init_sms()
 	uint8_t str_pdu[] = "0001000D91688196457286F2000822606D559C53D18D22FF0C00610062003100320033004000710071002E0063006F006D";
 	//初始化SMS
 	luat_sms_init();
-	luat_mobile_sms_event_register_handler(luat_sms_proc);
     luat_sms_recv_msg_register_handler(sms_recv_cb);
 	//等待注册网络
 	luat_rtos_task_sleep(15000);

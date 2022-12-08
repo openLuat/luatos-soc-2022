@@ -44,10 +44,6 @@ static void luat_sms_def_recv_cb(void* param)
     LUAT_SMS_INFO("recv message: [%s]", (char*)param);
 }
 
-void luat_sms_init(void)
-{
-    luat_sms_cfg.cb = luat_sms_def_recv_cb;
-}
 
 void luat_sms_recv_msg_register_handler(LUAT_SMS_HANDLE_CB callback_fun)
 {
@@ -1088,4 +1084,12 @@ void luat_sms_proc(uint32_t event, void *param)
     default:
         break;
     }
+}
+
+extern void soc_mobile_sms_event_register_handler(void *handle);
+//初始化SMS
+void luat_sms_init(void)
+{
+    luat_sms_cfg.cb = luat_sms_def_recv_cb;
+	soc_mobile_sms_event_register_handler(luat_sms_proc);
 }
