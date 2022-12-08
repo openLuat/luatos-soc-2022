@@ -52,6 +52,7 @@ static const luaL_Reg loadedlibs[] = {
   {"timer",   luaopen_timer},             // 延时库
 //-----------------------------------------------------------------------
   {"mobile", luaopen_mobile},
+  {"sms",    luaopen_sms},
 #ifdef LUAT_USE_NETWORK
   {"socket", luaopen_socket_adapter},
   {"mqtt", luaopen_mqtt},

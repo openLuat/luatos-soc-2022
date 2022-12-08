@@ -27,6 +27,7 @@
 #include "luat_pm.h"
 #include "luat_rtos.h"
 #include "luat_mobile.h"
+#include "luat_sms.h"
 #include "luat_network_adapter.h"
 #include "ps_event_callback.h"
 #include "networkmgr.h"
@@ -183,6 +184,7 @@ static void luatos_task(void *param)
 }
 
 void luat_mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status);
+void luat_sms_recv_cb(uint32_t event, void *param);
 
 static void luatos_task_init(void)
 {
@@ -191,6 +193,10 @@ static void luatos_task_init(void)
 	luat_mobile_event_register_handler(luat_mobile_event_cb);
 	luat_mobile_set_period_work(0, 10000, 4);
 //	luat_mobile_set_rrc_auto_release_time(1);
+
+	luat_sms_init();
+	//luat_sms_recv_msg_register_handler(luat_sms_recv_cb);
+
 	luat_rtos_task_handle task_handle;
 	// xTaskCreateStatic(task1, "luatos", VM_STACK_SIZE, NULL, 20, s_vm_stackbuff, pxVMTaskTCBBuffer);
 	luat_rtos_task_create(&task_handle, 16 * 1024, 80, "luatos", luatos_task, NULL, 0);

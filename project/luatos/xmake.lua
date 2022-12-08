@@ -178,6 +178,9 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/multimedia/**.c")
     ------------------------------------------------------------
     ------------------------------------------------------------
+    -- sms
+    add_includedirs(LUATOS_ROOT.."components/sms")
+    add_files(LUATOS_ROOT.."components/sms/*.c")
 
     -- hmeta
     add_includedirs(LUATOS_ROOT.."components/hmeta")
