@@ -27,10 +27,9 @@
 static luat_rtos_task_handle uart_task_handle;
 
 void luat_uart_send_cb(int uart_id, uint32_t data_len){
-    char* data_buff = malloc(data_len+1);
-    memset(data_buff,0,data_len+1);
+    char* data_buff = malloc(data_len);
     luat_uart_read(uart_id, data_buff, data_len);
-    LUAT_DEBUG_PRINT("luat_uart_cb uart_id:%d data:%s data_len:%d",uart_id,data_buff,data_len);
+    LUAT_DEBUG_PRINT("luat_uart_cb uart_id:%d data:%.*s data_len:%d",uart_id, data_len, data_buff,data_len);
     free(data_buff);
 }
 
@@ -48,7 +47,7 @@ static void task_test_uart(void *param)
     while (1)
     {
         luat_rtos_task_sleep(1000);
-        luat_uart_write(LUAT_VUART_ID_0, send_buff, strlen(send_buff)+1);
+        luat_uart_write(LUAT_VUART_ID_0, send_buff, strlen(send_buff));
     }
     delete_event_task(&uart_task_handle);
 }
