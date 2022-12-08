@@ -34,7 +34,7 @@
 #define LUAT_USE_RTC 1
 #define LUAT_USE_OTP 1
 
-// #define LUAT_USE_HMETA 1
+#define LUAT_USE_HMETA 1
 
 #define LUAT_USE_DHCP  1
 #define LUAT_USE_DNS  1
