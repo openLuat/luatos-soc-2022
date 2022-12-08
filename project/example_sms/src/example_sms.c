@@ -48,11 +48,11 @@ static void demo_init_sms()
 	//等待注册网络
 	luat_rtos_task_sleep(15000);
 	//添加自己测试的手机号
-	int ret = luat_send_msg(str, "18695427682", false, 0);
+	int ret = luat_sms_send_msg(str, "18695427682", false, 0);
 	if (ret == 0)
 	{
 		luat_rtos_task_sleep(1000);
-		luat_send_msg(str_pdu, "", true, 48);
+		luat_sms_send_msg(str_pdu, "", true, 48);
 	}
 }
 

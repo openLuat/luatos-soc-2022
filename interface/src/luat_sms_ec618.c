@@ -838,7 +838,7 @@ static CmsRetId luat_sms_send_pdu_sms(PsilSmsSendInfo *p_send_info)
     return CMS_RET_SUCC;
 }
 
-int luat_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_len)
+int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_len)
 {
     int length = 0;
     CmsRetId cmsRet = CMS_RET_SUCC;

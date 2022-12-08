@@ -52,7 +52,7 @@ void luat_sms_init(void);
  * @param input_pdu_len     PDU格式短信的长度，注意和p_input长度没有关系
  * @return 0成功,-1失败
  */
-int luat_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_len);
+int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_len);
 
 /**
  * @brief 接受短信回调
