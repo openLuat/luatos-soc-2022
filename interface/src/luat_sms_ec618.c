@@ -39,9 +39,9 @@ static PsilSmsSendInfo *luat_p_sms_send_info = PNULL;
 LUAT_SMS_MAIN_CFG_T luat_sms_cfg;
 
 
-static void luat_sms_def_recv_cb(void* param)
+static void luat_sms_def_recv_cb(uint8_t event, void* param)
 {
-    LUAT_SMS_INFO("recv message: [%s]", (char*)param);
+    LUAT_SMS_INFO("recv message: [%d | %X]", event, param);
 }
 
 
@@ -967,54 +967,118 @@ void luat_sms_nw_report_urc(CmiSmsNewMsgInd *p_cmi_msg_ind)
     UINT16 rsp_buf_pdu_max_len = p_cmi_msg_ind->pdu.pduLength * 2 + 100 + CMS_NULL_CHAR_LEN;
     CHAR sms_cBuf[PSIL_MSG_MAX_ADDR_LEN * 2 + CMS_NULL_CHAR_LEN];
     UINT16 sms_cLen = 0;
-    // UINT8 sms_display_mode = PSIL_SMS_SHOW_DETAIL_INFO_ENABLE;
 
-    if (message_format == PSIL_SMS_FORMAT_PDU_MODE)
+    if ((p_cmi_msg_ind->smsType == CMI_SMS_TYPE_DELIVER) || 
+        (p_cmi_msg_ind->smsType ==CMI_SMS_TYPE_STATUS_REPORT) || 
+        (p_cmi_msg_ind->smsType == CMI_SMS_TYPE_CB_ETWS_CMAS))
     {
-        char *rsp_buf = (char*)malloc(rsp_buf_pdu_max_len);
-        char *p_pdu_buf = (CHAR *)malloc(p_cmi_msg_ind->pdu.pduLength * 2 + 10);
-        
-        memset(sms_cBuf, 0x00, sizeof(sms_cBuf));
-        memset(rsp_buf, 0x00, rsp_buf_pdu_max_len);
-        memset(p_pdu_buf, 0x00, (p_cmi_msg_ind->pdu.pduLength * 2 + 10));
-        smsSmscToHexStrPdu(&(p_cmi_msg_ind->smscAddress), sms_cBuf, &sms_cLen);
-
-        if (cmsHexToHexStr(p_pdu_buf, p_cmi_msg_ind->pdu.pduLength * 2 + 10, p_cmi_msg_ind->pdu.pduData, p_cmi_msg_ind->pdu.pduLength) > 0)
+        if (message_format == PSIL_SMS_FORMAT_PDU_MODE)
         {
-            switch (p_cmi_msg_ind->smsType)
-            {
-                case CMI_SMS_TYPE_STATUS_REPORT:
-                {
-                    /* SMSC address */
-                    strcat(rsp_buf, sms_cBuf);
-                    /* TPDU */
-                    strcat(rsp_buf, p_pdu_buf);
-                    break;
-                }
-                case CMI_SMS_TYPE_CB_ETWS_CMAS:
-                {
-                    /* TPDU */
-                    strcat(rsp_buf, p_pdu_buf);
-                    break;
-                }
-                case CMI_SMS_TYPE_DELIVER:
-                default:
-                {
-                    /* SMSC address */
-                    strcat(rsp_buf, sms_cBuf);
-                    /* TPDU */
-                    strcat(rsp_buf, p_pdu_buf);
-                    break;
-                }
-            }
+            char *rsp_buf = (char*)malloc(rsp_buf_pdu_max_len);
+            char *p_pdu_buf = (CHAR *)malloc(p_cmi_msg_ind->pdu.pduLength * 2 + 10);
+            
+            memset(sms_cBuf, 0x00, sizeof(sms_cBuf));
+            memset(rsp_buf, 0x00, rsp_buf_pdu_max_len);
+            memset(p_pdu_buf, 0x00, (p_cmi_msg_ind->pdu.pduLength * 2 + 10));
+            smsSmscToHexStrPdu(&(p_cmi_msg_ind->smscAddress), sms_cBuf, &sms_cLen);
 
-            LUAT_SMS_INFO("The recv msg: %s", rsp_buf);
-            //发送收到的短信给回调函数
-            luat_sms_cfg.cb(rsp_buf);
+            if (cmsHexToHexStr(p_pdu_buf, p_cmi_msg_ind->pdu.pduLength * 2 + 10, p_cmi_msg_ind->pdu.pduData, p_cmi_msg_ind->pdu.pduLength) > 0)
+            {
+                switch (p_cmi_msg_ind->smsType)
+                {
+                    case CMI_SMS_TYPE_STATUS_REPORT:
+                    {
+                        /* SMSC address */
+                        strcat(rsp_buf, sms_cBuf);
+                        /* TPDU */
+                        strcat(rsp_buf, p_pdu_buf);
+                        break;
+                    }
+                    case CMI_SMS_TYPE_CB_ETWS_CMAS:
+                    {
+                        /* TPDU */
+                        strcat(rsp_buf, p_pdu_buf);
+                        break;
+                    }
+                    case CMI_SMS_TYPE_DELIVER:
+                    default:
+                    {
+                        /* SMSC address */
+                        strcat(rsp_buf, sms_cBuf);
+                        /* TPDU */
+                        strcat(rsp_buf, p_pdu_buf);
+                        break;
+                    }
+                }
+
+                int leng_old = 0;
+                while (p_cmi_msg_ind->pdu.pduData[leng_old] != '\0')
+                {
+                    LUAT_SMS_INFO("[%d]", p_cmi_msg_ind->pdu.pduData[leng_old++]);
+                }
+                
+                LUAT_SMS_RECV_MSG_T recv_msg_info = {0};
+                uint8_t start_offset = 0;
+                uint8_t msg_phone_address_type;
+                bool hdr_present = false;
+
+                if ((p_cmi_msg_ind->pdu.pduData[start_offset]) & (0x40))
+                {
+                    hdr_present = true;
+                }
+                start_offset++;
+                //获取发送方手机号
+                smsPduDecodeAddress(p_cmi_msg_ind->pdu.pduData, &start_offset, &msg_phone_address_type, recv_msg_info.phone_address, (LUAT_MSG_MAX_ADDR_LEN + 1));
+                LUAT_SMS_INFO("The recv msg: phone: %s", recv_msg_info.phone_address);
+                start_offset++;
+                PsilSmsDcsInfo msg_dcs_info;
+                smsPduDecodeDcs(p_cmi_msg_ind->pdu.pduData, &start_offset, &msg_dcs_info);
+                recv_msg_info.dcs_info.alpha_bet = msg_dcs_info.alphabet;
+                LUAT_SMS_INFO("The recv msg: dcs: %d | %d | %d | %d", msg_dcs_info.alphabet, msg_dcs_info.dcs, msg_dcs_info.msgClass, msg_dcs_info.type);
+                //获取发送方中心地址
+                if (p_cmi_msg_ind->smscPresent)
+                {
+                    smsSrvCenterAddrToText(recv_msg_info.sc_address, sizeof(recv_msg_info.sc_address), &(p_cmi_msg_ind->smscAddress));
+                    LUAT_SMS_INFO("The recv msg: sca: [%s]", recv_msg_info.sc_address);
+                }
+                //获取接受短信的时间
+                PsilSmsTimeStampInfo tem_time = {0};
+                smsPduDecodeTimeStamp(p_cmi_msg_ind->pdu.pduData, &start_offset, &tem_time);
+                recv_msg_info.time.year = tem_time.year;
+                recv_msg_info.time.month = tem_time.month;
+                recv_msg_info.time.day = tem_time.day;
+                recv_msg_info.time.hour = tem_time.hour;
+                recv_msg_info.time.minute = tem_time.minute;
+                recv_msg_info.time.second = tem_time.second;
+                recv_msg_info.time.tz_sign = tem_time.tzSign;
+                recv_msg_info.time.tz = tem_time.tz;
+                LUAT_SMS_INFO("The recv msg: time: [\"%02d/%02d/%02d,%02d:%02d:%02d %c%02d\"]",
+                    recv_msg_info.time.year, recv_msg_info.time.month,
+                    recv_msg_info.time.day, recv_msg_info.time.hour,
+                    recv_msg_info.time.minute, recv_msg_info.time.second,
+                    recv_msg_info.time.tz_sign, recv_msg_info.time.tz);
+                //获取PDU数据
+                smsPduDecodeUserData((p_cmi_msg_ind->pdu.pduData + start_offset),
+                                    (p_cmi_msg_ind->pdu.pduLength - start_offset - 1),
+                                    (PsilMsgCodingType)recv_msg_info.dcs_info.alpha_bet,
+                                    hdr_present,
+                                    recv_msg_info.sms_buffer,
+                                    &(recv_msg_info.sms_length),
+                                    641,
+                                    PNULL);
+                LUAT_SMS_INFO("The recv msg: pdu: [%d | %d | %d | %s]", start_offset, p_cmi_msg_ind->pdu.pduLength,
+                recv_msg_info.sms_length, (char*)(recv_msg_info.sms_buffer));
+                memcpy(recv_msg_info.pdu_data, rsp_buf, rsp_buf_pdu_max_len);
+                recv_msg_info.pdu_length = p_cmi_msg_ind->pdu.pduLength;
+                LUAT_SMS_INFO("The recv msg: %d[%s]", recv_msg_info.pdu_length, recv_msg_info.pdu_data);
+                LUAT_SMS_INFO("The recv msg: [%s]", rsp_buf);
+                //发送收到的短信给回调函数
+                luat_sms_cfg.cb(p_cmi_msg_ind->smsType, &recv_msg_info);
+            }
+            //释放内存
+            free(rsp_buf);
+            free(p_pdu_buf);
         }
-        //释放内存
-        free(rsp_buf);
-        free(p_pdu_buf);
     }
 }
 

@@ -32,9 +32,19 @@ luat_rtos_task_handle task_handle;
 extern void luat_sms_proc(uint32_t event, void *param);
 
 
-static void sms_recv_cb(void *param)
+static void sms_recv_cb(uint8_t event,void *param)
 {
-	LUAT_DEBUG_PRINT("message [%s]", (char*)param);
+	LUAT_DEBUG_PRINT("event:[%d]", event);
+	LUAT_DEBUG_PRINT("Dcs:[%d]", ((LUAT_SMS_RECV_MSG_T*)param)->dcs_info.alpha_bet);
+	LUAT_DEBUG_PRINT("Time:[\"%02d/%02d/%02d,%02d:%02d:%02d %c%02d\"]",
+                ((LUAT_SMS_RECV_MSG_T*)param)->time.year, ((LUAT_SMS_RECV_MSG_T*)param)->time.month,
+                ((LUAT_SMS_RECV_MSG_T*)param)->time.day, ((LUAT_SMS_RECV_MSG_T*)param)->time.hour,
+                ((LUAT_SMS_RECV_MSG_T*)param)->time.minute, ((LUAT_SMS_RECV_MSG_T*)param)->time.second,
+                ((LUAT_SMS_RECV_MSG_T*)param)->time.tz_sign, ((LUAT_SMS_RECV_MSG_T*)param)->time.tz);
+	LUAT_DEBUG_PRINT("Phone:[%s]", ((LUAT_SMS_RECV_MSG_T*)param)->phone_address);
+	LUAT_DEBUG_PRINT("ScAddr:[%s]", ((LUAT_SMS_RECV_MSG_T*)param)->sc_address);
+	LUAT_DEBUG_PRINT("PDU len:[%d]", ((LUAT_SMS_RECV_MSG_T*)param)->sms_length);
+	LUAT_DEBUG_PRINT("PDU: [%s]", ((LUAT_SMS_RECV_MSG_T*)param)->sms_buffer);
 }
 
 
@@ -52,7 +62,7 @@ static void demo_init_sms()
 	if (ret == 0)
 	{
 		luat_rtos_task_sleep(1000);
-		luat_sms_send_msg(str_pdu, "", true, 48);
+		luat_sms_send_msg(str_pdu, "", true, 54);
 	}
 }
 

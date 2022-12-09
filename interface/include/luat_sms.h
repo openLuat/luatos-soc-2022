@@ -24,16 +24,51 @@
 
 #include "luat_base.h"
 
+#define LUAT_MSG_MAX_ADDR_LEN 80
+#define LUAT_SMS_MAX_TXT_SIZE 640
 #define LUAT_SMS_MAX_PDU_SIZE 180
-#define LUAT_SMS_MAX_PDU_SIZE                180
 #define LUAT_SMS_MAX_LENGTH_OF_ADDRESS_VALUE 40
 #define LUAT_SMS_MAX_ADDR_STR_MAX_LEN ((LUAT_SMS_MAX_LENGTH_OF_ADDRESS_VALUE + 1) * 4)
-typedef void (*LUAT_SMS_HANDLE_CB)(void*);
+typedef void (*LUAT_SMS_HANDLE_CB)(uint8_t event, void* param);
 
 typedef struct
 {
     LUAT_SMS_HANDLE_CB cb;
 }LUAT_SMS_MAIN_CFG_T;
+
+typedef struct
+{
+    uint8_t   year;
+    uint8_t   month;
+    uint8_t   day;
+    uint8_t   hour;
+    uint8_t   minute;
+    uint8_t   second;
+    uint8_t   tz;         /* time zone */
+    uint8_t   tz_sign;     /* '+'/'-' */
+}LUAT_SMS_RECV_MSG_TIME_T;
+
+typedef struct
+{
+    uint8_t  type;
+    uint8_t  msg_class;
+    uint8_t  alpha_bet;
+    uint8_t  indication;
+    uint8_t  dcs;
+}LUAT_SMS_RECV_MSG_DCS_T;
+
+//接受的短信信息结构体
+typedef struct
+{
+    uint16_t pdu_length;//PDU 长度
+    uint16_t sms_length;//TEXT 的长度
+    LUAT_SMS_RECV_MSG_TIME_T time;//时间
+    LUAT_SMS_RECV_MSG_DCS_T dcs_info;//Data Coding Scheme
+    char pdu_data[LUAT_SMS_MAX_TXT_SIZE + 1];//PDU 数据
+    uint8_t sms_buffer[LUAT_SMS_MAX_TXT_SIZE + 1];//TEXT 数据
+    uint8_t sc_address[LUAT_MSG_MAX_ADDR_LEN + 1];//中心地址
+    uint8_t phone_address[LUAT_MSG_MAX_ADDR_LEN + 1];//来电号码
+}LUAT_SMS_RECV_MSG_T;
 
 /**
  * @defgroup luatos_sms 短信功能
