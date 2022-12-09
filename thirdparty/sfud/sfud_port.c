@@ -57,9 +57,17 @@ static sfud_err spi_write_read(const sfud_spi *spi, const uint8_t *write_buf, si
     if (read_size) {
         SFUD_ASSERT(read_buf);
     }
-    if (RTE_SPI0_SSN_BIT==0xFF && spi_flash->cs){
-        luat_gpio_set(spi_flash->cs, 0);
+
+    if (spi_flash -> id == 0){
+        if (RTE_SPI0_SSN_BIT==0xFF && spi_flash->cs){
+            luat_gpio_set(spi_flash->cs, 0);
+        }
+    }else if(spi_flash -> id == 1){
+        if (RTE_SPI1_SSN_BIT==0xFF && spi_flash->cs){
+            luat_gpio_set(spi_flash->cs, 0);
+        }
     }
+
     if (write_size) {
         if (luat_spi_send(spi_flash -> id,  write_buf, write_size) <= 0) {
             result = SFUD_ERR_WRITE;
@@ -70,8 +78,14 @@ static sfud_err spi_write_read(const sfud_spi *spi, const uint8_t *write_buf, si
             result = SFUD_ERR_READ;
         }
     }
-    if (RTE_SPI0_SSN_BIT==0xFF && spi_flash->cs){
-        luat_gpio_set(spi_flash->cs, 1);
+    if (spi_flash -> id == 0){
+        if (RTE_SPI0_SSN_BIT==0xFF && spi_flash->cs){
+            luat_gpio_set(spi_flash->cs, 1);
+        }
+    }else if(spi_flash -> id == 1){
+        if (RTE_SPI1_SSN_BIT==0xFF && spi_flash->cs){
+            luat_gpio_set(spi_flash->cs, 1);
+        }
     }
     return result;
 }
@@ -103,14 +117,26 @@ sfud_err sfud_spi_port_init(sfud_flash *flash) {
 
     extern luat_spi_t sfud_spi_flash;
 
-    if (RTE_SPI0_SSN_BIT==0xFF && sfud_spi_flash.cs){
-        luat_gpio_cfg_t gpio_cfg;
-	    luat_gpio_set_default_cfg(&gpio_cfg);
-        gpio_cfg.mode = Luat_GPIO_OUTPUT;
-        gpio_cfg.pull = LUAT_GPIO_DEFAULT;
-        gpio_cfg.output_level = Luat_GPIO_HIGH;
-	    gpio_cfg.pin = sfud_spi_flash.cs;
-        luat_gpio_open(&gpio_cfg); 
+    if (sfud_spi_flash.id == 0){
+        if (RTE_SPI0_SSN_BIT==0xFF && sfud_spi_flash.cs){
+            luat_gpio_cfg_t gpio_cfg;
+            luat_gpio_set_default_cfg(&gpio_cfg);
+            gpio_cfg.mode = Luat_GPIO_OUTPUT;
+            gpio_cfg.pull = LUAT_GPIO_DEFAULT;
+            gpio_cfg.output_level = Luat_GPIO_HIGH;
+            gpio_cfg.pin = sfud_spi_flash.cs;
+            luat_gpio_open(&gpio_cfg); 
+        }
+    }else if(sfud_spi_flash.id == 1){
+            if (RTE_SPI1_SSN_BIT==0xFF && sfud_spi_flash.cs){
+            luat_gpio_cfg_t gpio_cfg;
+            luat_gpio_set_default_cfg(&gpio_cfg);
+            gpio_cfg.mode = Luat_GPIO_OUTPUT;
+            gpio_cfg.pull = LUAT_GPIO_DEFAULT;
+            gpio_cfg.output_level = Luat_GPIO_HIGH;
+            gpio_cfg.pin = sfud_spi_flash.cs;
+            luat_gpio_open(&gpio_cfg); 
+        }
     }
     /* port SPI device interface */
     flash->spi.wr = spi_write_read;
