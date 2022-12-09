@@ -34,15 +34,15 @@ static HANDLE g_s_delay_timer;
 void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
 {
     int value = 4;
-    int ret = luat_kv_get("volume", &value, 1);
+    int ret = luat_kv_get("volume", &value, sizeof(int));
     if(ret > 0)
     {
-        // LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume success %d", value);       //这里的打印打开会出来很多，影响日志查看，有需要可自行打开
+        LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume success %d", value);       //这里的打印打开会出来很多，影响日志查看，有需要可自行打开
         HAL_I2sSrcAdjustVolumn(data, len, value);
     }
     else
     {
-        // LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume fail %d", value);          //这里的打印打开会出来很多，影响日志查看，有需要可自行打开
+        LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume fail %d", value);          //这里的打印打开会出来很多，影响日志查看，有需要可自行打开
         HAL_I2sSrcAdjustVolumn(data, len, 4);
     }
     LUAT_DEBUG_PRINT("cloud_speaker_audio_task %x,%d,%d,%d,%d", data, len, bits, channels);
@@ -151,12 +151,13 @@ void audio_task_init(void)
     audioQueueData powerOn = {0};
     powerOn.playType = TTS_PLAY;
     powerOn.priority = MONEY_PLAY;
-    char str[] = "正在开机"; 
+    char str[] = "正在开机";
     powerOn.message.tts.data = malloc(sizeof(str));
     memcpy(powerOn.message.tts.data, str, sizeof(str));
     powerOn.message.tts.len = sizeof(str);
     if (-1 == luat_rtos_queue_send(audio_queue_handle, &powerOn, NULL, 0))
     {
+        free(powerOn.message.tts.data);
         LUAT_DEBUG_PRINT("cloud_speaker_audio_task start send audio fail");
     }
     int result = luat_rtos_task_create(&audio_task_handle, 2048, 20, "mqtt", audio_task, NULL, NULL);

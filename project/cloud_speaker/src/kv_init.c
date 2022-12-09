@@ -16,7 +16,7 @@ void fdb_init(void)
             ret = luat_kv_set("flag", "1", 2);
             LUAT_DEBUG_PRINT("init result1 %d", ret);
             int volume = 15;
-            ret = luat_kv_set("volume", &volume, 1);
+            ret = luat_kv_set("volume", &volume, sizeof(int));
         }
         else
         {
@@ -27,7 +27,7 @@ void fdb_init(void)
     {
         ret = luat_kv_set("flag", "1", 2);
         int volume = 4;
-        ret = luat_kv_set("volume", &volume, 1);
+        ret = luat_kv_set("volume", &volume, sizeof(int));
         LUAT_DEBUG_PRINT("init result2 %d", ret);
     }
 }
