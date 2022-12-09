@@ -209,7 +209,12 @@ static const luaL_Reg loadedlibs[] = {
   {"fota", luaopen_fota},
   {NULL, NULL}
 };
-
+void mbedtls_md5( const unsigned char *input,
+                  size_t ilen,
+                  unsigned char output[16] )
+{
+    mbedtls_md5_ret( input, ilen, output );
+}
 // 按不同的rtconfig加载不同的库函数
 void luat_openlibs(lua_State *L) {
     // 初始化队列服务
