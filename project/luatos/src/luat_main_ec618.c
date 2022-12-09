@@ -88,39 +88,39 @@ void luat_lvgl_tick_sleep(uint8_t OnOff)
 
 }
 #endif
+extern int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
 
 
-
-static INT32 ps_callback(PsEventID eventID, void *param, UINT32 paramLen)
-{
-	NmAtiNetInfoInd *net_info = (NmAtiNetInfoInd *)param;
-	ip_addr_t dns_ip;
-	if(PS_URC_ID_PS_NETINFO == eventID)
-	{
-		if (NM_NETIF_ACTIVATED == net_info->netifInfo.netStatus)
-		{
-			if (net_info->netifInfo.ipv4Cid != 0xFF)
-			{
-				dns_ip.type = IPADDR_TYPE_V4;
-				dns_ip.u_addr.ip4 = net_info->netifInfo.ipv4Info.dns[0];
-				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 2, &dns_ip);
-				dns_ip.u_addr.ip4 = net_info->netifInfo.ipv4Info.dns[1];
-				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip);
-
-			}
-			else if (net_info->netifInfo.ipv6Cid != 0xFF)
-			{
-				// dns_ip.type = IPADDR_TYPE_V6;
-				// dns_ip.u_addr.ip6 = net_info->netifInfo.ipv6Info.dns[0];
-				// network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip);
-				//dns_ip.u_addr.ip6 = net_info->netifInfo.ipv6Info.dns[1];
-				//network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip);
-			}
-			net_lwip_set_link_state(NW_ADAPTER_INDEX_LWIP_GPRS, 1);
-		}
-	}
-	return 0;
-}
+//static INT32 ps_callback(PsEventID eventID, void *param, UINT32 paramLen)
+//{
+//	NmAtiNetInfoInd *net_info = (NmAtiNetInfoInd *)param;
+//	ip_addr_t dns_ip;
+//	if(PS_URC_ID_PS_NETINFO == eventID)
+//	{
+//		if (NM_NETIF_ACTIVATED == net_info->netifInfo.netStatus)
+//		{
+//			if (net_info->netifInfo.ipv4Cid != 0xFF)
+//			{
+//				dns_ip.type = IPADDR_TYPE_V4;
+//				dns_ip.u_addr.ip4 = net_info->netifInfo.ipv4Info.dns[0];
+//				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 2, &dns_ip);
+//				dns_ip.u_addr.ip4 = net_info->netifInfo.ipv4Info.dns[1];
+//				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip);
+//
+//			}
+//			else if (net_info->netifInfo.ipv6Cid != 0xFF)
+//			{
+//				// dns_ip.type = IPADDR_TYPE_V6;
+//				// dns_ip.u_addr.ip6 = net_info->netifInfo.ipv6Info.dns[0];
+//				// network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip);
+//				//dns_ip.u_addr.ip6 = net_info->netifInfo.ipv6Info.dns[1];
+//				//network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip);
+//			}
+//			net_lwip_set_link_state(NW_ADAPTER_INDEX_LWIP_GPRS, 1);
+//		}
+//	}
+//	return 0;
+//}
 
 //static void dft_usb_recv_cb(uint8_t channel, uint8_t *input, uint32_t len){
 //    if (input == NULL) {
@@ -153,7 +153,6 @@ static void luatos_task(void *param)
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
-	registerPSEventCallback(PS_GROUP_PS_MASK, ps_callback);
 	luat_heap_init();
 	luat_main_print_model();
 #ifdef LUAT_USE_MEDIA
@@ -186,11 +185,35 @@ static void luatos_task(void *param)
 void luat_mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status);
 void luat_sms_recv_cb(uint32_t event, void *param);
 
+static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
+{
+	if (LUAT_MOBILE_EVENT_NETIF == event)
+	{
+		if (LUAT_MOBILE_NETIF_LINK_ON == status)
+		{
+			ip_addr_t dns_ip[2];
+			uint8_t type, dns_num;
+			dns_num = 2;
+			soc_mobile_get_default_pdp_part_info(&type, NULL, NULL, &dns_num, dns_ip);
+			if (dns_num > 0)
+			{
+				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 2, &dns_ip[0]);
+				if (dns_num > 1)
+				{
+					network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip[1]);
+				}
+			}
+			net_lwip_set_link_state(NW_ADAPTER_INDEX_LWIP_GPRS, 1);
+		}
+	}
+	luat_mobile_event_cb(event, index, status);
+}
+
 static void luatos_task_init(void)
 {
 	GPIO_GlobalInit(NULL);
 	WDT_deInit();
-	luat_mobile_event_register_handler(luat_mobile_event_cb);
+	luat_mobile_event_register_handler(luatos_mobile_event_callback);
 	luat_mobile_set_period_work(0, 10000, 4);
 //	luat_mobile_set_rrc_auto_release_time(1);
 

@@ -1341,7 +1341,11 @@
  * will be TCP_WND >> TCP_RCV_SCALE
  */
 #if !defined TCP_WND || defined __DOXYGEN__
+#ifdef __USER_CODE__
+#define TCP_WND                         (6 * TCP_MSS)//6*TCP_MSS
+#else
 #define TCP_WND                         (6 * 1024) //6*TCP_MSS
+#endif
 #endif
 
 

@@ -39,6 +39,7 @@ extern void soc_mobile_set_sim_id(uint8_t sim_id);
 extern void soc_mobile_sms_event_register_handler(void *handle);
 extern uint8_t soc_mobile_get_csq(void);
 extern void soc_mobile_search_cell_info_async(uint8_t param);
+int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
 
 int luat_mobile_get_imei(int sim_id, char* buff, size_t buf_len)
 {
@@ -149,12 +150,20 @@ int luat_mobile_set_sim_id(int id)
 
 int luat_mobile_get_apn(int sim_id, int cid, char* buff, size_t buf_len)
 {
-	return -1;
+	uint8_t type;
+	int default_cid = soc_mobile_get_default_pdp_part_info(&type, NULL, NULL, NULL, NULL);
+	if (cid > 0 && default_cid != cid)
+	{
+		return -1;
+	}
+	uint8_t apn_len = buf_len;
+	soc_mobile_get_default_pdp_part_info(&type, buff, &apn_len, NULL, NULL);
+	return apn_len;
 }
 
 int luat_mobile_get_default_apn(int sim_id, char* buff, size_t buf_len)
 {
-	return luat_mobile_get_apn(sim_id, 1, buff, buf_len);
+	return luat_mobile_get_apn(sim_id, -1, buff, buf_len);
 }
 
 int luat_mobile_set_apn(int sim_id, int cid, const char* buff, size_t buf_len)

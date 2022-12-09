@@ -105,14 +105,6 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		break;
 	case LUAT_MOBILE_EVENT_PDP:
 		LUAT_DEBUG_PRINT("CID %d PDP激活状态变更为 %d", index, status);
-		if (LUAT_MOBILE_PDP_ACTIVED == status)
-		{
-			if (luat_mobile_get_apn(0, index, apn, sizeof(apn)))
-			{
-				LUAT_DEBUG_PRINT("apn %s", apn);
-			}
-
-		}
 		break;
 	case LUAT_MOBILE_EVENT_NETIF:
 		LUAT_DEBUG_PRINT("internet工作状态变更为 %d", status);
@@ -120,6 +112,10 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		{
 		case LUAT_MOBILE_NETIF_LINK_ON:
 			LUAT_DEBUG_PRINT("可以上网");
+			if (luat_mobile_get_apn(0, index, apn, sizeof(apn)))
+			{
+				LUAT_DEBUG_PRINT("apn %s", apn);
+			}
 			break;
 		default:
 			LUAT_DEBUG_PRINT("不能上网");
