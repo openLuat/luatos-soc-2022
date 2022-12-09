@@ -435,6 +435,7 @@ void messageArrived(MessageData* data)
                     }
                 }
                 if (-1 == luat_rtos_queue_send(audio_queue_handle, &moneyPlay, NULL, 0)){
+                    free(moneyPlay.message.file.info);
                     LUAT_DEBUG_PRINT("cloud_speaker_mqtt sub queue send error");
                 }
             }
@@ -594,6 +595,7 @@ static void mqtt_demo(void){
             memcpy(welcome.message.tts.data, str, sizeof(str));
             welcome.message.tts.len = sizeof(str);
             if (-1 == luat_rtos_queue_send(audio_queue_handle, &welcome, NULL, 0)){
+                free(welcome.message.tts.data);
                 LUAT_DEBUG_PRINT("cloud_speaker_mqtt sub audio queue send error");
             }
         }

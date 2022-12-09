@@ -41,6 +41,7 @@ static luat_rtos_timer_callback_t pwrkey_long_press_callback(void *param)
         powerOff.message.tts.len = sizeof(str);
         if (-1 == luat_rtos_queue_send(audio_queue_handle, &powerOff, NULL, 0))
         {
+            free(powerOff.message.tts.data);
             LUAT_DEBUG_PRINT("cloud_speaker_key_task start send audio fail");
         }
     }
@@ -81,7 +82,7 @@ static void key_task(void *param)
                 volMinus.playType = TTS_PLAY;
                 volMinus.priority = MONEY_PLAY;
                 volume = 15;
-                ret = luat_kv_get("volume", &volume, 1);
+                ret = luat_kv_get("volume", &volume, sizeof(int));
                 if (ret > 0)
                 {
                     if (volume > 3)
@@ -91,7 +92,7 @@ static void key_task(void *param)
                         {
                             volume = 3;
                         }
-                        luat_kv_set("volume", &volume, 1);
+                        luat_kv_set("volume", &volume, sizeof(int));
                     }
                     if (volume == 3)
                     {
@@ -117,6 +118,7 @@ static void key_task(void *param)
                 }
                 if (-1 == luat_rtos_queue_send(audio_queue_handle, &volMinus, NULL, 0))
                 {
+                    free(volMinus.message.tts.data);
                     LUAT_DEBUG_PRINT("cloud_speaker_key_task start send audio fail");
                 }
                 break;
@@ -127,7 +129,7 @@ static void key_task(void *param)
                 volPlus.playType = TTS_PLAY;
                 volPlus.priority = MONEY_PLAY;
                 volume = 4;
-                ret = luat_kv_get("volume", &volume, 1);
+                ret = luat_kv_get("volume", &volume, sizeof(int));
                 if (ret > 0)
                 {
                     if (volume < 21)
@@ -137,7 +139,7 @@ static void key_task(void *param)
                         {
                             volume = 21;
                         }
-                        luat_kv_set("volume", &volume, 1);
+                        luat_kv_set("volume", &volume, sizeof(int));
                     }
                     if (volume == 21)
                     {
@@ -163,21 +165,23 @@ static void key_task(void *param)
                 }
                 if (-1 == luat_rtos_queue_send(audio_queue_handle, &volPlus, NULL, 0))
                 {
+                    free(volPlus.message.tts.data);
                     LUAT_DEBUG_PRINT("cloud_speaker_key_task start send audio fail");
                 }
                 break;
             }
             case KEY3_MESSAGE:
             {
-                audioQueueData volPlus = {0};
-                volPlus.playType = TTS_PLAY;
-                volPlus.priority = MONEY_PLAY;
+                audioQueueData func = {0};
+                func.playType = TTS_PLAY;
+                func.priority = MONEY_PLAY;
                 char str[] = "功能键";
-                volPlus.message.tts.data = malloc(sizeof(str));
-                memcpy(volPlus.message.tts.data, str, sizeof(str));
-                volPlus.message.tts.len = sizeof(str);
-                if (-1 == luat_rtos_queue_send(audio_queue_handle, &volPlus, NULL, 0))
+                func.message.tts.data = malloc(sizeof(str));
+                memcpy(func.message.tts.data, str, sizeof(str));
+                func.message.tts.len = sizeof(str);
+                if (-1 == luat_rtos_queue_send(audio_queue_handle, &func, NULL, 0))
                 {
+                    free(func.message.tts.data);
                     LUAT_DEBUG_PRINT("cloud_speaker_key_task start send audio fail");
                 }
                 break;
@@ -214,6 +218,7 @@ static void key_task(void *param)
                     }
                     if (-1 == luat_rtos_queue_send(audio_queue_handle, &currentElec, NULL, 0))
                     {
+                        free(currentElec.message.tts.data);
                         LUAT_DEBUG_PRINT("cloud_speaker_key_task start send audio fail");
                     }
                 }
@@ -230,6 +235,7 @@ static void key_task(void *param)
                 chargeIn.message.tts.len = sizeof(str);
                 if (-1 == luat_rtos_queue_send(audio_queue_handle, &chargeIn, NULL, 0))
                 {
+                    free(chargeIn.message.tts.data);
                     LUAT_DEBUG_PRINT("cloud_speaker_key_task start send audio fail");
                 }
                 break;
@@ -245,6 +251,7 @@ static void key_task(void *param)
                 chargeOut.message.tts.len = sizeof(str);
                 if (-1 == luat_rtos_queue_send(audio_queue_handle, &chargeOut, NULL, 0))
                 {
+                    free(chargeOut.message.tts.data);
                     LUAT_DEBUG_PRINT("cloud_speaker_key_task start send audio fail");
                 }
                 break;
