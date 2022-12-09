@@ -214,7 +214,7 @@ static void luatos_task_init(void)
 	GPIO_GlobalInit(NULL);
 	WDT_deInit();
 	luat_mobile_event_register_handler(luatos_mobile_event_callback);
-	luat_mobile_set_period_work(0, 10000, 4);
+//	luat_mobile_set_period_work(0, 10000, 4);
 //	luat_mobile_set_rrc_auto_release_time(1);
 
 	luat_sms_init();
