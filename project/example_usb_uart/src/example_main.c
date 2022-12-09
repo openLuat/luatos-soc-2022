@@ -26,7 +26,7 @@
 
 static luat_rtos_task_handle uart_task_handle;
 
-void luat_uart_send_cb(int uart_id, uint32_t data_len){
+void luat_usb_recv_cb(int uart_id, uint32_t data_len){
     char* data_buff = malloc(data_len);
     luat_uart_read(uart_id, data_buff, data_len);
     LUAT_DEBUG_PRINT("luat_uart_cb uart_id:%d data:%.*s data_len:%d",uart_id, data_len, data_buff,data_len);
@@ -42,7 +42,7 @@ static void task_test_uart(void *param)
 
     luat_uart_setup(&uart);
 
-    luat_uart_ctrl(LUAT_VUART_ID_0, LUAT_UART_SET_RECV_CALLBACK, luat_uart_send_cb);
+    luat_uart_ctrl(LUAT_VUART_ID_0, LUAT_UART_SET_RECV_CALLBACK, luat_usb_recv_cb);
 
     while (1)
     {
