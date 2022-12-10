@@ -19,10 +19,11 @@
 其次通过阿里云千里传音SpeechByCombination API 下发格式为"{$number}"，不包括双引号
 其中number是一个不大于99999999.99的字符串
 如"{$10000.11}",设备会播报一万点一一元 
+https://help.aliyun.com/document_detail/223764.html
 
 # 动态音频播报
 通过里云千里传音SpeechBySynthesis API 动态下发音频文件，设备播放，
-
+https://help.aliyun.com/document_detail/369398.html
 
 
 
