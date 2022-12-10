@@ -14,11 +14,15 @@ CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 例如Air780E系�
 
 ## 编译说明
 
-1. 安装xmake, 选取加入PATH, 建议安装到C:\Program Files下，其他目录可能会出问题；
+1. 安装xmake, **选取加入PATH**, 建议安装到C:\Program Files下，其他目录可能会出问题；
    xmake下载地址：https://xmake.io/#/guide/installation
    windows下可以直接访问：https://github.com/xmake-io/xmake/releases ,下载系统对应的xmake-2.7.3-win32.exe或者xmake-2.7.3-win64.exe即可. 比2.7.3更高的版本也是可以的.
+
+   **注意：环境变量需重启电脑生效**
+
 2. 如果编译example的话在本代码库的根目录执行`build.bat example`进行编译
-4. 生成的binpkg位于`out`目录, 日志数据库文件位于`PLAT`目录
+
+3. 生成的binpkg位于`out`目录, 日志数据库文件位于`PLAT`目录
 
 ## 加入入口函数
 
