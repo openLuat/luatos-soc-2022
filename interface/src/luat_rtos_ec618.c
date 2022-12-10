@@ -244,7 +244,7 @@ int luat_rtos_queue_send(luat_rtos_queue_t queue_handle, void *item, uint32_t it
 	if (osIsInISRContext())
 	{
 		BaseType_t pxHigherPriorityTaskWoken;
-		if (timeout || (xQueueSendToBackFromISR(queue_handle, item, &pxHigherPriorityTaskWoken) != pdPASS))
+		if (xQueueSendToBackFromISR(queue_handle, item, &pxHigherPriorityTaskWoken) != pdPASS)
 			return -1;
 		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 		return 0;
@@ -264,7 +264,7 @@ int luat_rtos_queue_recv(luat_rtos_queue_t queue_handle, void *item, uint32_t it
 	BaseType_t yield = pdFALSE;
 	if (osIsInISRContext())
 	{
-		if (timeout || (xQueueReceiveFromISR(queue_handle, item, &yield) != pdPASS))
+		if (xQueueReceiveFromISR(queue_handle, item, &yield) != pdPASS)
 			return -1;
 		portYIELD_FROM_ISR(yield);
 		return 0;
@@ -313,34 +313,24 @@ void *luat_create_rtos_timer(void *cb, void *param, void *task_handle)
 int luat_start_rtos_timer(void *timer, uint32_t ms, uint8_t is_repeat)
 {
 	luat_rtos_user_timer_t *htimer = (luat_rtos_user_timer_t *)timer;
-
-    if (xTimerIsTimerActive (htimer->timer))
-	{
-        if (osIsInISRContext())
-        {
-    		BaseType_t pxHigherPriorityTaskWoken;
-    		if ((xTimerStopFromISR(htimer->timer, &pxHigherPriorityTaskWoken) != pdPASS))
-    			return -1;
-    		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
-    		return 0;
-        }
-        else
-        {
-    		if (xTimerStop(htimer->timer, LUAT_WAIT_FOREVER) != pdPASS)
-    			return -1;
-        }
-    }
-    htimer->is_repeat = is_repeat;
+	BaseType_t pxHigherPriorityTaskWoken;
     if (osIsInISRContext())
     {
-		BaseType_t pxHigherPriorityTaskWoken;
+		if ((xTimerStopFromISR(htimer->timer, &pxHigherPriorityTaskWoken) != pdPASS))
+			return -1;
+		htimer->is_repeat = is_repeat;
 		if ((xTimerChangePeriodFromISR(htimer->timer, ms, &pxHigherPriorityTaskWoken) != pdPASS))
 			return -1;
 		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
-		return 0;
     }
     else
     {
+        if (xTimerIsTimerActive (htimer->timer))
+    	{
+    		if (xTimerStop(htimer->timer, LUAT_WAIT_FOREVER) != pdPASS)
+    			return -1;
+        }
+        htimer->is_repeat = is_repeat;
 		if (xTimerChangePeriod(htimer->timer, ms, LUAT_WAIT_FOREVER) != pdPASS)
 			return -1;
     }
@@ -379,37 +369,29 @@ int luat_rtos_timer_start(luat_rtos_timer_t timer_handle, uint32_t timeout, uint
 {
 	if (!timer_handle) return -1;
 	luat_rtos_user_timer_t *htimer = (luat_rtos_user_timer_t *)timer_handle;
-
-    if (xTimerIsTimerActive (htimer->timer))
-	{
-        if (osIsInISRContext())
-        {
-    		BaseType_t pxHigherPriorityTaskWoken;
-    		if ((xTimerStopFromISR(htimer->timer, &pxHigherPriorityTaskWoken) != pdPASS))
-    			return -1;
-    		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
-    		return 0;
-        }
-        else
-        {
-    		if (xTimerStop(htimer->timer, LUAT_WAIT_FOREVER) != pdPASS)
-    			return -1;
-        }
-    }
-    htimer->is_repeat = repeat;
-    htimer->call_back = callback_fun;
-    htimer->user_param = user_param;
+	BaseType_t pxHigherPriorityTaskWoken;
     if (osIsInISRContext())
     {
-		BaseType_t pxHigherPriorityTaskWoken;
+		if ((xTimerStopFromISR(htimer->timer, &pxHigherPriorityTaskWoken) != pdPASS))
+			return -1;
+	    htimer->is_repeat = repeat;
+	    htimer->call_back = callback_fun;
+	    htimer->user_param = user_param;
 		if ((xTimerChangePeriodFromISR(htimer->timer, timeout, &pxHigherPriorityTaskWoken) != pdPASS))
 			return -1;
 		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
-		return 0;
     }
     else
     {
-		if (xTimerChangePeriod(htimer->timer, timeout, 0) != pdPASS)
+        if (xTimerIsTimerActive (htimer->timer))
+    	{
+    		if (xTimerStop(htimer->timer, LUAT_WAIT_FOREVER) != pdPASS)
+    			return -1;
+        }
+        htimer->is_repeat = repeat;
+        htimer->call_back = callback_fun;
+        htimer->user_param = user_param;
+		if (xTimerChangePeriod(htimer->timer, timeout, LUAT_WAIT_FOREVER) != pdPASS)
 			return -1;
     }
 	return 0;
