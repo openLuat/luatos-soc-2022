@@ -340,21 +340,22 @@ int luat_start_rtos_timer(void *timer, uint32_t ms, uint8_t is_repeat)
 void luat_stop_rtos_timer(void *timer)
 {
 	luat_rtos_user_timer_t *htimer = (luat_rtos_user_timer_t *)timer;
-    if (xTimerIsTimerActive (htimer->timer))
-	{
-        if (osIsInISRContext())
-        {
-    		BaseType_t pxHigherPriorityTaskWoken;
-    		if ((xTimerStopFromISR(htimer->timer, &pxHigherPriorityTaskWoken) != pdPASS))
-    			return ;
-    		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 
-        }
-        else
-        {
-    		xTimerStop(htimer->timer, LUAT_WAIT_FOREVER);
-        }
-    }
+	if (osIsInISRContext())
+	{
+		BaseType_t pxHigherPriorityTaskWoken;
+		if ((xTimerStopFromISR(htimer->timer, &pxHigherPriorityTaskWoken) != pdPASS))
+			return ;
+		portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
+	}
+	else
+	{
+		if (xTimerIsTimerActive (htimer->timer))
+		{
+			xTimerStop(htimer->timer, LUAT_WAIT_FOREVER);
+		}
+	}
+
 }
 
 void luat_release_rtos_timer(void *timer)
