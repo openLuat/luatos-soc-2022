@@ -248,11 +248,11 @@ void luat_os_standy(int timeout) {
 
 // from reset.h
 
-void luat_ota_reboot(int timeout_ms) {
-  if (timeout_ms > 0)
-    luat_timer_mdelay(timeout_ms);
-  // nop
-}
+//void luat_ota_reboot(int timeout_ms) {
+//  if (timeout_ms > 0)
+//    luat_timer_mdelay(timeout_ms);
+//  // nop
+//}
 
 uint32_t luat_get_utc(uint32_t *tamp)
 {
