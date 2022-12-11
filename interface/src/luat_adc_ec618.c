@@ -194,7 +194,7 @@ int luat_adc_read(int id, int* val, int* val2) {
         break;
     case ADC_ID_TMP:
         *val = thermalChannelResult;
-        *val2 = (int)HAL_ADC_ConvertThermalRawCodeToTemperature(thermalChannelResult);
+        *val2 = (int)(HAL_ADC_ConvertThermalRawCodeToTemperature(thermalChannelResult) * 1000);
         break;
     default:
         return -1;
