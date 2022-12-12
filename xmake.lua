@@ -379,9 +379,9 @@ target(USER_PROJECT_NAME..".elf")
         ---------------------------------------------------------
         -------------- 这部分尚不能跨平台
         local cmd = "-M -input ./PLAT/tools/ap_bootloader.bin -addrname  BL_IMG_MERGE_ADDR -flashsize BOOTLOADER_FLASH_LOAD_SIZE -input $(buildir)/"..USER_PROJECT_NAME.."/ap.bin -addrname  AP_IMG_MERGE_ADDR -flashsize AP_FLASH_LOAD_SIZE -input ./PLAT/prebuild/FW/lib/cp-demo-flash.bin -addrname CP_IMG_MERGE_ADDR -flashsize CP_FLASH_LOAD_SIZE -def ./PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h "
-        if os.exists("fcelf2") then
+        if os.getenv("BINPKG_CROSS") then
             -- 准备自定义打包程序
-            cmd = "./fcelf2 " .. cmd
+            cmd = os.getenv("BINPKG_CROSS") .. cmd
         else
             cmd = "./PLAT/tools/fcelf.exe " .. cmd
 		end
