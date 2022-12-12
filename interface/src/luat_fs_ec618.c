@@ -349,6 +349,7 @@ const struct luat_vfs_filesystem vfs_fs_ec618 = {
 };
 
 #ifdef __LUATOS__
+extern const struct luat_vfs_filesystem vfs_fs_lfs2;
 extern const struct luat_vfs_filesystem vfs_fs_luadb;
 void luat_lv_fs_init(void);
 void lv_split_jpeg_init(void);
@@ -360,6 +361,7 @@ int luat_fs_init(void) {
 
     luat_vfs_reg(&vfs_fs_ec618);
 #ifdef __LUATOS__
+    luat_vfs_reg(&vfs_fs_lfs2);
 	luat_vfs_reg(&vfs_fs_luadb);
 #endif
 
