@@ -174,4 +174,12 @@ int audio_play_tts_set_param(uint32_t multimedia_id, uint32_t param_id, uint32_t
  * @param sdk_id 本质上就是传入AISOUND_SDK_USERID
  */
 void audio_play_tts_set_resource(void *address, void *sdk_id);
+
+/**
+ * @brief 获取当前播放的音频的采样率
+ *
+ * @param multimedia_id multimedia_id 多媒体通道，目前只有0
+ * @return uint32_t 采样率
+ */
+uint32_t audio_play_get_sample_rate(uint32_t multimedia_id);
 #endif
