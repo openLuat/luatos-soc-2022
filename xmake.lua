@@ -393,6 +393,7 @@ target(USER_PROJECT_NAME..".elf")
         ---------------------------------------------------------
 
         if USER_PROJECT_NAME == 'luatos' then
+            import("lib.detect.find_file")
             local path7z = nil
             if is_plat("windows") then
                 path7z = "\"$(programdir)/winenv/bin/7z.exe\""
