@@ -385,7 +385,7 @@ target(USER_PROJECT_NAME..".elf")
         else
             cmd = "./PLAT/tools/fcelf.exe " .. cmd
 		end
-        cmd = cmd .. " -outfile " .. SDK_PATH .. "/out/" ..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".binpkg"
+        cmd = cmd .. " -outfile " .. "./out/" ..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".binpkg"
         -- 如果所在平台没有fcelf, 可注释掉下面的行, 没有binpkg生成. 
         -- 仍可使用其他工具继续刷机
         print("fcelf CMD --> ", cmd)
