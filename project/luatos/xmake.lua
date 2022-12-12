@@ -74,6 +74,9 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT .. "components/minmea")
     add_files(LUATOS_ROOT.."components/minmea/**.c")
 
+    add_files(LUATOS_ROOT.."components/mlx90640-library/*.c")
+    add_includedirs(LUATOS_ROOT.."components/mlx90640-library")
+
     --------------------------------------------------------------
     -- UI类的,能不能用另说, 先加上吧
     
