@@ -39,6 +39,7 @@
 
 extern int luat_main(void);
 extern void luat_heap_init(void);
+extern void luat_log_record_init(uint8_t enable, uint32_t upload_period);
 const char *soc_get_sdk_type(void)
 {
 	return "LuatOS-SoC";
@@ -150,6 +151,7 @@ static void luat_main_print_model(void)
 
 static void luatos_task(void *param)
 {
+	luat_log_record_init(1, 600);
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
