@@ -880,7 +880,6 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
             if (*(judgeChinese+i) & 0x80)
             {
                 LUAT_SMS_INFO("The input is Chinese");
-                luat_sms_cfg.send_cb(SMS_SEND_TEXT_WITH_CHINESE);
                 return -1;
             }
         }
@@ -957,7 +956,7 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
 
         if (cmsRet != CMS_RET_SUCC)
         {
-            goto SMS_ERR;
+            return cmsRet;
         }
         
         cmsNonBlockApiCall(luat_send_msg_call_cb, sizeof(CmiSmsSendMsgReq), &cmi_msg_req);
@@ -967,24 +966,8 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
         cmsRet = luat_sms_send_pdu_sms(luat_p_sms_send_info);
     }
 
-SMS_ERR:
     free(luat_p_sms_send_info);
     luat_p_sms_send_info = PNULL;
-    if (cmsRet != 0)
-    {
-        if (is_pdu)
-        {
-            luat_sms_cfg.send_cb(SMS_SEND_PDU_ERROR);
-        }
-        else
-        {
-            luat_sms_cfg.send_cb(SMS_SEND_TEXT_ERROR);
-        }
-    }
-    else
-    {
-        luat_sms_cfg.send_cb(SMS_SEND_OK);
-    }
     return cmsRet;
 }
 
