@@ -30,10 +30,20 @@
 #define LUAT_SMS_MAX_LENGTH_OF_ADDRESS_VALUE 40
 #define LUAT_SMS_MAX_ADDR_STR_MAX_LEN ((LUAT_SMS_MAX_LENGTH_OF_ADDRESS_VALUE + 1) * 4)
 typedef void (*LUAT_SMS_HANDLE_CB)(uint8_t event, void* param);
+typedef void (*LUAT_SMS_HANDLE_SEND_CB)(int ret);
+
+typedef enum
+{
+    SMS_SEND_OK = 0,
+    SMS_SEND_PDU_ERROR,
+    SMS_SEND_TEXT_ERROR,
+    SMS_SEND_TEXT_WITH_CHINESE,
+}LUAT_SMS_SEND_RET_CODE_E;
 
 typedef struct
 {
     LUAT_SMS_HANDLE_CB cb;
+    LUAT_SMS_HANDLE_SEND_CB send_cb;
 }LUAT_SMS_MAIN_CFG_T;
 
 typedef struct
@@ -94,5 +104,12 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
  * @param callback_fun    回调函数
  */
 void luat_sms_recv_msg_register_handler(LUAT_SMS_HANDLE_CB callback_fun);
+
+
+/**
+ * @brief 发送短信回调
+ * @param callback_fun    回调函数
+ */
+void luat_sms_send_msg_register_handler(LUAT_SMS_HANDLE_SEND_CB callback_fun);
 
 #endif
