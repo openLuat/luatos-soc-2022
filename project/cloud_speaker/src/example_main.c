@@ -534,9 +534,15 @@ static void mqtt_demo(void){
         int result = 0;
         result = luat_mobile_get_imei(0, clientId, 15); //imei是15位，留一个位置放0x00
         if(result <= 0)
-            LUAT_DEBUG_PRINT("cloud_speaker_mqtt clientid get fail");
-        else
+        {
             connectData.clientID.cstring = CLIENTID;
+            LUAT_DEBUG_PRINT("cloud_speaker_mqtt clientid get fail");
+        }
+        else
+        {
+            connectData.clientID.cstring = clientId;
+            LUAT_DEBUG_PRINT("cloud_speaker_mqtt clientid get success %s", clientId);
+        }       
     }
     memset(str, 0, 32);
     ret = luat_kv_get("username", str, 17);             //从数据库中读取username，如果没读到，则用默认的

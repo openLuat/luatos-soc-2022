@@ -99,6 +99,15 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #define cJSON_IsReference 256
 #define cJSON_StringIsConst 512
 
+#define CONFIG_CJSON_SUPPORT_64BIT
+
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+
+#define NUMBER_DOUBLE       1
+#define NUMBER_LONGLONG     2
+
+#endif  //CONFIG_CJSON_SUPPORT_64BIT
+
 /* The cJSON structure: */
 typedef struct cJSON
 {
@@ -120,6 +129,12 @@ typedef struct cJSON
 
     /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
     char *string;
+	
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+	/* The type of number,double,long long or ull */
+	int numbertype;
+	long long valuelonglong;
+#endif // CONFIG_CJSON_SUPPORT_64BIT
 } cJSON;
 
 typedef struct cJSON_Hooks
@@ -292,7 +307,11 @@ CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring)
 /* malloc/free objects using the malloc/free functions that have been set with cJSON_InitHooks */
 CJSON_PUBLIC(void *) cJSON_malloc(size_t size);
 CJSON_PUBLIC(void) cJSON_free(void *object);
-
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+CJSON_PUBLIC(int) cJSON_Get_LongLong(const cJSON * const object, const char * key, long long* out);
+CJSON_PUBLIC(cJSON *) cJSON_CreateLongLong(long long num);
+CJSON_PUBLIC(cJSON*) cJSON_AddLongLongToObject(cJSON * const object, const char * const name, const long long valuell);
+#endif //CONFIG_CJSON_SUPPORT_64BIT
 #ifdef __cplusplus
 }
 #endif

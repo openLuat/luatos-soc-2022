@@ -304,6 +304,9 @@ typedef struct
 /* Parse the input text to generate a number, and populate the result into item. */
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+    int scale = 0;
+#endif //CONFIG_CJSON_SUPPORT_64BIT
     double number = 0;
     unsigned char *after_end = NULL;
     unsigned char number_c_string[64];
@@ -340,6 +343,9 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
                 break;
 
             case '.':
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+				scale = 1;
+#endif //CONFIG_CJSON_SUPPORT_64BIT
                 number_c_string[i] = decimal_point;
                 break;
 
@@ -357,7 +363,17 @@ loop_end:
     }
 
     item->valuedouble = number;
-
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+    if (scale == 0)      /* check decimal point '.' */
+    {
+        item->valuelonglong = (long long)strtoll((const char*)number_c_string, (char**)&after_end, 10);
+        item->numbertype = NUMBER_LONGLONG;
+    }
+    else
+    {
+        item->numbertype = NUMBER_DOUBLE;
+    }
+#endif //CONFIG_CJSON_SUPPORT_64BIT
     /* use saturation in case of overflow */
     if (number >= INT_MAX)
     {
@@ -564,7 +580,16 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     }
 	else if(d == (double)item->valueint)
 	{
-		length = sprintf((char*)number_buffer, "%d", item->valueint);
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+        if (item->numbertype == NUMBER_LONGLONG)
+        {
+            length = sprintf((char*)number_buffer, "%lld", item->valuelonglong);
+        }
+        else
+            length = sprintf((char*)number_buffer, "%d", item->valueint);
+#else
+        length = sprintf((char*)number_buffer, "%d", item->valueint);
+#endif // CONFIG_CJSON_SUPPORT_64BIT
 	}
     else
     {
@@ -3117,3 +3142,49 @@ CJSON_PUBLIC(void) cJSON_free(void *object)
 {
     global_hooks.deallocate(object);
 }
+
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+ 
+CJSON_PUBLIC(int) cJSON_Get_LongLong(const cJSON * const object, const char * key, long long* out)
+{
+    cJSON* sub_obj = NULL;
+ 
+    sub_obj = get_object_item(object,key,false);
+    if(out == NULL || sub_obj == NULL || sub_obj->numbertype != NUMBER_LONGLONG)
+    {
+        return -1;
+    }
+ 
+    *out = sub_obj->valuelonglong;
+ 
+    return 0;
+}
+ 
+CJSON_PUBLIC(cJSON *) cJSON_CreateLongLong(long long num)
+{
+    cJSON *item = cJSON_New_Item(&global_hooks);
+    if(item)
+    {
+        item->type = cJSON_Number;
+        item->valuedouble = (double)num;
+ 
+        item->numbertype = NUMBER_LONGLONG;
+        item->valuelonglong = num;
+    }
+ 
+    return item;
+}
+ 
+CJSON_PUBLIC(cJSON*) cJSON_AddLongLongToObject(cJSON * const object, const char * const name, const long long valuell)
+{
+    cJSON *number_item = cJSON_CreateLongLong(valuell);
+    if (add_item_to_object(object, name, number_item, &global_hooks, false))
+    {
+        return number_item;
+    }
+ 
+    cJSON_Delete(number_item);
+    return NULL;
+}
+ 
+#endif
