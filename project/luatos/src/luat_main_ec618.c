@@ -218,7 +218,7 @@ static void luatos_task_init(void)
 //	luat_mobile_set_rrc_auto_release_time(1);
 
 	luat_sms_init();
-	//luat_sms_recv_msg_register_handler(luat_sms_recv_cb);
+	luat_sms_recv_msg_register_handler(luat_sms_recv_cb);
 
 	luat_rtos_task_handle task_handle;
 	// xTaskCreateStatic(task1, "luatos", VM_STACK_SIZE, NULL, 20, s_vm_stackbuff, pxVMTaskTCBBuffer);
