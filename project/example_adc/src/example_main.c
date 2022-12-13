@@ -29,6 +29,18 @@ luat_rtos_task_handle adc_task_handle;
 static void task_test_adc(void *param)
 {
     int val, val2;
+
+    // 内外部分压选择其中一种即可；不能外部分压时，才选择内部分压；
+    // 如果采用外部分压，建议一步到位，外部分压后输入电压在0.1-1.2V范围（内部使用直通模式，不再分压），越靠近1.2V越好，精度越高。
+    // 如果采用内部分压，在满足测量要求的前提下，配置的量程越靠近1.2V越好，精度越高。
+
+    // adc默认打开了内部分压，配置的量程为6.4V；
+    // 以下三行注释掉的代码设置adc0的量程为1.2V，关闭了内部分压；建议用户采用外部分压；
+    // 如果采用外部分压方式，用户可根据自己的需要打开以下三行代码；
+    // luat_adc_ctrl_param_t ctrl_param;
+	// ctrl_param.range = LUAT_ADC_AIO_RANGE_1_2;
+	// luat_adc_ctrl(0, LUAT_ADC_SET_GLOBAL_RANGE, ctrl_param);
+
     luat_adc_open(0 , NULL);
     luat_adc_open(1 , NULL);
     luat_adc_open(10, NULL);
