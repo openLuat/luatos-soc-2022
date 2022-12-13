@@ -47,14 +47,20 @@ static void sms_recv_cb(uint8_t event,void *param)
 	LUAT_DEBUG_PRINT("PDU: [%s]", ((LUAT_SMS_RECV_MSG_T*)param)->sms_buffer);
 }
 
+static void sms_send_cb(int ret)
+{
+	LUAT_DEBUG_PRINT("send ret:[%d]", ret);
+}
+
 
 static void demo_init_sms()
 {
 	uint8_t str[] = "abc123@qq.com";
 	uint8_t str_pdu[] = "0001000D91688196457286F2000822606D559C53D18D22FF0C00610062003100320033004000710071002E0063006F006D";
-	//初始化SMS
+	//初始化SMS, 初始化必须在最开始调用
 	luat_sms_init();
     luat_sms_recv_msg_register_handler(sms_recv_cb);
+    luat_sms_send_msg_register_handler(sms_send_cb);
 	//等待注册网络
 	luat_rtos_task_sleep(15000);
 	//添加自己测试的手机号
