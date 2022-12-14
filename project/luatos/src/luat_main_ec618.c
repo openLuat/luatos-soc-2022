@@ -151,7 +151,9 @@ static void luat_main_print_model(void)
 
 static void luatos_task(void *param)
 {
+#ifdef LUAT_USE_ERR_DUMP
 	luat_log_record_init(1, 600);
+#endif
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);

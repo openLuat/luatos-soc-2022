@@ -7,6 +7,7 @@
 #include "osasys.h"
 #include "ostask.h"
 #include "slpman.h"
+#include "reset.h"
 //#include "psproxytask.h"
 
 #include "plat_config.h"
