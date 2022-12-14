@@ -1095,35 +1095,22 @@ void luat_sms_nw_report_urc(CmiSmsNewMsgInd *p_cmi_msg_ind)
 
 static void luat_sms_recv_msg(CmiSmsNewMsgInd* param)
 {
-    MWNvmCfgCNMIParam cnmiParam = {0};
-    mwNvmCfgGetCnmiConfig(&cnmiParam);
-
-    if (cnmiParam.mode != 0)
+    // 总是上报给csdk回调, 不需要读取AT相关的配置参数
+    if (1)
     {
         switch (param->smsType)
         {
         case CMI_SMS_TYPE_DELIVER:
-            if (((CMI_SMS_DELIVER_RPT_MODE_2 == cnmiParam.mt) && (CMI_SMS_MESSAGE_CLASS2 !=param->smsClass)) ||
-                        ((CMI_SMS_DELIVER_RPT_MODE_3 == cnmiParam.mt) && (CMI_SMS_MESSAGE_CLASS3 ==param->smsClass)) ||
-                        (CMI_SMS_MESSAGE_CLASS0 ==param->smsClass))
-            {
-                luat_sms_nw_report_urc(param);
-            }
+            luat_sms_nw_report_urc(param);
             break;
         case CMI_SMS_TYPE_STATUS_REPORT:
-            if (CMI_SMS_STATUS_RPT_MODE_1 == cnmiParam.ds)
-            {
-                luat_sms_nw_report_urc(param);
-            }
+            luat_sms_nw_report_urc(param);
             break;
         case CMI_SMS_TYPE_CB_ETWS_CMAS:
-            if ((CMI_SMS_DELIVER_RPT_MODE_2 == cnmiParam.bm) ||
-                    ((CMI_SMS_DELIVER_RPT_MODE_3 == cnmiParam.bm) && (CMI_SMS_MESSAGE_CLASS3 == param->smsClass)))
-            {
-                luat_sms_nw_report_urc(param);
-            }
+            luat_sms_nw_report_urc(param);
             break;
         default:
+            LUAT_SMS_INFO("unkown param->smsType %d", param->smsType);
             break;
         }
     }
