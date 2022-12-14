@@ -880,7 +880,7 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
             if (*(judgeChinese+i) & 0x80)
             {
                 LUAT_SMS_INFO("The input is Chinese");
-                luat_sms_cfg.send_cb(SMS_TEXT_WITH_CHINESE);
+                luat_sms_cfg.send_cb(SMS_UNSUPPORT_TEXT_WITH_CHINESE);
                 return -1;
             }
         }
