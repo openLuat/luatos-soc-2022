@@ -30,6 +30,7 @@ struct tm *__wrap_localtime (const time_t *_timer)
 	prvTM.tm_hour = Time.Hour;
 	prvTM.tm_min = Time.Min;
 	prvTM.tm_sec = Time.Sec;
+	prvTM.tm_wday = Time.Week;
 	return &prvTM;
 }
 
@@ -53,6 +54,7 @@ struct tm *__wrap_gmtime (const time_t *_timer)
 	prvTM.tm_hour = Time.Hour;
 	prvTM.tm_min = Time.Min;
 	prvTM.tm_sec = Time.Sec;
+	prvTM.tm_wday = Time.Week;
 	return &prvTM;
 }
 
