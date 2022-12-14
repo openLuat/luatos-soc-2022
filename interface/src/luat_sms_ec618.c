@@ -880,6 +880,7 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
             if (*(judgeChinese+i) & 0x80)
             {
                 LUAT_SMS_INFO("The input is Chinese");
+                luat_sms_cfg.send_cb(SMS_TEXT_WITH_CHINESE);
                 return -1;
             }
         }
@@ -934,6 +935,7 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
 
         if (TRUE == smsGetSCAddrFromNvm(&sc_address_info))
         {
+            LUAT_SMS_INFO("smsGetSCAddrFromNvm: is in");
             cmi_msg_req.optSca.present = TRUE;
             cmi_msg_req.optSca.addressInfo.addressLength = sc_address_info.addressLength;
             cmi_msg_req.optSca.addressInfo.addressType.typeOfNumber = sc_address_info.addressType.typeOfNumber;
@@ -943,7 +945,7 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
 
         LUAT_SMS_INFO("second p_input len: %u", luat_p_sms_send_info->inputOffset);
         cmsRet = luat_sms_submit_text_2_pdu(luat_p_sms_send_info, &(cmi_msg_req.pdu));
-        LUAT_SMS_INFO("third pdulen: %hu", cmi_msg_req.pdu.pduLength);
+        LUAT_SMS_INFO("third pdulen: %hu | %d", cmi_msg_req.pdu.pduLength, cmsRet);
 
         // 这段日志有点猛,注释掉
         #if 0
@@ -954,11 +956,6 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
         }
         #endif
 
-        if (cmsRet != CMS_RET_SUCC)
-        {
-            return cmsRet;
-        }
-        
         cmsNonBlockApiCall(luat_send_msg_call_cb, sizeof(CmiSmsSendMsgReq), &cmi_msg_req);
     }
     else /* PDU mode */
@@ -1158,6 +1155,11 @@ void luat_sms_proc(uint32_t event, void *param)
         case CMI_SMS_NEW_MSG_IND:
             luat_sms_recv_msg((CmiSmsNewMsgInd*)param);
             LUAT_SMS_INFO("CMI_SMS_NEW_MSG_IND is in");
+            break;
+        case CMI_SMS_SEND_MSG_CNF:
+            LUAT_SMS_INFO("CMI_SMS_SEND_MSG_CNF is in");
+            CmiSmsSendMsgCnf *send_sms_ret = (CmiSmsSendMsgCnf *)param;
+            luat_sms_cfg.send_cb((int)send_sms_ret->errorCode);
             break;
     default:
         break;
