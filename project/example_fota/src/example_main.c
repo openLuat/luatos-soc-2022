@@ -130,11 +130,10 @@ static void task_test_fota(void *param)
 
 	char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
 	HTTPResult result = HTTP_INTERNAL;
-    
-    luat_rtos_task_sleep(3000);
 
     luat_mobile_event_register_handler(mobile_event_callback);
 
+    luat_rtos_task_sleep(3000);
     LUAT_DEBUG_PRINT("version = %s", PROJECT_VERSION);
 
     gHttpClient.timeout_s = 2;
