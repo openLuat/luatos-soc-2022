@@ -31,6 +31,7 @@
 #include "luat_network_adapter.h"
 #include "ps_event_callback.h"
 #include "networkmgr.h"
+#include "plat_config.h"
 #include "driver_gpio.h"
 #ifdef LUAT_USE_LVGL
 #include "lvgl.h"
@@ -151,6 +152,7 @@ static void luat_main_print_model(void)
 
 static void luatos_task(void *param)
 {
+	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, EXCEP_OPTION_DUMP_FLASH_EPAT_RESET);
 #ifdef LUAT_USE_ERR_DUMP
 	luat_log_record_init(1, 600);
 #endif
@@ -216,7 +218,7 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 static void luatos_task_init(void)
 {
 	GPIO_GlobalInit(NULL);
-	WDT_deInit();
+//	WDT_deInit();
 	luat_mobile_event_register_handler(luatos_mobile_event_callback);
 //	luat_mobile_set_period_work(0, 10000, 4);
 //	luat_mobile_set_rrc_auto_release_time(1);
