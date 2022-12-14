@@ -124,7 +124,7 @@ luat_rtos_task_handle luat_rtos_get_current_handle(void);
  * @return task堆栈剩余的最小值,单位为字
  */
 
-uint32_t luat_rtos_task_HighWaterMark(luat_rtos_task_handle task_handle);
+uint32_t luat_rtos_task_get_high_water_mark(luat_rtos_task_handle task_handle);
 
 /** @}*/
 /* ------------------------------------------------ task   end------------------------------------------------ */

@@ -170,6 +170,43 @@ void luat_pm_init(void) {
     slpManRegisterUsrSlpDepthCb(luat_user_slp_state);
 }
 
+int luat_pm_get_poweron_reason(void)
+{
+	LastResetState_e apRstState,cpRstState;
+	ResetStateGet(&apRstState, &cpRstState);
+	int id = 0;
+	switch(apRstState)
+	{
+	case LAST_RESET_POR:
+	case LAST_RESET_NORMAL:
+		id = 0;
+		break;
+	case LAST_RESET_SWRESET:
+		id = 3;
+		break;
+	case LAST_RESET_HARDFAULT:
+	case LAST_RESET_ASSERT:
+		id = 6;
+		break;
+	case LAST_RESET_WDTSW:
+	case LAST_RESET_WDTHW:
+	case LAST_RESET_LOCKUP:
+	case LAST_RESET_AONWDT:
+		id = 8;
+		break;
+	case LAST_RESET_BATLOW:
+	case LAST_RESET_TEMPHI:
+		id = 9;
+		break;
+	case LAST_RESET_FOTA:
+		id = 1;
+		break;
+	default:
+		id = 4;
+		break;
+	}
+	return id;
+}
 ///---------------------------------------
 
 

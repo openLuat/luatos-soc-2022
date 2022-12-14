@@ -44,12 +44,20 @@ static void luat_sms_def_recv_cb(uint8_t event, void* param)
     LUAT_SMS_INFO("recv message: [%d | %X]", event, param);
 }
 
+static void luat_sms_def_send_cb(int ret)
+{
+    LUAT_SMS_INFO("send message: [%d]", ret);
+}
 
 void luat_sms_recv_msg_register_handler(LUAT_SMS_HANDLE_CB callback_fun)
 {
     luat_sms_cfg.cb = callback_fun;
 }
 
+void luat_sms_send_msg_register_handler(LUAT_SMS_HANDLE_SEND_CB callback_fun)
+{
+    luat_sms_cfg.send_cb = callback_fun;
+}
 
 
 static UINT8 luat_sms_encode_concatenated_sms_8_bit(UdhIe *p_udhle, UINT8 *p_ied)
@@ -937,11 +945,14 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
         cmsRet = luat_sms_submit_text_2_pdu(luat_p_sms_send_info, &(cmi_msg_req.pdu));
         LUAT_SMS_INFO("third pdulen: %hu", cmi_msg_req.pdu.pduLength);
 
+        // 这段日志有点猛,注释掉
+        #if 0
         uint16_t index = 0;
         while(index != cmi_msg_req.pdu.pduLength)
         {
             LUAT_SMS_INFO("%u", cmi_msg_req.pdu.pduData[index++]);
         }
+        #endif
 
         if (cmsRet != CMS_RET_SUCC)
         {
@@ -1011,11 +1022,14 @@ void luat_sms_nw_report_urc(CmiSmsNewMsgInd *p_cmi_msg_ind)
                     }
                 }
 
+                // 这段日志也只需要在调试时使用
+                #if 0
                 int leng_old = 0;
                 while (p_cmi_msg_ind->pdu.pduData[leng_old] != '\0')
                 {
                     LUAT_SMS_INFO("[%d]", p_cmi_msg_ind->pdu.pduData[leng_old++]);
                 }
+                #endif
                 
                 LUAT_SMS_RECV_MSG_T recv_msg_info = {0};
                 uint8_t start_offset = 0;
@@ -1155,5 +1169,6 @@ extern void soc_mobile_sms_event_register_handler(void *handle);
 void luat_sms_init(void)
 {
     luat_sms_cfg.cb = luat_sms_def_recv_cb;
+    luat_sms_cfg.send_cb = luat_sms_def_send_cb;
 	soc_mobile_sms_event_register_handler(luat_sms_proc);
 }

@@ -74,6 +74,9 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT .. "components/minmea")
     add_files(LUATOS_ROOT.."components/minmea/**.c")
 
+    add_files(LUATOS_ROOT.."components/mlx90640-library/*.c")
+    add_includedirs(LUATOS_ROOT.."components/mlx90640-library")
+
     --------------------------------------------------------------
     -- UI类的,能不能用另说, 先加上吧
     
@@ -118,6 +121,7 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT .. "components/common")
     add_includedirs(LUATOS_ROOT .. "components/network/adapter")
     add_includedirs(LUATOS_ROOT .. "components/mbedtls/include", {public = true})
+    add_includedirs(LUATOS_ROOT .. "components/mbedtls/library", {public = true})
     add_files(LUATOS_ROOT .. "components/ethernet/common/*.c")
     add_files(LUATOS_ROOT .. "components/network/adapter/*.c")
     add_files(LUATOS_ROOT .. "components/mbedtls/library/*.c")
