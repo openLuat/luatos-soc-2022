@@ -24,10 +24,11 @@
 #include "common_api.h"
 #include "time.h"
 #include "osasys.h"
-
+#include "luat_debug.h"
+static uint32_t g_s_local_tz = 32;
 int luat_rtc_set(struct tm *tblock){
     uint32_t Timer1 = (((tblock->tm_year)<<16)&0xfff0000) | (((tblock->tm_mon)<<8)&0xff00) | ((tblock->tm_mday)&0xff);
-    uint32_t Timer2 = ((tblock->tm_hour<<24)&0xff000000) | ((tblock->tm_min<<16)&0xff0000) | ((tblock->tm_sec<<8)&0xff00) | ((0)&0xff);
+    uint32_t Timer2 = ((tblock->tm_hour<<24)&0xff000000) | ((tblock->tm_min<<16)&0xff0000) | ((tblock->tm_sec<<8)&0xff00) | g_s_local_tz;
     uint32_t ret = OsaTimerSync(0, SET_LOCAL_TIME, Timer1, Timer2);
     if (ret == 0){
         mwAonSetUtcTimeSyncFlag(1);
@@ -46,6 +47,24 @@ int luat_rtc_get(struct tm *tblock){
 }
 
 #ifdef __LUATOS__
+
+void luat_rtc_set_tamp32(uint32_t tamp) {
+	Time_UserDataStruct Time;
+	Date_UserDataStruct Date;
+	Tamp2UTC(tamp, &Date, &Time, 0);
+    if (OsaTimerSync(0,
+                     SET_LOCAL_TIME,
+                     ((uint32_t)Date.Year<<16)|((uint32_t)Date.Mon<<8)|((uint32_t)Date.Day),
+                     ((uint32_t)Time.Hour<<24)|((uint32_t)Time.Min<<16)|((uint32_t)Time.Sec<<8)|g_s_local_tz
+                     ))
+    {
+    	LUAT_DEBUG_PRINT("sync NITZ time fail");
+    }
+    else
+    {
+        mwAonSetUtcTimeSyncFlag(TRUE);  //set to 1 when NITZ triggered
+    }
+}
 
 int luat_rtc_timer_start(int id, struct tm *tblock){
     return -1;
