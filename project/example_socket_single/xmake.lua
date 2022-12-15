@@ -1,4 +1,4 @@
-local TARGET_NAME = "example_socket1"
+local TARGET_NAME = "example_socket_single"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 
