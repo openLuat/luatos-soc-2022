@@ -36,7 +36,7 @@ luat_spi_t sfud_spi_flash = {
         .bit_dict = 0,
         .master = 1,
         .mode = 0,
-        .bandrate=24*1000*1000,
+        .bandrate=13*1000*1000,
         .cs = 8
 };
 
@@ -56,7 +56,7 @@ static void task_test_sfud(void *param)
     if (re = sfud_write(flash, 1024, 6, "luatos")!=0){
         LUAT_DEBUG_PRINT("sfud_write error is %d\n", re);
     }
-    if (re = re = sfud_read(flash, 1024, 6, &data)!=0){
+    if (re = sfud_read(flash, 1024, 6, &data)!=0){
         LUAT_DEBUG_PRINT("sfud_read error is %d\n", re);
     }else{
         LUAT_DEBUG_PRINT("sfud_read %s\n", data);
