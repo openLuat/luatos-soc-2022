@@ -8,7 +8,7 @@ void RTC_GetDateTime(Date_UserDataStruct *pDate, Time_UserDataStruct *pTime)
 }
 
 static struct tm prvTM;
-
+extern const uint32_t DayTable[2][12];
 struct tm *__wrap_localtime (const time_t *_timer)
 {
 	Time_UserDataStruct Time;
@@ -31,6 +31,8 @@ struct tm *__wrap_localtime (const time_t *_timer)
 	prvTM.tm_min = Time.Min;
 	prvTM.tm_sec = Time.Sec;
 	prvTM.tm_wday = Time.Week;
+	prvTM.tm_yday = Date.Day - 1;
+	prvTM.tm_yday += DayTable[IsLeapYear(Date.Year)][Date.Mon - 1];
 	return &prvTM;
 }
 
@@ -55,6 +57,8 @@ struct tm *__wrap_gmtime (const time_t *_timer)
 	prvTM.tm_min = Time.Min;
 	prvTM.tm_sec = Time.Sec;
 	prvTM.tm_wday = Time.Week;
+	prvTM.tm_yday = Date.Day - 1;
+	prvTM.tm_yday += DayTable[IsLeapYear(Date.Year)][Date.Mon - 1];
 	return &prvTM;
 }
 
