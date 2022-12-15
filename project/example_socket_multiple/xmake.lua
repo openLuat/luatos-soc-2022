@@ -1,4 +1,4 @@
-local TARGET_NAME = "example_socket_single"
+local TARGET_NAME = "example_socket_multiple"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 
@@ -14,14 +14,8 @@ target(TARGET_NAME)
     -- add_includedirs(SDK_TOP .. "project/" .. TARGET_NAME .. "/inc",{public = true})
     -- add_files(SDK_TOP .. "project/" .. TARGET_NAME .. "/src/*.c",{public = true})
 
-    -- 按需链接mbedtls
-    -- add_defines("MBEDTLS_CONFIG_FILE=\"config_ec_ssl_comm.h\"")
-    -- add_files(SDK_TOP .. "PLAT/middleware/thirdparty/mbedtls/library/*.c")
-    -- 按需编译httpclient
-    -- add_files(SDK_TOP .. "PLAT/middleware/thirdparty/httpclient/*.c")
-
     --可以继续增加add_includedirs和add_files
     --自动链接
-    LIB_USER = LIB_USER .. SDK_TOP .. LIB_DIR .. LIB_NAME
+    LIB_USER = LIB_USER .. SDK_TOP .. LIB_DIR .. LIB_NAME .. " "
     --甚至可以加入自己的库
 target_end()
