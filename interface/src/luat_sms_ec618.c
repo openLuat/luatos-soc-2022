@@ -1032,6 +1032,7 @@ void luat_sms_nw_report_urc(CmiSmsNewMsgInd *p_cmi_msg_ind)
                 uint8_t start_offset = 0;
                 uint8_t msg_phone_address_type;
                 bool hdr_present = false;
+                UdhIe hIe = {0};
 
                 if ((p_cmi_msg_ind->pdu.pduData[start_offset]) & (0x40))
                 {
@@ -1076,10 +1077,14 @@ void luat_sms_nw_report_urc(CmiSmsNewMsgInd *p_cmi_msg_ind)
                                     recv_msg_info.sms_buffer,
                                     &(recv_msg_info.sms_length),
                                     641,
-                                    PNULL);
+                                    &hIe);
                 LUAT_SMS_INFO("The recv msg: pdu: [%d | %d | %d | %s]", start_offset, p_cmi_msg_ind->pdu.pduLength,
                 recv_msg_info.sms_length, (char*)(recv_msg_info.sms_buffer));
+                recv_msg_info.refNum = hIe.ieData.concatenatedSms8Bit.refNum;
+                recv_msg_info.maxNum = hIe.ieData.concatenatedSms8Bit.maxNum;
+                recv_msg_info.seqNum = hIe.ieData.concatenatedSms8Bit.seqNum;
                 memcpy(recv_msg_info.pdu_data, rsp_buf, rsp_buf_pdu_max_len);
+                LUAT_SMS_INFO("The recv msg: ieData %d %d %d", recv_msg_info.refNum, recv_msg_info.maxNum, recv_msg_info.seqNum);
                 recv_msg_info.pdu_length = p_cmi_msg_ind->pdu.pduLength;
                 LUAT_SMS_INFO("The recv msg: %d[%s]", recv_msg_info.pdu_length, recv_msg_info.pdu_data);
                 LUAT_SMS_INFO("The recv msg: [%s]", rsp_buf);

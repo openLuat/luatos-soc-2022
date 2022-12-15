@@ -101,6 +101,9 @@ typedef struct
     uint8_t sms_buffer[LUAT_SMS_MAX_TXT_SIZE + 1];//TEXT 数据
     uint8_t sc_address[LUAT_MSG_MAX_ADDR_LEN + 1];//中心地址
     uint8_t phone_address[LUAT_MSG_MAX_ADDR_LEN + 1];//来电号码
+    uint8_t refNum;
+    uint8_t maxNum;
+    uint8_t seqNum;
 }LUAT_SMS_RECV_MSG_T;
 
 /**
