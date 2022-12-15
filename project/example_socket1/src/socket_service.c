@@ -39,6 +39,7 @@ typedef struct socket_service_send_data
 static int g_s_remote_server_port = 37954;
 
 static luat_rtos_task_handle g_s_tcp_connect_task_handle, g_s_tcp_send_task_handle, g_s_tcp_recv_task_handle;
+static luat_rtos_semaphore_t g_s_connect_ok_semaphore;
 
 //socket id、连接状态、连接task存在状态
 static int g_s_socket_id = -1;
@@ -81,6 +82,8 @@ static void tcp_recv_task_proc(void *arg)
 	{
 		if(g_s_is_connected)
 		{
+			luat_rtos_semaphore_take(g_s_connect_ok_semaphore, LUAT_NO_WAIT);
+
 			if(NULL == recv_buf)
 			{
 				recv_buf = (char *)LUAT_MEM_MALLOC(RECV_BUF_LEN);
@@ -160,10 +163,9 @@ static void tcp_recv_task_proc(void *arg)
 		}
 		else
 		{
-			//等待connect ok的信号量，后续实现
-			//此处先用定时器轮询方式
+			//等待connect ok
 			LUAT_DEBUG_PRINT("wait connect ok semaphore");
-			luat_rtos_task_sleep(1000);
+			luat_rtos_semaphore_take(g_s_connect_ok_semaphore, 1000);
 		}
 	}
 	
@@ -326,7 +328,14 @@ static void tcp_connect_task_proc(void *arg)
 		LUAT_DEBUG_PRINT("connect ok");
 		g_s_is_connected = 1;
 		
-		fcntl(g_s_socket_id, F_SETFL, O_NONBLOCK);
+		fcntl(g_s_socket_id, F_SETFL, O_NONBLOCK);		
+
+		if (NULL == g_s_connect_ok_semaphore)
+		{
+			luat_rtos_semaphore_create(&g_s_connect_ok_semaphore, 1);
+		}
+		luat_rtos_semaphore_release(g_s_connect_ok_semaphore);
+		   
 
 		if(g_s_tcp_send_task_handle == NULL)
 		{
@@ -342,7 +351,7 @@ static void tcp_connect_task_proc(void *arg)
 
 	// 打印出来该任务自启动起来最小剩余栈空间大小
 	//然后我们就可以计算出最大使用的大小，一般可以再乘以1.5左右作为最终分配的值，必须是4的倍数
-	// LUAT_DEBUG_PRINT("before luat_rtos_task_delete, %d", uxTaskGetStackHighWaterMark());
+	// LUAT_DEBUG_PRINT("before luat_rtos_task_delete, %d", luat_rtos_task_get_high_water_mark());
 
 	LUAT_DEBUG_PRINT("exit");
 	g_s_is_tcp_connect_task_exist = 0;
