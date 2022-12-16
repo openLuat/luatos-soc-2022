@@ -205,6 +205,7 @@ extern unsigned int g_lvgl_flash_time;
 #define LUAT_USE_DNS 1
 #define LUAT_USE_ERR_DUMP 1
 #define LUAT_USE_DHCP  1
+#define LUAT_USE_ERRDUMP 1
 
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_MOBILE

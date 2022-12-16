@@ -37,10 +37,10 @@
 #include "lvgl.h"
 #include "luat_lvgl.h"
 #endif
+#include "luat_errdump.h"
 
 extern int luat_main(void);
 extern void luat_heap_init(void);
-extern void luat_log_record_init(uint8_t enable, uint32_t upload_period);
 const char *soc_get_sdk_type(void)
 {
 	return "LuatOS-SoC";
@@ -153,8 +153,8 @@ static void luat_main_print_model(void)
 static void luatos_task(void *param)
 {
 	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, EXCEP_OPTION_DUMP_FLASH_EPAT_RESET);
-#ifdef LUAT_USE_ERR_DUMP
-	luat_log_record_init(1, 600);
+#ifdef LUAT_USE_ERRDUMP
+	luat_errdump_record_init(0, 600);
 #endif
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);

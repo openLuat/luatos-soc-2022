@@ -143,6 +143,10 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/network/websocket")
     add_files(LUATOS_ROOT.."components/network/websocket/*.c")
 
+    -- errdump
+    add_includedirs(LUATOS_ROOT.."components/network/errdump")
+    add_files(LUATOS_ROOT.."components/network/errdump/*.c")
+
     -- iotauth
     add_files(LUATOS_ROOT.."components/iotauth/luat_lib_iotauth.c")
 
