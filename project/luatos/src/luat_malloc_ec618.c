@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>//add for memset
 #include "bget.h"
+#include "luat_base.h"
 #include "luat_malloc.h"
 
 #define LUAT_LOG_TAG "vmheap"
@@ -17,10 +18,12 @@
 #include "cmsis_compiler.h"
 #include "tlsf.h"
 #include "mem_map.h"
+#ifndef LUAT_HEAP_SIZE
 #ifdef LOW_SPEED_SERVICE_ONLY
 #define LUAT_HEAP_SIZE (200*1024)
 #else
 #define LUAT_HEAP_SIZE (128*1024)
+#endif
 #endif
 static uint8_t vmheap[LUAT_HEAP_SIZE] __attribute__((aligned(8)));
 
