@@ -153,9 +153,6 @@ static void luat_main_print_model(void)
 static void luatos_task(void *param)
 {
 	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, EXCEP_OPTION_DUMP_FLASH_EPAT_RESET);
-#ifdef LUAT_USE_ERRDUMP
-	luat_errdump_record_init(0, 600);
-#endif
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
