@@ -65,6 +65,15 @@ int luat_pm_set_sleep_mode(int mode, const char *vote_tag)
     }
     if (findFirst)
     {
+        int count = 0;
+        for (int sleepMode = LUAT_PM_SLEEP_MODE_NONE; sleepMode < LUAT_PM_SLEEP_MODE_LIGHT + 1; sleepMode++)
+        {
+            count += reportMode[sleepMode][9];
+        }
+
+        if (count >= 8)
+            return -1;
+
         if (reportMode[mode][9] < 9)
         {
             reportMode[mode][reportMode[mode][9]] = (uint32_t)luat_heap_malloc(strlen(vote_tag) + 1);
