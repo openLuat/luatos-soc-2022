@@ -37,13 +37,11 @@ int luat_rtc_set(struct tm *tblock){
 }
 
 int luat_rtc_get(struct tm *tblock){
-    utc_timer_value_t *timeUtc = OsaSystemTimeReadUtc();
-    if(timeUtc != NULL){
-        gmtime_ec((time_t *)&timeUtc->UTCsecs,tblock);
-        tblock->tm_year += 1900;
-        return 0;
-    }
-    return -1;
+    struct tm *t = gmtime(NULL);
+    memcpy(tblock,t,sizeof(struct tm));
+    tblock->tm_year += 1900;
+    tblock->tm_mon ++;
+    return 0;
 }
 
 #ifdef __LUATOS__

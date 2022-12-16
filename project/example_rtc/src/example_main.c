@@ -32,20 +32,22 @@ static void task_test_rtc(void *param)
     luat_rtos_task_sleep(2000);
     struct tm tblock = {0};
     luat_rtc_get(&tblock);
-    LUAT_DEBUG_PRINT("%04d/%02d/%02d/ %02d:%02d:%02d", tblock.tm_year, tblock.tm_mon, tblock.tm_mday, tblock.tm_hour, tblock.tm_min,tblock.tm_sec);
+    LUAT_DEBUG_PRINT("%04d/%02d/%02d/ %02d:%02d:%02d %02d", tblock.tm_year, tblock.tm_mon, tblock.tm_mday, tblock.tm_hour, tblock.tm_min,tblock.tm_sec,tblock.tm_wday);
 
     tblock.tm_year = 2022; 
-    tblock.tm_mon  = 11;  
+    tblock.tm_mon  = 12;  
     tblock.tm_mday = 16;  
-    tblock.tm_hour = 19;  
-    tblock.tm_min  = 9; 
-    tblock.tm_sec  = 0; 
+    tblock.tm_hour = 15;  
+    tblock.tm_min  = 41; 
+    tblock.tm_sec  = 59; 
     luat_rtc_set(&tblock);
     
     luat_rtos_task_sleep(1000);
 
     luat_rtc_get(&tblock);
-    LUAT_DEBUG_PRINT("%04d/%02d/%02d/ %02d:%02d:%02d", tblock.tm_year, tblock.tm_mon, tblock.tm_mday, tblock.tm_hour, tblock.tm_min,tblock.tm_sec);
+    LUAT_DEBUG_PRINT("%04d/%02d/%02d/ %02d:%02d:%02d %02d", tblock.tm_year, tblock.tm_mon, tblock.tm_mday, tblock.tm_hour, tblock.tm_min,tblock.tm_sec,tblock.tm_wday);
+    
+    luat_rtos_task_delete(rtc_task_handle);
 }
 
 static void task_demo_rtc(void)
