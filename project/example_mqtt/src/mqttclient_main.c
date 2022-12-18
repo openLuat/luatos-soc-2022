@@ -206,7 +206,9 @@ static void mqtt_demo(void){
         if ((rc = MQTTSubscribe(&mqttClient, mqtt_sub_topic, 1, messageArrived)) != 0)
             LUAT_DEBUG_PRINT("mqtt Return code from MQTT subscribe error is %d\n", rc);
 
-        while(count++ <= 5){
+		// 如果需要验证设备主动断开mqtt连接并且自动重连的场景，打开while(count++ <= 5){，注释掉while (1){
+        // while(count++ <= 5){
+		while (1){
             int len = strlen(mqtt_send_payload);
             message.qos = 1;
             message.retained = 0;
