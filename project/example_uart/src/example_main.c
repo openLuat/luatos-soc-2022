@@ -24,7 +24,11 @@
 
 #include "luat_uart.h"
 
-#define UART_ID 0
+// 注意：此处仅支持1和2，不要使用0
+// 因为uart0被sdk内部占用为底层日志口，用来输出bootloader运行过程中的日志，此功能无法关闭；
+// 除此之外，还可以用来作为系统的日志口，usb抓取日志受限于usb枚举时间，会丢失一部分日志，而uart0则不会丢失这部分日志
+// 如果uart0被配置成应用使用，在开机过程中出现的异常，会因为无法抓取底层日志而无法分析定位问题
+#define UART_ID 1
 
 static luat_rtos_task_handle uart_task_handle;
 
@@ -64,6 +68,13 @@ static void task_demo_uart(void)
     luat_rtos_task_create(&uart_task_handle, 2048, 20, "uart", task_test_uart, NULL, NULL);
 }
 
+// 除非你已经非常清楚uart0作为普通串口给用户使用所带来的的后果，否则不要打开以下注释掉的代码
+// static void uart0_init(void)
+// {
+//     soc_uart0_set_log_off(1);
+// }
+
+// INIT_TASK_EXPORT(uart0_init,"1");
 INIT_TASK_EXPORT(task_demo_uart,"1");
 
 
