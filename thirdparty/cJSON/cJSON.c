@@ -305,6 +305,10 @@ typedef struct
 /* Parse the input text to generate a number, and populate the result into item. */
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
+    
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+    int scale = 0;
+#endif
     double number = 0;
     unsigned char *after_end = NULL;
     unsigned char number_c_string[64];
@@ -341,6 +345,9 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
                 break;
 
             case '.':
+    #ifdef CONFIG_CJSON_SUPPORT_64BIT
+                scale = 1;
+    #endif
                 number_c_string[i] = decimal_point;
                 break;
 
@@ -358,6 +365,18 @@ loop_end:
     }
 
     item->valuedouble = number;
+    
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+    if (scale == 0)
+    {
+        item->valuelonglong = (long long)strtoll((const char*)number_c_string, (char**)&after_end, 10);
+        item->numbertype = NUMBER_LONGLONG;
+    }
+    else
+    {
+        item->numbertype = NUMBER_DOUBLE;
+    }
+#endif
 
     /* use saturation in case of overflow */
     if (number >= INT_MAX)
@@ -565,6 +584,8 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     }
     else
     {
+#if CJSON_SPRINTF_FLOAT
+        double test;
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
         length = sprintf((char*)number_buffer, "%1.15g", d);
 
@@ -574,6 +595,69 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
             /* If not, print with 17 decimal places of precision */
             length = sprintf((char*)number_buffer, "%1.17g", d);
         }
+#else
+        long long d64 = (long long)d;
+        long d32 = (long)d;
+                /**
+         * Check if 32-bit type data is overflow.
+         */
+
+#ifdef  CONFIG_NEWLIB_NANO_FORMAT
+
+        assert(d32 == d64);
+#elif   defined(CONFIG_CJSON_SUPPORT_64BIT)
+
+        if(item->numbertype == NUMBER_LONGLONG)
+        {
+            length = sprintf((char*)number_buffer, "%lld", item->valuelonglong);
+        }
+        else
+#endif
+        {
+
+#ifdef  CONFIG_CJSON_THREE_PRECISION_ENABLE
+
+            length = sprintf((char*)number_buffer, "%.3g", item->valuedouble);
+#else
+
+            length = sprintf((char*)number_buffer, "%ld", d32);
+
+            if ((double)d32 != d) {
+                size_t precision = 14;
+                unsigned char *pbuf = number_buffer;
+
+                if (d < 0.0) {
+                    d = (double)d32 - d + 0.00000000000001;
+                } else {
+                    d = d - (double)d32;
+                }
+
+                pbuf = &number_buffer[length];
+                *pbuf++ = '.';
+                length++;
+
+                while (d > 0.0 && precision--) {
+                    d *= 10.0;
+                    unsigned char tmp = (unsigned char)d;
+
+                    *pbuf++ = tmp + '0';
+                    length++;
+
+                    d -= (double)tmp;
+                }
+
+                pbuf = &number_buffer[length - 1];
+
+                while (*pbuf == '0') {
+                    pbuf--;
+                    length--;
+                }
+
+                *++pbuf = 0;
+            }
+#endif
+        }
+#endif
     }
 
     /* sprintf failed or buffer overrun occurred */
@@ -2443,6 +2527,53 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num)
 
     return item;
 }
+
+
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+
+CJSON_PUBLIC(cJSON *) cJSON_CreateLongLong(long long num)
+{
+    cJSON *item = cJSON_New_Item(&global_hooks);
+    if(item)
+    {
+        item->type = cJSON_Number;
+        item->valuedouble = (double)num;
+
+        item->numbertype = NUMBER_LONGLONG;
+        item->valuelonglong = num;
+    }
+
+    return item;
+}
+
+CJSON_PUBLIC(int) cJSON_GetLongLong(const cJSON * const object, const char * key, long long* out)
+{
+    cJSON* sub_obj = NULL;
+
+    sub_obj = get_object_item(object,key,false);
+    if(out == NULL || sub_obj == NULL || sub_obj->numbertype != NUMBER_LONGLONG)
+    {
+        return -1;
+    }
+
+    *out = sub_obj->valuelonglong;
+
+    return 0;
+}
+
+CJSON_PUBLIC(cJSON*) cJSON_AddLongLongToObject(cJSON * const object, const char * const name, const long long valuell)
+{
+    cJSON *number_item = cJSON_CreateLongLong(valuell);
+    if (add_item_to_object(object, name, number_item, &global_hooks, false))
+    {
+        return number_item;
+    }
+
+    cJSON_Delete(number_item);
+    return NULL;
+}
+
+#endif
 
 CJSON_PUBLIC(cJSON *) cJSON_CreateString(const char *string)
 {

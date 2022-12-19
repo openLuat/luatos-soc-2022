@@ -82,6 +82,12 @@ then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJ
 #define CJSON_VERSION_MAJOR 1
 #define CJSON_VERSION_MINOR 7
 #define CJSON_VERSION_PATCH 15
+#define CONFIG_CJSON_SUPPORT_64BIT
+
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+#define NUMBER_DOUBLE   1
+#define NUMBER_LONGLONG 2
+#endif
 
 #include <stddef.h>
 
@@ -120,6 +126,12 @@ typedef struct cJSON
 
     /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
     char *string;
+
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+  int numbertype;
+  long long valuelonglong;
+#endif
+
 } cJSON;
 
 typedef struct cJSON_Hooks
@@ -135,6 +147,13 @@ typedef int cJSON_bool;
  * This is to prevent stack overflows. */
 #ifndef CJSON_NESTING_LIMIT
 #define CJSON_NESTING_LIMIT 1000
+#endif
+
+
+#ifdef CONFIG_CJSON_SUPPORT_64BIT
+CJSON_PUBLIC(int) cJSON_GetLongLong(const cJSON * const object, const char * key, long long* out);
+CJSON_PUBLIC(cJSON *) cJSON_CreateLongLong(long long num);
+CJSON_PUBLIC(cJSON*) cJSON_AddLongLongToObject(cJSON * const object, const char * const name, const long long valuell);
 #endif
 
 /* returns the version of cJSON as a string */

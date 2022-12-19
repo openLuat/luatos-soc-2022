@@ -182,11 +182,12 @@ static void demo_init_cjson()
 	
 	LUAT_DEBUG_PRINT("json_data = %s\n", json_data);
 
-	char json_test[] = "{\"class\":\"paymsg\",\"data\":{\"sn\":\"30000001\",\"type\":\"alipay\",\"content\":\"1888\",\"uuid\":\"1b56093bf93f493e904fcbeccbf0a0d0\",\"suffix\":3.15}}";
+	char json_test[] = "{\"class\":\"paymsg\",\"data\":{\"sn\":\"30000001\",\"type\":\"alipay\",\"content\":\"1326545647980439\",\"uuid\":\"1b56093bf93f493e904fcbeccbf0a0d0\",\"suffix\":15645548.39}}";
 	
 	cJSON_Minify(json_test);
 	LUAT_DEBUG_PRINT("---- %s", json_test);
 	cJSON * a = cJSON_Parse(json_test);
+	cJSON_AddLongLongToObject(a, "testlonglong", 1670751410618);
 	LUAT_DEBUG_PRINT("---- %s", cJSON_Print(a));
 
 
