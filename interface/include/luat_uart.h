@@ -69,6 +69,7 @@
 
 /**
  * @brief luat_uart
+ * @attention uart0 为底层日志口接口，如果确需使用并明白所带来的后果， 请调用soc_uart0_set_log_off(1)关闭底层日志口，具体实例参见project/example_uart demo;
  */
 typedef struct luat_uart {
     int id;                     /**< 串口id */
