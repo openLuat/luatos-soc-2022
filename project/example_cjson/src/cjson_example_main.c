@@ -48,8 +48,7 @@ void test_json_1(char* json_data)
 		framerate = framerate_item->valuedouble;
 	}
 
-	LUAT_DEBUG_PRINT("######## Test 01 ########\n");
-	LUAT_DEBUG_PRINT("frame rate = %lf\n", framerate);
+	LUAT_DEBUG_PRINT("######## Test START ########\n");
 
 	// test 02
 	cJSON_SetNumberValue(framerate_item, 25);
@@ -79,10 +78,6 @@ void test_json_1(char* json_data)
 	cJSON_bool isHasItem2 = cJSON_HasObjectItem(root, "formai");
 	LUAT_DEBUG_PRINT("has format item = %d\n", (int)isHasItem1);
 	LUAT_DEBUG_PRINT("has formai item = %d\n", (int)isHasItem2);
-
-	LUAT_DEBUG_PRINT("######## Test 06 ########\n");
-	cJSON_Delete(format);
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(root));
 
 	LUAT_DEBUG_PRINT("######## Test 11 ########\n");
 	cJSON* cjson_null = cJSON_CreateNull();
@@ -134,6 +129,11 @@ void test_json_1(char* json_data)
 	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_object));
 	LUAT_DEBUG_PRINT("json data is object or not = %d\n", (int)cJSON_IsObject(cjson_object));
 	cJSON_Delete(cjson_object);
+
+	char* rendered1 = cJSON_Print(root);
+	
+	LUAT_DEBUG_PRINT("######## Test ########\n");
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered1);
 	
 }
 
@@ -169,11 +169,6 @@ void test_json_2()
 	cJSON_AddStringToObject(root, "string", "Welcome to luatOS");
 	cJSON_AddRawToObject(root, "Raw", "Welcome to luatOS raw");
 	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(root));
-	
-	
-	LUAT_DEBUG_PRINT("######## Test 06 ########\n");
-	cJSON_Delete(fmt);
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(root));
 }
 
 
@@ -182,10 +177,18 @@ static void demo_init_cjson()
 	LUAT_DEBUG_PRINT("==================cjson is running==================");
 	LUAT_DEBUG_PRINT("The cJSON version: %s", cJSON_Version());
 
-	char json_data[FILE_LENGTH] = "{\"name\": \"Jack (\"Bee\") Nimble\",\"format\": \
+	char json_data[FILE_LENGTH] = "{\"name\": \"Jack Nimble\",\"format\": \
 	{\"type\":\"rect\",\"width\":1920,\"height\":1080,\"interlace\": false,\"frame rate\": 24}}";
 	
 	LUAT_DEBUG_PRINT("json_data = %s\n", json_data);
+
+	char json_test[] = "{\"class\":\"paymsg\",\"data\":{\"sn\":\"30000001\",\"type\":\"alipay\",\"content\":\"1888\",\"uuid\":\"1b56093bf93f493e904fcbeccbf0a0d0\",\"suffix\":3.15}}";
+	
+	cJSON_Minify(json_test);
+	LUAT_DEBUG_PRINT("---- %s", json_test);
+	cJSON * a = cJSON_Parse(json_test);
+	LUAT_DEBUG_PRINT("---- %s", cJSON_Print(a));
+
 
 	// test
 	test_json_1(json_data);
@@ -195,6 +198,7 @@ static void demo_init_cjson()
 
 static void task(void *param)
 {
+	luat_rtos_task_sleep(1000);
 	demo_init_cjson();
 
 	while(1)

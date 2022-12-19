@@ -96,9 +96,9 @@ CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void)
     return (const char*) (global_error.json + global_error.position);
 }
 
-CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)
+CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item) 
 {
-    if (!cJSON_IsString(item))
+    if (!cJSON_IsString(item)) 
     {
         return NULL;
     }
@@ -106,9 +106,9 @@ CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item)
     return item->valuestring;
 }
 
-CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
+CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item) 
 {
-    if (!cJSON_IsNumber(item))
+    if (!cJSON_IsNumber(item)) 
     {
         return (double) NAN;
     }
@@ -160,30 +160,31 @@ typedef struct internal_hooks
     void *(CJSON_CDECL *reallocate)(void *pointer, size_t size);
 } internal_hooks;
 
-#if defined(_MSC_VER)
-/* work around MSVC error C2322: '...' address of dllimport '...' is not static */
-static void * CJSON_CDECL internal_malloc(size_t size)
-{
-    return malloc(size);
-}
-static void CJSON_CDECL internal_free(void *pointer)
-{
-    free(pointer);
-}
-static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
-{
-    return realloc(pointer, size);
-}
-#else
-#define internal_malloc malloc
-#define internal_free free
-#define internal_realloc realloc
-#endif
+// #if defined(_MSC_VER)
+// /* work around MSVC error C2322: '...' address of dllimport '...' is not static */
+// static void * CJSON_CDECL internal_malloc(size_t size)
+// {
+//     return malloc(size);
+// }
+// static void CJSON_CDECL internal_free(void *pointer)
+// {
+//     free(pointer);
+// }
+// static void * CJSON_CDECL internal_realloc(void *pointer, size_t size)
+// {
+//     return realloc(pointer, size);
+// }
+// #else
+#include "luat_mem.h"
+#define internal_malloc luat_heap_malloc
+#define internal_free luat_heap_free
+#define internal_realloc luat_heap_realloc
+// #endif
 
 /* strlen of character literals resolved at compile time */
 #define static_strlen(string_literal) (sizeof(string_literal) - sizeof(""))
 
-static internal_hooks global_hooks = { internal_malloc, internal_free, internal_realloc };
+static const internal_hooks global_hooks = { internal_malloc, internal_free, internal_realloc };
 
 static unsigned char* cJSON_strdup(const unsigned char* string, const internal_hooks * const hooks)
 {
@@ -206,36 +207,36 @@ static unsigned char* cJSON_strdup(const unsigned char* string, const internal_h
     return copy;
 }
 
-CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
-{
-    if (hooks == NULL)
-    {
-        /* Reset hooks */
-        global_hooks.allocate = malloc;
-        global_hooks.deallocate = free;
-        global_hooks.reallocate = realloc;
-        return;
-    }
+// CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
+// {
+//     if (hooks == NULL)
+//     {
+//         /* Reset hooks */
+//         global_hooks.allocate = malloc;
+//         global_hooks.deallocate = free;
+//         global_hooks.reallocate = realloc;
+//         return;
+//     }
 
-    global_hooks.allocate = malloc;
-    if (hooks->malloc_fn != NULL)
-    {
-        global_hooks.allocate = hooks->malloc_fn;
-    }
+//     global_hooks.allocate = malloc;
+//     if (hooks->malloc_fn != NULL)
+//     {
+//         global_hooks.allocate = hooks->malloc_fn;
+//     }
 
-    global_hooks.deallocate = free;
-    if (hooks->free_fn != NULL)
-    {
-        global_hooks.deallocate = hooks->free_fn;
-    }
+//     global_hooks.deallocate = free;
+//     if (hooks->free_fn != NULL)
+//     {
+//         global_hooks.deallocate = hooks->free_fn;
+//     }
 
-    /* use realloc only if both free and malloc are used */
-    global_hooks.reallocate = NULL;
-    if ((global_hooks.allocate == malloc) && (global_hooks.deallocate == free))
-    {
-        global_hooks.reallocate = realloc;
-    }
-}
+//     /* use realloc only if both free and malloc are used */
+//     global_hooks.reallocate = NULL;
+//     if ((global_hooks.allocate == malloc) && (global_hooks.deallocate == free))
+//     {
+//         global_hooks.reallocate = realloc;
+//     }
+// }
 
 /* Internal constructor. */
 static cJSON *cJSON_New_Item(const internal_hooks * const hooks)
@@ -304,9 +305,6 @@ typedef struct
 /* Parse the input text to generate a number, and populate the result into item. */
 static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_buffer)
 {
-#ifdef CONFIG_CJSON_SUPPORT_64BIT
-    int scale = 0;
-#endif //CONFIG_CJSON_SUPPORT_64BIT
     double number = 0;
     unsigned char *after_end = NULL;
     unsigned char number_c_string[64];
@@ -343,9 +341,6 @@ static cJSON_bool parse_number(cJSON * const item, parse_buffer * const input_bu
                 break;
 
             case '.':
-#ifdef CONFIG_CJSON_SUPPORT_64BIT
-				scale = 1;
-#endif //CONFIG_CJSON_SUPPORT_64BIT
                 number_c_string[i] = decimal_point;
                 break;
 
@@ -363,17 +358,7 @@ loop_end:
     }
 
     item->valuedouble = number;
-#ifdef CONFIG_CJSON_SUPPORT_64BIT
-    if (scale == 0)      /* check decimal point '.' */
-    {
-        item->valuelonglong = (long long)strtoll((const char*)number_c_string, (char**)&after_end, 10);
-        item->numbertype = NUMBER_LONGLONG;
-    }
-    else
-    {
-        item->numbertype = NUMBER_DOUBLE;
-    }
-#endif //CONFIG_CJSON_SUPPORT_64BIT
+
     /* use saturation in case of overflow */
     if (number >= INT_MAX)
     {
@@ -527,7 +512,7 @@ static unsigned char* ensure(printbuffer * const p, size_t needed)
 
             return NULL;
         }
-
+        
         memcpy(newbuffer, p->buffer, p->offset + 1);
         p->hooks.deallocate(p->buffer);
     }
@@ -578,19 +563,6 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     {
         length = sprintf((char*)number_buffer, "null");
     }
-	else if(d == (double)item->valueint)
-	{
-#ifdef CONFIG_CJSON_SUPPORT_64BIT
-        if (item->numbertype == NUMBER_LONGLONG)
-        {
-            length = sprintf((char*)number_buffer, "%lld", item->valuelonglong);
-        }
-        else
-            length = sprintf((char*)number_buffer, "%d", item->valueint);
-#else
-        length = sprintf((char*)number_buffer, "%d", item->valueint);
-#endif // CONFIG_CJSON_SUPPORT_64BIT
-	}
     else
     {
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
@@ -1132,7 +1104,7 @@ CJSON_PUBLIC(cJSON *) cJSON_ParseWithLengthOpts(const char *value, size_t buffer
     }
 
     buffer.content = (const unsigned char*)value;
-    buffer.length = buffer_length;
+    buffer.length = buffer_length; 
     buffer.offset = 0;
     buffer.hooks = global_hooks;
 
@@ -2386,11 +2358,6 @@ static cJSON_bool replace_item_in_object(cJSON *object, const char *string, cJSO
         cJSON_free(replacement->string);
     }
     replacement->string = (char*)cJSON_strdup((const unsigned char*)string, &global_hooks);
-    if (replacement->string == NULL)
-    {
-        return false;
-    }
-
     replacement->type &= ~cJSON_StringIsConst;
 
     return cJSON_ReplaceItemViaPointer(object, get_object_item(object, string, case_sensitive), replacement);
@@ -2723,7 +2690,7 @@ CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int co
     if (a && a->child) {
         a->child->prev = n;
     }
-
+    
     return a;
 }
 
@@ -3142,49 +3109,3 @@ CJSON_PUBLIC(void) cJSON_free(void *object)
 {
     global_hooks.deallocate(object);
 }
-
-#ifdef CONFIG_CJSON_SUPPORT_64BIT
- 
-CJSON_PUBLIC(int) cJSON_Get_LongLong(const cJSON * const object, const char * key, long long* out)
-{
-    cJSON* sub_obj = NULL;
- 
-    sub_obj = get_object_item(object,key,false);
-    if(out == NULL || sub_obj == NULL || sub_obj->numbertype != NUMBER_LONGLONG)
-    {
-        return -1;
-    }
- 
-    *out = sub_obj->valuelonglong;
- 
-    return 0;
-}
- 
-CJSON_PUBLIC(cJSON *) cJSON_CreateLongLong(long long num)
-{
-    cJSON *item = cJSON_New_Item(&global_hooks);
-    if(item)
-    {
-        item->type = cJSON_Number;
-        item->valuedouble = (double)num;
- 
-        item->numbertype = NUMBER_LONGLONG;
-        item->valuelonglong = num;
-    }
- 
-    return item;
-}
- 
-CJSON_PUBLIC(cJSON*) cJSON_AddLongLongToObject(cJSON * const object, const char * const name, const long long valuell)
-{
-    cJSON *number_item = cJSON_CreateLongLong(valuell);
-    if (add_item_to_object(object, name, number_item, &global_hooks, false))
-    {
-        return number_item;
-    }
- 
-    cJSON_Delete(number_item);
-    return NULL;
-}
- 
-#endif
