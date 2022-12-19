@@ -58,16 +58,30 @@ static signed char if_initialized_timer(const int channel)
     return 0;
 }
 
+#define PWM_CH_MAX (6)
 
-static int g_s_pnum_set[6] = {0}; /*设置PWM脉冲个数*/
-volatile static int g_s_pnum_update[6] = {0};/*当前PWM个数*/
+
+static int g_s_pnum_set[PWM_CH_MAX] = {0}; /*设置PWM脉冲个数*/
+volatile static int g_s_pnum_update[PWM_CH_MAX] = {0};/*当前PWM个数*/
+/*最高频率应是26M*/ 
+#define MAX_FREQ (26*1000*1000)
+typedef struct pwm_ctx
+{
+    TimerPwmConfig_t timer_config;
+    uint32_t freq;
+    uint32_t pulse;
+    uint32_t pnum;
+}pwm_ctx_t;
+
+
+static pwm_ctx_t pwms[PWM_CH_MAX];
 
 PLAT_PA_RAMCODE volatile static void Timer_ISR()
 {
 
     volatile static int i = 0;
 
-    for(i = 0;i < 6;i++)
+    for(i = 0;i < PWM_CH_MAX;i++)
     {
         if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
         {
@@ -86,10 +100,6 @@ PLAT_PA_RAMCODE volatile static void Timer_ISR()
     }
 }
 
-/*最高频率应是26M*/ 
-#define MAX_FREQ (26*1000*1000)
-TimerPwmConfig_t pwmConfig = {0};
-
 int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 
     unsigned int clockId,clockId_slect;
@@ -98,7 +108,7 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
     PadConfig_t config = {0};
 
     // LUAT_DEBUG_PRINT("luat_pwm_open channel:%d perio:%d pulse:%d pnum:%d",channel,period,pulse,pnum);
-    if ( channel > 5 || channel < 0)
+    if ( channel >= PWM_CH_MAX || channel < 0)
         return -1;
     if (freq > MAX_FREQ || freq < 0)
         return -2;
@@ -106,6 +116,7 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
         pulse = 100;
     else if (pulse < 0)
         pulse = 0;
+
 
     if(if_initialized_timer(channel) < 0)
     {
@@ -151,7 +162,8 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
             g_s_pnum_set[5] = pnum;
             break;
         default :
-            break;
+            // 其他复用通道暂不支持
+            return -5;
     }
     // LUAT_DEBUG_PRINT("luat_pwm_open get timer_id %d",timer_id);
     PAD_getDefaultConfig(&config);
@@ -192,10 +204,10 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
     CLOCK_setClockDiv(clockId, 1);
     TIMER_driverInit();
 
-    pwmConfig.pwmFreq_HZ = freq;
-    pwmConfig.srcClock_HZ = GPR_getClockFreq(clockId);  
-    pwmConfig.dutyCyclePercent = pulse;
-    TIMER_setupPwm(channel, &pwmConfig);
+    pwms[channel].timer_config.pwmFreq_HZ = freq;
+    pwms[channel].timer_config.srcClock_HZ = GPR_getClockFreq(clockId);  
+    pwms[channel].timer_config.dutyCyclePercent = pulse;
+    TIMER_setupPwm(channel, &pwms[channel].timer_config);
     if(0 != pnum)
     {
         TIMER_interruptConfig(channel, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_DISABLED);
@@ -212,27 +224,51 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 }
 int luat_pwm_update_dutycycle(int channel,size_t pulse)
 {
-    pwmConfig.dutyCyclePercent = pulse;
-    TIMER_setupPwm(channel, &pwmConfig);
+    if (channel < 0 || channel >= PWM_CH_MAX) {
+        return -1;
+    }
+
+    pwms[channel].timer_config.dutyCyclePercent = pulse;
+    TIMER_setupPwm(channel, &pwms[channel].timer_config);
 
     return 0;
 }
 int luat_pwm_setup(luat_pwm_conf_t* conf)
 {
+    int channel = conf->channel;
+    if (channel < 0 || channel >= PWM_CH_MAX)
+        return -1;
+    if (conf->precision != 100) {
+        // 当且仅支持100分辨率,等驱动重构完再改
+        return -1;
+    }
+    // 判断一下是否只修改了占空比. 当且仅当频率相同,pnum为0(即持续输出),才支持单独变更
+    if (pwms[channel].timer_config.pwmFreq_HZ == conf->period && conf->pnum == 0) {
+        if (conf->pulse != pwms[channel].timer_config.dutyCyclePercent) {
+            luat_pwm_update_dutycycle(channel, conf->pulse);
+            return 0;
+        }
+    }
     return luat_pwm_open(conf->channel,conf->period,conf->pulse,conf->pnum);
 }
 
 int luat_pwm_capture(int channel,int freq)
 {
+    if (channel < 0 || channel >= PWM_CH_MAX) {
+        return -1;
+    }
     return EIGEN_TIMER(channel)->TMR[0];
 }
 
 int luat_pwm_close(int channel)
 {
+    if (channel < 0 || channel >= PWM_CH_MAX) {
+        return -1;
+    }
     luat_pwm_update_dutycycle(channel,0);
     luat_rtos_task_sleep(1);
     TIMER_stop(channel);
-
+    pwms[channel].timer_config.pwmFreq_HZ = 0; // 作为标志位
     return 0;
 }
 
