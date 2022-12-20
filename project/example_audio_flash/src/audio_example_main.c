@@ -74,14 +74,12 @@ int luat_sfud_read(const sfud_flash* flash, uint8_t* buff, size_t offset, size_t
 	// 以下是SPI直接读
 	GPIO_FastOutput(8, 0);
 	char cmd[4] = {0x03, offset >> 16, (offset >> 8) & 0xFF, offset & 0xFF};
-	// SPI_FastTransfer(0, cmd, cmd, 4);
-	// SPI_FastTransfer(0, buff, buff, len);
-	SPI_TransferEx(0, cmd, cmd, 4, 1, 0);
-	SPI_TransferEx(0, buff, buff, len, 1, 0);
+	SPI_FastTransfer(0, cmd, cmd, 4);
+	SPI_FastTransfer(0, buff, buff, len);
 	GPIO_FastOutput(8, 1);
-	if (memcmp(buff, ivtts_16k + offset, len)) {
-		LUAT_DEBUG_PRINT("tts data NOT match %04X %04X", offset, len);
-	}
+	// if (memcmp(buff, ivtts_16k + offset, len)) {
+	// 	LUAT_DEBUG_PRINT("tts data NOT match %04X %04X", offset, len);
+	// }
 	return true;
 }
 
@@ -267,6 +265,8 @@ static void test_audio_demo_init(void)
 	luat_gpio_cfg_t gpio_cfg;
 	luat_gpio_set_default_cfg(&gpio_cfg);
 	luat_rtos_task_handle task_handle;
+
+	//luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
 
 	gpio_cfg.pin = LED2_PIN;
 	gpio_cfg.pull = LUAT_GPIO_DEFAULT;
