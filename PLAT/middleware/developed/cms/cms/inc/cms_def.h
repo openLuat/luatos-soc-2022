@@ -25,9 +25,9 @@
 /*
  * CMS task stack size & queue size
 */
-#define CMS_TASK_STACK_SIZE             3072
+#define CMS_TASK_STACK_SIZE             (3072*10)
 
-#define CMS_TASK_QUEUE_SIZE             30      /* Enlarge from 20 to 30,
+#define CMS_TASK_QUEUE_SIZE             50      /* Enlarge from 20 to 30,
                                                  * Bug #3978: as some PS AT CMD maybe trigger several (reach to 15) CMI CNF signal to
                                                  *  CMS task, (e.g., AT+CGPADDR, if 15 bearer defined by tester), in the case,
                                                  *  20 (several CMI IND at same time) queue size maybe not enough, so enlarge to 30

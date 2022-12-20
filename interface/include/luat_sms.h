@@ -101,9 +101,6 @@ typedef struct
     uint8_t sms_buffer[LUAT_SMS_MAX_TXT_SIZE + 1];//TEXT 数据
     uint8_t sc_address[LUAT_MSG_MAX_ADDR_LEN + 1];//中心地址
     uint8_t phone_address[LUAT_MSG_MAX_ADDR_LEN + 1];//来电号码
-    uint8_t refNum;
-    uint8_t maxNum;
-    uint8_t seqNum;
 }LUAT_SMS_RECV_MSG_T;
 
 /**
@@ -137,5 +134,8 @@ void luat_sms_recv_msg_register_handler(LUAT_SMS_HANDLE_CB callback_fun);
  * @param callback_fun    回调函数
  */
 void luat_sms_send_msg_register_handler(LUAT_SMS_HANDLE_SEND_CB callback_fun);
+
+int luat_send_ext(char* num, char* data, void *out);
+bool luat_sms_recv_pdu_decode_ucs2(char* pdu, char* p_out, int pdu_len, int *out_len);
 
 #endif

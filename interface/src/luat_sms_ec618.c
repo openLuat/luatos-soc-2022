@@ -32,6 +32,8 @@
 #include "luat_debug.h"
 #include "luat_mobile.h"
 #include "luat_sms.h"
+#include "gb2312_to_ucs2_table.h"
+#include "ucs2_to_gb2312_table.h"
 
 #define LUAT_SMS_INFO(X,Y...) LUAT_DEBUG_PRINT("[DIO %d]: "X, __LINE__, ##Y)
 
@@ -57,6 +59,441 @@ void luat_sms_recv_msg_register_handler(LUAT_SMS_HANDLE_CB callback_fun)
 void luat_sms_send_msg_register_handler(LUAT_SMS_HANDLE_SEND_CB callback_fun)
 {
     luat_sms_cfg.send_cb = callback_fun;
+}
+
+
+static uint16_t get_ucs2_offset(uint16_t ucs2)
+{
+    uint16_t   offset, page, tmp;
+    uint8_t    *mirror_ptr, ch;
+
+    page = (ucs2>>8) - 0x4E;
+    ucs2 &= 0xFF;
+
+    tmp        = ucs2>>6; /* now 0 <= tmp < 4  */ 
+    offset     = ucs2_index_table_4E00_9FFF_ext[page][tmp];  
+    mirror_ptr = (uint8_t*)&ucs2_mirror_4E00_9FFF_ext[page][tmp<<3]; /* [0, 8, 16, 24] */ 
+
+    tmp = ucs2&0x3F; /* mod 64 */ 
+
+    while(tmp >= 8)
+    {
+        offset += number_of_bit_1_ext[*mirror_ptr];
+        mirror_ptr++;
+        tmp -= 8;
+    }
+
+    ch = *mirror_ptr;
+    if(ch&(0x1<<tmp))
+    {   /* Ok , this ucs2 can be covert to GB2312. */ 
+        while(tmp) 
+        { 
+            if(ch&0x1)
+            offset++;
+            ch>>=1;
+            tmp--;
+        }
+        return offset;
+    }
+
+    return (uint16_t)(-1);
+}
+
+//UTF8转为中文
+static size_t iconv_ucs2_to_gb2312_endian_ext(char **_inbuf, size_t *inbytesleft, char **_outbuf, size_t *outbytesleft, int endian)
+{
+    uint16_t offset, gb2312 = 0xA1A1;
+    uint16_t ucs2;
+    size_t gb_length = 0;
+    uint16_t *ucs2buf = (uint16_t*)*_inbuf;
+    char *outbuf = (char *)*_outbuf;
+    size_t inlen = *inbytesleft/2;
+    size_t outlen = *outbytesleft;
+    size_t ret = 1;
+    
+    #if 0
+    int leng_old = 0;
+    while (ucs2buf[leng_old] != '\0')
+    {
+        LUAT_SMS_INFO("[%lX]", ucs2buf[leng_old++]);
+    }
+    #endif
+
+    while(inlen > 0)
+    {
+        if(gb_length+2 > outlen)
+        {
+            ret = 0;
+            goto ucs2_to_gb2312_exit;
+        }
+
+        ucs2 = *ucs2buf++;
+
+        if(endian == 1)
+            ucs2 = (ucs2<<8)|(ucs2>>8);
+
+        gb2312 = 0xA1A1;
+        //End 7205
+        if(0x80 > ucs2)
+        {
+            // can be convert to ASCII char
+            *outbuf++ = (uint8_t)ucs2;
+            gb_length++;
+        }
+        else
+        {
+            if((0x4E00 <= ucs2) && (0xA000 > ucs2))
+            {
+                offset = get_ucs2_offset(ucs2);
+                if((uint16_t)(-1) != offset)
+                {
+                    gb2312 = ucs2_to_gb2312_table_ext[offset];
+                }
+            }
+            else
+            {
+                uint16_t u16count = sizeof(tab_UCS2_to_GBK_ext)/4;
+                uint16_t ui = 0;
+                for(ui=0;ui<u16count;ui++)
+                {
+                    if(ucs2 == tab_UCS2_to_GBK_ext[ui][0])
+                    {
+                        gb2312 = tab_UCS2_to_GBK_ext[ui][1];
+                    }
+                }
+                
+            }
+
+            *outbuf++ = (uint8_t)(gb2312>>8);
+            *outbuf++ = (uint8_t)(gb2312);
+            gb_length += 2;
+        }
+        
+        inlen--;
+    }
+
+    if(inlen > 0)
+    {
+        ret = 0;
+    }
+	
+	*outbytesleft = gb_length;
+	return ret;
+
+ucs2_to_gb2312_exit:
+    *inbytesleft = inlen;
+    *outbytesleft -= gb_length;
+    LUAT_SMS_INFO("The Decode Error!");
+
+    return ret;
+}
+
+//中文转为UTF8
+static size_t iconv_gb2312_to_ucs2_endian_ext(char **_inbuf, size_t *inbytesleft, char **_outbuf, size_t *outbytesleft, int endian)
+{
+    uint16_t offset,gb2312;
+    char *gbbuf = *_inbuf;
+    uint16_t *ucs2buf = (uint16_t*)*_outbuf;
+    uint16_t ucs2;
+    size_t ucs2len = 0;
+    size_t inlen = *inbytesleft;
+    size_t outlen = *outbytesleft;
+    size_t ret = 1;
+    while(inlen > 0)
+    {
+        if(ucs2len+2 > outlen)
+        {
+            ret = 0;
+            goto gb2312_to_ucs2_exit;
+        }
+
+        gb2312 = *gbbuf++;
+		
+        if(gb2312 < 0x80)
+        {
+            ucs2 = gb2312;
+            inlen--;
+        }
+        else if(inlen >= 2)
+        {
+            gb2312 = (gb2312<<8) + ((*gbbuf++)&0x00ff);
+            inlen -= 2;
+            
+            offset = ((gb2312>>8) - 0xA0)*94/*(0xFE-0xA1+1)*/ + ((gb2312&0x00ff) - 0xA1);
+            ucs2 = gb2312_to_ucs2_table[offset];
+        }
+        else
+        {
+            break;
+        }
+
+        if(endian == 1)
+            ucs2 = (ucs2<<8)|(ucs2>>8);
+
+        *ucs2buf++ = ucs2;
+        ucs2len += 2;
+    }
+
+    if(inlen > 0)
+    {
+        ret = 0;
+    }
+	*outbytesleft = ucs2len;
+	return ret;
+	
+gb2312_to_ucs2_exit:
+    *_inbuf = gbbuf;
+
+    *inbytesleft = inlen;
+    *outbytesleft -= ucs2len;
+    LUAT_SMS_INFO("The Decode Error!");
+
+    return ret;
+}
+
+// 可打印字符串转换为字节数据
+// 如："C8329BFD0E01" --> {0xC8, 0x32, 0x9B, 0xFD, 0x0E, 0x01}
+// pSrc: 源字符串指针
+// pDst: 目标数据指针
+// nSrcLength: 源字符串长度
+// 返回: 目标数据长度
+static int gsmString2Bytes(const char* pSrc, unsigned char* pDst, int nSrcLength)
+{
+    for(int i=0; i<nSrcLength; i+=2)
+    {
+        // 输出高4位
+        if(*pSrc>='0' && *pSrc<='9')
+        {
+            *pDst = (*pSrc - '0') << 4;
+        }
+        else
+        {
+            *pDst = (*pSrc - 'A' + 10) << 4;
+        }
+
+        pSrc++;
+
+        // 输出低4位
+        if(*pSrc>='0' && *pSrc<='9')
+        {
+            *pDst |= *pSrc - '0';
+        }
+        else
+        {
+             *pDst |= *pSrc - 'A' + 10;
+        }
+        pSrc++;
+        pDst++;
+    }
+
+    // 返回目标数据长度
+    return nSrcLength / 2;
+}
+
+// 字节数据转换为可打印字符串
+// 如：{0xC8, 0x32, 0x9B, 0xFD, 0x0E, 0x01} --> "C8329BFD0E01"
+// pSrc: 源数据指针
+// pDst: 目标字符串指针
+// nSrcLength: 源数据长度
+// 返回: 目标字符串长度
+static int gsmBytes2String(const unsigned char* pSrc, char* pDst, int nSrcLength)
+{
+    const char tab[]="0123456789ABCDEF";    // 0x0-0xf的字符查找表
+
+    for(int i=0; i<nSrcLength; i++)
+    {
+        // 输出低4位
+        *pDst++ = tab[*pSrc >> 4];
+
+        // 输出高4位
+        *pDst++ = tab[*pSrc & 0x0f];
+
+        pSrc++;
+    }
+
+    // 输出字符串加个结束符
+    *pDst = '\0';
+
+    // 返回目标字符串长度
+    return nSrcLength * 2;
+}
+
+static int gsmInvertNumbers(const char* pSrc, char* pDst, int nSrcLength)
+{
+    int nDstLength;   // 目标字符串长度
+    char ch;           // 用于保存一个字符
+   
+    // 复制串长度
+    nDstLength = nSrcLength;
+   
+    // 两两颠倒
+    for(int i=0; i<nSrcLength;i+=2)
+    {
+        ch = *pSrc++;        // 保存先出现的字符
+        *pDst++ = *pSrc++;   // 复制后出现的字符
+        *pDst++ = ch;        // 复制先出现的字符
+    }
+   
+    // 源串长度是奇数吗？
+    if(nSrcLength & 1)
+    {
+        *(pDst-2) = 'F';     // 补'F'
+        nDstLength++;        // 目标串长度加1
+    }
+   
+    // 输出字符串加个结束符
+    *pDst = '\0';
+   
+    // 返回目标字符串长度
+    return nDstLength;
+}
+
+// static int isn = 0;
+int luat_send_ext(char* num, char* data, void *out)
+{
+    LUAT_SMS_INFO("num: [%s] data: [%s]", num, data);
+
+    
+    int data_len = strlen(data);
+    int p_data_len = 2*data_len;
+    char* p_data = (char*)malloc(p_data_len+1);
+    memset(p_data, 0, (p_data_len+1));
+    char* pp_data = malloc((2*p_data_len)+1);
+    memset(pp_data, 0, (2*p_data_len)+1);
+    if(!iconv_gb2312_to_ucs2_endian_ext(&data, &data_len, &p_data, &p_data_len,1))
+    {
+        LUAT_SMS_INFO("sms ERROR");
+        free(p_data);
+        free(pp_data);
+        return -1;
+    }
+    int ppdatalen = gsmBytes2String(p_data, pp_data, p_data_len);
+    LUAT_SMS_INFO("data: [%s]", pp_data);
+    free(p_data);
+    // memset(p_send_info->input, 0, p_send_info->inputOffset);
+    // strcpy(p_send_info->input, pp_data);
+    memcpy(out, pp_data, strlen(pp_data));
+    free(pp_data);
+    
+	// char pnum[15] = {0};
+	// char ppnum[15] = {0};
+	// int pnumlen = 0;
+	// char pdatalen[4] = {0};
+	// int pducnt = 0;
+	// char* pdu = malloc(500);
+	// char* ppdu = NULL;
+	// int pdulen = 0;
+	// char udhi[17] = {0};
+	// int i = 0;
+	// char numfix = 0x81;
+	
+	// int data_len = strlen(data);
+	// int p_data_len = (2*strlen(data));
+	// char* p_data = malloc(p_data_len+1);
+	// memset(p_data, 0, (p_data_len+1));
+	// char* pp_data = malloc((2*p_data_len)+1);
+	// memset(pp_data, 0, (2*p_data_len)+1);
+	// if(!iconv_gb2312_to_ucs2_endian_ext(&data, &data_len, &p_data, &p_data_len,1))
+	// {
+	// 	LUAT_SMS_INFO("sms ERROR");
+	// 	free(p_data);
+	// 	free(pp_data);
+	// 	free(pdu);
+	// 	return -1;
+	// }
+	// int ppdatalen = gsmBytes2String(p_data, pp_data, p_data_len);
+	// LUAT_SMS_INFO("fist sms pdu: [%s][%d]", pp_data, ppdatalen);
+	// if(p_data_len > 140)
+	// {
+	// 	pducnt = (p_data_len + 133)/134;
+	// 	isn = (isn == 255) ? 0 : (isn + 1);
+	// }
+	
+	// if(num[0] == '+')
+	// {
+	// 	numfix = 0x91;
+	// 	pnumlen = (strlen(num)-1);
+	// 	strncpy(pnum, &num[1], pnumlen);
+	// }
+	// else
+	// {
+	// 	pnumlen = strlen(num);
+	// 	strncpy(pnum, &num[0], pnumlen);
+	// }
+	
+	// do{
+	// 	memset(pdu, 0, 500);
+	// 	memset(ppnum, 0, 15);
+	// 	ppdu = pdu;
+	// 	if(pducnt > 0)
+	// 	{	
+	// 		char len_mul = 0x8C;
+	// 		if(i == (pducnt-1))
+	// 			len_mul = p_data_len-((pducnt-1)*134) + 6;
+	// 		//udhi:6位协议头格式
+	// 		sprintf(udhi, "050003%02X%02X%02X", isn, pducnt+1, i+1);
+	// 		LUAT_SMS_INFO("sms udhi:%s ", udhi);
+	// 		gsmInvertNumbers(pnum, ppnum, pnumlen);
+	// 		ppdu += sprintf(ppdu, "005110%02X%02X", pnumlen,numfix);
+	// 		strcat(ppdu, ppnum);
+	// 		ppdu += strlen(ppnum);
+	// 		ppdu += sprintf(ppdu, "000800%02X",len_mul);
+	// 		strcat(ppdu, udhi);
+	// 		ppdu += strlen(udhi);
+	// 		if(i == (pducnt-1))
+	// 			strncat(ppdu, (pp_data + i*134*2), (ppdatalen - i*134*2));
+	// 		else
+	// 			strncat(ppdu, (pp_data + i*134*2), 134*2);
+	// 		i++;
+	// 	}
+	// 	else
+	// 	{
+	// 		gsmInvertNumbers(pnum, ppnum, pnumlen);
+	// 		ppdu += sprintf(ppdu, "001110%02X%02X", pnumlen,numfix);
+	// 		strcat(ppdu, ppnum);
+	// 		ppdu += strlen(ppnum);
+	// 		ppdu += sprintf(ppdu, "000800%02X", p_data_len);
+	// 		strcat(ppdu, pp_data);
+	// 	}
+	// 	pdulen = (strlen(pdu)/2) -1;
+	// 	LUAT_SMS_INFO("sms pdu:%s ", pdu);
+	// 	LUAT_SMS_INFO("sms pdu+250:%s ppdulen: %d", pdu+250, pdulen);
+	// }
+	// while(i < pducnt);
+    // free(p_data);
+    // free(pp_data);
+    // free(pdu);
+
+    // LUAT_SMS_INFO("Send Data: [%s]", pp_data);
+    // return 0;
+}
+
+//对UCS2编码的PDU短信进行解码成明文
+bool luat_sms_recv_pdu_decode_ucs2(char* pdu, char* p_out, int pdu_len, int *out_len)
+{
+    // LUAT_SMS_INFO("PDU: [%s][%d]", pdu, pdu_len);
+    unsigned char* buf = (unsigned char*)malloc(pdu_len + 1);
+    memset(buf, 0, pdu_len + 1);
+	int buflen = gsmString2Bytes(pdu, buf, pdu_len);
+    LUAT_SMS_INFO("[%d]", buflen);
+
+    char*data = malloc(buflen + 1);
+    memset(data, 0, buflen + 1);
+    int data_len = 160;
+    if(!iconv_ucs2_to_gb2312_endian_ext(&buf, &buflen, &data, &data_len, 1))
+    {
+        LUAT_SMS_INFO("sms ERROR");
+        free(buf);
+        free(data);
+        return false;
+    }
+    // LUAT_SMS_INFO("STRING: [%s][%d]", data, data_len);
+    memcpy(p_out, data, data_len);
+    *out_len = data_len;
+    free(buf);
+    free(data);
+
+    return true;
 }
 
 
@@ -486,46 +923,6 @@ static CmsRetId luat_sms_submit_text_2_pdu(PsilSmsSendInfo *p_send_info, CmiSmsP
         }
     }
 
-    if (mwAonSimSmsp.bProtocolIdPresent)
-    {
-        csmpParam.pid = mwAonSimSmsp.smsProtocolId;
-    }
-
-    if (mwAonSimSmsp.bCodingSchemePresent)
-    {
-        csmpParam.dcs = mwAonSimSmsp.smsDataCodingScheme;
-    }
-
-    /*
-     * SMS-SUBMIT T-PDU format/basic element, refer to TS-23.040 9.2.2.2
-     * +----------------+
-     * |      FO        |   First Octet
-     * +----------------+
-     * |      MR        |   Message-Reference
-     * +----------------+
-     * \      DA        \   Destination-Address, length: 2 - 12 bytes
-     * +----------------+
-     * |      PID       |   Protocol-Identifier
-     * +----------------+
-     * |      DCS       |   Data-Coding-Scheme
-     * +----------------+
-     * :      VP        :   Validity-Period, 0/1/7 bytes
-     * +----------------+
-     * |      UDL       |   User-Data-Length
-     * +----------------+
-     * \      UD        \   User-Data, 0 - 140 bytes
-     * +----------------+
-    */
-
-    /*
-     * FO Fromat refer to TS-23.040 9.2.2 and 9.2.3
-     *     ---------------------------------------------------
-     * FO: TP-RP  | TP-UDHI | TP-SRR | TP-VPF | TP-RD | TP-MTI
-     *     ---------------------------------------------------
-     *        0   |    0    |    1   |   00   |   0   |  01
-     *     ---------------------------------------------------
-     * FO:0x21
-    */
     if (p_send_info->udhPresent)
     {
         /* set UDHI for concatenated SMS */
@@ -636,10 +1033,10 @@ static CmsRetId luat_sms_submit_text_2_pdu(PsilSmsSendInfo *p_send_info, CmiSmsP
     p_send_info->udhPresent, p_send_info->maxNum, p_send_info->refNum, p_send_info->seqNum, p_send_info->inputOffset, offset, p_send_info->udhPresent, p_send_info->input);
 
     if (CMS_RET_SUCC != luat_sms_msg_encode_user_data(dcsInfo.alphabet,
-                                             p_tpdu,
-                                             p_send_info,
-                                             offset,
-                                             &pduLength))
+                                            p_tpdu,
+                                            p_send_info,
+                                            offset,
+                                            &pduLength))
     {
         return CMS_FAIL;
     }
@@ -846,9 +1243,12 @@ static CmsRetId luat_sms_send_pdu_sms(PsilSmsSendInfo *p_send_info)
     return CMS_RET_SUCC;
 }
 
+//发送短信
 int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_len)
 {
+    LUAT_SMS_INFO("luat_sms_send_msg input: [%s]", p_input);
     int length = 0;
+    bool text_chinese = false;
     CmsRetId cmsRet = CMS_RET_SUCC;
     CmiSmsAddressInfo destAddrInfo;
     PsilSmsFormatMode smsFormat;
@@ -880,15 +1280,63 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
             if (*(judgeChinese+i) & 0x80)
             {
                 LUAT_SMS_INFO("The input is Chinese");
-                luat_sms_cfg.send_cb(SMS_UNSUPPORT_TEXT_WITH_CHINESE);
-                return -1;
+                // luat_sms_cfg.send_cb(SMS_UNSUPPORT_TEXT_WITH_CHINESE);
+                // return -1;
+                text_chinese = true;
+                break;
             }
         }
     }
-    
+
     while(p_input[length++] != '\0');
     length -= 1;
     LUAT_SMS_INFO("first p_input len: %d", length);
+
+    if (text_chinese)
+    {
+        int data_len = length;
+        char* tem_data = (char*)malloc(data_len + 1);
+        memset(tem_data, 0, (data_len+1));
+        memcpy(tem_data, p_input, length);
+        int p_data_len = 2*data_len;
+        char* p_data = (char*)malloc(p_data_len+1);
+        memset(p_data, 0, (p_data_len+1));
+        char* pp_data = malloc((2*p_data_len)+1);
+        memset(pp_data, 0, (2*p_data_len)+1);
+        if(!iconv_gb2312_to_ucs2_endian_ext(&tem_data, &data_len, &p_data, &p_data_len,1))
+        {
+            LUAT_SMS_INFO("sms ERROR");
+            free(pp_data);
+            free(p_data);
+            free(tem_data);
+            return -1;
+        }
+        int ppdatalen = gsmBytes2String(p_data, pp_data, p_data_len);
+        // LUAT_SMS_INFO("data: [%s][%d]", pp_data, ppdatalen);
+
+        char *ppnum[15] = {0};
+		memset(ppnum, 0, 15);
+        
+		gsmInvertNumbers(p_des, ppnum, strlen(p_des));
+        // LUAT_SMS_INFO("The final phone: [%s]", ppnum);
+        memset(luat_p_sms_send_info->input, 0, 641);
+        char *p_pdu = NULL;
+        p_pdu = (char*)(luat_p_sms_send_info->input);
+        // sprintf(p_pdu, "0001000B91%s", ppnum);
+        strcat(p_pdu, "0001000B91");
+        strcat(p_pdu, ppnum);
+        int pdu_cur_len = strlen(p_pdu);
+        // LUAT_SMS_INFO("The second data: [%s]", p_pdu);
+        sprintf(p_pdu + pdu_cur_len, "0008%02X", (ppdatalen/2));
+        strcat(p_pdu, pp_data);
+        // LUAT_SMS_INFO("The final data: [%s][%d]", p_pdu, strlen(p_pdu));
+        luat_p_sms_send_info->reqPduLen =  (strlen(p_pdu)/2) -1;
+        LUAT_SMS_INFO("The final data: [%s][%d]", luat_p_sms_send_info->input, luat_p_sms_send_info->reqPduLen);
+        free(pp_data);
+        free(p_data);
+        free(tem_data);
+        smsFormat = PSIL_SMS_FORMAT_PDU_MODE;
+    }
 
     /* check the input length */
     if (smsFormat == PSIL_SMS_FORMAT_PDU_MODE)
@@ -907,11 +1355,14 @@ int luat_sms_send_msg(uint8_t *p_input, char *p_des, bool is_pdu, int input_pdu_
             LUAT_SMS_INFO("format is %d", smsFormat);
         }
     }
-    luat_p_sms_send_info->inputOffset = 0;
 
-    /* copy the data into buffer */
-    memcpy(luat_p_sms_send_info->input + luat_p_sms_send_info->inputOffset, p_input, length);
-    luat_p_sms_send_info->inputOffset += length;
+    luat_p_sms_send_info->inputOffset = 0;
+    if (!text_chinese)
+    {
+        /* copy the data into buffer */
+        memcpy(luat_p_sms_send_info->input + luat_p_sms_send_info->inputOffset, p_input, length);
+        luat_p_sms_send_info->inputOffset += length;
+    }
 
     if (smsFormat == PSIL_SMS_FORMAT_PDU_MODE)
     {
@@ -1032,7 +1483,6 @@ void luat_sms_nw_report_urc(CmiSmsNewMsgInd *p_cmi_msg_ind)
                 uint8_t start_offset = 0;
                 uint8_t msg_phone_address_type;
                 bool hdr_present = false;
-                UdhIe hIe = {0};
 
                 if ((p_cmi_msg_ind->pdu.pduData[start_offset]) & (0x40))
                 {
@@ -1077,14 +1527,25 @@ void luat_sms_nw_report_urc(CmiSmsNewMsgInd *p_cmi_msg_ind)
                                     recv_msg_info.sms_buffer,
                                     &(recv_msg_info.sms_length),
                                     641,
-                                    &hIe);
+                                    PNULL);
                 LUAT_SMS_INFO("The recv msg: pdu: [%d | %d | %d | %s]", start_offset, p_cmi_msg_ind->pdu.pduLength,
                 recv_msg_info.sms_length, (char*)(recv_msg_info.sms_buffer));
-                recv_msg_info.refNum = hIe.ieData.concatenatedSms8Bit.refNum;
-                recv_msg_info.maxNum = hIe.ieData.concatenatedSms8Bit.maxNum;
-                recv_msg_info.seqNum = hIe.ieData.concatenatedSms8Bit.seqNum;
+
+                //判断当短信中编码格式为UCS2时，进行数据的解码
+                if (recv_msg_info.dcs_info.alpha_bet == 2)
+                {
+                    char * out_str = (char*)malloc(recv_msg_info.sms_length + 1);
+                    memset(out_str, 0, recv_msg_info.sms_length + 1);
+                    int tem_len = 0;
+                    if (luat_sms_recv_pdu_decode_ucs2((char*)(recv_msg_info.sms_buffer), out_str, recv_msg_info.sms_length, &tem_len))
+                    {
+                        recv_msg_info.sms_length = tem_len;
+                        memset(recv_msg_info.sms_buffer, 0, recv_msg_info.sms_length);
+                        strcpy(recv_msg_info.sms_buffer, out_str);
+                    }
+                    free(out_str);
+                }
                 memcpy(recv_msg_info.pdu_data, rsp_buf, rsp_buf_pdu_max_len);
-                LUAT_SMS_INFO("The recv msg: ieData %d %d %d", recv_msg_info.refNum, recv_msg_info.maxNum, recv_msg_info.seqNum);
                 recv_msg_info.pdu_length = p_cmi_msg_ind->pdu.pduLength;
                 LUAT_SMS_INFO("The recv msg: %d[%s]", recv_msg_info.pdu_length, recv_msg_info.pdu_data);
                 LUAT_SMS_INFO("The recv msg: [%s]", rsp_buf);
@@ -1100,22 +1561,35 @@ void luat_sms_nw_report_urc(CmiSmsNewMsgInd *p_cmi_msg_ind)
 
 static void luat_sms_recv_msg(CmiSmsNewMsgInd* param)
 {
-    // 总是上报给csdk回调, 不需要读取AT相关的配置参数
-    if (1)
+    MWNvmCfgCNMIParam cnmiParam = {0};
+    mwNvmCfgGetCnmiConfig(&cnmiParam);
+
+    if (cnmiParam.mode != 0)
     {
         switch (param->smsType)
         {
         case CMI_SMS_TYPE_DELIVER:
-            luat_sms_nw_report_urc(param);
+            if (((CMI_SMS_DELIVER_RPT_MODE_2 == cnmiParam.mt) && (CMI_SMS_MESSAGE_CLASS2 !=param->smsClass)) ||
+                        ((CMI_SMS_DELIVER_RPT_MODE_3 == cnmiParam.mt) && (CMI_SMS_MESSAGE_CLASS3 ==param->smsClass)) ||
+                        (CMI_SMS_MESSAGE_CLASS0 ==param->smsClass))
+            {
+                luat_sms_nw_report_urc(param);
+            }
             break;
         case CMI_SMS_TYPE_STATUS_REPORT:
-            luat_sms_nw_report_urc(param);
+            if (CMI_SMS_STATUS_RPT_MODE_1 == cnmiParam.ds)
+            {
+                luat_sms_nw_report_urc(param);
+            }
             break;
         case CMI_SMS_TYPE_CB_ETWS_CMAS:
-            luat_sms_nw_report_urc(param);
+            if ((CMI_SMS_DELIVER_RPT_MODE_2 == cnmiParam.bm) ||
+                    ((CMI_SMS_DELIVER_RPT_MODE_3 == cnmiParam.bm) && (CMI_SMS_MESSAGE_CLASS3 == param->smsClass)))
+            {
+                luat_sms_nw_report_urc(param);
+            }
             break;
         default:
-            LUAT_SMS_INFO("unkown param->smsType %d", param->smsType);
             break;
         }
     }
@@ -1162,6 +1636,7 @@ extern void soc_mobile_sms_event_register_handler(void *handle);
 //初始化SMS
 void luat_sms_init(void)
 {
+    BSP_SetPlatConfigItemValue(0, 0);
     luat_sms_cfg.cb = luat_sms_def_recv_cb;
     luat_sms_cfg.send_cb = luat_sms_def_send_cb;
 	soc_mobile_sms_event_register_handler(luat_sms_proc);
