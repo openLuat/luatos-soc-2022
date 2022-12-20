@@ -85,15 +85,10 @@ static int32_t ntp_callback(void *data, void *param)
 
 static void task_test_ntp(void *param)
 {
-	uint8_t ntp_sleep_handler;
-	slpManSetPmuSleepMode(true, SLP_HIB_STATE, false);
-	slpManApplyPlatVoteHandle("ntp", &ntp_sleep_handler);
-	slpManPlatVoteDisableSleep(ntp_sleep_handler, SLP_SLP2_STATE);
 	while (!g_s_demo.is_link_up)
 	{
 		luat_rtos_task_sleep(1000);
 	}
-
 	SntpInit("ntp1.aliyun.com", SNTP_DEFAULT_PORT, 1, g_s_demo.ipv4_cid, ntp_callback, NULL);
 	while (1)
 	{
@@ -101,7 +96,7 @@ static void task_test_ntp(void *param)
 		{
 			SntpInit("ntp1.aliyun.com", SNTP_DEFAULT_PORT, 1, g_s_demo.ipv4_cid, ntp_callback, NULL);
 		}
-		luat_rtos_task_sleep(30000);
+		luat_rtos_task_sleep(20000);
 	}
 
 	luat_rtos_task_delete(NULL);
