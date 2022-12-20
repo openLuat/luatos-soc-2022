@@ -18,6 +18,7 @@
 #include "sfud.h"
 
 #include "soc_spi.h"
+#include "driver_gpio.h"
 
 //AIR780E+TM8211开发板配置
 #define CODEC_PWR_PIN HAL_GPIO_12
@@ -69,12 +70,19 @@
 //};
 
 int luat_sfud_read(const sfud_flash* flash, uint8_t* buff, size_t offset, size_t len) {
-	return sfud_read(flash, offset, len, buff)==0?true:false;
-	// 以下是SPI直接读, 没有成功
-	// char cmd[4] = {0x03, offset >> 16, (offset >> 8) & 0xFF, offset & 0xFF};
-	// SPI_TransferEx(0, cmd, NULL, 4, 1, 0);
-	// SPI_TransferEx(0, NULL, buff, len, 1, 0);
-	// return true;
+	// return sfud_read(flash, offset, len, buff)==0?true:false;
+	// 以下是SPI直接读
+	GPIO_FastOutput(8, 0);
+	char cmd[4] = {0x03, offset >> 16, (offset >> 8) & 0xFF, offset & 0xFF};
+	// SPI_FastTransfer(0, cmd, cmd, 4);
+	// SPI_FastTransfer(0, buff, buff, len);
+	SPI_TransferEx(0, cmd, cmd, 4, 1, 0);
+	SPI_TransferEx(0, buff, buff, len, 1, 0);
+	GPIO_FastOutput(8, 1);
+	if (memcmp(buff, ivtts_16k + offset, len)) {
+		LUAT_DEBUG_PRINT("tts data NOT match %04X %04X", offset, len);
+	}
+	return true;
 }
 
 luat_spi_t sfud_spi_flash = {
@@ -86,7 +94,7 @@ luat_spi_t sfud_spi_flash = {
         .master = 1,
         .mode = 0,
         // .bandrate=13*1000*1000,
-        .bandrate=25100000,
+        .bandrate=25600000,
         .cs = 8
 };
 
@@ -173,13 +181,26 @@ static void demo_task(void *arg)
     }else{
         LUAT_DEBUG_PRINT("sfud_read 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n", data[0], data[1], data[2], data[3], data[4], data[5]);
     }
+#else
+	// 校验数据
+	// char tmp = malloc(4096);
+	// for (size_t i = 0; i < 719278; i+=4096)
+	// {
+	// 	// sfud_read(flash, i, 4096, tmp);
+	// 	// if (memcmp(tmp, ivtts_16k + i, 4096)) {
+	// 	// 	LUAT_DEBUG_PRINT("flash NOT match");
+	// 	// 	break;
+	// 	// }
+	// }
+	
 #endif
 
 //	luat_rtos_task_sleep(3000);
 	ivCStrA sdk_id = AISOUND_SDK_USERID_16K;
 	//8K用下面的
 //	ivCStrA sdk_id = AISOUND_SDK_USERID_8K;
-	char tts_string[] = "支付宝到账123.45元,微信收款9876.12元ABC";
+	// char tts_string[] = "支付宝到账123.45元,微信收款9876.12元ABC支付宝到账123.45元,微信收款9876.12元ABC";
+	char tts_string[] = "一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十";
 	luat_audio_play_info_t info[5];
 //	slpManRegisterUsrdefinedBackupCb(before_sleep, NULL);
 //	slpManRegisterUsrdefinedRestoreCb(after_sleep, NULL);
@@ -206,7 +227,7 @@ static void demo_task(void *arg)
 	// info[2].path = "test3.mp3";
 	// info[3].path = "test4.mp3";
 	// luat_audio_play_multi_files(0, info, 4);
-	luat_gpio_set(8, 0);
+	// luat_gpio_set(8, 0);
 	luat_rtos_task_sleep(9000);
 //	require_lowpower_state(0);
     while(1)
@@ -231,7 +252,7 @@ static void demo_task(void *arg)
     	// luat_audio_play_multi_files(0, info, 5);
     	// luat_rtos_task_sleep(9000);
     	luat_audio_play_tts_text(0, tts_string, sizeof(tts_string));
-    	luat_rtos_task_sleep(10000);
+    	luat_rtos_task_sleep(30000);
 
 //    	info[0].path = NULL;
 //    	info[0].address = (uint32_t)Fqdqwer;
