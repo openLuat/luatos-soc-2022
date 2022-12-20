@@ -76,7 +76,7 @@ void GPIO_IomuxEC618(uint32_t Pad, uint32_t Function, uint8_t AltFunctionPull, u
  * @param Level 1高电平，0低电平
  */
 void GPIO_Output(uint32_t Pin, uint8_t Level);
-
+void GPIO_FastOutput(uint32_t Pin, uint8_t Level);
 /**
  * @brief GPIO输出电平，并且同步控制上下拉电阻，增强驱动力，同时希望能接解决休眠无法保持电平的问题
  *
