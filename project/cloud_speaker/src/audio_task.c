@@ -33,7 +33,7 @@ static HANDLE g_s_delay_timer;
 
 void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
 {
-    int value = 4;
+    int value = 15;
     int ret = luat_kv_get("volume", &value, sizeof(int));
     if(ret > 0)
     {
@@ -43,7 +43,7 @@ void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
     else
     {
         // LUAT_DEBUG_PRINT("cloud_speaker_audio_task get volume fail %d", value);          //这里的打印打开会出来很多，影响日志查看，有需要可自行打开
-        HAL_I2sSrcAdjustVolumn(data, len, 4);
+        HAL_I2sSrcAdjustVolumn(data, len, 15);
     }
     LUAT_DEBUG_PRINT("cloud_speaker_audio_task %x,%d,%d,%d,%d", data, len, bits, channels);
 }

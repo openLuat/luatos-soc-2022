@@ -397,7 +397,7 @@ void demo_mqtt_default_recv_handler(void *handle, const aiot_mqtt_recv_t *packet
         /* 处理服务器下发的业务报文 */
         // TODO: 换成自己的项目key和设备名
         // 此主题为语料下载主题，阿里云推送语料会下发一个下载json文件的url，此json中包含语料下载地址
-        if (memcmp("/sys/${YourProductKey}/${YourDeviceName}/thing/service/SpeechPost", packet->data.pub.topic, packet->data.pub.topic_len) == 0)
+        if (strcmp("/sys/${YourProductKey}/${YourDeviceName}/thing/service/SpeechPost", packet->data.pub.topic) == 0)
         {
             cJSON *boss = NULL;
             boss = cJSON_Parse((const char *)packet->data.pub.payload);
@@ -434,7 +434,7 @@ void demo_mqtt_default_recv_handler(void *handle, const aiot_mqtt_recv_t *packet
         下发的内容需为"{$number}",其中number是一个不大于99999999.99的字符串
         如"{$10000.11}",设备会播报一万点一一元 
         */
-        else if (memcmp("/sys/${YourProductKey}/${YourDeviceName}/thing/service/SpeechBroadcast", packet->data.pub.topic, packet->data.pub.topic_len) == 0)
+        else if (strcmp("/sys/${YourProductKey}/${YourDeviceName}/thing/service/SpeechBroadcast", packet->data.pub.topic) == 0)
         {
             cJSON *boss = NULL;
             boss = cJSON_Parse((const char *)packet->data.pub.payload);
@@ -487,7 +487,7 @@ void demo_mqtt_default_recv_handler(void *handle, const aiot_mqtt_recv_t *packet
         这里解析url然后发送到httptask去下载音频
         此示例播放完毕后会删掉音频
         */
-        else if (memcmp("/sys/${YourProductKey}/${YourDeviceName}/thing/service/AudioPlayback", packet->data.pub.topic, packet->data.pub.topic_len) == 0)
+        else if (strcmp("/sys/${YourProductKey}/${YourDeviceName}/thing/service/AudioPlayback", packet->data.pub.topic) == 0)
         {
             if (!http_get_status)
             {
