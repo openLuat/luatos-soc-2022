@@ -26,30 +26,12 @@
 #include "luat_debug.h"
 
 #include "luat_sms.h"
-#include "iconv.h"
-#include "luat_iconv.h"
 
 luat_rtos_task_handle task_handle;
 
 extern void luat_sms_proc(uint32_t event, void *param);
 
-int aa = 1;
-static HANDLE g_s_delay_timer;
 
-void timeHandle(uint32_t arg)
-{
-	uint8_t str[] = "0001000D91688149897245F0000822606D559C53D18D22FF0C00610062003100320033004000710071002E0063006F006D";
-	uint8_t str1[] = "0001000D91688149897245F0000822007100710071002E0040007100640061006E0023006F0063006D006E003100330033";
-	if (aa % 2)
-	{
-		luat_sms_send_msg(str, "18949827540", true, 48);
-	}
-	else
-	{
-		luat_sms_send_msg(str1, "18949827540", true, 48);
-	}
-	aa++;
-}
 static void sms_recv_cb(uint8_t event,void *param)
 {
 	LUAT_DEBUG_PRINT("event:[%d]", event);
@@ -61,15 +43,8 @@ static void sms_recv_cb(uint8_t event,void *param)
                 ((LUAT_SMS_RECV_MSG_T*)param)->time.tz_sign, ((LUAT_SMS_RECV_MSG_T*)param)->time.tz);
 	LUAT_DEBUG_PRINT("Phone:[%s]", ((LUAT_SMS_RECV_MSG_T*)param)->phone_address);
 	LUAT_DEBUG_PRINT("ScAddr:[%s]", ((LUAT_SMS_RECV_MSG_T*)param)->sc_address);
-	LUAT_DEBUG_PRINT("Text len:[%d]", ((LUAT_SMS_RECV_MSG_T*)param)->sms_length);
-	LUAT_DEBUG_PRINT("Text: [%s]", (char*)((LUAT_SMS_RECV_MSG_T*)param)->sms_buffer);
-
-    if (strcmp("DIO", (char*)(((LUAT_SMS_RECV_MSG_T*)param)->sms_buffer))== 0)
-    {
-        LUAT_DEBUG_PRINT("DIO");
-		luat_rtos_timer_create(&g_s_delay_timer);
-		luat_rtos_timer_start(g_s_delay_timer, 200, 0, timeHandle, NULL);
-    }
+	LUAT_DEBUG_PRINT("PDU len:[%d]", ((LUAT_SMS_RECV_MSG_T*)param)->sms_length);
+	LUAT_DEBUG_PRINT("PDU: [%s]", ((LUAT_SMS_RECV_MSG_T*)param)->sms_buffer);
 }
 
 static void sms_send_cb(int ret)
@@ -80,22 +55,21 @@ static void sms_send_cb(int ret)
 
 static void demo_init_sms()
 {
-	// uint8_t str[] = "abc123@qq.com大号打不到";
-	// uint8_t str_pdu[] = "0001000D91688196457286F2000822606D559C53D18D22FF0C00610062003100320033004000710071002E0063006F006D";
-	//鍒濆?嬪寲SMS, 鍒濆?嬪寲蹇呴』鍦ㄦ渶寮�濮嬭皟鐢?
+	uint8_t str[] = "abc123@qq.com";
+	uint8_t str_pdu[] = "0001000D91688196457286F2000822606D559C53D18D22FF0C00610062003100320033004000710071002E0063006F006D";
+	//初始化SMS, 初始化必须在最开始调用
 	luat_sms_init();
     luat_sms_recv_msg_register_handler(sms_recv_cb);
     luat_sms_send_msg_register_handler(sms_send_cb);
-	//绛夊緟娉ㄥ唽缃戠粶
+	//等待注册网络
 	luat_rtos_task_sleep(15000);
-	//娣诲姞鑷?宸辨祴璇曠殑鎵嬫満鍙?
-	// int ret = luat_sms_send_msg(str, "18949827540", false, 0);
-	// if (ret == 0)
-	// {
-	// 	luat_rtos_task_sleep(1000);
-	// 	luat_sms_send_msg(str_pdu, "", true, 54);
-	// }
-	luat_sms_send_msg("的哈大蝴蝶", "18949827540", false, 0);
+	//添加自己测试的手机号
+	int ret = luat_sms_send_msg(str, "18695427682", false, 0);
+	if (ret == 0)
+	{
+		luat_rtos_task_sleep(1000);
+		luat_sms_send_msg(str_pdu, "", true, 54);
+	}
 }
 
 
@@ -106,14 +80,6 @@ static void task(void *param)
 	while(1)
 	{
 		luat_rtos_task_sleep(1000);
-		// char *a[180];
-		// a[0] = 'a';
-		// a[1] = 'a';
-		// a[2] = 'a';
-		// a[0] = 'a';
-		// memset(a, 0, 180);
-		// luat_send_ext("185", "中国心48548", a);
-		// LUAT_DEBUG_PRINT("---------[%s]----------", a);
 		LUAT_DEBUG_PRINT("==================sms is done==================");
 	}
 }
@@ -124,5 +90,5 @@ static void task_demoE_init(void)
 	luat_rtos_task_create(&task_handle, 5*1024, 50, "task", task, NULL, 0);
 }
 
-//锟?????鍔╰ask_demoE_init锛屽惎鍔ㄤ綅锟?????浠诲姟1锟?????
+//启动task_demoE_init，启动位置任务1级
 INIT_TASK_EXPORT(task_demoE_init, "1");
