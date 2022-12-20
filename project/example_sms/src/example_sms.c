@@ -57,13 +57,13 @@ static void demo_init_sms()
 {
 	uint8_t str[] = "abc123@qq.com";
 	uint8_t str_pdu[] = "0001000D91688196457286F2000822606D559C53D18D22FF0C00610062003100320033004000710071002E0063006F006D";
-	//³õÊ¼»¯SMS, ³õÊ¼»¯±ØĞëÔÚ×î¿ªÊ¼µ÷ÓÃ
+	//åˆå§‹åŒ–SMS, åˆå§‹åŒ–å¿…é¡»åœ¨æœ€å¼€å§‹è°ƒç”¨
 	luat_sms_init();
     luat_sms_recv_msg_register_handler(sms_recv_cb);
     luat_sms_send_msg_register_handler(sms_send_cb);
-	//µÈ´ı×¢²áÍøÂç
+	//ç­‰å¾…æ³¨å†Œç½‘ç»œ
 	luat_rtos_task_sleep(15000);
-	//Ìí¼Ó×Ô¼º²âÊÔµÄÊÖ»úºÅ
+	//æ·»åŠ è‡ªå·±æµ‹è¯•çš„æ‰‹æœºå·
 	int ret = luat_sms_send_msg(str, "18695427682", false, 0);
 	if (ret == 0)
 	{
@@ -90,5 +90,5 @@ static void task_demoE_init(void)
 	luat_rtos_task_create(&task_handle, 5*1024, 50, "task", task, NULL, 0);
 }
 
-//Æô¶¯task_demoE_init£¬Æô¶¯Î»ÖÃÈÎÎñ1¼¶
+//å¯åŠ¨task_demoE_initï¼Œå¯åŠ¨ä½ç½®ä»»åŠ¡1çº§
 INIT_TASK_EXPORT(task_demoE_init, "1");
