@@ -209,7 +209,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_HMETA
   {"hmeta", luaopen_hmeta},
 #endif
+#ifdef LUAT_USE_FOTA
   {"fota", luaopen_fota},
+#endif
   {NULL, NULL}
 };
 
