@@ -1,4 +1,4 @@
-local TARGET_NAME = "example_ali_qianlichuanyin"
+local TARGET_NAME = "example_link_speech1"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 includes(SDK_TOP .. "/thirdparty/audio_decoder")
