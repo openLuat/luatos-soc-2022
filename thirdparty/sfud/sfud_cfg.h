@@ -32,7 +32,7 @@
 #define LUAT_TYPE_SPI           0
 #define LUAT_TYPE_SPI_DEVICE    1
 
-#define SFUD_DEBUG_MODE
+// #define SFUD_DEBUG_MODE
 
 #define SFUD_USING_SFDP
 
