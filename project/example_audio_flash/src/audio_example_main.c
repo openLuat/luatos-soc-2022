@@ -20,10 +20,15 @@
 #include "soc_spi.h"
 #include "driver_gpio.h"
 
-// 这里定义TTS数据在Flash上的起始便宜量
+// 这里定义TTS数据在Flash上的起始地址
 // 因为很多demo都喜欢用0开始演示flash读写
 // 导致TTS的数据无意中就破坏掉了
 #define FLASH_TTS_ADDR (64 * 1024)
+// SPI 接在SPI0, 片选脚GPIO8
+// 注意, SPI0与UART2冲突
+#define FLASH_SPI_ID (0)
+#define FLASH_SPI_CS (8)
+#define FALSH_SPI_BR (25600000)
 
 //AIR780E+TM8211开发板配置
 #define CODEC_PWR_PIN HAL_GPIO_12
@@ -60,12 +65,18 @@
 int luat_sfud_read(const sfud_flash* flash, uint8_t* buff, size_t offset, size_t len) {
 	// return sfud_read(flash, offset, len, buff)==0?true:false;
 	// 以下是SPI直接读
-	GPIO_FastOutput(8, 0);
+	GPIO_FastOutput(FLASH_SPI_CS, 0);
 	offset += FLASH_TTS_ADDR;
 	char cmd[4] = {0x03, offset >> 16, (offset >> 8) & 0xFF, offset & 0xFF};
-	SPI_FastTransfer(0, cmd, cmd, 4);
-	SPI_FastTransfer(0, buff, buff, len);
-	GPIO_FastOutput(8, 1);
+	SPI_FastTransfer(FLASH_SPI_ID, cmd, cmd, 4);
+	if (len >= 200) {
+		SPI_BlockTransfer(FLASH_SPI_ID, buff, buff, len);
+	}
+	else {
+		SPI_FastTransfer(FLASH_SPI_ID, buff, buff, len);
+	}
+	
+	GPIO_FastOutput(FLASH_SPI_CS, 1);
 	// if (memcmp(buff, ivtts_16k + offset, len)) {
 	// 	LUAT_DEBUG_PRINT("tts data NOT match %04X %04X", offset, len);
 	// }
@@ -73,7 +84,7 @@ int luat_sfud_read(const sfud_flash* flash, uint8_t* buff, size_t offset, size_t
 }
 
 luat_spi_t sfud_spi_flash = {
-        .id = 0,
+        .id = FLASH_SPI_ID,
         .CPHA = 0,
         .CPOL = 0,
         .dataw = 8,
@@ -81,8 +92,8 @@ luat_spi_t sfud_spi_flash = {
         .master = 1,
         .mode = 0,
         // .bandrate=13*1000*1000,
-        .bandrate=25600000,
-        .cs = 8
+        .bandrate=FALSH_SPI_BR,
+        .cs = FLASH_SPI_CS
 };
 
 extern void download_file();
