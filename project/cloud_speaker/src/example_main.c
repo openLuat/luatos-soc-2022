@@ -32,7 +32,7 @@
 #include "luat_debug.h"
 #include "luat_pm.h"
 #include "mqtt_publish.h"
-static uint8_t g_s_is_link_up = 0;
+uint8_t g_s_is_link_up = 0;
 static luat_rtos_semaphore_t net_semaphore_handle;
 static luat_rtos_task_handle mqtt_task_handle;
 extern luat_rtos_queue_t audio_queue_handle;

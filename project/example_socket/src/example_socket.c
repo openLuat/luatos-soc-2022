@@ -24,7 +24,6 @@ static demo_ctrl_t g_s_demo;
 static void demo_tcp_task(void *arg)
 {
 	ip_addr_t remote_ip;
-	char *txbuf;
 	char *rxbuf;
     struct sockaddr_in name;
     socklen_t sockaddr_t_size = sizeof(name);
@@ -42,16 +41,14 @@ static void demo_tcp_task(void *arg)
 		{
 			luat_rtos_task_sleep(1000);
 		}
-		txbuf = malloc(128);
-		ret = lwip_gethostbyname_r(DEMO_SERVER_TCP_IP, &dns_result, txbuf, 128, &p_result, &h_errnop);
+		char buf[128] = {0};
+		ret = lwip_gethostbyname_r(DEMO_SERVER_TCP_IP, &dns_result, buf, 128, &p_result, &h_errnop);
 		if (!ret)
 		{
 			remote_ip = *((ip_addr_t *)dns_result.h_addr_list[0]);
-			free(txbuf);
 		}
 		else
 		{
-			free(txbuf);
 			luat_rtos_task_sleep(1000);
 			LUAT_DEBUG_PRINT("dns fail");
 			continue;
@@ -162,7 +159,6 @@ static void demo_tcp_task(void *arg)
 static void demo_udp_task(void *arg)
 {
 	ip_addr_t remote_ip;
-	char *txbuf;
 	char *rxbuf;
     struct sockaddr_in name;
     struct sockaddr_in from;
@@ -182,16 +178,14 @@ static void demo_udp_task(void *arg)
 		{
 			luat_rtos_task_sleep(1000);
 		}
-		txbuf = malloc(128);
-		ret = lwip_gethostbyname_r(DEMO_SERVER_UDP_IP, &dns_result, txbuf, 128, &p_result, &h_errnop);
+		char buf[128] = {0};
+		ret = lwip_gethostbyname_r(DEMO_SERVER_UDP_IP, &dns_result, buf, 128, &p_result, &h_errnop);
 		if (!ret)
 		{
 			remote_ip = *((ip_addr_t *)dns_result.h_addr_list[0]);
-			free(txbuf);
 		}
 		else
 		{
-			free(txbuf);
 			luat_rtos_task_sleep(1000);
 			LUAT_DEBUG_PRINT("dns fail");
 			continue;
