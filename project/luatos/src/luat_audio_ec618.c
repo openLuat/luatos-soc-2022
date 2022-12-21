@@ -342,7 +342,7 @@ int l_i2s_pause(lua_State *L) {
 int l_i2s_stop(lua_State *L) {
     return 0;
 }
-
+#ifdef LUAT_USE_TTS
 int luat_audio_play_tts_text(uint32_t multimedia_id, void *text, uint32_t text_bytes)
 {
 	if (!g_s_spi_config.u32)
@@ -371,7 +371,7 @@ int luat_audio_play_tts_set_param(uint32_t multimedia_id, uint32_t param_id, uin
 {
 	return audio_play_tts_set_param(multimedia_id, param_id, param_value);
 }
-
+#endif
 void mbedtls_md5( const unsigned char *input,
                   size_t ilen,
                   unsigned char output[16] )
