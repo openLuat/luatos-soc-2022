@@ -20,6 +20,11 @@
 #include "soc_spi.h"
 #include "driver_gpio.h"
 
+// 这里定义TTS数据在Flash上的起始便宜量
+// 因为很多demo都喜欢用0开始演示flash读写
+// 导致TTS的数据无意中就破坏掉了
+#define FLASH_TTS_ADDR (64 * 1024)
+
 //AIR780E+TM8211开发板配置
 #define CODEC_PWR_PIN HAL_GPIO_12
 #define CODEC_PWR_PIN_ALT_FUN	4
@@ -52,27 +57,11 @@
 //#define CHARGE_EN_PIN	HAL_GPIO_NONE
 //#define CHARGE_EN_PIN_ALT_FUN	0
 
-//#include "luat_transz.h"
-//const luat_transz_data_t ivtts_8k_tz = {
-//    .total_size = 641776,
-//    .block_size = 4096,
-//    .compress_mode = TZ_COMPRESS_GZ,
-//    .fragments = ivtts_8k_tz_frags,
-//    .datas = ivtts_8k_tz_data,
-//};
-//
-//const luat_transz_data_t ivtts_16k_tz = {
-//    .total_size = 719278,
-//    .block_size = 4096,
-//    .compress_mode = TZ_COMPRESS_GZ,
-//    .fragments = ivtts_16k_tz_frags,
-//    .datas = ivtts_16k_tz_data,
-//};
-
 int luat_sfud_read(const sfud_flash* flash, uint8_t* buff, size_t offset, size_t len) {
 	// return sfud_read(flash, offset, len, buff)==0?true:false;
 	// 以下是SPI直接读
 	GPIO_FastOutput(8, 0);
+	offset += FLASH_TTS_ADDR;
 	char cmd[4] = {0x03, offset >> 16, (offset >> 8) & 0xFF, offset & 0xFF};
 	SPI_FastTransfer(0, cmd, cmd, 4);
 	SPI_FastTransfer(0, buff, buff, len);
@@ -167,14 +156,14 @@ static void demo_task(void *arg)
 
 // 第一次刷数据到spi flash才需要开启
 #if 0
-    if (re = sfud_erase(flash,0, 719278)!=0){
+    if (re = sfud_erase(flash, FLASH_TTS_ADDR, 719278)!=0){
         LUAT_DEBUG_PRINT("sfud_erase error is %d\n", re);
     }
-    if (re = sfud_write(flash, 0, 719278, ivtts_16k)!=0){
+    if (re = sfud_write(flash, FLASH_TTS_ADDR, 719278, ivtts_16k)!=0){
         LUAT_DEBUG_PRINT("sfud_write error is %d\n", re);
     }
 	LUAT_DEBUG_PRINT("sfud_write ivtts_16k down\n");
-	if (re = sfud_read(flash, 0, 6, &data)!=0){
+	if (re = sfud_read(flash, FLASH_TTS_ADDR, 6, &data)!=0){
         LUAT_DEBUG_PRINT("sfud_read error is %d\n", re);
     }else{
         LUAT_DEBUG_PRINT("sfud_read 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n", data[0], data[1], data[2], data[3], data[4], data[5]);
@@ -184,7 +173,7 @@ static void demo_task(void *arg)
 	// char tmp = malloc(4096);
 	// for (size_t i = 0; i < 719278; i+=4096)
 	// {
-	// 	// sfud_read(flash, i, 4096, tmp);
+	// 	// sfud_read(flash, i+FLASH_TTS_ADDR, 4096, tmp);
 	// 	// if (memcmp(tmp, ivtts_16k + i, 4096)) {
 	// 	// 	LUAT_DEBUG_PRINT("flash NOT match");
 	// 	// 	break;
@@ -206,12 +195,6 @@ static void demo_task(void *arg)
 
 	luat_rtos_timer_create(&g_s_delay_timer);
     luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, luat_audio_play_tts_default_fun, NULL);
-    // 无压缩版本
-    // luat_audio_play_tts_set_resource(ivtts_16k, sdk_id, NULL);
-    //8K用下面的
-//	luat_audio_play_tts_set_resource(ivtts_8k, sdk_id, NULL);
-	// 透明解压版本
-	//luat_audio_play_tts_set_resource(&ivtts_16k_tz, sdk_id, luat_transz_read);
 	// 外部flash版本
 	luat_audio_play_tts_set_resource(flash, sdk_id, luat_sfud_read);
 
