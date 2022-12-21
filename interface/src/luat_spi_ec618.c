@@ -37,7 +37,7 @@ static int spi_exist(int id) {
     return 0;
 }
 
-
+#ifdef __LUATOS__
 int luat_spi_device_config(luat_spi_device_t* spi_dev) {
     if (!spi_exist(spi_dev->bus_id))
         return -1;
@@ -74,7 +74,7 @@ int luat_spi_bus_setup(luat_spi_device_t* spi_dev){
 	return 0;
 }
 
-
+#endif
 
 int luat_spi_setup(luat_spi_t* spi) {
     if (!spi_exist(spi->id))
