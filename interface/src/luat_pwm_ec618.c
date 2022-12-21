@@ -87,19 +87,19 @@ static const pwm_map_t maps[] = {
 #ifdef RTE_PWM0
     {.pwm_ch=0, .clockId=FCLK_TIMER0, .clockId_slect=FCLK_TIMER0_SEL_26M, .time_req=PXIC0_TIMER0_IRQn, .pad=RTE_PWM0},
 #endif
-#ifdef RTE_PWM0
+#ifdef RTE_PWM1
     {.pwm_ch=1, .clockId=FCLK_TIMER1, .clockId_slect=FCLK_TIMER1_SEL_26M, .time_req=PXIC0_TIMER1_IRQn, .pad=RTE_PWM1},
 #endif
-#ifdef RTE_PWM0
+#ifdef RTE_PWM2
     {.pwm_ch=2, .clockId=FCLK_TIMER2, .clockId_slect=FCLK_TIMER2_SEL_26M, .time_req=PXIC0_TIMER2_IRQn, .pad=RTE_PWM2},
 #endif
-#ifdef RTE_PWM0
+#ifdef RTE_PWM3
     {.pwm_ch=3, .clockId=FCLK_TIMER3, .clockId_slect=FCLK_TIMER3_SEL_26M, .time_req=PXIC0_TIMER3_IRQn, .pad=RTE_PWM3},
 #endif
-#ifdef RTE_PWM0
+#ifdef RTE_PWM4
     {.pwm_ch=4, .clockId=FCLK_TIMER4, .clockId_slect=FCLK_TIMER4_SEL_26M, .time_req=PXIC0_TIMER4_IRQn, .pad=RTE_PWM4},
 #endif
-#ifdef RTE_PWM0
+#ifdef RTE_PWM5
     {.pwm_ch=5, .clockId=FCLK_TIMER5, .clockId_slect=FCLK_TIMER5_SEL_26M, .time_req=PXIC0_TIMER5_IRQn, .pad=RTE_PWM5},
 #endif
 
