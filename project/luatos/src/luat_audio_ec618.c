@@ -31,6 +31,8 @@
 #include "ivTTS.h"
 #include "luat_spi.h"
 #include "sfud.h"
+#include "luat_rtos.h"
+#include "luat_gpio.h"
 //#include "luat_multimedia.h"
 typedef struct
 {
@@ -132,6 +134,7 @@ static void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t cha
 	}
 }
 #ifdef LUAT_USE_TTS
+#define FLASH_TTS_ADDR (64 * 1024)
 extern luat_sfud_flash_t luat_sfud;
 static PV_Union g_s_spi_config;
 static ivBool tts_read_data(
@@ -140,10 +143,17 @@ static ivBool tts_read_data(
 		  ivResAddress	iPos,				/* [in] read start position */
 ivResSize		nSize )			/* [in] read size */
 {
+	iPos += FLASH_TTS_ADDR;
 	GPIO_FastOutput(g_s_spi_config.u8[1], 0);
 	char cmd[4] = {0x03, iPos >> 16, (iPos >> 8) & 0xFF, iPos & 0xFF};
 	SPI_FastTransfer(g_s_spi_config.u8[0], cmd, cmd, 4);
-	SPI_FastTransfer(g_s_spi_config.u8[0], pBuffer, pBuffer, nSize);
+	if (nSize >= 4096) {
+		SPI_BlockTransfer(g_s_spi_config.u8[0], pBuffer, pBuffer, nSize);
+	}
+	else {
+		SPI_FastTransfer(g_s_spi_config.u8[0], pBuffer, pBuffer, nSize);
+	}
+	
 	GPIO_FastOutput(g_s_spi_config.u8[1], 1);
 	// if (memcmp(buff, ivtts_16k + offset, len)) {
 	// 	LUAT_DEBUG_PRINT("tts data NOT match %04X %04X", offset, len);
