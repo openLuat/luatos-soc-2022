@@ -26,7 +26,7 @@
 #include "slpman.h"
 #include "time.h"
 #include "sntp.h"
-
+#include "luat_rtc.h"
 typedef struct
 {
 	uint8_t is_link_up;
@@ -34,7 +34,7 @@ typedef struct
 } demo_ctrl_t;
 
 static demo_ctrl_t g_s_demo;
-luat_rtos_task_handle task_test_ntp_handler;
+luat_rtos_task_handle task_test_ntp_handler,rtc_get_task_handler;
 static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
 {
 
@@ -83,9 +83,11 @@ static int32_t ntp_callback(void *data, void *param)
 	if (result->succ)
     {
         time_t _t = result->sec;
-        struct tm *tm_gmt = gmtime(&_t);
-        luat_rtc_set(tm_gmt);
-		LUAT_DEBUG_PRINT("ntp done");
+        struct tm *tm_gmt = localtime(&_t);
+		if (luat_rtc_set(tm_gmt)==0)
+		{
+			LUAT_DEBUG_PRINT("ntp done");
+		}	
     }
 	return 0;
 }
@@ -108,7 +110,17 @@ static void task_test_ntp(void *param)
 
 	luat_rtos_task_delete(NULL);
 }
-
+static void rtc_get_task_demo(void *param)
+{
+	struct tm tblock = {0};
+	while (1)
+	{
+		luat_rtc_get(&tblock);
+		LUAT_DEBUG_PRINT("%04d/%02d/%02d/ %02d:%02d:%02d %02d", tblock.tm_year + 1900, tblock.tm_mon + 1, tblock.tm_mday, tblock.tm_hour, tblock.tm_min, tblock.tm_sec, tblock.tm_wday);
+		luat_rtos_task_sleep(2000);
+	}
+	luat_rtos_task_delete(NULL);
+}
 static void task_demo_ntp(void)
 {
 	luat_rtos_task_create(&task_test_ntp_handler, 4 * 1024, 50, "ntp_demo", task_test_ntp, NULL, NULL);
@@ -117,7 +129,11 @@ static void mobile_callback_event(void)
 {
 	luat_mobile_event_register_handler(mobile_event_cb);
 }
-
+static void rtc_get_task(void)
+{
+	luat_rtos_task_create(&rtc_get_task_handler, 4 * 1024, 20, "RTC_GET", rtc_get_task_demo, NULL, NULL);
+}
 // 启动task_demoF_init，启动位置任务2级
 INIT_HW_EXPORT(mobile_callback_event, "0");
 INIT_TASK_EXPORT(task_demo_ntp, "1");
+INIT_TASK_EXPORT(rtc_get_task, "2");
