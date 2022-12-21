@@ -372,9 +372,3 @@ int luat_audio_play_tts_set_param(uint32_t multimedia_id, uint32_t param_id, uin
 	return audio_play_tts_set_param(multimedia_id, param_id, param_value);
 }
 #endif
-void mbedtls_md5( const unsigned char *input,
-                  size_t ilen,
-                  unsigned char output[16] )
-{
-    mbedtls_md5_ret( input, ilen, output );
-}
