@@ -240,11 +240,11 @@
 //  GPIO 25
 #define RTE_PWM2                           45
 //  GPIO 26
-#define RTE_PWM3                           46
+// #define RTE_PWM3                           46
 //  GPIO 27
 #define RTE_PWM4                           47
 //  GPIO 28
-#define RTE_PWM5                           48
+// #define RTE_PWM5                           48
 
 #define RTE_PWM_FUNC              PAD_MUX_ALT5
 

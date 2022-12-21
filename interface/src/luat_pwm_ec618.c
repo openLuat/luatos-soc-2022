@@ -93,31 +93,31 @@ static const pwm_map_t maps[] = {
 #ifdef RTE_PWM2
     {.pwm_ch=2, .clockId=FCLK_TIMER2, .clockId_slect=FCLK_TIMER2_SEL_26M, .time_req=PXIC0_TIMER2_IRQn, .pad=RTE_PWM2},
 #endif
-#ifdef RTE_PWM3
-    {.pwm_ch=3, .clockId=FCLK_TIMER3, .clockId_slect=FCLK_TIMER3_SEL_26M, .time_req=PXIC0_TIMER3_IRQn, .pad=RTE_PWM3},
-#endif
+// #ifdef RTE_PWM3
+//     {.pwm_ch=3, .clockId=FCLK_TIMER3, .clockId_slect=FCLK_TIMER3_SEL_26M, .time_req=PXIC0_TIMER3_IRQn, .pad=RTE_PWM3},
+// #endif
 #ifdef RTE_PWM4
     {.pwm_ch=4, .clockId=FCLK_TIMER4, .clockId_slect=FCLK_TIMER4_SEL_26M, .time_req=PXIC0_TIMER4_IRQn, .pad=RTE_PWM4},
 #endif
-#ifdef RTE_PWM5
-    {.pwm_ch=5, .clockId=FCLK_TIMER5, .clockId_slect=FCLK_TIMER5_SEL_26M, .time_req=PXIC0_TIMER5_IRQn, .pad=RTE_PWM5},
-#endif
+// #ifdef RTE_PWM5
+//     {.pwm_ch=5, .clockId=FCLK_TIMER5, .clockId_slect=FCLK_TIMER5_SEL_26M, .time_req=PXIC0_TIMER5_IRQn, .pad=RTE_PWM5},
+// #endif
 
     // 以下为固定映射
     /*
     10 -- GPIO 01 -- PAD 16  ---> LCD_RST
     11 -- GPIO 02 -- PAD 17
     12 -- GPIO 16 -- PAD 31
-    13 -- GPIO 17 -- PAD 32
+    13 -- GPIO 17 -- PAD 32  xxx 不可用
     14 -- GPIO 18 -- PAD 33  ---> UART1_RX
-    15 -- GPIO 19 -- PAD 34  ---> UART1_TX
+    15 -- GPIO 19 -- PAD 34  ---> UART1_TX xxx 不可用
     */
     {.pwm_ch=10, .clockId=FCLK_TIMER0, .clockId_slect=FCLK_TIMER0_SEL_26M, .time_req=PXIC0_TIMER0_IRQn, .pad=16},
     {.pwm_ch=11, .clockId=FCLK_TIMER1, .clockId_slect=FCLK_TIMER1_SEL_26M, .time_req=PXIC0_TIMER1_IRQn, .pad=17},
     {.pwm_ch=12, .clockId=FCLK_TIMER2, .clockId_slect=FCLK_TIMER2_SEL_26M, .time_req=PXIC0_TIMER2_IRQn, .pad=31},
-    {.pwm_ch=13, .clockId=FCLK_TIMER3, .clockId_slect=FCLK_TIMER3_SEL_26M, .time_req=PXIC0_TIMER3_IRQn, .pad=32},
+    // {.pwm_ch=13, .clockId=FCLK_TIMER3, .clockId_slect=FCLK_TIMER3_SEL_26M, .time_req=PXIC0_TIMER3_IRQn, .pad=32},
     {.pwm_ch=14, .clockId=FCLK_TIMER4, .clockId_slect=FCLK_TIMER4_SEL_26M, .time_req=PXIC0_TIMER4_IRQn, .pad=33},
-    {.pwm_ch=15, .clockId=FCLK_TIMER5, .clockId_slect=FCLK_TIMER5_SEL_26M, .time_req=PXIC0_TIMER5_IRQn, .pad=34},
+    // {.pwm_ch=15, .clockId=FCLK_TIMER5, .clockId_slect=FCLK_TIMER5_SEL_26M, .time_req=PXIC0_TIMER5_IRQn, .pad=34},
 
 };
 
