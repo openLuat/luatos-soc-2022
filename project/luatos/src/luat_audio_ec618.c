@@ -25,6 +25,12 @@
 #include "audio_play.h"
 #include "driver_gpio.h"
 #include "luat_msgbus.h"
+#include "driver_gpio.h"
+#include "soc_spi.h"
+#include "ivTTSSDKID_all.h"
+#include "ivTTS.h"
+#include "luat_spi.h"
+#include "sfud.h"
 //#include "luat_multimedia.h"
 typedef struct
 {
@@ -76,7 +82,14 @@ static void audio_event_cb(uint32_t event, void *param)
 			msg.arg2 = (int)param;
 			luat_msgbus_put(&msg, 1);
 		}
-
+		break;
+	case MULTIMEDIA_CB_TTS_INIT:
+		break;
+	case MULTIMEDIA_CB_TTS_DONE:
+		if (!audio_play_get_last_error(0))
+		{
+			audio_play_write_blank_raw_ex(0, 1, 0);
+		}
 		break;
 	case MULTIMEDIA_CB_AUDIO_DONE:
 		luat_rtos_timer_stop(g_s_audio_hardware.pa_delay_timer);
@@ -118,7 +131,26 @@ static void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t cha
 		}
 	}
 }
-
+#ifdef LUAT_USE_TTS
+extern luat_sfud_flash_t luat_sfud;
+static PV_Union g_s_spi_config;
+static ivBool tts_read_data(
+		  ivPointer		pParameter,			/* [in] user callback parameter */
+		  ivPointer		pBuffer,			/* [out] read resource buffer */
+		  ivResAddress	iPos,				/* [in] read start position */
+ivResSize		nSize )			/* [in] read size */
+{
+	GPIO_FastOutput(g_s_spi_config.u8[1], 0);
+	char cmd[4] = {0x03, iPos >> 16, (iPos >> 8) & 0xFF, iPos & 0xFF};
+	SPI_FastTransfer(g_s_spi_config.u8[0], cmd, cmd, 4);
+	SPI_FastTransfer(g_s_spi_config.u8[0], pBuffer, pBuffer, nSize);
+	GPIO_FastOutput(g_s_spi_config.u8[1], 1);
+	// if (memcmp(buff, ivtts_16k + offset, len)) {
+	// 	LUAT_DEBUG_PRINT("tts data NOT match %04X %04X", offset, len);
+	// }
+	return ivTrue;
+}
+#endif
 HANDLE soc_audio_fopen(const char *fname, const char *mode)
 {
 	return luat_fs_fopen(fname, mode);
@@ -141,8 +173,18 @@ int soc_audio_fclose(void *fp)
 
 void luat_audio_global_init(void)
 {
-//	audio_play_global_init_ex(audio_event_cb, audio_data_cb, audio_play_file_default_fun, audio_play_TTS_default_fun, NULL);
+
+#ifdef LUAT_USE_TTS
+	audio_play_global_init_ex(audio_event_cb, audio_data_cb, audio_play_file_default_fun, audio_play_TTS_default_fun, NULL);
+#ifdef LUAT_USE_TTS_16K
+	ivCStrA sdk_id = AISOUND_SDK_USERID_16K;
+#else
+	ivCStrA sdk_id = AISOUND_SDK_USERID_8K;
+#endif
+	audio_play_tts_set_resource_ex(NULL, sdk_id, tts_read_data);
+#else
 	audio_play_global_init_ex(audio_event_cb, audio_data_cb, audio_play_file_default_fun, NULL, NULL);
+#endif
 	g_s_audio_hardware.dac_delay_len = 6;
 	g_s_audio_hardware.pa_delay_time = 200;
 	g_s_audio_hardware.pa_delay_timer = luat_create_rtos_timer(app_pa_on, NULL, NULL);
@@ -289,4 +331,40 @@ int l_i2s_pause(lua_State *L) {
 
 int l_i2s_stop(lua_State *L) {
     return 0;
+}
+
+int luat_audio_play_tts_text(uint32_t multimedia_id, void *text, uint32_t text_bytes)
+{
+	if (!g_s_spi_config.u32)
+	{
+		if (LUAT_TYPE_SPI == luat_sfud.luat_spi)
+		{
+			luat_spi_t *spi = (luat_spi_t *)luat_sfud.user_data;
+			g_s_spi_config.u8[0] = spi->id;
+			g_s_spi_config.u8[1] = spi->cs;
+		}
+		else if (LUAT_TYPE_SPI_DEVICE == luat_sfud.luat_spi)
+		{
+			luat_spi_device_t* spi_device = (luat_spi_t *)luat_sfud.user_data;
+			g_s_spi_config.u8[0] = spi_device->bus_id;
+			g_s_spi_config.u8[1] = spi_device->spi_config.cs;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	return audio_play_tts_text(multimedia_id, text, text_bytes);
+}
+
+int luat_audio_play_tts_set_param(uint32_t multimedia_id, uint32_t param_id, uint32_t param_value)
+{
+	return audio_play_tts_set_param(multimedia_id, param_id, param_value);
+}
+
+void mbedtls_md5( const unsigned char *input,
+                  size_t ilen,
+                  unsigned char output[16] )
+{
+    mbedtls_md5_ret( input, ilen, output );
 }

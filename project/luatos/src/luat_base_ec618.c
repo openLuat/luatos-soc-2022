@@ -202,7 +202,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_MEDIA
   {"i2s", luaopen_i2s},
   {"audio", luaopen_multimedia_audio},
+#ifndef LUAT_USE_TTS
   {"codec", luaopen_multimedia_codec},
+#endif
 #endif
 #ifdef LUAT_USE_HMETA
   {"hmeta", luaopen_hmeta},

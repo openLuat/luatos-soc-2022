@@ -79,7 +79,7 @@
 
 #define LUAT_USE_RSA      1
 #define LUAT_USE_MEDIA    1
-
+#define LUAT_USE_TTS    1
 //---------------------
 // UI
 // LCD  是彩屏, 若使用LVGL就必须启用LCD
@@ -212,5 +212,18 @@ extern unsigned int g_lvgl_flash_time;
 
 #define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - 732 * 1024)
 #define LUA_SCRIPT_OTA_ADDR (FLASH_FOTA_REGION_START - 284 * 1024)
+
+#ifdef LUAT_USE_TTS
+#undef LUAT_USE_SFUD
+#define LUAT_USE_SFUD  1
+#undef LUAT_USE_LCD
+#undef LUAT_USE_TJPGD
+#undef LUAT_USE_LORA
+#undef LUAT_USE_IR
+#undef USE_U8G2_OPPOSANSM_ENGLISH
+#undef LUAT_USE_EINK
+#define LUAT_USE_TTS_16K 1
+
+#endif
 
 #endif

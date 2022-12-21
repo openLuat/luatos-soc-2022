@@ -7,9 +7,10 @@ local LUATOS_ROOT = SDK_TOP .. "/../LuatOS/"
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)
-    -- LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_16K.a "
+    add_includedirs(SDK_TOP .. "/PLAT/core/tts/include/16k_lite_ver",{public = true})   --为了编译通过而已
+    LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_16K.a "
     --8K版本用下面的库，注释掉16K的库
-    LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_8K.a "
+    -- LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_8K.a "
     --加入代码和头文件
     add_includedirs("./inc",{public = true})
     -- add_includedirs(SDK_TOP .. "/interface/private_include", 
