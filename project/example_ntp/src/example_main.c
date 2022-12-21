@@ -80,6 +80,13 @@ static int32_t ntp_callback(void *data, void *param)
 	sntp_result_t *result = (sntp_result_t *)data;
 	// succ 为1 成功 sec时间戳
 	LUAT_DEBUG_PRINT("ntp:%d,%d,%d", result->succ, result->sec, result->us);
+	if (result->succ)
+    {
+        time_t _t = result->sec;
+        struct tm *tm_gmt = gmtime(&_t);
+        luat_rtc_set(tm_gmt);
+		LUAT_DEBUG_PRINT("ntp done");
+    }
 	return 0;
 }
 
