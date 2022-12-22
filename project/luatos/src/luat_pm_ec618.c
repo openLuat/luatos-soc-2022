@@ -222,7 +222,7 @@ int luat_pm_power_ctrl(int id, uint8_t onoff)
 	switch(id)
 	{
 	case LUAT_PM_POWER_USB:
-		soc_set_usb_sleep(onoff);
+		soc_set_usb_sleep(!onoff);
 		soc_usb_onoff(onoff);
 		break;
 	case LUAT_PM_POWER_GPS:
