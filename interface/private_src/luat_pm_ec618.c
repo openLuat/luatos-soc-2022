@@ -25,6 +25,8 @@
 #include "slpman.h"
 #include "reset.h"
 #include "pwrkey.h"
+extern void soc_usb_onoff(uint8_t onoff);
+extern void soc_set_usb_sleep(uint8_t onoff);
 static uint32_t reportMode[LUAT_PM_SLEEP_MODE_LIGHT + 1][10] = {0};
 
 int luat_pm_set_sleep_mode(int mode, const char *vote_tag)
@@ -237,5 +239,6 @@ int luat_pm_event_register_handler(luat_pm_event_callback_t callback_fun)
 }
 int luat_pm_set_usb_power(uint8_t onoff)
 {
+	soc_set_usb_sleep(onoff);
 	soc_usb_onoff(onoff);
 }
