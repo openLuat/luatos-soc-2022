@@ -210,4 +210,12 @@ int luat_pm_get_poweron_reason(void)
 }
 ///---------------------------------------
 
+extern void pwrKeyStartPowerOff(void);
+int luat_pm_poweroff(void)
+{
+    pwrKeyStartPowerOff();
+    return 0;
+}
+
+
 
