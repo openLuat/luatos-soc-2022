@@ -249,6 +249,7 @@ typedef void (*luat_pm_event_callback_t)(LUAT_PM_EVENT_E event, uint32_t param);
  * @param luat_pm_event_callback_t 指针函数
  */
 int luat_pm_event_register_handler(luat_pm_event_callback_t callback_fun);
+
 /* ---------------------------------------------- vbat/vbus end---------------------------------------------- */
 
 
@@ -297,6 +298,16 @@ int luat_pm_deep_sleep_mode_timer_start(luat_pm_deep_sleep_mode_timer_t timer_ha
  */
 int luat_pm_deep_sleep_mode_timer_stop(luat_pm_deep_sleep_mode_timer_t timer_handle);
 /*------------------------------------------------ timer   end----------------------------------------------- */
+
+/**
+ * @brief 手动控制USB电源
+ *
+ * @param onoff 0关，其他开
+ * @return int =0成功，其他失败
+ */
+int luat_pm_set_usb_power(uint8_t onoff);
+
 /**@}*/
+
 
 #endif

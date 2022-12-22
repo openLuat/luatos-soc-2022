@@ -107,12 +107,19 @@ int luat_pm_last_state(int *lastState, int *rtcOrPad) {
 }
 
 int luat_pm_force(int mode) {
-    LLOGI("request mode=%ld, prev mode=%ld", mode, lastRequestMode);
     if (mode < 0 || mode > LUAT_PM_SLEEP_MODE_STANDBY) {
         LLOGW("bad mode=%ld", mode);
         return -2;
     }
-    soc_set_usb_sleep((mode >= LUAT_PM_SLEEP_MODE_LIGHT)?1:0);
+    if (mode >= LUAT_PM_SLEEP_MODE_LIGHT)
+    {
+    	soc_usb_onoff(0);
+    }
+    else
+    {
+    	soc_usb_onoff(1);
+    }
+    LLOGI("request mode=%ld, prev mode=%ld", mode, lastRequestMode);
 	lastRequestMode = mode;
     return 0;
 }
