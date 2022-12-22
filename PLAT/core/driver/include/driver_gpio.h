@@ -138,7 +138,7 @@ void GPIO_OutPulse(uint32_t Pin, uint8_t *Data, uint16_t BitLen, uint16_t Delay)
 
 /**
  * @brief 设置外部中断，注意低功耗模式下普通GPIO是不能用的，只能用wakepad唤醒
- * @param Pin Pin序号，还有WAKEPAD0 = HAL_GPIO_MAX，WAKEUPPAD2 = HAL_GPIO_MAX+1。WAKEUPPAD3~5已经和GPIO复用了
+ * @param Pin Pin序号，WAKEUPPAD3~5已经和GPIO复用了，额外可以用HAL_WAKEUP_0~HAL_WAKEUP_2
  * @param CB 中断回调函数
  * @param Pins 中断回调时的param
  * @return 无
@@ -163,9 +163,9 @@ void GPIO_ODConfig(uint32_t Pin, uint8_t InitValue);
 uint32_t GPIO_ToPadEC618(uint32_t Pin, uint8_t AltFun);
 
 /**
- * @brief 设置WAKEUPPAD0和PAD2中断
+ * @brief 设置WAKEUPPAD0,1,2
  *
- * @param Pin Pin序号，只有HAL_GPIO_MAX和HAL_GPIO_MAX+1，分别对应PAD0和PAD2，PAD1被USB用了，PAD3~PAD5有对应的GPIO，不能在这里设置
+ * @param Pin Pin序号，HAL_WAKEUP_0~HAL_WAKEUP_2
  * @param IsRiseHigh 上升沿触发
  * @param IsFallLow 下降沿触发
  * @param Pullup 上拉

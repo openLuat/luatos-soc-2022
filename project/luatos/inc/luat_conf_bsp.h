@@ -156,7 +156,7 @@
 // 以下选项仅开发人员可修改, 一般用户切勿自行修改
 
 #define LUAT_COMPILER_NOWEAK
-#define LUAT_GPIO_PIN_MAX 35
+#define LUAT_GPIO_PIN_MAX 36
 
 // 内存优化: 减少内存消耗, 会稍微减低性能
 #define LUAT_USE_MEMORY_OPTIMIZATION_CODE_MMAP 1

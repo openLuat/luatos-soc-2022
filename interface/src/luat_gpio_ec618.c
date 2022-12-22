@@ -40,7 +40,7 @@ static int luat_gpio_irq_callback(void *ptr, void *pParam)
 
 static void luat_gpio_pwrkey_irq_callback(void)
 {
-    luat_gpio_irq_default((HAL_GPIO_MAX + 2), (void*)pwrKeyGetPinLevel());
+    luat_gpio_irq_default(HAL_WAKEUP_PWRKEY, (void*)pwrKeyGetPinLevel());
     return ;
 }
 
@@ -51,13 +51,30 @@ void luat_gpio_set_default_cfg(luat_gpio_cfg_t* gpio)
 
 int luat_gpio_open(luat_gpio_cfg_t* gpio)
 {
-	if (((uint32_t)(gpio->pin)) > (HAL_GPIO_MAX + 1)) return -1;
+#ifdef __LUATOS__
+	if (((uint32_t)(gpio->pin)) >= HAL_GPIO_QTY) return -1;
+#else
+	if (((uint32_t)(gpio->pin)) >= HAL_WAKEUP_PWRKEY) return -1;
+#endif
 	GPIO_GlobalInit(NULL);
+#ifdef __LUATOS__
+	if (HAL_WAKEUP_PWRKEY == gpio->pin)
+	{
+		if (gpio->mode != LUAT_GPIO_IRQ)
+		{
+			return -1;
+		}
+		pwrKeyIsrCallback = luat_gpio_pwrkey_irq_callback;
+		pwrKeyHwInit((LUAT_GPIO_PULLUP == gpio->pull)?1:0);
+		NVIC_EnableIRQ(PwrkeyWakeup_IRQn);
+		return 0;
+	}
+#endif
 	if (gpio->pin >= HAL_GPIO_MAX)
 	{
 		APmuWakeupPadSettings_t padConfig = {0};
 		if (LUAT_GPIO_OUTPUT == gpio->mode) return -1;
-		uint8_t pad_id = (gpio->pin > HAL_GPIO_MAX)?2:0;
+		uint8_t pad_id = gpio->pin - HAL_WAKEUP_0;
 		switch (gpio->pull)
 		{
 		case LUAT_GPIO_PULLUP:
@@ -100,6 +117,7 @@ int luat_gpio_open(luat_gpio_cfg_t* gpio)
 		else
 		{
 			NVIC_DisableIRQ(pad_id);
+			NVIC_ClearPendingIRQ(pad_id);
 			apmuSetWakeupPadCfg(pad_id, false, &padConfig);
 			GPIO_ExtiSetCB(gpio->pin, NULL, gpio->irq_args);
 		}
@@ -170,10 +188,10 @@ int luat_gpio_open(luat_gpio_cfg_t* gpio)
 }
 
 int luat_gpio_setup(luat_gpio_t *gpio){
-	if (((uint32_t)(gpio->pin)) > (HAL_GPIO_MAX + 2)) return -1;
+	if (((uint32_t)(gpio->pin)) >= HAL_GPIO_QTY) return -1;
 	GPIO_GlobalInit(NULL);
 #ifdef __LUATOS__
-	if ((HAL_GPIO_MAX + 2) == gpio->pin)
+	if (HAL_WAKEUP_PWRKEY == gpio->pin)
 	{
 		if (gpio->mode != LUAT_GPIO_IRQ)
 		{
@@ -189,7 +207,7 @@ int luat_gpio_setup(luat_gpio_t *gpio){
 	{
 		APmuWakeupPadSettings_t padConfig = {0};
 		if (LUAT_GPIO_OUTPUT == gpio->mode) return -1;
-		uint8_t pad_id = (gpio->pin > HAL_GPIO_MAX)?2:0;
+		uint8_t pad_id = gpio->pin - HAL_WAKEUP_0;
 	    switch (gpio->pull)
 	    {
 		case LUAT_GPIO_PULLUP:
@@ -232,6 +250,7 @@ int luat_gpio_setup(luat_gpio_t *gpio){
 	    else
 	    {
 	    	NVIC_DisableIRQ(pad_id);
+	    	NVIC_ClearPendingIRQ(pad_id);
 	    	apmuSetWakeupPadCfg(pad_id, false, &padConfig);
 	    	GPIO_ExtiSetCB(gpio->pin, NULL, gpio->irq_args);
 	    }
@@ -306,36 +325,17 @@ int luat_gpio_set(int pin, int level){
 }
 
 int luat_gpio_get(int pin){
-	if (((uint32_t)(pin)) > HAL_GPIO_MAX + 2) return 0;
+	if (((uint32_t)(pin)) >= HAL_GPIO_QTY) return 0;
     uint8_t re;
-    if ((HAL_GPIO_MAX + 2) == pin)
+    if (HAL_WAKEUP_PWRKEY == pin)
     {
     	return pwrKeyGetPinLevel();
     }
     if (pin >= HAL_GPIO_MAX)
     {
-    	if (pin > HAL_GPIO_MAX)
-    	{
-    		re = slpManGetWakeupPinValue() & (1 << 2);
-    	}
-    	else
-    	{
-    		re = slpManGetWakeupPinValue() & (1 << 0);
-    	}
+    	pin -= HAL_WAKEUP_0;
+    	re = slpManGetWakeupPinValue() & (1 << pin);
     }
-//    else if (pin >= HAL_GPIO_20 && pin <= HAL_GPIO_22)
-//    {
-//		uint8_t pad_id = pin - 17;
-//		if (NVIC_GetEnableIRQ(pad_id))
-//		{
-//			re = slpManGetWakeupPinValue() & (1 << (pin - 17));
-//		}
-//		else
-//		{
-//			re = GPIO_Input(pin);
-//		}
-
-//    }
     else
     {
     	re = GPIO_Input(pin);
@@ -345,25 +345,40 @@ int luat_gpio_get(int pin){
 
 void luat_gpio_close(int pin){
 #ifdef __LUATOS__
-	if (pin > (HAL_GPIO_MAX + 2)) return ;
-	if ((HAL_GPIO_MAX + 2) == pin)
+	if (pin >= HAL_GPIO_QTY) return ;
+	if (HAL_WAKEUP_PWRKEY == pin)
 	{
 		NVIC_DisableIRQ(PwrkeyWakeup_IRQn);
-	    pwrKeyHwDeinit(1);
+		NVIC_ClearPendingIRQ(PwrkeyWakeup_IRQn);
+	    pwrKeyHwDeinit(0);
 	    pwrKeyIsrCallback = NULL;
 		return;
 	}
 #else
-    if (pin > (HAL_GPIO_MAX + 1)) return ;
+    if (pin >= HAL_WAKEUP_PWRKEY) return ;
 #endif
+    if (pin >= HAL_GPIO_MAX)
+    {
+    	GPIO_WakeupPadConfig(pin, 0, 0, 0, 0);
+    }
     GPIO_ExtiSetCB(pin, NULL, 0);
     GPIO_ExtiConfig(pin, 0,0,0);
     return ;
 }
 int luat_gpio_set_irq_cb(int pin, luat_gpio_irq_cb cb, void* args)
 {
-	if (pin > (HAL_GPIO_MAX + 1)) return -1;
+#ifdef __LUATOS__
+	if (pin >= HAL_GPIO_QTY) return -1;
+	if (HAL_WAKEUP_PWRKEY == pin)
+	{
+		pwrKeyIsrCallback = cb;
+		return 0;
+	}
 	GPIO_ExtiSetCB(pin, cb, args);
+#else
+	if (pin >= HAL_WAKEUP_PWRKEY) return -1;
+	GPIO_ExtiSetCB(pin, cb, args);
+#endif
 	return 0;
 }
 
