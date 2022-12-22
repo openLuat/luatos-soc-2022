@@ -9,7 +9,8 @@
 #include "slpman.h"
 #include "reset.h"
 //#include "psproxytask.h"
-
+#include "driver_gpio.h"
+#include "common_api.h"
 #include "plat_config.h"
 #include "ps_event_callback.h"
 #include "cmips.h"
@@ -110,14 +111,6 @@ int luat_pm_force(int mode) {
     if (mode < 0 || mode > LUAT_PM_SLEEP_MODE_STANDBY) {
         LLOGW("bad mode=%ld", mode);
         return -2;
-    }
-    if (mode >= LUAT_PM_SLEEP_MODE_LIGHT)
-    {
-    	soc_usb_onoff(0);
-    }
-    else
-    {
-    	soc_usb_onoff(1);
     }
     LLOGI("request mode=%ld, prev mode=%ld", mode, lastRequestMode);
 	lastRequestMode = mode;
@@ -224,5 +217,24 @@ int luat_pm_poweroff(void)
     return 0;
 }
 
-
+int luat_pm_power_ctrl(int id, uint8_t onoff)
+{
+	switch(id)
+	{
+	case LUAT_PM_POWER_USB:
+		soc_usb_onoff(onoff);
+		break;
+	case LUAT_PM_POWER_GPS:
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 4), 4, 0, 0);
+		GPIO_Config(HAL_GPIO_12, 0, onoff);
+		break;
+	case LUAT_PM_POWER_GPS_ANT:
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 4), 4, 0, 0);
+		GPIO_Config(HAL_GPIO_13, 0, onoff);
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
 
