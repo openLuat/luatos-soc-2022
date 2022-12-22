@@ -1,8 +1,8 @@
 DbVersion
-239145321,100
+716113516,100
 <end>
 BuildInfo
-The current data file was built by the Application Ver. 2.2.67.183, Wed Dec 21 13:06:54 2022
+The current data file was built by the Application Ver. 2.2.67.183, Thu Dec 22 10:08:34 2022
 <end>
 EnumVals
 0,2048,0,0,PHY_ONLINE,PHY_ICS_MODULE,PhyIcsMeasMainEntrance_0,P_INFO,swLogPrintf("ICS MEAS of euArfcn %d will be started ");
@@ -1771,25 +1771,20 @@ EnumVals
 269312,552030208,0,0,PLAT_AP,PMU,chargeStatusCb_1,P_VALUE,swLogPrintf("Charge Status update = %d ");
 269312,552034303,0,0,PLAT_AP,PMU,PwrKey_WakeupIntHandler_1,P_VALUE,swLogPrintf("Pwr key Wakeup ");
 269312,552036351,0,0,PLAT_AP,PMU,ChrgPad_WakeupIntHandler_1,P_VALUE,swLogPrintf("charge Wakeup ");
-269312,552038399,0,0,PLAT_AP,PMU,Pad0_WakeupIntHandler_1,P_VALUE,swLogPrintf("Pad0 Wakeup ");
-269312,552040447,0,0,PLAT_AP,PMU,Pad1_WakeupIntHandler_1,P_VALUE,swLogPrintf("Pad1 Wakeup ");
-269312,552042495,0,0,PLAT_AP,PMU,Pad2_WakeupIntHandler_1,P_VALUE,swLogPrintf("Pad2 Wakeup ");
-269312,552044543,0,0,PLAT_AP,PMU,Pad3_WakeupIntHandler_1,P_VALUE,swLogPrintf("Pad3 Wakeup ");
-269312,552046591,0,0,PLAT_AP,PMU,Pad4_WakeupIntHandler_1,P_VALUE,swLogPrintf("Pad4 Wakeup ");
-269312,552048639,0,0,PLAT_AP,PMU,Pad5_WakeupIntHandler_1,P_VALUE,swLogPrintf("Pad5 Wakeup ");
-269312,552050687,0,0,PLAT_AP,PMU,apmu2PeriWFITimerExp_0,P_VALUE,swLogPrintf("apmu2PeriWFITimerExp Enter ");
-269312,552051200,0,0,PLAT_AP,PMU,apmuPeriStartWFITimer_0,P_ERROR,swLogPrintf("clkRet1 = %d , clkRet2 = %d , CLKFREQ = 0x%x ");
-269312,552052736,0,0,PLAT_AP,PMU,apmuPeriStartWFITimer_1,P_VALUE,swLogPrintf("apmuPeriStartWFITimer set to %u ms ");
-269312,552055296,0,0,PLAT_AP,PMU,apmuPeriStartCPTimer_0,P_ERROR,swLogPrintf("clkRet1 = %d , clkRet2 = %d , CLKFREQ = 0x%x ");
-269312,552056832,0,0,PLAT_AP,PMU,apmuPeriStartCPTimer_1,P_VALUE,swLogPrintf("apmuCreateModemStartTimer set to %u ms ");
-269312,552058880,0,0,PLAT_AP,PMU,chargeIntHandler_1,P_VALUE,swLogPrintf("Charger Int Enter , Status Update = %d ");
-269312,552060928,0,0,PLAT_AP,PMU,chargeDetectInit_1,P_VALUE,swLogPrintf("Charger Detect Init , Status Update = %d ");
-269312,552065023,0,0,PLAT_AP,PMU,pwrKeySendKeyStatus_1,P_VALUE,swLogPrintf("Power Key message send error ");
-269312,552067071,0,0,PLAT_AP,PMU,pwrKeySendKeyStatus_2,P_VALUE,swLogPrintf("Power Key queue not ready ");
-269312,552069119,0,0,PLAT_AP,PMU,pwrKeySendKeyStatusInIsr_1,P_VALUE,swLogPrintf("Power Key message send in isr error ");
-269312,552071167,0,0,PLAT_AP,PMU,pwrKeySendKeyStatusInIsr_2,P_VALUE,swLogPrintf("Power Key queue not ready in isr ");
-269312,552073215,0,0,PLAT_AP,PMU,pwrKeyTask_1,P_VALUE,swLogPrintf("Power Key task queue init error ");
-269312,552075263,0,0,PLAT_AP,PMU,cmsProcSignal_1,P_VALUE,swLogPrintf("cmsProcSignal CP start ind ");
+269312,552036352,0,0,PLAT_AP,PMU,Pad0_WakeupIntHandler_1,P_VALUE,swLogPrintf("Pad%d Wakeup ");
+269312,552040447,0,0,PLAT_AP,PMU,apmu2PeriWFITimerExp_0,P_VALUE,swLogPrintf("apmu2PeriWFITimerExp Enter ");
+269312,552040960,0,0,PLAT_AP,PMU,apmuPeriStartWFITimer_0,P_ERROR,swLogPrintf("clkRet1 = %d , clkRet2 = %d , CLKFREQ = 0x%x ");
+269312,552042496,0,0,PLAT_AP,PMU,apmuPeriStartWFITimer_1,P_VALUE,swLogPrintf("apmuPeriStartWFITimer set to %u ms ");
+269312,552045056,0,0,PLAT_AP,PMU,apmuPeriStartCPTimer_0,P_ERROR,swLogPrintf("clkRet1 = %d , clkRet2 = %d , CLKFREQ = 0x%x ");
+269312,552046592,0,0,PLAT_AP,PMU,apmuPeriStartCPTimer_1,P_VALUE,swLogPrintf("apmuCreateModemStartTimer set to %u ms ");
+269312,552048640,0,0,PLAT_AP,PMU,chargeIntHandler_1,P_VALUE,swLogPrintf("Charger Int Enter , Status Update = %d ");
+269312,552050688,0,0,PLAT_AP,PMU,chargeDetectInit_1,P_VALUE,swLogPrintf("Charger Detect Init , Status Update = %d ");
+269312,552054783,0,0,PLAT_AP,PMU,pwrKeySendKeyStatus_1,P_VALUE,swLogPrintf("Power Key message send error ");
+269312,552056831,0,0,PLAT_AP,PMU,pwrKeySendKeyStatus_2,P_VALUE,swLogPrintf("Power Key queue not ready ");
+269312,552058879,0,0,PLAT_AP,PMU,pwrKeySendKeyStatusInIsr_1,P_VALUE,swLogPrintf("Power Key message send in isr error ");
+269312,552060927,0,0,PLAT_AP,PMU,pwrKeySendKeyStatusInIsr_2,P_VALUE,swLogPrintf("Power Key queue not ready in isr ");
+269312,552062975,0,0,PLAT_AP,PMU,pwrKeyTask_1,P_VALUE,swLogPrintf("Power Key task queue init error ");
+269312,552065023,0,0,PLAT_AP,PMU,cmsProcSignal_1,P_VALUE,swLogPrintf("cmsProcSignal CP start ind ");
 270336,553650432,0,0,PLAT_AP,CCIO,ADD_DEV_1,P_INFO,swLogPrintf("device ( 0x%x / %d ) is added! ");
 270336,553652224,0,0,PLAT_AP,CCIO,DEL_DEV_0,P_INFO,swLogPrintf("device ( 0x%x ) is deleted! ");
 270336,553656319,0,0,PLAT_AP,CCIO,DEL_DEV_1,P_SIG,swLogPrintf("no devices in the list! ");
@@ -8642,5 +8637,5 @@ cmsSigId_Enum,cmsSigId
 plat_config,plat_config_fs_t
 <end>
 OptionalSegment
-optional_sk_01,66EDC8FD891A2612C26D469F1448BBAA3BE966D0862955544C00CF5B6865372F
+optional_sk_01,BE44465CB71D80F9E565553BC1793D47E28EDAC8428A1C0702DD3C0862048528
 <end>
