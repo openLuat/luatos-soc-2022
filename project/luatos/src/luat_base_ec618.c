@@ -97,10 +97,6 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_OTP
   {"otp", luaopen_otp},                   // OTP
 #endif
-#ifdef LUAT_USE_TOUCHKEY
-  {"touchkey", luaopen_touchkey},              // OTP
-#endif
-  // {"pin", luaopen_pin},                   // pin
 //-----------------------------------------------------------------------
 // 工具库, 按需选用
 #ifdef LUAT_USE_CRYPTO
