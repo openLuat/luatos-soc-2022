@@ -411,6 +411,7 @@ target(USER_PROJECT_NAME..".elf")
                     json.savefile(OUT_PATH.."/pack/info.json", info_table)
                 end
                 os.cp(OUT_PATH.."/luatos.binpkg", OUT_PATH.."/pack")
+                os.cp("./PLAT/comdb.txt", OUT_PATH.."/pack")
                 os.cp("$(projectdir)/project/luatos/inc/luat_conf_bsp.h", OUT_PATH.."/pack")
                 os.exec(path7z.." a -mx9 LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z "..OUT_PATH.."/pack/* -r")
                 os.mv("LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z", OUT_PATH.."/LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.soc")
