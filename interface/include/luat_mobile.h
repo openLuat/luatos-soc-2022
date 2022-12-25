@@ -130,31 +130,22 @@ int luat_mobile_set_flymode(int index, int mode);
  */
 int luat_mobile_get_flymode(int index);
 
-
-/**
- * @brief IP地址类型
- * 
- */
-typedef enum LUAT_MOBILE_IP_ADDR
-{
-	LUAT_MOBILE_IP_INVLID = 0, /**< 无效IP类型 */
-	LUAT_MOBILE_IPV4, /**< IPV4类型*/
-	LUAT_MOBILE_IPV6, /**< IPV6类型*/
-}LUAT_MOBILE_IP_ADDR_E;
-
+#if (!defined __LUATOS__) || ((defined __LUATOS__) && (defined LUAT_USE_LWIP))
+#include "lwip/opt.h"
+#include "lwip/netif.h"
+#include "lwip/inet.h"
 
 /**
  * @brief 获取已激活承载分配的本地ip地址
  * 
  * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
- * @param cid cid位置 1~6
- * @param ip_type ip地址类型，LUAT_MOBILE_IPV4或者LUAT_MOBILE_IPV6
- * @param buff[OUT] 需要在外部自行分配空间，用来存储ip地址，如果获取不到，返回空字符串
- * @param buf_len 用户传入缓存的大小，如果底层数据量大于buf_len，只会传出buf_len大小的数据
- * @return int <=0获取失败 >0实际传出的长度
+ * @param cid cid位置 1~6，没有使用专网APN的话，就是用1
+ * @param ip_v4, ipv4的IP地址
+ * @param ip_v6, ipv6的IP地址
+ * @return int =0成功，其他失败
  */
-int luat_mobile_get_local_ip(int sim_id, int cid, LUAT_MOBILE_IP_ADDR_E ip_type, char* buff, size_t buf_len);
-
+int luat_mobile_get_local_ip(int sim_id, int cid, ip_addr_t *ip_v4, ip_addr_t *ip_v6);
+#endif
 /* -------------------------------------------------- cell info begin -------------------------------------------------- */
 #define LUAT_MOBILE_CELL_MAX_NUM 9
 

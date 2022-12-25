@@ -192,33 +192,43 @@ int luat_mobile_get_flymode(int index)
 	}
 }
 
-int luat_mobile_get_local_ip(int sim_id, int cid, LUAT_MOBILE_IP_ADDR_E ip_type, char* buf, size_t buf_len)
+int luat_mobile_get_local_ip(int sim_id, int cid, ip_addr_t *ip_v4, ip_addr_t *ip_v6)
 {
-	int out_len = 0;
-
-	if (buf)
+	int i;
+	struct netif *netif = netif_find_by_cid(cid);
+	if (netif)
 	{
-		if (LUAT_MOBILE_IPV4 == ip_type)
+		if (ip_v4)
 		{
-			char ipv4_buf[16+1] = {0};
-			uint8_t ipv4_len = 16;
-			soc_mobile_get_local_ip(ipv4_buf, &ipv4_len, NULL, NULL);
-			out_len = snprintf(buf, buf_len, "%s", ipv4_buf);
-
-			return out_len;
+			*ip_v4 = netif->ip_addr;
 		}
-		else if (LUAT_MOBILE_IPV6 == ip_type)
+		if (ip_v6)
 		{
-			char ipv6_buf[40+1] = {0};
-			uint8_t ipv6_len = 40;
-			soc_mobile_get_local_ip(NULL, NULL, ipv6_buf, &ipv6_len);
-			out_len = snprintf(buf, buf_len, "%s", ipv6_buf);
+			ip_v6->type = 0xff;
+			for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+			{
+				if (netif->ip6_addr_state[i] & IP6_ADDR_VALID)
+				{
+					*ip_v6 = netif->ip6_addr[i];
+				}
+			}
 
-			return out_len;
-		}	
+		}
+		return 0;
+	}
+	else
+	{
+		if (ip_v4)
+		{
+			ip_v4->type = 0xff;
+		}
+		if (ip_v6)
+		{
+			ip_v6->type = 0xff;
+		}
+		return -1;
 	}
 
-	return -1;
 }
 
 /* -------------------------------------------------- cell info begin -------------------------------------------------- */

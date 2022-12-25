@@ -37,7 +37,8 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 	char imsi[20];
 	char iccid[24] = {0};
 	char apn[32] = {0};
-	char local_ip[41] = {0};
+	ip_addr_t ipv4;
+	ip_addr_t ipv6;
 	switch(event)
 	{
 	case LUAT_MOBILE_EVENT_CFUN:
@@ -113,21 +114,18 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		{
 		case LUAT_MOBILE_NETIF_LINK_ON:
 			LUAT_DEBUG_PRINT("可以上网");
-			if (luat_mobile_get_apn(0, index, apn, sizeof(apn)))
+			if (luat_mobile_get_apn(0, 0, apn, sizeof(apn)))
 			{
-				LUAT_DEBUG_PRINT("apn %s", apn);
+				LUAT_DEBUG_PRINT("默认apn %s", apn);
 			}
-
-			memset(local_ip, 0, sizeof(local_ip));
-			if (luat_mobile_get_local_ip(0, index, LUAT_MOBILE_IPV4, local_ip, sizeof(local_ip)))
+			luat_mobile_get_local_ip(0, 1, &ipv4, &ipv6);
+			if (ipv4.type != 0xff)
 			{
-				LUAT_DEBUG_PRINT("local ipv4 %s", local_ip);
+				LUAT_DEBUG_PRINT("IPV4 %s", ip4addr_ntoa(&ipv4.u_addr.ip4));
 			}
-
-			memset(local_ip, 0, sizeof(local_ip));
-			if (luat_mobile_get_local_ip(0, index, LUAT_MOBILE_IPV6, local_ip, sizeof(local_ip)))
+			if (ipv6.type != 0xff)
 			{
-				LUAT_DEBUG_PRINT("local ipv6 %s", local_ip);
+				LUAT_DEBUG_PRINT("IPV6 %s", ip6addr_ntoa(&ipv4.u_addr.ip6));
 			}
 			break;
 		default:
