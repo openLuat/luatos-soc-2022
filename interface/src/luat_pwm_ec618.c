@@ -257,13 +257,14 @@ int luat_pwm_close(int channel)
     int map_id = luat_pwm_mapid(channel);
     if (map_id == -1)
         return -1;
-    channel = channel % 10;
     luat_pwm_update_dutycycle(channel, 0);
     luat_rtos_task_sleep(1);
-    TIMER_stop(channel);
-    pwms[channel].timer_config.pwmFreq_HZ = 0; // 作为标志位
-    g_s_pnum_update[channel] = 0;
-    g_s_pnum_set[channel] = 0;
+    TIMER_stop(channel % 10);
+    pwms[channel % 10].timer_config.pwmFreq_HZ = 0; // 作为标志位
+    g_s_pnum_update[channel % 10] = 0;
+    g_s_pnum_set[channel % 10] = 0;
+    // 恢复GPIO默认配置
+
     return 0;
 }
 
