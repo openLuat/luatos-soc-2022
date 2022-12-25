@@ -49,7 +49,7 @@ static void task_test_uart(void *param)
         luat_rtos_task_sleep(1000);
         luat_uart_write(LUAT_VUART_ID_0, send_buff, strlen(send_buff));
     }
-    delete_event_task(&uart_task_handle);
+    luat_rtos_task_delete(uart_task_handle);
 }
 
 static void task_demo_uart(void)
