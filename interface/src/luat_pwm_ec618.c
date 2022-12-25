@@ -240,7 +240,8 @@ int luat_pwm_setup(luat_pwm_conf_t* conf)
     // 判断一下是否只修改了占空比. 当且仅当频率相同,pnum为0(即持续输出),才支持单独变更
     if (pwms[channel].timer_config.pwmFreq_HZ == conf->period && conf->pnum == 0) {
         if (conf->pulse != pwms[channel].timer_config.dutyCyclePercent) {
-            luat_pwm_update_dutycycle(conf->channel, conf->pulse);
+            pwms[channel].timer_config.dutyCyclePercent = conf->pulse;
+            TIMER_updatePwmDutyCycle(conf->channel % 10, conf->pulse);
             return 0;
         }
     }
