@@ -37,6 +37,7 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 	char imsi[20];
 	char iccid[24] = {0};
 	char apn[32] = {0};
+	char local_ip[41] = {0};
 	switch(event)
 	{
 	case LUAT_MOBILE_EVENT_CFUN:
@@ -115,6 +116,18 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 			if (luat_mobile_get_apn(0, index, apn, sizeof(apn)))
 			{
 				LUAT_DEBUG_PRINT("apn %s", apn);
+			}
+
+			memset(local_ip, 0, sizeof(local_ip));
+			if (luat_mobile_get_local_ip(0, index, LUAT_MOBILE_IPV4, local_ip, sizeof(local_ip)))
+			{
+				LUAT_DEBUG_PRINT("local ipv4 %s", local_ip);
+			}
+
+			memset(local_ip, 0, sizeof(local_ip));
+			if (luat_mobile_get_local_ip(0, index, LUAT_MOBILE_IPV6, local_ip, sizeof(local_ip)))
+			{
+				LUAT_DEBUG_PRINT("local ipv6 %s", local_ip);
 			}
 			break;
 		default:

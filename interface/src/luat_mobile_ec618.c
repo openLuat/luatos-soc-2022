@@ -192,6 +192,35 @@ int luat_mobile_get_flymode(int index)
 	}
 }
 
+int luat_mobile_get_local_ip(int sim_id, int cid, LUAT_MOBILE_IP_ADDR_E ip_type, char* buf, size_t buf_len)
+{
+	int out_len = 0;
+
+	if (buf)
+	{
+		if (LUAT_MOBILE_IPV4 == ip_type)
+		{
+			char ipv4_buf[16+1] = {0};
+			uint8_t ipv4_len = 16;
+			soc_mobile_get_local_ip(ipv4_buf, &ipv4_len, NULL, NULL);
+			out_len = snprintf(buf, buf_len, "%s", ipv4_buf);
+
+			return out_len;
+		}
+		else if (LUAT_MOBILE_IPV6 == ip_type)
+		{
+			char ipv6_buf[40+1] = {0};
+			uint8_t ipv6_len = 40;
+			soc_mobile_get_local_ip(NULL, NULL, ipv6_buf, &ipv6_len);
+			out_len = snprintf(buf, buf_len, "%s", ipv6_buf);
+
+			return out_len;
+		}	
+	}
+
+	return -1;
+}
+
 /* -------------------------------------------------- cell info begin -------------------------------------------------- */
 uint8_t luat_mobile_rssi_to_csq(int8_t rssi)
 {
