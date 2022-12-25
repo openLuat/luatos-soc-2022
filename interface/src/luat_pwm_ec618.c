@@ -142,8 +142,11 @@ PLAT_PA_RAMCODE static void Timer_ISR()
 
     volatile int i = 0;
 
-    for(i = 0;i < PWM_CH_MAX;i++)
+    // PWM 3/5 通道需要跳过, 其中 3 是 tick64, 5是CP占用了
+    for(i = 0;i < 5;i++)
     {
+        if (i == 3)
+            continue;
         if (TIMER_getInterruptFlags(i) & TIMER_MATCH2_INTERRUPT_FLAG)
         {
             TIMER_clearInterruptFlags(i, TIMER_MATCH2_INTERRUPT_FLAG);
@@ -237,7 +240,7 @@ int luat_pwm_setup(luat_pwm_conf_t* conf)
     // 判断一下是否只修改了占空比. 当且仅当频率相同,pnum为0(即持续输出),才支持单独变更
     if (pwms[channel].timer_config.pwmFreq_HZ == conf->period && conf->pnum == 0) {
         if (conf->pulse != pwms[channel].timer_config.dutyCyclePercent) {
-            luat_pwm_update_dutycycle(channel, conf->pulse);
+            luat_pwm_update_dutycycle(conf->channel, conf->pulse);
             return 0;
         }
     }
