@@ -41,7 +41,7 @@
  * @brief PWM控制参数
 */
 typedef struct luat_pwm_conf {
-    int channel;       /**<PWM通道 可选通道为 0 - 5*/
+    int channel;       /**<PWM通道 可选通道为 0 / 1 / 2 / 4 总计4个通道*/
     size_t period;   /**<频率, 1-26000hz*/
     size_t pulse;    /**<占空比，0-100*/
     size_t pnum;     /**<输出周期 0为持续输出, 1为单次输出, 其他为指定脉冲数输出*/
@@ -52,7 +52,7 @@ typedef struct luat_pwm_conf {
 /**
  * @brief 配置pwm 参数
  * 
- * @param conf->channel: 选择PWM通道 可选通道为0 - 5
+ * @param conf->channel: 选择PWM通道 可选通道为 0 / 1 / 2 / 4 总计4个通道
  *        conf->period : 设置产生的PWM频率
  *        conf->pulse  : 设置产生的PWM占空比
  *        conf->pnum   : 设置产生的PWM个数，若pnum设为0将一直输出PWM
@@ -69,7 +69,7 @@ int luat_pwm_setup(luat_pwm_conf_t* conf);
 /**
  * @brief 打开pwm 通道
  * 
- * @param channel: 选择PWM通道 可选通道为0 - 5
+ * @param channel: 选择PWM通道 可选通道为 0 / 1 / 2 / 4 总计4个通道
  *        period : 设置产生的PWM频率
  *        pulse  : 设置产生的PWM占空比
  *        pnum   ：设置产生的PWM个数，若pnum设为0将一直输出PWM
@@ -95,14 +95,14 @@ int luat_pwm_capture(int channel,int freq);
 /**
  * @brief 关闭pwm 接口
  * 
- * @param channel: 选择PWM通道 可选通道为0 - 5
+ * @param channel: 选择PWM通道 可选通道为 0 / 1 / 2 / 4 总计4个通道
  * @return int 
  */
 int luat_pwm_close(int channel);
 
 /** 
  * @brief 修改占空比
- * @param channel:pwm通道
+ * @param channel: 选择pwm通道 可选通道为 0 / 1 / 2 / 4 总计4个通道
  *        pulse  ：修改pwm占空比值
  * @return int 
  */
