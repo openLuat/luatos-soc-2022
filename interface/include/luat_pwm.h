@@ -41,9 +41,9 @@
  * @brief PWM控制参数
 */
 typedef struct luat_pwm_conf {
-    int channel;       /**<PWM通道*/
+    int channel;       /**<PWM通道 可选通道为 0 - 5*/
     size_t period;   /**<频率, 1-26000hz*/
-    size_t pulse;    /**<占空比*/
+    size_t pulse;    /**<占空比，0-100*/
     size_t pnum;     /**<输出周期 0为持续输出, 1为单次输出, 其他为指定脉冲数输出*/
     size_t precision;  /**<分频精度, 100/256/1000, 默认为100, 若设备不支持会有日志提示*/
 } luat_pwm_conf_t;
@@ -52,8 +52,16 @@ typedef struct luat_pwm_conf {
 /**
  * @brief 配置pwm 参数
  * 
- * @param id i2c_id
+ * @param conf->channel: 选择PWM通道 可选通道为0 - 5
+ *        conf->period : 设置产生的PWM频率
+ *        conf->pulse  : 设置产生的PWM占空比
+ *        conf->pnum   : 设置产生的PWM个数，若pnum设为0将一直输出PWM
  * @return int 
+ *         返回值为 0 : 配置PWM成功
+ *         返回值为 -1: PWM通道选择错误
+ *         返回值为 -2: PWM频率设置错误
+ *         返回值为 -3：PWM占空比设置错误
+ *         返回值为 -4: 该PWM通道已被使用 
  */
 
 int luat_pwm_setup(luat_pwm_conf_t* conf);
@@ -61,8 +69,16 @@ int luat_pwm_setup(luat_pwm_conf_t* conf);
 /**
  * @brief 打开pwm 通道
  * 
- * @param id i2c_id
+ * @param channel: 选择PWM通道 可选通道为0 - 5
+ *        period : 设置产生的PWM频率
+ *        pulse  : 设置产生的PWM占空比
+ *        pnum   ：设置产生的PWM个数，若pnum设为0将一直输出PWM
  * @return int 
+ *         返回值为 0 : 配置PWM成功
+ *         返回值为 -1: PWM通道选择错误
+ *         返回值为 -2: PWM频率设置错误
+ *         返回值为 -3：PWM占空比设置错误
+ *         返回值为 -4: 该PWM通道已被使用 
  */
 
 int luat_pwm_open(int channel, size_t period, size_t pulse, int pnum);
@@ -79,7 +95,7 @@ int luat_pwm_capture(int channel,int freq);
 /**
  * @brief 关闭pwm 接口
  * 
- * @param id i2c_id
+ * @param channel: 选择PWM通道 可选通道为0 - 5
  * @return int 
  */
 int luat_pwm_close(int channel);
