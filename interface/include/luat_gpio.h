@@ -44,7 +44,7 @@
 #define LUAT_GPIO_INPUT          (Luat_GPIO_INPUT)  ///< GPIO配置为输入模式
 #define LUAT_GPIO_IRQ            (Luat_GPIO_IRQ) ///< GPIO配置为中断模式
 
-#define LUAT_GPIO_DEFAULT        (Luat_GPIO_DEFAULT) ///< GPIO配置为默认模式
+#define LUAT_GPIO_DEFAULT        (Luat_GPIO_DEFAULT) ///< GPIO配置为关闭上下拉模式
 #define LUAT_GPIO_PULLUP         (Luat_GPIO_PULLUP) ///< GPIO配置为上拉模式
 #define LUAT_GPIO_PULLDOWN       (Luat_GPIO_PULLDOWN)///< GPIO配置为下拉模式
 
