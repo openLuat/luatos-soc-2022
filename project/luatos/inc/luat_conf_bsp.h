@@ -69,6 +69,8 @@
 // #define FF_USE_LFN 3
 // #define FF_LFN_UNICODE 3
 
+// #define LUAT_USE_PROFILER 1
+
 //----------------------------
 // 高级功能, 其中shell是推荐启用, 除非你打算uart0也读数据
 // #define LUAT_USE_SHELL 1

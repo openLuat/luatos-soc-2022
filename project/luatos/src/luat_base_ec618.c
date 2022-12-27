@@ -208,6 +208,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_FOTA
   {"fota", luaopen_fota},
 #endif
+#ifdef LUAT_USE_PROFILER
+  {"profiler", luaopen_profiler},
+#endif
   {NULL, NULL}
 };
 

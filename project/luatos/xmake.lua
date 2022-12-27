@@ -198,6 +198,11 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/hmeta")
     add_files(LUATOS_ROOT.."components/hmeta/*.c")
 
+    -- profiler
+    add_includedirs(LUATOS_ROOT.."components/mempool/profiler/include")
+    add_files(LUATOS_ROOT.."components/mempool/profiler/**.c")
+
+
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "interface/include")
 
