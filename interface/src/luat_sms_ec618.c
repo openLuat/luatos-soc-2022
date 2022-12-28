@@ -491,11 +491,6 @@ static CmsRetId luat_sms_submit_text_2_pdu(PsilSmsSendInfo *p_send_info, CmiSmsP
         csmpParam.pid = mwAonSimSmsp.smsProtocolId;
     }
 
-    if (mwAonSimSmsp.bCodingSchemePresent)
-    {
-        csmpParam.dcs = mwAonSimSmsp.smsDataCodingScheme;
-    }
-
     /*
      * SMS-SUBMIT T-PDU format/basic element, refer to TS-23.040 9.2.2.2
      * +----------------+
