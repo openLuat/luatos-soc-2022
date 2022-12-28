@@ -140,14 +140,19 @@ int luat_vfs_ec618_ferror(__attribute__((unused))void* userdata, __attribute__((
     return 0;
 }
 size_t luat_vfs_ec618_fread(__attribute__((unused))void* userdata, void *ptr, size_t size, size_t nmemb, FILE *stream) {
-    size_t t = LFS_fileRead((lfs_file_t*)stream, ptr, size * nmemb);
+    lfs_ssize_t ret = LFS_fileRead((lfs_file_t*)stream, ptr, size * nmemb);
     //DBG("luat_fs_fread fd=%p size=%ld nmemb=%ld ret=%ld", stream, size, nmemb, t);
     //DBG("luat_fs_fread data[0-7] %p %X %X %X %X %X %X %X %X", data, *(data), *(data+1), *(data+2), *(data+3), *(data+4), *(data+5), *(data+6), *(data+7));
-    return t;
+    if (ret < 0)
+        return 0;
+    return ret;
 }
 size_t luat_vfs_ec618_fwrite(__attribute__((unused))void* userdata, const void *ptr, size_t size, size_t nmemb, FILE *stream) {
     //DBG("luat_fs_fwrite fd=%p size=%ld nmemb=%ld", stream, size, nmemb);
-    return LFS_fileWrite((lfs_file_t*)stream, ptr, size * nmemb);
+    lfs_ssize_t ret = LFS_fileWrite((lfs_file_t*)stream, ptr, size * nmemb);
+    if (ret < 0)
+        return 0;
+    return ret;
 }
 int luat_vfs_ec618_remove(__attribute__((unused))void* userdata, const char *filename) {
     const char* dst = check_path(filename);
