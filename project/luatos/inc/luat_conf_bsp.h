@@ -53,6 +53,8 @@
 #define LUAT_USE_IR 1
 // FDB 提供kv数据库, 与nvm库类似
 #define LUAT_USE_FDB 1
+// fskv提供与fdb兼容的API,旨在替代fdb库
+// #define LUAT_USE_FSKV 1
 #define LUAT_USE_I2CTOOLS 1
 #define LUAT_USE_LORA 1
 // #define LUAT_USE_MLX90640 1
@@ -69,7 +71,7 @@
 // #define FF_USE_LFN 3
 // #define FF_LFN_UNICODE 3
 
-// #define LUAT_USE_PROFILER 1
+#define LUAT_USE_PROFILER 1
 
 //----------------------------
 // 高级功能, 其中shell是推荐启用, 除非你打算uart0也读数据
