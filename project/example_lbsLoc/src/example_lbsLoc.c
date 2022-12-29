@@ -199,7 +199,8 @@ static void demo_udp_task(void *arg)
     {
         lbsLocReqBuf[sendLen++] = mnc;
     }
-	uint8_t sRssi,retRssi;
+	int16_t sRssi;
+    uint8_t retRssi;
 	sRssi=cell_info.lte_service_info.rssi;
 	if (sRssi <= -113)
 	{
