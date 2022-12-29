@@ -181,7 +181,7 @@ static void mqtt_demo(void)
     static Network n = {0};
     MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
     connectData.MQTTVersion = 4;
-    connectData.clientID.cstring = client_id;
+    connectData.clientID.cstring = IMEI;
     connectData.username.cstring = User;
     connectData.password.cstring = Password;
     connectData.keepAliveInterval = 120;
