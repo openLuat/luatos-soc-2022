@@ -20,6 +20,7 @@
 #include "ps_event_callback.h"
 #include "cmips.h"
 #include "networkmgr.h"
+#include "cmimm.h"
 /* TODO: 替换为自己设备的三元组 */
 char *product_key       = "${YourProductKey}";
 char *device_name       = "${YourDeviceName}";
@@ -69,7 +70,8 @@ static INT32 mqttPSUrcCallback(PsEventID eventID, void *param, UINT32 paramLen){
             break;
         }
         case PS_URC_ID_MM_SIGQ:{
-            rssi = *(UINT8 *)param;
+            CmiMmCesqInd *pMmCesqInd = (CmiMmCesqInd *)param;
+            rssi = mmGetCsqRssiFromCesq(pMmCesqInd->rsrp, pMmCesqInd->rsrq, pMmCesqInd->rssiCompensation);
             DBG("RSSI signal=%d", rssi);
             break;
         }

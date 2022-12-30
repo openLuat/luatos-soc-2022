@@ -35,6 +35,7 @@
 
 #include "cJSON.h"
 #include "gpio.h"
+#include "cmimm.h"
 
 
 char g_mqtt_MQTT_HOST[192];    //    	"120.55.137.106"   				// MQTT服务器的地址和端口号
@@ -90,7 +91,8 @@ static INT32 mqttPSUrcCallback(PsEventID eventID, void *param, UINT32 paramLen){
             break;
         }
         case PS_URC_ID_MM_SIGQ:{
-            rssi = *(UINT8 *)param;
+            CmiMmCesqInd *pMmCesqInd = (CmiMmCesqInd *)param;
+            rssi = mmGetCsqRssiFromCesq(pMmCesqInd->rsrp, pMmCesqInd->rsrq, pMmCesqInd->rssiCompensation);
             DBG("RSSI signal=%d", rssi);
             break;
         }

@@ -9,6 +9,7 @@
 #include "common_api.h"
 #include "key_test.h"
 #include "led_test.h"
+#include "cmimm.h"
 // static QueueHandle_t            psEventQueueHandle;
 extern QueueHandle_t            audioQueueHandle;
 
@@ -50,7 +51,8 @@ static INT32 PSUrcCallback(PsEventID eventID, void *param, UINT32 paramLen){
             break;
         }
         case PS_URC_ID_MM_SIGQ:{
-            rssi = *(UINT8 *)param;
+            CmiMmCesqInd *pMmCesqInd = (CmiMmCesqInd *)param;
+            rssi = mmGetCsqRssiFromCesq(pMmCesqInd->rsrp, pMmCesqInd->rsrq, pMmCesqInd->rssiCompensation);
             DBG("RSSI signal=%d", rssi);
             break;
         }

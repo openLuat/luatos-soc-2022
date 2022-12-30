@@ -42,6 +42,7 @@
 #include "led_task.h"
 #include "plat_config.h"
 #include "fdb_init.h"
+#include "cmimm.h"
 extern QueueHandle_t audioQueueHandle;
 
 #define MQTT_HOST    	"lbsmqtt.airm2m.com"   				// MQTT服务器的地址和端口号
@@ -388,7 +389,8 @@ static INT32 mqttPSUrcCallback(PsEventID eventID, void *param, UINT32 paramLen){
             break;
         }
         case PS_URC_ID_MM_SIGQ:{
-            rssi = *(UINT8 *)param;
+            CmiMmCesqInd *pMmCesqInd = (CmiMmCesqInd *)param;
+            rssi = mmGetCsqRssiFromCesq(pMmCesqInd->rsrp, pMmCesqInd->rsrq, pMmCesqInd->rssiCompensation);
             DBG("RSSI signal=%d", rssi);
             break;
         }
