@@ -309,7 +309,7 @@ int luat_vfs_ec618_info(__attribute__((unused))void* userdata, __attribute__((un
     int ret = LFS_statfs(&status);
     if (ret == LFS_ERR_OK) {
         conf->total_block = status.total_block;
-        conf->block_used = status.block_used / status.block_size + 1;
+        conf->block_used = status.block_used;
         conf->block_size = status.block_size;
         conf->type = 1; // 片上FLASH
         memcpy(conf->filesystem, "lfs", 3);
