@@ -30,6 +30,65 @@ LFS_xxx 系列函数, 分文件函数和文件夹, 还有几个文件系统相�
 #include "luat_fs.h"
 #include "luat_crypto.h"
 #include "luat_debug.h"
+#include "luat_mem.h"
+
+static int print_fs_info()
+{
+    luat_fs_info_t fs_info = {0};
+
+    luat_fs_info("/", &fs_info);
+    // 打印文件系统空间信息
+    LUAT_DEBUG_PRINT("fs_info %s %d %d %d %d", 
+        fs_info.filesystem, 
+        fs_info.type, 
+        fs_info.total_block, 
+        fs_info.block_used, 
+        fs_info.block_size);
+}
+
+static int recur_fs(const char* dir_path)
+{
+    luat_fs_dirent_t *fs_dirent = LUAT_MEM_MALLOC(sizeof(luat_fs_dirent_t)*100);
+    memset(fs_dirent, 0, sizeof(luat_fs_dirent_t)*100);
+
+    int lsdir_cnt = luat_fs_lsdir(dir_path, fs_dirent, 0, 100);
+
+    if (lsdir_cnt > 0)
+    {
+        char path[255] = {0};
+
+        LUAT_DEBUG_PRINT("dir_path=%s, lsdir_cnt=%d", dir_path, lsdir_cnt);
+
+        for (size_t i = 0; i < lsdir_cnt; i++)
+        {
+            memset(path, 0, sizeof(path));            
+
+            switch ((fs_dirent+i)->d_type)
+            {
+            // 文件类型
+            case 0:   
+                snprintf(path, sizeof(path)-1, "%s%s", dir_path, (fs_dirent+i)->d_name);             
+                LUAT_DEBUG_PRINT("\tfile=%s, size=%d", path, luat_fs_fsize(path));
+                break;
+            
+            // 文件夹类型
+            case 1:
+                // 移芯618平台不支持文件夹创建操作，以下注释掉的两行代码未经测试
+                // snprintf(path, sizeof(path)-1, "%s/%s/", dir_path, (fs_dirent+i)->d_name);
+                // recur_fs(path);
+                break;
+
+            default:
+                break;
+            }
+        }        
+    }
+
+    LUAT_MEM_FREE(fs_dirent);
+    fs_dirent = NULL;
+    
+    return lsdir_cnt;
+}
 
 // 演示文件操作, luat_fs_XXX 文件函数
 void exmaple_fs_luat_file(void) {
@@ -162,7 +221,9 @@ void exmaple_fs_luat_file(void) {
 
 
 void exmaple_fs_luat_main(void) {
-    luat_fs_init(); // 必须先初始化
+    luat_fs_init(); // 必须先初始化    
+    print_fs_info();
+    recur_fs("/");
     exmaple_fs_luat_file();
     luat_rtos_task_sleep(1000);
 }
