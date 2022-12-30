@@ -148,9 +148,16 @@ static void task_run(void *param)
 {
 	int i;
 	luat_mobile_cell_info_t  cell_info;
+
 	char imei[20] = {0};
 	luat_mobile_get_imei(0, imei, sizeof(imei));
 	LUAT_DEBUG_PRINT("IMEI %s", imei);
+
+	luat_mobile_set_sn("1234567890abcdefghijklmnopqrstuv",32);
+	char sn[33] = {0};
+	luat_mobile_get_sn(sn, sizeof(sn));
+	LUAT_DEBUG_PRINT("SN %s", sn);
+
 	char muid[64] = {0};
 	luat_mobile_get_muid(muid, sizeof(muid));
 	LUAT_DEBUG_PRINT("MUID %s", muid);

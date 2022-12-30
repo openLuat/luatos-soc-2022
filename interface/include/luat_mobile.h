@@ -38,13 +38,22 @@
 int luat_mobile_get_imei(int sim_id, char* buff, size_t buf_len);
 
 /**
- * @brief 获取SN，并不一定存在
+ * @brief 获取SN，如果用户没有调用luat_mobile_set_sn接口写过SN，默认值为空
  * 
  * @param buff[OUT] SN数据
- * @param buf_len 用户传入缓存的大小，如果底层数据量大于buf_len，只会传出buf_len大小的数据
+ * @param buf_len 用户传入缓存的大小，EC618平台底层支持的最大长度为32字节，如果底层数据量大于buf_len，只会传出buf_len大小的数据
  * @return int <= 0错误 >0实际传出的大小
  */
 int luat_mobile_get_sn(char* buff, size_t buf_len);
+
+/**
+ * @brief 设置SN
+ * 
+ * @param buff SN数据，必须是ascii值大于等于0x21小于等于0x7e的可见ascii字符
+ * @param buf_len SN数据长度；EC618平台底层支持的最大长度为32字节，如果buf_len大于32，只会保存前32字节的数据
+ * @return int = 0成功， = -1失败
+ */
+int luat_mobile_set_sn(char* buff, uint8_t buf_len);
 
 /**
  * @brief 获取MUID，并不一定存在

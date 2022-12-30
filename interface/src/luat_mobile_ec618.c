@@ -60,9 +60,9 @@ int luat_mobile_get_imei(int sim_id, char* buff, size_t buf_len)
 
 int luat_mobile_get_sn(char* buff, size_t buf_len)
 {
-	char temp[64];
-	int result = appGetSNNumSync(buff);
-	if (!result)
+	char temp[32] = {0};
+	int result = appGetSNNumSync(temp);
+	if (result)
 	{
 		memcpy(buff, temp, (buf_len > sizeof(temp))?sizeof(temp):buf_len);
 		return (buf_len > sizeof(temp))?sizeof(temp):buf_len;
@@ -73,9 +73,15 @@ int luat_mobile_get_sn(char* buff, size_t buf_len)
 	}
 }
 
+int luat_mobile_set_sn(char* buff, uint8_t buf_len)
+{
+	int result = appSetSNNumSync(buff, buf_len);
+	return result==1 ? 0 : -1;
+}
+
 int luat_mobile_get_muid(char* buff, size_t buf_len)
 {
-	char temp[64];
+	char temp[64] = {0};
 	int result = soc_get_sn(temp, sizeof(temp));
 	if (!result)
 	{
