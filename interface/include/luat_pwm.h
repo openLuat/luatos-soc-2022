@@ -26,6 +26,9 @@
    1.在使用int luat_pwm_open(int channel, size_t period, size_t freq, int pnum);
     函数时依次依次设置PWM通道，设置PWM频率，设置占空比，PWM个数
     若需要使用设置PWM个数时，PWM频率不宜高于50K,若高于50K可能会多出几个个数的现象
+
+   2.int luat_pwm_capture(int channel,int freq); 获取pwm 频率
+    此函数获取PWM频率功能尚未实现
  */
 /**
  * @ingroup luatos_device 外设接口
@@ -42,7 +45,7 @@
 */
 typedef struct luat_pwm_conf {
     int channel;       /**<PWM通道 可选通道为 0 / 1 / 2 / 4 总计4个通道*/
-    size_t period;   /**<频率, 1-26000hz*/
+    size_t period;   /**<频率, 1Hz - 13MHz*/
     size_t pulse;    /**<占空比，0-100  如将pulse设为50时输出高电平时间占周期50%时间 */
     size_t pnum;     /**<输出周期 0为持续输出, 1为单次输出, 其他为指定脉冲数输出*/
     size_t precision;  /**<分频精度, 100/256/1000, 默认为100, 若设备不支持会有日志提示*/
@@ -84,7 +87,7 @@ int luat_pwm_setup(luat_pwm_conf_t* conf);
 int luat_pwm_open(int channel, size_t period, size_t pulse, int pnum);
 
 /**
- * @brief 获取pwm 频率
+ * @brief 获取pwm 频率  本功能暂未实现
  *
  * @param id i2c_id
  * @return int
