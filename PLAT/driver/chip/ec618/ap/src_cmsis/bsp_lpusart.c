@@ -1544,7 +1544,8 @@ ARM_USART_MODEM_STATUS LPUSART_GetModemStatus(LPUSART_RESOURCES *lpusart)
 
     return status;
 }
-
+#ifdef __USER_CODE__
+#else
 void LPUSART_WakeupIntHandler(void)
 {
     slpManExtIntPreProcess(LpuartWakeup_IRQn);
@@ -1559,7 +1560,7 @@ void LPUSART_WakeupIntHandler(void)
     ECPLAT_PRINTF(UNILOG_PLA_DRIVER, lpuart_wakeup_irq_1, P_SIG, "LPUART->IIR:0x%x, LPUART->FCSR:0x%x", LPUSART_CORE->IIR, LPUSART_CORE->FCSR);
 #endif
 }
-
+#endif
 PLAT_PA_RAMCODE void LPUSART_IRQHandler(LPUSART_RESOURCES *lpusart)
 {
     uint32_t i, dma_rx_channel;

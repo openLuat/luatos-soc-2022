@@ -230,7 +230,11 @@ void logToolCommandHandle(uint32_t event, uint8_t *cmd_buffer, uint32_t len)
  *  Parameter:      port: for unilog
  *  Parameter:      baudrate: uart baudrate
  */
+#ifdef __USER_CODE__
+void SetUnilogUartOrg(usart_port_t port, uint32_t baudrate, bool startRecv)
+#else
  void SetUnilogUart(usart_port_t port, uint32_t baudrate, bool startRecv)
+#endif
 {
     ARM_POWER_STATE      powerMode = ARM_POWER_FULL;
     uint32_t           ctrlSetting = ARM_USART_MODE_ASYNCHRONOUS | ARM_USART_DATA_BITS_8 | \

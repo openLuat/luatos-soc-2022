@@ -158,6 +158,13 @@ uint32_t soc_get_utc(void);
 uint64_t soc_get_utc_ms(void);
 int soc_get_sn(char *sn, uint8_t buf_size);
 /**
+ * @brief 中断里释放动态分配的ram，本质上是放到一个专门的task里去free
+ *
+ * @param point malloc得到的指针
+ * @return 0成功，其他失败
+ */
+int soc_free_later(void *point);
+/**
  * @brief 带函数名称和位置的格式化打印
  * 
  */

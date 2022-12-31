@@ -19,6 +19,9 @@ static uint8_t gCurrentUartDumpPort = 0xFF;
 
 void HAL_UartDumpPortInit(void)
 {
+#ifdef __USER_CODE__
+
+#else
     uint32_t uartDumpPort = BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_UART_DUMP_PORT);
     uint32_t uartBaudRate = 0;
 
@@ -158,6 +161,7 @@ void HAL_UartDumpPortInit(void)
 
         return;
     }
+#endif
 }
 
 

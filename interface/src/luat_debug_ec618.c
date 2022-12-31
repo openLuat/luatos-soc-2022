@@ -22,12 +22,18 @@
 #include "luat_debug.h"
 #include "common_api.h"
 #include "plat_config.h"
+#include "reset.h"
 
 extern void soc_assert(const char *fun_name, uint32_t line_no, const char *fmt, va_list ap);
 extern void soc_vsprintf(uint8_t no_print, const char *fmt, va_list ap);
 void luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_MODE_E mode)
 {
 	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, (LUAT_DEBUG_FAULT_RESET == mode)?4:0);
+    if(BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION) == EXCEP_OPTION_SILENT_RESET)
+        ResetLockupCfg(true, true);
+    else
+
+        ResetLockupCfg(false, false);
 }
 
 void luat_debug_assert(const char *fun_name, unsigned int line_no, const char *fmt, ...)
