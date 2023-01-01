@@ -126,6 +126,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_SFUD
   {"sfud", luaopen_sfud},              // sfud
 #endif
+#ifdef LUAT_USE_SFD
+  {"sfd", luaopen_sfd},              // sfud
+#endif
 #ifdef LUAT_USE_DISP
   {"disp",  luaopen_disp},              // OLED显示模块
 #endif
@@ -250,6 +253,7 @@ void luat_openlibs(lua_State *L) {
 void ResetECSystemReset(void);
 
 void luat_os_reboot(int code){
+    (void)code;
     ResetECSystemReset();
 }
 
@@ -259,6 +263,7 @@ const char* luat_os_bsp(void) {
 
 /** 设备进入待机模式 */
 void luat_os_standy(int timeout) {
+    (void)timeout;
     return; // nop
 }
 
