@@ -46,7 +46,7 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
     char* data_buff = malloc(data_len+1);
     memset(data_buff,0,data_len+1);
     luat_uart_read(uart_id, data_buff, data_len);
-    LUAT_DEBUG_PRINT("uart_id:%d data:\n %s",uart_id,data_buff);
+    LUAT_DEBUG_PRINT("uart_id:%d gnssdata:\n %s",uart_id,data_buff);
     libminmea_parse_data(data_buff, data_len);
     free(data_buff);
 }

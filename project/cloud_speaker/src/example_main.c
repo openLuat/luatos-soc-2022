@@ -679,7 +679,7 @@ extern void mqtt_send_task_init(void);
 
 
 INIT_HW_EXPORT(task_init, "1");
-INIT_DRV_EXPORT(fdb_init, "2");
+INIT_TASK_EXPORT(fdb_init, "1");
 INIT_TASK_EXPORT(mqttclient_task_init, "2");
 INIT_TASK_EXPORT(audio_task_init, "2");
 INIT_TASK_EXPORT(led_task_init, "2");
