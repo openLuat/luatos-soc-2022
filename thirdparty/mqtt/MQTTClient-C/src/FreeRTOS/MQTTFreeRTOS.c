@@ -134,6 +134,11 @@ int socket_connect(Network* n, char* addr){
     sa_family_t family = AF_INET;
     struct addrinfo *result = NULL;
     struct addrinfo hints = {0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, NULL, NULL, NULL};
+
+    if((NetworkSetConnTimeout(n, 5000, 5000)) != 0){
+        return 1;
+    }
+
     if ((rc = FreeRTOS_gethostbyname(addr, NULL, &hints, &result)) == 0)
     {
         struct addrinfo* res = result;
@@ -183,6 +188,7 @@ int socket_connect(Network* n, char* addr){
             }
             else
             {
+                // DBG("sock_get_errno errCode:%d\n",errCode);
                 // ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_5, P_ERROR, 1, "mqttConnectSocket connect fail %d",errCode);
                 retVal = 1;
             }
@@ -240,7 +246,7 @@ int socket_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
     return recvLen;
 }
 
-int socket_write_rai(Network* n, unsigned char* buffer, int len, int timeout_ms)
+int socket_write_rai(Network* n, unsigned char* buffer, int len, int timeout_ms, int rai, bool exceptdata)
 {
     #if LWIP_SO_SNDRCVTIMEO_NONSTANDARD
     TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */

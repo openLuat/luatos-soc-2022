@@ -21,6 +21,8 @@
 #include "semphr.h"
 #include "task.h"
 
+#include "common_api.h"
+
 // #ifdef FEATURE_MQTT_TLS_ENABLE
 // #include "MQTTTls.h"
 // #endif
@@ -108,7 +110,7 @@ typedef struct Network Network;
 
 struct Network
 {
-    int my_socket;
+    xSocket_t my_socket;
 
     int timeout_r;
     char *addr;
@@ -133,9 +135,15 @@ struct Network
     uint8_t ignore;//0:not ignore; 1:ignore
     uint8_t saveMem;//0:disable; 1:enable
 #endif
+    #ifdef	MQTT_RAI_OPTIMIZE
+    int (*mqttread) (Network*, unsigned char*, int, int);
+    int (*mqttwrite) (Network*, unsigned char*, int, int, int, bool);
+    int (*disconnect) (Network*);
+    #else
     int (*mqttread) (Network*, unsigned char*, int, int);
     int (*mqttwrite) (Network*, unsigned char*, int, int);
     int (*disconnect) (Network*);
+    #endif
 };
 
 void TimerInit(Timer*);
