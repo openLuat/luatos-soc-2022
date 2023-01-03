@@ -178,13 +178,14 @@ static void mqtt_demo(void){
 	NetworkInit(&n);
 	MQTTClientInit(&mqttClient, &n, 40000, mqttSendbuf, MQTT_SEND_BUFF_LEN, mqttReadbuf, MQTT_RECV_BUFF_LEN);
 	
-	LUAT_DEBUG_PRINT("mqtt_connect \n");
+	LUAT_DEBUG_PRINT("mqtt_connect");
 
 	while(!g_s_is_link_up){
 		luat_rtos_task_sleep(1000);
 	}
 
 	if ((NetworkConnect(&n, MQTT_HOST, MQTT_PORT)) != 0){
+		LUAT_DEBUG_PRINT("NetworkConnect fail");
 		mqttClient.keepAliveInterval = connectData.keepAliveInterval;
 		mqttClient.ping_outstanding = 1;
 		goto error;
@@ -193,7 +194,7 @@ static void mqtt_demo(void){
 			mqttClient.ping_outstanding = 1;
 			goto error;
 		}else{
-			LUAT_DEBUG_PRINT("MQTTStartTask \n");
+			LUAT_DEBUG_PRINT("MQTTStartTask");
 			#if defined(MQTT_TASK)
 				if ((MQTTStartTask(&mqttClient)) != pdPASS){
 					goto error;
@@ -204,7 +205,7 @@ static void mqtt_demo(void){
 
     while(1){
         if ((rc = MQTTSubscribe(&mqttClient, mqtt_sub_topic, 1, messageArrived)) != 0)
-            LUAT_DEBUG_PRINT("mqtt Return code from MQTT subscribe error is %d\n", rc);
+            LUAT_DEBUG_PRINT("mqtt Return code from MQTT subscribe error is %d", rc);
 
 		// 如果需要验证设备主动断开mqtt连接并且自动重连的场景，打开while(count++ <= 5){，注释掉while (1){
         // while(count++ <= 5){
@@ -220,7 +221,7 @@ static void mqtt_demo(void){
 
             LUAT_DEBUG_PRINT("mqtt_demo send data");
             if (rc = MQTTPublish(&mqttClient, mqtt_pub_topic, &message) != 0){
-				LUAT_DEBUG_PRINT("MQTTPublish error %d\n", rc);
+				LUAT_DEBUG_PRINT("MQTTPublish error %d", rc);
 				goto error;
 			}
             luat_rtos_task_sleep(2000);
@@ -235,7 +236,7 @@ error:
 
 		if (rc = MQTTReConnect(&mqttClient, &connectData) != 0){
 			luat_rtos_task_sleep(5000);
-			LUAT_DEBUG_PRINT("MQTTReConnect %d\n", rc);
+			LUAT_DEBUG_PRINT("MQTTReConnect %d", rc);
 			goto error;
 		}
 		else
@@ -248,9 +249,13 @@ error:
 
 static void mqttclient_task_init(void)
 {
+#if (MQTT_DEMO_SSL == 1)
+	LUAT_DEBUG_PRINT("This mqtts demo");
+#else
 	LUAT_DEBUG_PRINT("This mqtt demo");
+#endif
 	luat_rtos_task_handle mqttclient_task_handle;
-	luat_rtos_task_create(&mqttclient_task_handle, 4096, 20, "mqttclient", mqtt_demo, NULL, NULL);
+	luat_rtos_task_create(&mqttclient_task_handle, 5120, 20, "mqttclient", mqtt_demo, NULL, NULL);
 }
 
 static void flymode_demo(void)
