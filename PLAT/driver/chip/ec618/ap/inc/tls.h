@@ -232,6 +232,13 @@ typedef struct
 void sctInit();
 
 /**
+  \brief SCT module deInit.
+  \return               
+*/
+void sctDeInit();
+
+
+/**
   \brief Aes operation
   \param[in] aesInfo   Aes information.
   \return status              

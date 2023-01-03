@@ -268,6 +268,7 @@ typedef enum
     CCIO_DSF_RNDIS_INIT,
     CCIO_DSF_RNDIS_HALT,
     CCIO_DSF_RNDIS_RESET,
+    CCIO_DSF_ECM_SET_FILTER,
     CCIO_DSF_PPP_SPEC_PATTN,
     CCIO_DSF_RBUF_EBNA,
     CCIO_DSF_RNDIS_ESIZE,
@@ -372,6 +373,12 @@ typedef struct
 {
     struct CcioDevice *chdev;
 }CcioDsaRndisDeinit_t;
+
+/* CCIO_DSF_ECM_SET_FILTER */
+typedef struct
+{
+    struct CcioDevice *chdev;
+}CcioDsaEcmSetFilter_t;
 
 /* CCIO_DSF_SCT_TX_FDBACK */
 typedef struct

@@ -41,6 +41,10 @@ extern uint32_t ShareInfoAPSetPhyCaliMem(void);
 #define  RF_CALNST_PREHANDLE_CRC_ERROR            (-2)  // preHandle error
 #define  RF_CALNST_TRANSDATABLOCK_INDEX_ERROR     (-3)
 
+// rf Antenna Tuner
+#define RF_ANTENNA_TUNER_BAND_NUM_MAX_ONEGROUP       14
+#define RF_ANTENNA_TUNER_GROUP_NUM_MAX               4
+
 /*********************************************************************************
 * Enums
 *********************************************************************************/
@@ -49,6 +53,19 @@ extern uint32_t ShareInfoAPSetPhyCaliMem(void);
 /*********************************************************************************
 * struct
 *********************************************************************************/
+typedef struct
+{
+    UINT8 bandNum[RF_ANTENNA_TUNER_BAND_NUM_MAX_ONEGROUP];   // the max band num in one group is 14
+    UINT8 gpioBitMask;  // fem gpio bits mask, 1- this gpio is used, 0- this gpio is not used. FemGpio0 corresponds to bit0...FemGpio7 corresponds to bit7
+    UINT8 gpioBitVal;   // fem gpio bits vaule, 0- this gpio is low level, 1- this gpio is high level. FemGpio0 corresponds to bit0...FemGpio7 corresponds to bit7
+}RfAtnTunerOneGroupCfg;  // 16 bytes
+
+typedef union
+{
+    RfAtnTunerOneGroupCfg antTunerCfg[RF_ANTENNA_TUNER_GROUP_NUM_MAX];
+
+    UINT8 u8[64];
+}RfOflAtnTunerCfg;  // 64 bytes
 
 CmsRetId phyECRFNST(const AtCmdInputContext *pAtCmdReq);
 BOOL phyECRFOpenApiDcDcVpaCfg(UINT8 ena, UINT8 voltage);

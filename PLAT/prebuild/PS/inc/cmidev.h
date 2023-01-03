@@ -465,8 +465,8 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    attachCidPresent;
     UINT8   attachCid;
 
-    BOOL    pwrAttachWithImsiPresent;
-    BOOL    pwrAttachWithImsi;      /* whether or not attach with imsi while power on */
+    BOOL    attachWithImsiCtrlPresent;
+    UINT8   attachWithImsiCtrl;     /* attach with imsi control */
     BOOL    pwrAttachWoEiaPresent;
     BOOL    pwrAttachWoEia;         /* whether or not attach without integrity protected while power on */
 
@@ -487,7 +487,10 @@ typedef struct CmiDevSetExtCfgReq_Tag
 
     BOOL    pdpReactPresent;
     BOOL    bPdpReact;
-    UINT16  rsvd3;
+
+    BOOL    updateFreqCtrlPresent;
+    BOOL    updateFreqCtrl;
+
 
     /* ERRC */
     BOOL    dataInactTimerPresent;
@@ -506,13 +509,19 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    weakCellOptPresent;
     BOOL    weakCellOpt;
 
-    UINT8   rsvd4;
+    UINT8   rsvd3;
     BOOL    qRxLevMinPresent;
     INT16   qRxLevMinWeakCell;
 
     BOOL    reselToWeakNcellOptPresent;
     UINT8   reselToWeakNcellOpt;
-    UINT16  rsvd5;
+
+    BOOL    qualityFirstPresent;
+    BOOL    qualityFirst;
+
+    BOOL    staticConfigPresent;
+    BOOL    staticConfig;
+    UINT16  rsvd4;
 }CmiDevSetExtCfgReq;    // 64 bytes
 
 typedef CamCmiEmptySig CmiDevSetExtCfgCnf;
@@ -550,7 +559,7 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     BOOL    enableEab;
     UINT8   attachEpsCid;
 
-    BOOL    pwrAttachWithImsi;
+    UINT8   attachWithImsiCtrl;
     BOOL    pwrAttachWoEia;
     BOOL    updateLociCtrl;
     BOOL    enableRoam;
@@ -559,6 +568,9 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     BOOL    bAclEnable;
     UINT8   bPdpRemap;
     BOOL    bPdpReact;
+
+    BOOL    updateFreqCtrl;
+    UINT8   rsvd1[3];
 
     /* ERRC */
     UINT8   ueCfgDataInactTimer;        /* ERRC data inactivity timer, in seconds */
@@ -571,7 +583,9 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     INT16   qRxLevMinWeakCell;
 
     UINT8   reselToWeakNcellOpt;
-    UINT8   rsvd1[3];
+    BOOL    bQualityFirst;
+    BOOL    bStaticConfig;
+    UINT8   rsvd2;
 }CmiDevGetExtCfgCnf;    // 36 bytes
 
 /******************************************************************************

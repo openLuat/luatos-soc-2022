@@ -239,8 +239,8 @@ typedef struct EcCfgSetParamsReq_Tag
 
     UINT32  t3324MaxValueS;
 
-    BOOL    pwrAttachWithImsiPresent;
-    BOOL    pwrAttachWithImsi;      /* whether or not attach with imsi while power on */
+    BOOL    attachWithImsiCtrlPresent;
+    UINT8   attachWithImsiCtrl;     /* attach with imsi control */
     BOOL    pwrAttachWoEiaPresent;
     BOOL    pwrAttachWoEia;         /* whether or not attach without integrity protected while power on */
 
@@ -294,7 +294,7 @@ typedef struct EcCfgGetParamsReq_Tag
 
     UINT8   attachEpsCid;
 
-    BOOL    pwrAttachWithImsi;
+    UINT8   attachWithImsiCtrl;
     BOOL    pwrAttachWoEia;
     UINT16  rsvd2;
 
@@ -612,7 +612,7 @@ CmsRetId appGetAPNSettingSync(UINT8 cid, UINT8 *pApn);
 CmsRetId appCheckSystemTimeSync(void);
 CmsRetId appGetSystemTimeSecsSync(time_t *time);
 CmsRetId appGetSystemTimeUtcSync(utc_timer_value_t *time);
-CmsRetId appSetSystemTimeUtcSync(UINT32 time1, UINT32 time2);
+CmsRetId appSetSystemTimeUtcSync(UINT32 time1, UINT32 time2, UINT32 time3);
 //CmsRetId appGetActedCidSync(UINT8 *cid, UINT8 *num);
 
 /**
@@ -823,5 +823,56 @@ CmsRetId appSetECSCLKEXSync(EcSclkExSetParamsReq *pEcSclkExSetParamsInfo);
 */
 CmsRetId appGetECSCLKEXSync(EcSclkExGetParamsReq *pEcSclkExGetParamsInfo);
 
+/**
+  \fn           CmsRetId appGetSignalQualitySync(UINT8 *csq, INT8 *snr, INT8 *rsrp, UINT *rsrq)
+  \brief        Get signal information
+  \param[out]   *csq Pointer to signal info csq
+                * CSQ mapping with RSSI
+                *<rssi>: integer type
+                * 0        -113 dBm or less
+                * 1        -111 dBm
+                * 2...30   -109... -53 dBm
+                * 31       -51 dBm or greater
+                * 99       not known or not detectable
+  \param[out]   *snr Pointer to signal info snr(value in dB, value range: -20 ~ 40);
+  \param[out]   *rsrp Pointer to signal info rsrp(value range: -17 ~ 97, 127);
+                * 1> AS extended the RSRP value in: TS 36.133-v14.5.0, Table 9.1.4-1
+                *   -17 rsrp < -156 dBm
+                *   -16 -156 dBm <= rsrp < -155 dBm
+                *    ...
+                *   -3 -143 dBm <= rsrp < -142 dBm
+                *   -2 -142 dBm <= rsrp < -141 dBm
+                *   -1 -141 dBm <= rsrp < -140 dBm
+                *    0 rsrp < -140 dBm
+                *    1 -140 dBm <= rsrp < -139 dBm
+                *    2 -139 dBm <= rsrp < -138 dBm
+                *    ...
+                *    95 -46 dBm <= rsrp < -45 dBm
+                *    96 -45 dBm <= rsrp < -44 dBm
+                *    97 -44 dBm <= rsrp
+                * 2> If not valid, set to 127
+\param[out]   *rsrq Pointer to signal info rsrq(value range: -30 ~ 46, 127);
+                * 1> AS extended the RSRQ value in TS 36.133-v14.5.0, Table 9.1.7-1/Table 9.1.24-1
+                *   -30 rsrq < -34 dB
+                *   -29 -34 dB <= rsrq < -33.5 dB
+                *   ...
+                *   -2 -20.5 dB <= rsrq < -20 dB
+                *   -1 -20 dB <= rsrq < -19.5 dB
+                *   0 rsrq < -19.5 dB
+                *   1 -19.5 dB <= rsrq < -19 dB
+                *   2 -19 dB <= rsrq < -18.5 dB
+                *   ...
+                *   32 -4 dB <= rsrq < -3.5 dB
+                *   33 -3.5 dB <= rsrq < -3 dB
+                *   34 -3 dB <= rsrq
+                *   35 -3 dB <= rsrq < -2.5 dB
+                *   36 -2.5 dB <= rsrq < -2
+                *   ...
+                *   45 2 dB <= rsrq < 2.5 dB
+                *   46 2.5 dB <= rsrq
+                * 2> If not valid, set to 127
+  \returns     CmsRetId
+*/
+CmsRetId appGetSignalQualitySync(UINT8 *csq, INT8 *snr, INT8 *rsrp, INT8 *rsrq);
 #endif
 

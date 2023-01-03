@@ -41,6 +41,7 @@ typedef enum TcpipConnectionEvent_Tag
     TCPIP_CONNECTION_STATUS_EVENT = 0,
     TCPIP_CONNECTION_RECEIVE_EVENT = 1,
     TCPIP_CONNECTION_UL_STATUS_EVENT = 2,
+    TCPIP_CONNECTION_UL_TOTAL_LEN_EVENT = 3,
 }TcpipConnectionEvent;
 
 typedef enum TcpipConnectionStatus_Tag
@@ -89,6 +90,12 @@ typedef struct TcpipConnectionUlDataStatusInd_Tag
     UINT16 sequence;
     UINT16 status; //TcpipConnectionUlStatus
 }TcpipConnectionUlDataStatusInd;
+
+typedef struct TcpipConnectionUlTotalLenInd_Tag
+{
+    INT32  connectionId;
+    UINT32 totalLen; //TcpipConnectionUlStatus
+}TcpipConnectionUlTotalLenInd;
 
 
 typedef void (*tcpipConnectionCallBack)(UINT8 connectionEventType, void *bodyEvent);
@@ -163,6 +170,17 @@ INT32 TcpipGetTotalSendLen(INT32 connectionId, UINT32 *totalLen);
  * Comment: return 0 ->success; -1 -> fail
 ******************************************************************************/
 INT32 TcpipGetTotalAckedLen(INT32 connectionId, UINT32 *totalLen);
+
+/******************************************************************************
+ * TcpipGetTcpSendBuffLen
+ * Description: get tcp socket send buffer len by connection id
+ * input: connectionId(mandatory)
+ *        sendBuffLen
+ * output:
+ * Comment: return 0 ->success; -1 -> fail
+******************************************************************************/
+INT32 TcpipGetTcpSendBuffLen(INT32 connectionId, UINT32 *sendBuffLen);
+
 
 #endif
 

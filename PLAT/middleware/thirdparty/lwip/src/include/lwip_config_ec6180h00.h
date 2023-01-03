@@ -1198,6 +1198,9 @@
 #define LWIP_DNS                        1
 #endif
 
+#if !defined LWIP_DNS_RESULT_NUM_MAX || defined __DOXYGEN__
+#define LWIP_DNS_RESULT_NUM_MAX 4
+#endif
 /** DNS maximum number of entries to maintain locally. */
 #if !defined DNS_TABLE_SIZE || defined __DOXYGEN__
 #define DNS_TABLE_SIZE                  4

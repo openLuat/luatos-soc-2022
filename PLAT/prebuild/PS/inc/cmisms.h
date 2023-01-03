@@ -71,6 +71,8 @@ typedef enum CMI_SMS_PRIM_ID_TAG
     CMI_SMS_SET_MEM_CAP_REQ, //Setting SMS "Memory Capacity Exceeded" Notification Flag
     CMI_SMS_SET_MEM_CAP_CNF,
 
+    CMI_SMS_IDLE_STATUS_IND,
+
     CMI_SMS_PRIM_END = 0x0fff
 }CMI_SMS_PRIM_ID;
 
@@ -734,6 +736,11 @@ typedef struct CmiSmsSetMemCapReq_Tag
     UINT8                   reserved0;
     UINT16                  reserved1;
 }CmiSmsSetMemCapReq, CmiSmsSetMemCapCnf;
+
+/******************************************************************************
+ * CMI_SMS_IDLE_STATUS_IND
+******************************************************************************/
+typedef CamCmiEmptySig CmiSmsIdleStatusInd;
 
 #endif
 

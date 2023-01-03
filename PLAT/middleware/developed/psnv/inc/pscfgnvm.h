@@ -81,6 +81,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CEPLMN_CFG_USER_DEFINED_HIGH_PRI_PLMN_TIMER,    /* TLV, PsCfgUserDefinedHighPriPlmnTimer */
     CEPLMN_CFG_ENABLE_ROAM,                         /* TV,  BOOL */
     CEPLMN_CFG_SAVE_PLMN_SEL_MODE,                  /* TV,  BOOL */
+    CEPLMN_CFG_UPDATE_FREQ_CTRL,                    /* TV,  BOOL */
 
     CEMM_CFG_UE_NW_CAPA = 30,                       /* TLV, PsCfgCemmUeNwCapa */
     CEMM_CFG_MS_CLASSMARK2,                         /* TLV, PsCfgCemmMsClassMark2 */
@@ -95,7 +96,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CEMM_CFG_VOICE_DOMAIN_UE_USAGE = 40,            /* TLV, PsCfgCemmVoiceDomainUeUsage */
     CEMM_CFG_USER_SIB14_BAR_SECOND,                 /* TV,  UINT16 */
     CEMM_CFG_ENABLE_EAB,                            /* TV,  BOOL */
-    CEMM_CFG_POWER_ATTACH_WITH_IMSI,                /* TV,  BOOL */
+    CEMM_CFG_ATTACH_WITH_IMSI_CTRL,                 /* TV,  UINT8 */
     CEMM_CFG_POWER_ATTACH_WITHOUT_EIA,              /* TV,  BOOL */
     CEMM_CFG_UPDATE_LOCI_CTRL,                      /* TV,  BOOL */
 
@@ -109,6 +110,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CERRC_CFG_DEFALT_WEAK_CELL_OPT = 56,            /* TV,  BOOL weakCellOpt */
     CERRC_CFG_DEFALT_Q_RX_LEV_MIN = 57,             /* TV,  INT16 qRxLevMin */
     CERRC_CFG_DEFALT_RESEL_TO_WEAK_NCELL_OPT = 58,  /* TV,  UINT8 reselToWeakNcellOpt */
+    CERRC_CFG_DEFALT_QUALITY_FIRST = 59,            /* TV,  BOOL qualityFirst */
 
     CCM_CFG_DATA_COUNTER_CTRL = 60,                 /* TV,  BOOL bEnableDataCounter */
     L2_CFG_DATA_COUNTER_INFO,                       /* TLV, PsCfgL2DataCounterInfo */
@@ -125,7 +127,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CESM_CFG_PDP_REACT,                             /* TV,  UINT8 bPdpReact, 0/1,
                                                      * 1 - default bearer/PDP is need to re-act if APN/IP type changes, when CGACT
                                                     */
-
+    CERRC_CFG_DEFALT_STATIC_CONFIG,                 /* TV,  BOOL staticConfig */
     /*
      * !!!!  PARAM ID !!!!
      * 1> Only allowed

@@ -31,6 +31,7 @@ typedef enum{
     TCPIP_API_REQ_CLOSE_CONNECTION   = 21,
     TCPIP_API_REQ_SEND_TOTAL_LENGTH  = 22,
     TCPIP_API_REQ_ACKED_TOTAL_LENGTH = 23,
+    TCPIP_API_REQ_TCP_SEND_BUFF_LENGTH = 24
 }TcpipApiRequestId;
 
 /******************************************************************************
@@ -73,7 +74,9 @@ typedef struct TcpipApiAckedTotalLenReq_Tag{
     UINT32 connectionId;
 }TcpipApiAckedTotalLenReq;
 
-
+typedef struct TcpipApiTcpSendBuffLenReq_Tag{
+    UINT32 connectionId;
+}TcpipApiTcpSendBuffLenReq;
 
 typedef struct TcpipApiPriMgrContext_Tag{
     UINT16 createSourcePort;
@@ -114,7 +117,10 @@ typedef struct TcpipAckedTotalLenResult_Tag{
     UINT32 totalLen;
 }TcpipAckedTotalLenResult;
 
-
+typedef struct TcpipTcpSendBuffLenResult_Tag{
+    INT32 result;
+    UINT32 sendBuffLen;
+}TcpipTcpSendBuffLenResult;
 
 typedef struct TcpipApiConnHibPriContext_Tag{
     UINT32 sendTotalLen;

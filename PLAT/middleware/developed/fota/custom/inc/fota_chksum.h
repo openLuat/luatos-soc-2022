@@ -19,6 +19,7 @@
 #define FOTA_CHKSUM_H
 
 int32_t fotaInitChksum(uint8_t flags, void *args);
+int32_t fotaDeinitChksum(uint8_t flags, void *args);
 int32_t fotaCalcChksum(uint8_t flags, void *args);
 
 

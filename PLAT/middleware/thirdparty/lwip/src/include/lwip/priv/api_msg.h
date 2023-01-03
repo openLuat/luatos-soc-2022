@@ -184,11 +184,12 @@ struct dns_api_msg {
   /** Hostname to query or dotted IP address string */
 #if LWIP_MPU_COMPATIBLE
   char name[DNS_MAX_NAME_LENGTH];
+  ip_addr_t addr[LWIP_DNS_RESULT_NUM_MAX];
 #else /* LWIP_MPU_COMPATIBLE */
   const char *name;
+  const ip_addr_t *addr;
 #endif /* LWIP_MPU_COMPATIBLE */
   /** The resolved address is stored here */
-  ip_addr_t API_MSG_M_DEF(addr);
 #if LWIP_IPV4 && LWIP_IPV6
   /** Type of resolve call */
   u8_t dns_addrtype;

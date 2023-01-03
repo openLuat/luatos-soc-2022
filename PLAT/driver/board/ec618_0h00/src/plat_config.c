@@ -342,6 +342,8 @@ static void BSP_SetDefaultRawFlashPlatConfig(void)
 #endif
     g_rawFlashPlatConfig.fotaUrcPortSel = (PLAT_CFG_FOTA_URC_PORT_USB << 4) | 0;
 
+    g_rawFlashPlatConfig.pmuInCdrx = 1;
+
     g_rawFlashPlatConfig.slpLimitEn = 0;
 
     g_rawFlashPlatConfig.slpLimitTime = 0;

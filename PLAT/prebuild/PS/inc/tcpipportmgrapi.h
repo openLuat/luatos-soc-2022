@@ -44,6 +44,7 @@ typedef enum
     PORT_MGR_CONN_DEST_HOST_ETH_DNS_PKG = 10,
     PORT_MGR_CONN_DEST_HOST_PPP_DNS_PKG = 11,
     PORT_MGR_CONN_DEST_NW_DNS_PKG       = 12,
+    PORT_MGR_CONN_DEST_DHCP_REQ_PKG         = 13,
 
 }PortMgrConnDest;
 

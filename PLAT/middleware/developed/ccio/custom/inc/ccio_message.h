@@ -71,6 +71,7 @@ typedef enum
     CCIO_CHAN_SCT_USB_EP_UNBLOCK,
     CCIO_CHAN_RNDIS_INIT,
     CCIO_CHAN_RNDIS_DEINIT,
+    CCIO_CHAN_ECM_SET_FILTER,
     CCIO_CHAN_WAN_MEDIA_NOTIF,
     CCIO_CHAN_PPP_SESSN_START,
     CCIO_CHAN_PPP_SESSN_STOP,
@@ -153,6 +154,7 @@ int32_t ccioBuildMsgSctUsbTExpiry(CcioChanMessage_t *chmsg, CcioChanMessageId_e 
 int32_t ccioBuildMsgSctUsbEpUnblock(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, CcioDsaSctUsbUnblkEp_t *dsaUnblkEp);
 int32_t ccioBuildMsgRndisInit(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, CcioDsaRndisInit_t *dsaRndisInit);
 int32_t ccioBuildMsgRndisDeinit(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, CcioDsaRndisDeinit_t *dsaRndisDeinit);
+int32_t ccioBuildMsgEcmSetFilter(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, CcioDsaEcmSetFilter_t *dsaEcmFilter);
 int32_t ccioBuildMsgPppSessnStart(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, AtCmdStartPppSessn_t *pppStart);
 int32_t ccioBuildMsgPppSessnStop(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, AtCmdStopPppSessn_t *pppStop);
 int32_t ccioBuildMsgPppSessnResume(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, AtCmdResumePppSessn_t *pppResume);

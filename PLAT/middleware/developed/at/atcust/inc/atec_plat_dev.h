@@ -20,7 +20,7 @@
 #include "at_util.h"
 
 #define EC_CMD_BUF_LEN          640
-#define EC_PRINT_BUF_LEN        72
+#define EC_PRINT_BUF_LEN        128
 #define EC_DUMP_DATA_LEN        32
 #define EC_DUMP_DATA_BLOCK      8192
 #define ATC_ECRFTEST_STR_MAX_LEN           5000
@@ -116,6 +116,10 @@
 #define ATC_ECPCFG_USBNET_VAL_MIN               0
 #define ATC_ECPCFG_USBNET_VAL_MAX               1
 #define ATC_ECPCFG_USBNET_VAL_DEFAULT           0
+
+#define ATC_ECPCFG_PMUINCDRX_VAL_MIN               0
+#define ATC_ECPCFG_PMUINCDRX_VAL_MAX               1
+#define ATC_ECPCFG_PMUINCDRX_VAL_DEFAULT           0
 
 #define ATC_ECPCFG_FOTA_URC_PORT_TYPE_USB       PLAT_CFG_FOTA_URC_PORT_USB
 #define ATC_ECPCFG_FOTA_URC_PORT_TYPE_UART      PLAT_CFG_FOTA_URC_PORT_UART

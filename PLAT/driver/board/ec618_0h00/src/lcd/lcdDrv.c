@@ -160,10 +160,18 @@ static void lcdGpioInit()
     GPIO_pinConfig(LCD_DS_GPIO_INSTANCE, LCD_DS_GPIO_PIN, &gpioCfg);
 
 #if (ST7571_ENABLE)
+#if 0 // if used in environment with os, use this api to adjust voltage
+    slpManAONIOVoltSet(IOVOLT_2_95V); // 54
+    APmuWakeupPadSettings_t cfg;
+    cfg.pullUpEn = 1;
+    slpManSetWakeupPadCfg(WAKEUP_PAD_4, false, &cfg); //gpio21   50
+	slpManAONIOPowerOn();//70
+#else // used in environment without os
 	*(uint32_t*)0x4d020018 = 0x1; // Normal gpio: 2.8V
 	*(uint32_t*)0x4d020054 = 0x1b; // AON IO: 3.35V, 2.8V
 	*(uint32_t*)0x4d020150 = 0x7; // Enable AON gpio as wakeup pin
 	*(uint32_t*)0x4d020170 = 0x1; // Enable AON IO
+#endif
 
 	// Lcd en pin
 	config.mux = LCD_EN_PAD_ALT_FUNC;

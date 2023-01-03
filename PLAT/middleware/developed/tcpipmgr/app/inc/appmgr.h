@@ -119,7 +119,7 @@ typedef struct NmAtiGetDnsReq_Tag
 typedef struct NmAtiGetDnsCnf_Tag
 {
     u32_t ttl;
-    ip_addr_t addrInfo;
+    ip_addr_t addrInfo[LWIP_DNS_RESULT_NUM_MAX]; //now support multiple dns result
 }NmAtiGetDnsCnf;
 
 

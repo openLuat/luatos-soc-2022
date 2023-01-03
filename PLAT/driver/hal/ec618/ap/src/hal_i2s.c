@@ -19,7 +19,11 @@ void es8311SlaveInit(void);
 extern i2sDrvInterface_t    i2sDrvInterface0;
 extern i2sDrvInterface_t    i2sDrvInterface1;
 
+#if (RTE_I2S0)
 static i2sDrvInterface_t   *i2sDrv = &CREATE_SYMBOL(i2sDrvInterface, 0); // Choose i2s0
+#elif (RTE_I2S1)
+static i2sDrvInterface_t   *i2sDrv = &CREATE_SYMBOL(i2sDrvInterface, 1); // Choose i2s1
+#endif
 
 extern i2sDataFmt_t         i2sDataFmt;
 extern i2sSlotCtrl_t        i2sSlotCtrl;
@@ -30,49 +34,6 @@ extern i2sDmaCtrl_t         i2sDmaCtrl;
 
 static codecType_e          codecType; // Record codec type
 static i2sMode_e            i2sMode;
-
-void HAL_normalIOVoltSet(i2sIOVolSel_t sel)
-{    
-    if(sel <= VOL_2_00V)
-    {
-        *(uint32_t*)0x4d020018 = (0 | (1<<2) | (0<<1)); // HW_AonRegStaticDig->ldoio_33_18_sel
-        *(uint32_t*)0x4d040308 = (sel-0*8); // HW_PmuApRegs->ldo_io_cfg
-    }
-    else if(sel <= VOL_3_00V)
-    {
-        *(uint32_t*)0x4d020018 = 1;
-        *(uint32_t*)0x4d040308 = (sel-1*8);
-    }
-    else if(sel <= VOL_3_40V)
-    {
-        *(uint32_t*)0x4d020018 = (0 | (1<<2) | (1<<1));
-        *(uint32_t*)0x4d040308 = (sel-2*8);
-    }
-}
-
-void HAL_aonIOVoltSet(i2sIOVolSel_t sel)
-{
-    uint8_t tmp = 0;
-
-    if(sel <= VOL_2_00V)
-    {
-        tmp = sel << 2;
-    }
-    else if(sel <= VOL_3_00V)
-    {
-        tmp = ((sel-8) << 2) | 0x2;
-    }
-    else if(sel <= VOL_3_40V)
-    {
-        tmp = ((sel-16) << 2) | 0x1;
-    }
-
-    *(uint32_t*)0x4d020054 = tmp; //HW_AonRegStaticAna->ldo_aonio_cfg
-    
-	*(uint32_t*)0x4d020150 = 0x7; // Enable AON gpio as wakeup pin
-	*(uint32_t*)0x4d020170 = 0x1; // Enable AON IO
-}
-
 
 // Register 
 void HAL_I2sInit(i2sPowerCtrl_e powerCtrl, i2sCbFunc_fn txCb, i2sCbFunc_fn rxCb)
@@ -107,11 +68,13 @@ void HAL_I2SSetPlayRecord(i2sPlayRecord_e playRecord)
     {
         i2sCtrl.i2sMode = 0x1; // Set I2S controller to send
         i2sDmaCtrl.txDmaReqEn = 1;
+        i2sDmaCtrl.rxDmaReqEn = 0;
     }
     else if (playRecord == RECORD)
     {
         i2sCtrl.i2sMode = 0x2; // Set I2S controller to receive
         i2sDmaCtrl.rxDmaReqEn = 1; // Enable I2S controller RX DMA
+        i2sDmaCtrl.txDmaReqEn = 0;
     }
 
 	i2sDrv->ctrl(I2S_CTRL_I2SCTL , 0);
@@ -213,14 +176,13 @@ void HAL_I2sConfig(i2sParamCtrl_t paramCtrl)
             i2sDrv->ctrl(I2S_CTRL_DATA_FORMAT , 0); 
             i2sDrv->ctrl(I2S_CTRL_SAMPLE_RATE_MASTER , paramCtrl.sampleRate); // I2S Set sample rate in master role
                 
-        	// need to set gpio to 3.3v
-			HAL_normalIOVoltSet(VOL_3_30V);
 			break;
         }
 
         case CODEC_ES8311:
         {
             codecType = ES8311;
+            
             if (paramCtrl.role == CODEC_MASTER_MODE) // Codec act as master
             {
                 i2sDrv->ctrl(I2S_CTRL_SAMPLE_RATE_SLAVE , paramCtrl.sampleRate); // I2S Set sample rate in slave role 
@@ -358,7 +320,7 @@ void HAL_I2sSrcAdjustVolumn(int16_t* srcBuf, uint32_t srcTotalNum, uint16_t volS
 }
 
 
-// Control I2S to start or stop
+// Control I2S to start or stop. Note: when app wakeup from sleep1, need to call this api to start MCLK and i2s
 void HAL_I2sStartSop(i2sStartStop_e startStop)
 {
 	i2sDrv->ctrl(I2S_CTRL_START_STOP , startStop);

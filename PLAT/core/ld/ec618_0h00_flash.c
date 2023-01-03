@@ -191,6 +191,7 @@ SECTIONS
     *usb_device.o(.data*)
     *uart_device.o(.data*)
     *clock.o(.data*)
+    *hal_adc.o(.data*)
     *hal_adcproxy.o(.data*)
     *hal_alarm.o(.data*)
     *exception_process.o(.data*)
@@ -227,7 +228,8 @@ SECTIONS
     *usb_device.o(.bss*)
     *uart_device.o(.bss*)
     *clock.o(.bss*)
-    **hal_trim.o(.bss*)
+    *hal_adc.o(.bss*)
+    *hal_trim.o(.bss*)
     *hal_adcproxy.o(.bss*)
     *hal_alarm.o(.bss*)
     *exception_process.o(.bss*)
@@ -283,6 +285,15 @@ SECTIONS
   {
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
     *(.text*)
+    *(.glue_7)
+    *(.glue_7t)
+    *(.vfpll_veneer)
+    *(.v4_bx)
+    *(.init*)
+    *(.fini*)
+    *(.iplt)
+    *(.igot.plt)
+    *(.rel.iplt)
   } >FLASH_AREA
 
   .preinit_fun_array :
@@ -313,6 +324,8 @@ SECTIONS
       __task_fun_array_end = .;
       . = ALIGN(4);
   } > FLASH_AREA
+
+  PROVIDE(totalFlashLimit = .);
 
   .unload_cpaon CP_AONMEMBACKUP_START_ADDR (NOLOAD):
   {

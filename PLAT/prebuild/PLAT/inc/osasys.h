@@ -124,9 +124,9 @@ typedef __PACKED_STRUCT _timer_value
     //unsigned int UTCtimer1;
     //unsigned int UTCtimer2;
     unsigned int UTCsecs;   /*secs since 1970*/
-    //unsigned int UTCms;     /*current ms */
+    unsigned int UTCms;     /*current ms */
     unsigned int CTtimer;
-    //unsigned int SwCnt;
+    unsigned int Swtimer;
     unsigned int timeZone;
 } timer_value_t;
 
@@ -445,7 +445,7 @@ typedef unsigned int time_t;
 
 CHAR *strdup(const CHAR *string);
 BOOL OsaGetImeiNumSync(CHAR* imei);
-INT32 OsaTimerSync(UINT32 srcType, UINT32 cmd, UINT32 Timer1, UINT32 Timer2);
+INT32 OsaTimerSync(UINT32 srcType, UINT32 cmd, UINT32 Timer1, UINT32 Timer2, UINT32 Timer3);
 time_t OsaSystemTimeReadSecs(void);
 utc_timer_value_t *OsaSystemTimeReadUtc(void);
 utc_timer_value_t *OsaSystemTimeReadRamUtc(void);

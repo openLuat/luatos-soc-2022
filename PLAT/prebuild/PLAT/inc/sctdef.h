@@ -11,6 +11,9 @@
 
 //boost power up speed clk init code
 #define QSPI_XIPSTART_IN_AP_RAM        __attribute__((__section__(".XIPStartRamCode")))
+// for plat use only, only used in bootloader for HW SHA256, since SCT could only access MSMB
+// But this area should init by user
+#define PLAT_BL_SCT_ZI __attribute__((__section__(".platBlSctZIData")))
 
 
 // ap section define

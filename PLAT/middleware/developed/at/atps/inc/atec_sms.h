@@ -236,6 +236,24 @@ typedef struct AtecSmsCMSSinfo_TAG
     CmiSmsAddressInfo     *pDestAddrInfo;
 }AtecSmsCMSSinfo;
 
+#define CONCAT_SMS_MAX_BUFFER_SIZE 5
+
+typedef struct AtecConcatSmsSegment_TAG
+{
+    UINT8                           seqNum;     /* Sequence number of the current segment */
+    CHAR                            *strBuf;    /* Buffered +CMT report */
+    struct AtecConcatSmsSegment_TAG *next;      /* Pointer to the next segment*/
+}AtecConcatSmsSegment;
+
+typedef struct AtecConcatSmsBuf_TAG
+{
+    UINT8                   refNum;             /* Concatenated SMS reference number */
+    UINT8                   maxNum;             /* Maximum number of segments */
+    UINT8                   lastSeqNumRpt;      /* Last sequence number of segment reported */
+    UINT8                   segmentCount;       /* Count of segments bufferted */
+    AtecConcatSmsSegment    *segmentListHead;   /* Head of buffered SMS segments list  */
+}AtecConcatSmsBuf;
+
 /******************************************************************************
  *****************************************************************************
  * API

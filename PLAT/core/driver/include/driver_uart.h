@@ -60,6 +60,9 @@ uint32_t Uart_RxTaskSafe(uint8_t UartID, uint8_t *Data, uint32_t Len);
 
 void Uart_TxStop(uint8_t UartID);
 
+int Uart_RxBufferRead(uint8_t UartID, uint8_t *Data, uint32_t Len);
+void Uart_RxBufferClear(uint8_t UartID);
+
 void Uart_PrintReg(uint8_t UartID);
 void Uart_ChangeBR(uint8_t UartID, uint32_t BaudRate);
 uint32_t Uart_GetLastError(uint8_t UartID);

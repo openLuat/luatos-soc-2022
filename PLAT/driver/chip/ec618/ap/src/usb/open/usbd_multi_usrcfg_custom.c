@@ -962,18 +962,32 @@ uint8_t usbcustom_multidev_ctrl_proc(usbcust_md_ctrl_st* p_usbcust_md_ctrl)
 }
 
 
+
+/**
+  \fn        usblpw_innophy_enh_drv_strenth(void)
+  \brief     used by USB driver, called when USBC init.
+             user could modify the para below for differnt use cases
+  \note      cfg usb phy para for none standard usb cable,e.g. fly wire in production line
+             0x4d0b0030: Enables pre-emphasis----should keep default val set below
+             0x4d0b0040: b[5:3] Tx HS pre_emphasize strength configure, 3b111 represents the
+                         strongest , 3b000 the weakest
+             0x4d0b0064: b[6:3] Rx squelch trigger point configures
+             0x4d0b0124: b[4:2] HS eye height tuning
+             if any problem ,contact EC 
+
+ */
 void usblpw_innophy_enh_drv_strenth(void)
 {
     volatile uint32_t* addr = (volatile uint32_t*)0x4d0b0030;
     * addr = (* addr &~ (0x7<<0)) | (0x5<<0);
     
      addr = (volatile uint32_t*)0x4d0b0040;
-    * addr = (* addr &~ (0x7<<3)) | (0x5<<3);
+    * addr = (* addr &~ (0x7<<3)) | (0x4<<3);
     
      addr = (volatile uint32_t*)0x4d0b0064;
-    * addr = (* addr &~ (0xf<<3)) | (0x0<<3);
+    * addr = (* addr &~ (0xf<<3)) | (0x6<<3);
     
     addr = (volatile uint32_t*)0x4d0b0124;
-    * addr = (* addr &~ (0x7<<2)) | (0x7<<2);
+    * addr = (* addr &~ (0x7<<2)) | (0x5<<2);
 }
 

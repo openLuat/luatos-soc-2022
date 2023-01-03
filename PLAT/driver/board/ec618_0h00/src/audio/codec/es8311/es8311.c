@@ -82,8 +82,6 @@ uint8_t codecI2cRead(uint8_t slaveAddr, uint8_t regAddr);
 void es8311MasterInit()
 {
     uint8_t dataRead = 0xff; 
-    //Codec PWR==3.3V,Set gpio to 3.3v first.
-    HAL_normalIOVoltSet(VOL_3_30V);
     codecI2cInit();
 
     for (int i = 0; i < es8311GetRegCnt("es8311_master"); i++)

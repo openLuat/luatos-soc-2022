@@ -228,11 +228,14 @@ void camInit(void* dataAddr, cspiCbEvent_fn cb)
 {
 	camResolution_e camResolution;
 	
+#if 0 // if used in os environment, use this api to adjust voltage
+	slpManNormalIOVoltSet(IOVOLT_3_00V);
+#else // used in environment without os	
 	// set all pin io to 2.7V since camera max voltage is 2.7V
     GPR_clockEnable(PCLK_PMDIG);
 	*(uint32_t*)0x4d020018 = 1;
 	*(uint32_t*)0x4d040308 = 7; // 1:2.7V    7:3V
-
+#endif
 
     // Need to enable cspi first to make camera clock working
 	camParamCfg_t camParamCfg;

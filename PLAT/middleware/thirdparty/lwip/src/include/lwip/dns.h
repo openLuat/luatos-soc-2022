@@ -83,9 +83,12 @@ struct dns_server_tag {
 
 
 /** DNS table entry */
-struct dns_table_entry {
+struct dns_result_tag {
   u32_t ttl;
   ip_addr_t ipaddr;
+};
+struct dns_table_entry {
+struct dns_result_tag result[LWIP_DNS_RESULT_NUM_MAX]; //dns result
   u16_t txid;
   u8_t  state;
   u8_t  server_idx;
@@ -214,7 +217,7 @@ void dns_entry_cache_timer_handler(void* arg);
 
 #if PS_ENABLE_TCPIP_HIB_SLEEP2_MODE
 struct dns_table_entry * dns_find_adpt_hib_tiny_entry(void);
-void dns_add_cache_entry(ip_addr_t *addr, u32_t active_time, u32_t ttl, char *name);
+void dns_add_cache_entry(struct dns_result_tag *result, u32_t active_time, char *name);
 #endif
 
 

@@ -186,7 +186,9 @@ typedef struct
     uint8_t  lanState;     /* refer to 'CcioLanMediaState_e', via monitor/user */
     uint8_t  pdp4Cid;      /* ipv4 pdp context Id, via monitor */
     uint8_t  pdp6Cid;      /* ipv6 pdp context Id, via monitor */
-    uint8_t  rsvd;
+    uint8_t  isWanAvlb  :1;
+    uint8_t  notifAgain :1;
+    uint8_t  rsvd :6;
 
     void    *extras;       /* for user context. */
 

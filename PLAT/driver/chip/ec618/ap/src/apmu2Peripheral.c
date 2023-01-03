@@ -81,6 +81,14 @@ void apmuPeriUsbSleep1PreRecoverFlow(bool sleepSuccess)
 
 bool apmuPeriLpuartPreSleepProcess(void)
 {
+#ifdef __USER_CODE__
+extern int soc_uart_sleep_check(uint8_t *result);
+	uint8_t result;
+	if (!soc_uart_sleep_check(&result))
+	{
+		return result?true:false;
+	}
+#endif
 #if (RTE_LPUART_EN == 1)
     LPUSART_SetStopFlag();
     if(LPUSART_IsRxActive())
@@ -104,6 +112,14 @@ bool apmuPeriLpuartPreSleepProcess(void)
 
 bool apmuPeriLpuartIsRxActive(void)
 {
+#ifdef __USER_CODE__
+extern int soc_uart_rx_check(uint8_t *result);
+	uint8_t result;
+	if (!soc_uart_rx_check(&result))
+	{
+		return result?true:false;
+	}
+#endif
 #if (RTE_LPUART_EN == 1)
     return LPUSART_IsRxActive();
 #else
