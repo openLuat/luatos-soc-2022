@@ -126,65 +126,92 @@ void TimerInit(Timer* timer)
 }
 
 int socket_connect(Network* n, char* addr){
-    struct sockaddr_in sAddr;
     int retVal = -1;
-    ip_addr_t ipAddress;
     INT32 errCode;
     INT32 flags = 0;
-
-    if((NetworkSetConnTimeout(n, 5000, 5000)) != 0){
-        return 1;
-    }
-
-    if ((FreeRTOS_gethostbyname(addr, &ipAddress, 0)) != 0)
-        goto exit;
-    sAddr.sin_family = AF_INET;
-    sAddr.sin_port = FreeRTOS_htons(n->port);
-    sAddr.sin_addr.s_addr = ipAddress.u_addr.ip4.addr;
-    memset(sAddr.sin_zero, 0, 8);
-    flags = fcntl(n->my_socket, F_GETFL, 0);
-
-    if ((retVal = FreeRTOS_connect(n->my_socket, (struct sockaddr *)&sAddr, sizeof(sAddr))) < 0)
+    struct sockaddr_in address;
+    int rc = -1;
+    sa_family_t family = AF_INET;
+    struct addrinfo *result = NULL;
+    struct addrinfo hints = {0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, NULL, NULL, NULL};
+    if ((rc = FreeRTOS_gethostbyname(addr, NULL, &hints, &result)) == 0)
     {
-        errCode = sock_get_errno(n->my_socket);
-        if(errCode == EINPROGRESS)
+        struct addrinfo* res = result;
+        /* prefer ip4 addresses */
+        while (res)
         {
-            ////ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_2, P_ERROR, 0, "mqttConnectSocket connect is ongoing");
-
-            retVal = FreeRTOSConnectTimeout(n->my_socket, 30); //for bearer suspend timeout is 25s
-            if(retVal == 0)
+            if (res->ai_family == AF_INET)
             {
-                ////ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_3, P_INFO, 0, "mqttConnectSocket connect success");
+                result = res;
+                break;
+            }
+            res = res->ai_next;
+        }
+    
+        if (result->ai_family == AF_INET)
+        {
+            address.sin_port = htons(n->port);
+            address.sin_family = family = AF_INET;
+            address.sin_addr = ((struct sockaddr_in*)(result->ai_addr))->sin_addr;
+        }
+        else
+            rc = -1;
+        freeaddrinfo(result);
+    }
+    if(rc == 0)
+    {
+        flags = fcntl(n->my_socket, F_GETFL, 0);
+        if ((retVal = FreeRTOS_connect(n->my_socket, (struct sockaddr *)&address, sizeof(address))) < 0)
+        {
+            errCode = sock_get_errno(n->my_socket);
+            if(errCode == EINPROGRESS)
+            {
+                // ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_2, P_ERROR, 0, "mqttConnectSocket connect is ongoing");
+                retVal = FreeRTOSConnectTimeout(n->my_socket, 30); //for bearer suspend timeout is 25s
+                if(retVal == 0)
+                {
+                    // ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_3, P_INFO, 0, "mqttConnectSocket connect success");
+                }
+                else
+                {
+                    // ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_4, P_ERROR, 1, "mqttConnectSocket connect fail,error code %d", errCode);
+                    if(socket_error_is_fatal(errCode))
+                    {
+                        retVal = 1;
+                    }
+                }
             }
             else
             {
-                ////ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_4, P_ERROR, 1, "mqttConnectSocket connect fail,error code %d", errCode);
-                if(socket_error_is_fatal(errCode))
-                {
-                    retVal = 1;
-                }
+                // ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_5, P_ERROR, 1, "mqttConnectSocket connect fail %d",errCode);
+                retVal = 1;
             }
         }
         else
         {
-            ////ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_5, P_ERROR, 1, "mqttConnectSocket connect fail %d",errCode);
-            retVal = 1;
+            //ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_1, P_ERROR, 0, "mqttConnectSocket connect success");
         }
+        fcntl(n->my_socket, F_SETFL, flags&~O_NONBLOCK); 
     }
-    else
-    {
-        ////ECOMM_TRACE(UNILOG_MQTT, mqttConnectSocket_1, P_ERROR, 0, "mqttConnectSocket connect success");
-    }
-
-    fcntl(n->my_socket, F_SETFL, flags&~O_NONBLOCK); 
-
-exit:
     return retVal;
 }
 
 int socket_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {
+    #if LWIP_SO_SNDRCVTIMEO_NONSTANDARD
     TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
+    int netSecToWait = timeout_ms / 1000; /*  seconds */
+    #else
+    TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
+    struct timeval netSecToWait;
+    netSecToWait.tv_sec = timeout_ms / 1000; /*  seconds */
+    netSecToWait.tv_usec = 0;
+    if(netSecToWait.tv_sec == 0)
+    {
+        netSecToWait.tv_sec = 1;
+    }
+    #endif  
+    
     TimeOut_t xTimeOut;
     int recvLen = 0;
 
@@ -193,7 +220,7 @@ int socket_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
     {
         int rc = 0;
 
-        FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
+        FreeRTOS_setsockopt(n->my_socket, SOL_SOCKET, FREERTOS_SO_RCVTIMEO, &netSecToWait, sizeof(netSecToWait));
         rc = FreeRTOS_recv(n->my_socket, buffer + recvLen, len - recvLen, 0);
         if (rc > 0)
             recvLen += rc;
@@ -213,9 +240,22 @@ int socket_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
     return recvLen;
 }
 
-int socket_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
+int socket_write_rai(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {
+    #if LWIP_SO_SNDRCVTIMEO_NONSTANDARD
     TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
+    int netSecToWait = timeout_ms / 1000; /*  seconds */
+    #else
+    TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
+    struct timeval netSecToWait;
+    netSecToWait.tv_sec = timeout_ms / 1000; /*  seconds */
+    netSecToWait.tv_usec = 0;
+    if(netSecToWait.tv_sec == 0)
+    {
+        netSecToWait.tv_sec = 1;
+    }
+    #endif  
+    
     TimeOut_t xTimeOut;
     int sentLen = 0;
 
@@ -224,7 +264,49 @@ int socket_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
     {
         int rc = 0;
 
-        FreeRTOS_setsockopt(n->my_socket, 0, FREERTOS_SO_RCVTIMEO, &xTicksToWait, sizeof(xTicksToWait));
+        FreeRTOS_setsockopt(n->my_socket, SOL_SOCKET, FRERRTOS_SO_SNDTIMEO, &netSecToWait, sizeof(netSecToWait));
+        #ifdef  MQTT_RAI_OPTIMIZE
+        rc = ps_send(n->my_socket, buffer + sentLen, len - sentLen, 0, rai, exceptdata);
+        #else
+        rc = FreeRTOS_send(n->my_socket, buffer + sentLen, len - sentLen, 0);
+        #endif
+        if (rc > 0)
+            sentLen += rc;
+        else if (rc < 0)
+        {
+            sentLen = rc;
+            break;
+        }
+    } while (sentLen < len && xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) == pdFALSE);
+
+    return sentLen;
+}
+
+int socket_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
+{
+    #if LWIP_SO_SNDRCVTIMEO_NONSTANDARD
+    TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
+    int netSecToWait = timeout_ms / 1000; /*  seconds */
+    #else
+    TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
+    struct timeval netSecToWait;
+    netSecToWait.tv_sec = timeout_ms / 1000; /*  seconds */
+    netSecToWait.tv_usec = 0;
+    if(netSecToWait.tv_sec == 0)
+    {
+        netSecToWait.tv_sec = 1;
+    }
+    #endif  
+    
+    TimeOut_t xTimeOut;
+    int sentLen = 0;
+
+    vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
+    do
+    {
+        int rc = 0;
+
+        FreeRTOS_setsockopt(n->my_socket, SOL_SOCKET, FRERRTOS_SO_SNDTIMEO, &netSecToWait, sizeof(netSecToWait));
         rc = FreeRTOS_send(n->my_socket, buffer + sentLen, len - sentLen, 0);
         if (rc > 0)
             sentLen += rc;
@@ -578,7 +660,11 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms){
     if (n->isMqtts)
         return socket_ssl_write(n, buffer, len, timeout_ms);
     else
+#ifdef  MQTT_RAI_OPTIMIZE
+        return socket_write_rai(n, buffer, len, timeout_ms);
+#else
         return socket_write(n, buffer, len, timeout_ms);
+#endif    
 }
 
 int FreeRTOS_disconnect(Network* n){
@@ -601,17 +687,17 @@ void NetworkInit(Network* n)
 int NetworkSetConnTimeout(Network* n, int send_timeout, int recv_timeout)
 {
     int ret = 0;
-#if LWIP_SO_SNDRCVTIMEO_NONSTANDARD
+    #if LWIP_SO_SNDRCVTIMEO_NONSTANDARD
     int tx_timeout = send_timeout;
     int rx_timeout = recv_timeout;
-#else
-  struct timeval tx_timeout;
-  tx_timeout.tv_sec = send_timeout/1000;
-  tx_timeout.tv_usec = (send_timeout%1000)*1000;
-  struct timeval rx_timeout;
-  rx_timeout.tv_sec = recv_timeout/1000;
-  rx_timeout.tv_usec = (recv_timeout%1000)*1000;
-#endif   
+    #else
+    struct timeval tx_timeout;
+    tx_timeout.tv_sec = send_timeout/1000;
+    tx_timeout.tv_usec = (send_timeout%1000)*1000;
+    struct timeval rx_timeout;
+    rx_timeout.tv_sec = recv_timeout/1000;
+    rx_timeout.tv_usec = (recv_timeout%1000)*1000;
+    #endif     
 
     if(n->my_socket == -1)
     {

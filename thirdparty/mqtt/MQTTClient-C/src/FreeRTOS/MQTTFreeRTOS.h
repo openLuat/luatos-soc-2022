@@ -21,6 +21,10 @@
 #include "semphr.h"
 #include "task.h"
 
+// #ifdef FEATURE_MQTT_TLS_ENABLE
+// #include "MQTTTls.h"
+// #endif
+
 #include "sockets.h"
 #include "api.h"
 #include "netdb.h"
@@ -32,6 +36,33 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #endif
+
+#include "sockets.h"
+#include "api.h"
+#include "netdb.h"
+#define FreeRTOS_setsockopt  			setsockopt
+#define FreeRTOS_getsockopt				getsockopt
+#define FreeRTOS_recv 		 			recv
+#define FreeRTOS_closesocket 			close
+#define FreeRTOS_shutdownsocket   		shutdown
+#define FreeRTOS_socket					socket
+#define FreeRTOS_connect				connect
+#define	FreeRTOS_gethostbyname 			getaddrinfo
+#define FreeRTOS_htons					htons
+#define FreeRTOS_send					send
+
+#define FREERTOS_SO_RCVTIMEO 			SO_RCVTIMEO
+#define FRERRTOS_SO_SNDTIMEO			SO_SNDTIMEO
+#define FRERRTOS_SO_ERROR				SO_ERROR
+#define FREERTOS_AF_INET				AF_INET
+#define FREERTOS_SOCK_STREAM			SOCK_STREAM
+#define FREERTOS_IPPROTO_TCP			IPPROTO_TCP
+#define FREERTOS_SOL_SOCKET				SOL_SOCKET
+
+#define freertos_sockaddr 				sockaddr_in
+
+typedef int xSocket_t;
+
 
 ///MQTT client results
 typedef enum {
@@ -128,26 +159,6 @@ typedef struct Thread
 } Thread;
 
 int ThreadStart(Thread*, void (*fn)(void*), void* arg);
-
-#define FreeRTOS_setsockopt  			setsockopt
-#define FreeRTOS_getsockopt				getsockopt
-
-#define FreeRTOS_shutdownsocket   		shutdown
-#define FreeRTOS_socket					socket
-#define FreeRTOS_connect				connect
-#define	FreeRTOS_gethostbyname 			netconn_gethostbyname
-#define FreeRTOS_htons					htons
-#define FreeRTOS_send					send
-#define FreeRTOS_recv 		 			recv
-#define FreeRTOS_closesocket 			close
-
-#define FREERTOS_SO_RCVTIMEO 			SO_RCVTIMEO
-#define FRERRTOS_SO_SNDTIMEO			SO_SNDTIMEO
-#define FRERRTOS_SO_ERROR				SO_ERROR
-#define FREERTOS_AF_INET				AF_INET
-#define FREERTOS_SOCK_STREAM			SOCK_STREAM
-#define FREERTOS_IPPROTO_TCP			IPPROTO_TCP
-#define FREERTOS_SOL_SOCKET				SOL_SOCKET
 
 int FreeRTOS_read(Network* n, unsigned char* buffer, int len, int timeout_ms);
 int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms);
