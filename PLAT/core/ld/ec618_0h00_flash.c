@@ -27,7 +27,7 @@ SECTIONS
   .cache : ALIGN(128)
   {
     Image$$UNLOAD_NOCACHE$$Base = .;
-    *cache.o(.text*) 
+    *libdriver*.a:cache.o(.text*) 
   } >FLASH_AREA
   
   .load_bootcode 0x0 :
@@ -37,8 +37,8 @@ SECTIONS
     Image$$LOAD_BOOTCODE$$Base = .;
     KEEP(*(.mcuVector))
     *(.ramBootCode)
-    *qspi.o(.text*)
-    *flash.o(.text*)
+    *libdriver*.a:qspi.o(.text*)
+    *libdriver*.a:flash.o(.text*)
     . = ALIGN(4);
   } >ASMB_AREA AT>FLASH_AREA
 
@@ -51,7 +51,7 @@ SECTIONS
    Image$$LOAD_AP_PIRAM_ASMB$$Base = .;
    *(.psPARamcode)
    *(.platPARamcode)
-   *memset.o(.text*)
+   *libc*.a:*memset.o(.text*)
    *memcpy-armv7m.o(.text*)
    . = ALIGN(4);
   } >ASMB_AREA AT>FLASH_AREA
@@ -148,16 +148,16 @@ SECTIONS
     . = ALIGN(4);
     Load$$LOAD_APOS$$Base = LOADADDR(.load_apos);
     Image$$LOAD_APOS$$Base = .;
-    *event_groups.o(.text*)
-    *heap_6.o(.text*)
-    *tlsf.o(.text*)
-    *list.o(.text*)
-    *queue.o(.text*)
-    *tasks.o(.text*)
-    *timers.o(.text*)
-    *port.o(.text*)
-    *port_asm.o(.text*)
-    *cmsis_os2.o(.text*)
+    *libfreertos.a:event_groups.o(.text*)
+    *libfreertos.a:heap_6.o(.text*)
+    *libfreertos.a:tlsf.o(.text*)
+    *libfreertos.a:list.o(.text*)
+    *libfreertos.a:queue.o(.text*)
+    *libfreertos.a:tasks.o(.text*)
+    *libfreertos.a:timers.o(.text*)
+    *libfreertos.a:port.o(.text*)
+    *libfreertos.a:port_asm.o(.text*)
+    *libfreertos.a:cmsis_os2.o(.text*)
     . = ALIGN(4);
   } >MSMB_AREA AT>FLASH_AREA
 
@@ -168,72 +168,72 @@ SECTIONS
     . = ALIGN(4);
     Load$$LOAD_DRAM_BSP$$Base = LOADADDR(.load_dram_bsp);
     Image$$LOAD_DRAM_BSP$$Base = .;
-    *bsp_spi.o(.data*)
-    *flash.o(.data*)
-    *flash_rt.o(.data*)
-    *gpr.o(.data*)
-    *apmu.o(.data*)
-    *apmuTiming.o(.data*)
-    *bsp.o(.data*)
-    *plat_config.o(.data*)
-    *system_ec618.o(.data*)
-    *unilog.o(.data*)
-    *pad.o(.data*)
-    *ic.o(.data*)
-    *ec_main.o(.data*)
-    *slpman.o(.data*)
-    *bsp_usart.o(.data*)
-    *bsp_lpusart.o(.data*)
-    *timer.o(.data*)
-    *dma.o(.data*)
-    *adc.o(.data*)
-    *wdt.o(.data*)
-    *usb_device.o(.data*)
-    *uart_device.o(.data*)
-    *clock.o(.data*)
-    *hal_adc.o(.data*)
-    *hal_adcproxy.o(.data*)
-    *hal_alarm.o(.data*)
-    *exception_process.o(.data*)
-    *exception_dump.o(.data*)
+    *libdriver*:bsp_spi.o(.data*)
+    *libdriver*:flash.o(.data*)
+    *libdriver*:flash_rt.o(.data*)
+    *libdriver*:gpr.o(.data*)
+    *libdriver*:apmu.o(.data*)
+    *libdriver*:apmuTiming.o(.data*)
+    *libdriver*:bsp.o(.data*)
+    *libdriver*:plat_config.o(.data*)
+    *libstartup*:system_ec618.o(.data*)
+    *libdriver*:unilog.o(.data*)
+    *libdriver*:pad.o(.data*)
+    *libdriver*:ic.o(.data*)
+    *libdriver*:ec_main.o(.data*)
+    *libdriver*:slpman.o(.data*)
+    *libdriver*:bsp_usart.o(.data*)
+    *libdriver*:bsp_lpusart.o(.data*)
+    *libdriver*:timer.o(.data*)
+    *libdriver*:dma.o(.data*)
+    *libdriver*:adc.o(.data*)
+    *libdriver*:wdt.o(.data*)
+    *libmiddleware_ec*:usb_device.o(.data*)
+    *libmiddleware_ec*:uart_device.o(.data*)
+    *libdriver*:clock.o(.data*)
+    *libdriver*:hal_adc.o(.data*)
+    *libdriver*:hal_adcproxy.o(.data*)
+    *libdriver*:hal_alarm.o(.data*)
+    *libdriver*:exception_process.o(.data*)
+    *libdriver*:exception_dump.o(.data*)
     . = ALIGN(4);
   } >MSMB_AREA AT>FLASH_AREA
 
-    Image$$LOAD_DRAM_BSP$$Length = SIZEOF(.load_dram_bsp);
+  Image$$LOAD_DRAM_BSP$$Length = SIZEOF(.load_dram_bsp);
 
   .load_dram_bsp_zi (NOLOAD):
   {
     . = ALIGN(4);
     Image$$LOAD_DRAM_BSP$$ZI$$Base = .;
-    *bsp_spi.o(.bss*)
-    *flash.o(.bss*)
-    *flash_rt.o(.bss*)
-    *gpr.o(.bss*)
-    *apmu.o(.bss*)
-    *apmuTiming.o(.bss*)
-    *bsp.o(.bss*)
-    *plat_config.o(.bss*)
-    *system_ec618.o(.bss*)
-    *unilog.o(.bss*)
-    *pad.o(.bss*)
-    *ic.o(.bss*)
-    *ec_main.o(.bss*)
-    *slpman.o(.bss*)
-    *bsp_usart.o(.bss*)
-    *bsp_lpusart.o(.bss*)
-    *timer.o(.bss*)
-    *dma.o(.bss*)
-    *adc.o(.bss*)
-    *wdt.o(.bss*)
-    *usb_device.o(.bss*)
-    *uart_device.o(.bss*)
-    *clock.o(.bss*)
-    *hal_adc.o(.bss*)
-    *hal_trim.o(.bss*)
-    *hal_adcproxy.o(.bss*)
-    *hal_alarm.o(.bss*)
-    *exception_process.o(.bss*)
-    *exception_dump.o(.bss*)
+    *libdriver*:bsp_spi.o(.bss*)
+    *libdriver*:flash.o(.bss*)
+    *libdriver*:flash_rt.o(.bss*)
+    *libdriver*:gpr.o(.bss*)
+    *libdriver*:apmu.o(.bss*)
+    *libdriver*:apmuTiming.o(.bss*)
+    *libdriver*:bsp.o(.bss*)
+    *libdriver*:plat_config.o(.bss*)
+    *libstartup*:system_ec618.o(.bss*)
+    *libdriver*:unilog.o(.bss*)
+    *libdriver*:pad.o(.bss*)
+    *libdriver*:ic.o(.bss*)
+    *libdriver*:ec_main.o(.bss*)
+    *libdriver*:slpman.o(.bss*)
+    *libdriver*:bsp_usart.o(.bss*)
+    *libdriver*:bsp_lpusart.o(.bss*)
+    *libdriver*:timer.o(.bss*)
+    *libdriver*:dma.o(.bss*)
+    *libdriver*:adc.o(.bss*)
+    *libdriver*:wdt.o(.bss*)
+    *libmiddleware_ec*:usb_device.o(.bss*)
+    *libmiddleware_ec*:uart_device.o(.bss*)
+    *libdriver*:clock.o(.bss*)
+    *libdriver*:hal_adc.o(.bss*)
+    *libdriver*:hal_trim.o(.bss*)
+    *libdriver*:hal_adcproxy.o(.bss*)
+    *libdriver*:hal_alarm.o(.bss*)
+    *libdriver*:exception_process.o(.bss*)
+    *libdriver*:exception_dump.o(.bss*)
     *(.recordNodeZI)
     . = ALIGN(4);
   Image$$LOAD_DRAM_BSP$$ZI$$Limit = .;

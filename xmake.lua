@@ -273,6 +273,7 @@ LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libdeltapatc
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libfota.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libdriver_private.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libusb_private.a "
+LIB_BASE = LIB_BASE .. SDK_TOP .. "$(buildir)/lib/libdriver.a "
 LIB_USER = ""
 
 after_load(function (target)
@@ -290,6 +291,27 @@ after_load(function (target)
     end
 end)
 
+target("driver")
+    set_kind("static")
+    add_deps(USER_PROJECT_NAME)
+	--driver
+	add_files(SDK_TOP .. "/PLAT/driver/board/ec618_0h00/src/**.c",
+                SDK_TOP .. "/PLAT/driver/chip/ec618/ap/**.c",
+                SDK_TOP .. "/PLAT/driver/chip/ec618/common/gcc/memcpy-armv7m.S",
+                SDK_TOP .. "/PLAT/driver/hal/**.c",
+                SDK_TOP .. "/PLAT/core/speed/*.c"
+    )
+	
+	remove_files(SDK_TOP .. "/PLAT/driver/board/ec618_0h00/src/camera/camAT.c",
+				SDK_TOP.."/PLAT/driver/chip/ec618/ap/src/usb/usb_device/usb_bl_test.c",
+				SDK_TOP.."/PLAT/driver/chip/ec618/ap/src_cmsis/bsp_lpusart_stub.c",
+				SDK_TOP.."/PLAT/driver/chip/ec618/ap/src/tls.c",
+                SDK_TOP.."/PLAT/driver/chip/ec618/ap/src_cmsis/bsp_spi.c"
+	)
+
+    set_targetdir("$(buildir)/lib")
+target_end()
+
 includes(USER_PROJECT_DIR)
 
 target(USER_PROJECT_NAME..".elf")
@@ -306,20 +328,6 @@ target(USER_PROJECT_NAME..".elf")
         add_files(SDK_TOP .. "thirdparty/mbedtls/library/*.c",{public = true})
         add_files(SDK_TOP .. "thirdparty/printf/*.c",{public = true})
     end
-	--driver
-	add_files(SDK_TOP .. "/PLAT/driver/board/ec618_0h00/src/**.c",
-                SDK_TOP .. "/PLAT/driver/chip/ec618/ap/**.c",
-                SDK_TOP .. "/PLAT/driver/chip/ec618/common/gcc/memcpy-armv7m.S",
-                SDK_TOP .. "/PLAT/driver/hal/**.c",
-                SDK_TOP .. "/PLAT/core/speed/*.c"
-    )
-	
-	remove_files(SDK_TOP .. "/PLAT/driver/board/ec618_0h00/src/camera/camAT.c",
-				SDK_TOP.."/PLAT/driver/chip/ec618/ap/src/usb/usb_device/usb_bl_test.c",
-				SDK_TOP.."/PLAT/driver/chip/ec618/ap/src_cmsis/bsp_lpusart_stub.c",
-				SDK_TOP.."/PLAT/driver/chip/ec618/ap/src/tls.c",
-                SDK_TOP.."/PLAT/driver/chip/ec618/ap/src_cmsis/bsp_spi.c"
-	)
 
     if USER_PROJECT_NAME ~= 'luatos' then
         add_files(SDK_TOP.."/thirdparty/fal/src/*.c",{public = true})
