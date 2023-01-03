@@ -246,48 +246,6 @@ int socket_read(Network* n, unsigned char* buffer, int len, int timeout_ms)
     return recvLen;
 }
 
-int socket_write_rai(Network* n, unsigned char* buffer, int len, int timeout_ms, int rai, bool exceptdata)
-{
-    #if LWIP_SO_SNDRCVTIMEO_NONSTANDARD
-    TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
-    int netSecToWait = timeout_ms / 1000; /*  seconds */
-    #else
-    TickType_t xTicksToWait = timeout_ms / portTICK_PERIOD_MS; /* convert milliseconds to ticks */
-    struct timeval netSecToWait;
-    netSecToWait.tv_sec = timeout_ms / 1000; /*  seconds */
-    netSecToWait.tv_usec = 0;
-    if(netSecToWait.tv_sec == 0)
-    {
-        netSecToWait.tv_sec = 1;
-    }
-    #endif  
-    
-    TimeOut_t xTimeOut;
-    int sentLen = 0;
-
-    vTaskSetTimeOutState(&xTimeOut); /* Record the time at which this function was entered. */
-    do
-    {
-        int rc = 0;
-
-        FreeRTOS_setsockopt(n->my_socket, SOL_SOCKET, FRERRTOS_SO_SNDTIMEO, &netSecToWait, sizeof(netSecToWait));
-        #ifdef  MQTT_RAI_OPTIMIZE
-        rc = ps_send(n->my_socket, buffer + sentLen, len - sentLen, 0, rai, exceptdata);
-        #else
-        rc = FreeRTOS_send(n->my_socket, buffer + sentLen, len - sentLen, 0);
-        #endif
-        if (rc > 0)
-            sentLen += rc;
-        else if (rc < 0)
-        {
-            sentLen = rc;
-            break;
-        }
-    } while (sentLen < len && xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) == pdFALSE);
-
-    return sentLen;
-}
-
 int socket_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
 {
     #if LWIP_SO_SNDRCVTIMEO_NONSTANDARD
@@ -666,11 +624,7 @@ int FreeRTOS_write(Network* n, unsigned char* buffer, int len, int timeout_ms){
     if (n->isMqtts)
         return socket_ssl_write(n, buffer, len, timeout_ms);
     else
-#ifdef  MQTT_RAI_OPTIMIZE
-        return socket_write_rai(n, buffer, len, timeout_ms);
-#else
         return socket_write(n, buffer, len, timeout_ms);
-#endif    
 }
 
 int FreeRTOS_disconnect(Network* n){
