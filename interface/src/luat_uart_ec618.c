@@ -108,7 +108,7 @@ static int32_t luat_uart_cb(void *pData, void *pParam){
     uint32_t uartid = (uint32_t)pData;
     uint32_t State = (uint32_t)pParam;
     uint32_t len;
-//    LLOGD("luat_uart_cb pData:%d pParam:%d ",uartid,State);
+//    DBG("luat_uart_cb pData:%d pParam:%d ",uartid,State);
     switch (State){
         case UART_CB_TX_BUFFER_DONE:
 #ifdef __LUATOS__
@@ -132,10 +132,17 @@ static int32_t luat_uart_cb(void *pData, void *pParam){
             break;
         case UART_CB_RX_BUFFER_FULL:
         	//只有UART1可以唤醒
+#ifdef __LUATOS__
+        	if (UART_ID1 == uartid)
+        	{
+        		uart_cb[uartid].recv_callback_fun(uartid, 0xffffffff);
+        	}
+#else
         	if (UART_ID1 == uartid)
         	{
         		uart_cb[uartid].recv_callback_fun(uartid, 0);
         	}
+#endif
         	break;
         case UART_CB_RX_TIMEOUT:
             len = Uart_RxBufferRead(uartid, NULL, 0);
