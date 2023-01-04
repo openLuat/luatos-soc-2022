@@ -19,8 +19,8 @@ static DmaTransferConfig_t g_dmaTxConfig =
     NULL,
     DMA_FLOW_CONTROL_TARGET,
     DMA_ADDRESS_INCREMENT_SOURCE,
-    DMA_DATA_WIDTH_FOUR_BYTES,
-    DMA_BURST_64_BYTES, 
+    DMA_DATA_WIDTH_TWO_BYTES,
+    DMA_BURST_8_BYTES, 
     0
 };
 
@@ -75,7 +75,7 @@ i2sDataFmt_t i2sDataFmt =
     .dataDly                = 0,   // Used by I2S format
     .txPad                  = 0,   // Tx padding
     .rxSignExt              = 0,   // Rx sign external
-    .txPack                 = 1,   // 0: not compress; 1: 1word; 2: 2word
+    .txPack                 = 0,   // 0: not compress; 1: 1word; 2: 2word
     .rxPack                 = 0,   // 0: not compress; 1: 1word; 2: 2word
     .txFifoEndianMode       = 0,   // I2s use or cspi use?
     .rxFifoEndianMode       = 0,   // I2s use or cspi use?
@@ -110,9 +110,9 @@ i2sDmaCtrl_t i2sDmaCtrl =
     .rxDmaTimeOutEn         = 0,    // rx dma timeout enable
     .dmaWorkWaitCycle       = 31,   // dma wait cycle number
     .rxDmaBurstSizeSub1     = 7,    // rx dma burst size -1
-    .txDmaBurstSizeSub1     = 15,    // tx dma burst size -1
+    .txDmaBurstSizeSub1     = 7,    // tx dma burst size -1
     .rxDmaThreadHold        = 8,    // rx dma threshold
-    .txDmaThreadHold        = 15,    // tx dma threshold
+    .txDmaThreadHold        = 8,    // tx dma threshold
     .rxFifoFlush            = 0,    // flush rx fifo
     .txFifoFlush            = 0     // flush tx fifo
 };
@@ -169,8 +169,8 @@ static i2sResources_t i2s0Res = {
 static i2sInfo_t i2s1Info = {0};
 void i2s1DmaRxEvent(uint32_t event);
 void i2s1DmaTxEvent(uint32_t event);
-static DmaDescriptor_t __ALIGNED(16) i2s1DmaTxDesc[I2S_DMA_TX_DESCRIPTOR_CHAIN_NUM];
-static DmaDescriptor_t __ALIGNED(16) i2s1DmaRxDesc[I2S_DMA_RX_DESCRIPTOR_CHAIN_NUM];
+static DmaDescriptor_t __ALIGNED(16) i2s1DmaTxDesc[I2S_DMA_DESCRIPTOR_CHAIN_NUM];
+static DmaDescriptor_t __ALIGNED(16) i2s1DmaRxDesc[I2S_DMA_DESCRIPTOR_CHAIN_NUM];
 
 static i2sDma_t i2s1Dma =
 {
@@ -178,13 +178,13 @@ static i2sDma_t i2s1Dma =
     -1,
     RTE_I2S1_DMA_TX_REQID,
     i2s1DmaTxEvent,
-    i2s1DmaTxDesc,
+    &i2s1DmaTxDesc,
 
     DMA_INSTANCE_MP,
     -1,
     RTE_I2S1_DMA_RX_REQID,
     i2s1DmaRxEvent,
-    i2s1DmaRxDesc
+    &i2s1DmaRxDesc
 };
 
 static i2sResources_t i2s1Res = {
@@ -217,12 +217,6 @@ static ClockId_e i2sClk[I2S_INSTANCE_NUM * 2] =
     FCLK_I2S1
 };
 
-static ClockId_e i2sMClk[I2S_INSTANCE_NUM] = 
-{
-    MCLK0,
-    MCLK1,
-};
-
 static ClockResetId_e i2sRstClk[I2S_INSTANCE_NUM * 2] =
 {
     RST_PCLK_I2S0,
@@ -232,14 +226,12 @@ static ClockResetId_e i2sRstClk[I2S_INSTANCE_NUM * 2] =
 };
 
 
-
 #ifdef PM_FEATURE_ENABLE
 
 /** \brief Internal used data structure */
 typedef struct
 {
     bool              isInited;                       /**< Whether spi has been initialized */
-    bool              mclkHasBeenClosed;              /**< 1: mclk has been closed; 0: mclk hasn't been closed */
     struct
     {
         __IO uint32_t DFMT;                           /**< Data Format Register,                offset: 0x0 */
@@ -289,9 +281,6 @@ static void i2sEnterLpStatePrepare(void* pdata, slpManLpState state)
             {
                 if(i2sDataBase[i].isInited == true)
                 {
-                    GPR_clockDisable(i2sMClk[i]); // before sleep, disable MCLK
-                    i2sDataBase[i].mclkHasBeenClosed = true;
-                    
                     i2sDataBase[i].regsBackup.DFMT       = i2sInstance[i]->DFMT;
                     i2sDataBase[i].regsBackup.SLOTCTL    = i2sInstance[i]->SLOTCTL;
                     i2sDataBase[i].regsBackup.CLKCTL     = i2sInstance[i]->CLKCTL;
@@ -329,8 +318,8 @@ static void i2sExitLpStateRestore(void* pdata, slpManLpState state)
             {
                 if(i2sDataBase[i].isInited == true)
                 {
-                    GPR_clockEnable(i2sClk[i*2]);
-                    GPR_clockEnable(i2sClk[i*2 + 1]);
+                    CLOCK_clockEnable(i2sClk[i*2]);
+                    CLOCK_clockEnable(i2sClk[i*2 + 1]);
 
                     i2sInstance[i]->DFMT        = i2sDataBase[i].regsBackup.DFMT;
                     i2sInstance[i]->SLOTCTL     = i2sDataBase[i].regsBackup.SLOTCTL;
@@ -467,11 +456,10 @@ int32_t i2sPowerCtrl(i2sPowerState_e state, i2sResources_t *i2s)
 
     switch (state)
     {
-        // when need to enter sleep, do not call this api. PMU will manage all the clocks by default.
         case I2S_POWER_OFF:
             if(i2s->dma)
             {
-                DMA_stopChannel(i2s->dma->txInstance, i2s->dma->txCh, false);
+                DMA_stopChannel(i2s->dma->txInstance, i2s->dma->txCh, true);
             }
 
             // Reset register values
@@ -527,7 +515,7 @@ int32_t i2sSend(const void *data, uint32_t chunkNum, i2sResources_t *i2s)
         g_dmaTxConfig.sourceAddress = (void *)data;
         g_dmaTxConfig.targetAddress = (void *)&(i2sInstance[instance]->TFIFO);
         g_dmaTxConfig.totalLength   = chunkNum;
-        DMA_buildDescriptorChain(i2s->dma->txDescriptor, &g_dmaTxConfig, I2S_DMA_TX_DESCRIPTOR_CHAIN_NUM, true);
+        DMA_buildDescriptorChain(i2s->dma->txDescriptor, &g_dmaTxConfig, I2S_DMA_TX_DESCRIPTOR_CHAIN_NUM, false/*true*/);
         DMA_loadChannelDescriptorAndRun(i2s->dma->txInstance, i2s->dma->txCh, i2s->dma->txDescriptor);
     }
     // polling mode
@@ -603,77 +591,36 @@ static int32_t i2sSetSampleRate(uint32_t bps, i2sResources_t *i2s, i2sRole_e i2s
     }
 
     CLOCK_setClockSrc(CLK_CC, CLK_CC_SEL_204M); // Core clk selects 204M
+    
+    CLOCK_fracDivOutCLkEnable(FRACDIV0_OUT0); // Fracdiv0 out0 enable       
+    CLOCK_setMclkSrc(MCLK0, MCLK_SRC_FRACDIV0_OUT0); // Choose Fracdiv0 out0 as MClk source
+    CLOCK_mclkEnable(MCLK0); // Mclk enable
+    CLOCK_setFracDivOutClkDiv(FRACDIV0_OUT0, 4); // First step to generate MClk clock. 4 div, from 408M -> 102M
 
-    if (instance == 0) // i2s0
+    // need to add gpr api for fracdiv
+    int sampleRateIdx;
+    for (sampleRateIdx = 0; sampleRateIdx < sizeof(i2sSampleRateTbl) / sizeof(i2sSampleRateTbl[0]); sampleRateIdx++)
     {
-        CLOCK_fracDivOutCLkEnable(FRACDIV0_OUT0); // Fracdiv0 out0 enable       
-        CLOCK_setMclkSrc(MCLK0, MCLK_SRC_FRACDIV0_OUT0); // Choose Fracdiv0 out0 as MClk source
-        CLOCK_mclkEnable(MCLK0); // Mclk enable
-        CLOCK_setFracDivOutClkDiv(FRACDIV0_OUT0, 4); // First step to generate MClk clock. 4 div, from 408M -> 102M
-
-        // need to add gpr api for fracdiv
-        int sampleRateIdx;
-        for (sampleRateIdx = 0; sampleRateIdx < sizeof(i2sSampleRateTbl) / sizeof(i2sSampleRateTbl[0]); sampleRateIdx++)
+        if (bps == i2sSampleRateTbl[sampleRateIdx][0])
         {
-            if (bps == i2sSampleRateTbl[sampleRateIdx][0])
-            {
-                // Fracdiv clk selects 408M and set frac and integer clk
-                FracDivConfig_t fracdivCfg;
-                memset(&fracdivCfg, 0, sizeof(FracDivConfig_t));
-                fracdivCfg.source = FRACDIC_ROOT_CLK_408M;
-                fracdivCfg.fracDiv0DivRatioInteger = i2sSampleRateTbl[sampleRateIdx][3];
-                fracdivCfg.fracDiv0DivRatioFrac = i2sSampleRateTbl[sampleRateIdx][2];
-                CLOCK_setFracDivConfig(&fracdivCfg); // Second step to generate MClk
-            }
-        }
-    }
-    else // i2s1
-    {
-        CLOCK_fracDivOutCLkEnable(FRACDIV1_OUT0); // Fracdiv1 out0 enable       
-        CLOCK_setMclkSrc(MCLK1, MCLK_SRC_FRACDIV1_OUT0); // Choose Fracdiv1 out0 as MClk source
-        CLOCK_mclkEnable(MCLK1); // Mclk enable
-        CLOCK_setFracDivOutClkDiv(FRACDIV1_OUT0, 4); // First step to generate MClk clock. 4 div, from 408M -> 102M
-
-        // need to add gpr api for fracdiv
-        int sampleRateIdx;
-        for (sampleRateIdx = 0; sampleRateIdx < sizeof(i2sSampleRateTbl) / sizeof(i2sSampleRateTbl[0]); sampleRateIdx++)
-        {
-            if (bps == i2sSampleRateTbl[sampleRateIdx][0])
-            {
-                // Fracdiv clk selects 408M and set frac and integer clk
-                FracDivConfig_t fracdivCfg;
-                memset(&fracdivCfg, 0, sizeof(FracDivConfig_t));
-                fracdivCfg.source = FRACDIC_ROOT_CLK_408M;
-                fracdivCfg.fracDiv1DivRatioInteger = i2sSampleRateTbl[sampleRateIdx][3];
-                fracdivCfg.fracDiv1DivRatioFrac = i2sSampleRateTbl[sampleRateIdx][2];
-                CLOCK_setFracDivConfig(&fracdivCfg); // Second step to generate MClk
-            }
+            // Fracdiv clk selects 408M and set frac and integer clk
+            FracDivConfig_t fracdivCfg;
+            memset(&fracdivCfg, 0, sizeof(FracDivConfig_t));
+            fracdivCfg.source = FRACDIC_ROOT_CLK_408M;
+            fracdivCfg.fracDiv0DivRatioInteger = i2sSampleRateTbl[sampleRateIdx][3];
+            fracdivCfg.fracDiv0DivRatioFrac = i2sSampleRateTbl[sampleRateIdx][2];
+            CLOCK_setFracDivConfig(&fracdivCfg); // Second step to generate MClk
         }
     }
 
-    if (instance == 0)
-    {
-        // I2S master mode need to genetate LRCLK by MCU
-        if (i2sRole == CODEC_SLAVE_MODE) // I2S controller act as master, codec is slave
-        {       
-            CLOCK_fracDivOutCLkEnable(FRACDIV0_OUT1); // Enable fracdiv0 out1
-            CLOCK_setBclkSrc(BCLK0, BCLK_SRC_FRACDIV0_OUT1); // Use fracdiv0 out1 to generate bclk
-            CLOCK_setFracDivOutClkDiv(FRACDIV0_OUT1, 8); // First step to generate BClk clock. 8 div, from 408M->51M
-            CLOCK_setBclkDiv(BCLK0, 4); // Second step to generate BClk clock. Bclk enable and divide by 4(256fs)
-            CLOCK_bclkEnable(BCLK0); // Enable bclk
-        }
-    }
-    else
-    {
-        // I2S master mode need to genetate LRCLK by MCU
-        if (i2sRole == CODEC_SLAVE_MODE) // I2S controller act as master, codec is slave
-        {       
-            CLOCK_fracDivOutCLkEnable(FRACDIV1_OUT1); // Enable fracdiv1 out1
-            CLOCK_setBclkSrc(BCLK1, BCLK_SRC_FRACDIV1_OUT1); // Use fracdiv1 out1 to generate bclk
-            CLOCK_setFracDivOutClkDiv(FRACDIV1_OUT1, 8); // First step to generate BClk clock. 8 div, from 408M->51M
-            CLOCK_setBclkDiv(BCLK1, 4); // Second step to generate BClk clock. Bclk enable and divide by 4(256fs)
-            CLOCK_bclkEnable(BCLK1); // Enable bclk
-        }
+    // I2S master mode need to genetate LRCLK by MCU
+    if (i2sRole == CODEC_SLAVE_MODE) // I2S controller act as master, codec is slave
+    {       
+        CLOCK_fracDivOutCLkEnable(FRACDIV0_OUT1); // Enable fracdiv0 out1
+        CLOCK_setBclkSrc(BCLK0, BCLK_SRC_FRACDIV0_OUT1); // Use fracdiv0 out1 to generate bclk
+        CLOCK_setFracDivOutClkDiv(FRACDIV0_OUT1, 8); // First step to generate BClk clock. 8 div, from 408M->51M
+        CLOCK_setBclkDiv(BCLK0, 4); // Second step to generate BClk clock. Bclk enable and divide by 4(256fs)
+        CLOCK_bclkEnable(BCLK0); // Enable bclk
     }
 
     return ARM_DRIVER_OK;
@@ -768,13 +715,6 @@ int32_t i2sControl(uint32_t control, uint32_t arg, i2sResources_t *i2s)
         // Start or stop audio play
         case I2S_CTRL_START_STOP:
         {
-#ifdef PM_FEATURE_ENABLE
-            if (i2sDataBase[instance].mclkHasBeenClosed == true)
-            {
-                GPR_clockEnable(i2sMClk[instance]);
-                i2sDataBase[instance].mclkHasBeenClosed = false; // already opened MCLK now
-            }
-#endif
             i2sInstance[instance]->I2SCTL = arg; // 0: disable i2s; 1: enable send; 2: enable recv; 3: enable send/recv
             break;
         }
@@ -940,11 +880,6 @@ uint32_t i2s1GetTotalCnt(void)
 void i2s1DmaRxEvent(uint32_t event)
 {
     i2sDmaRxEvent(event, &i2s1Res);
-}
-
-void i2s1DmaTxEvent(uint32_t event)
-{
-    i2sDmaTxEvent(event, &i2s1Res);
 }
 
 // I2S1 Driver Control Block
