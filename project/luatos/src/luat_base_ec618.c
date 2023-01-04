@@ -156,6 +156,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_STATEM
   {"statem",    luaopen_statem},
 #endif
+#ifdef LUAT_USE_GTFONT
+  {"gtfont",    luaopen_gtfont},
+#endif
 #ifdef LUAT_USE_FSKV
   {"fskv", luaopen_fskv},
 // 启用FSKV的时候,自动禁用FDB

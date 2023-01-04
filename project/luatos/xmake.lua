@@ -33,6 +33,11 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT .. "components/cjson/*.c")
     add_files(LUATOS_ROOT .. "components/crypto/*.c")
 
+    -- gtfont
+    add_includedirs(LUATOS_ROOT.."components/gtfont")
+    add_files(LUATOS_ROOT.."components/gtfont/*.c")
+    LIB_USER = LIB_USER .. SDK_TOP .. "/lib/libgt.a "
+
     -- coremark
     add_files(LUATOS_ROOT .. "components/coremark/*.c")
     add_includedirs(LUATOS_ROOT .. "components/coremark")
