@@ -76,6 +76,11 @@
 #define LUAT_USE_PROFILER 1
 
 //----------------------------
+// 高通字体, 需配合芯片使用
+// #define LUAT_USE_GTFONT 1
+// #define LUAT_USE_GTFONT_UTF8
+
+//----------------------------
 // 高级功能, 其中shell是推荐启用, 除非你打算uart0也读数据
 // #define LUAT_USE_SHELL 1
 // #define LUAT_USE_DBG
