@@ -157,9 +157,7 @@ static void luatos_task(void *param)
         ResetLockupCfg(true, true);
     else
         ResetLockupCfg(false, false);
-	net_lwip_init();
-	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
-	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
+
 	luat_heap_init();
 	luat_main_print_model();
 #ifdef LUAT_USE_MEDIA
@@ -219,20 +217,18 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 static void luatos_task_init(void)
 {
 	GPIO_GlobalInit(NULL);
-//	WDT_deInit();
 	luat_mobile_event_register_handler(luatos_mobile_event_callback);
-//	luat_mobile_set_period_work(0, 10000, 4);
-//	luat_mobile_set_rrc_auto_release_time(1);
-
 	luat_sms_init();
 	luat_sms_recv_msg_register_handler(luat_sms_recv_cb);
-
+	net_lwip_init();
+	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
+	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
 	luat_rtos_task_handle task_handle;
 	// xTaskCreateStatic(task1, "luatos", VM_STACK_SIZE, NULL, 20, s_vm_stackbuff, pxVMTaskTCBBuffer);
 	luat_rtos_task_create(&task_handle, 16 * 1024, 80, "luatos", luatos_task, NULL, 0);
 
 }
 
-INIT_TASK_EXPORT(luatos_task_init, "1");
+INIT_HW_EXPORT(luatos_task_init, "1");
 
 
