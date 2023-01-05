@@ -42,7 +42,6 @@
 static luat_uart_ctrl_param_t uart_cb[MAX_DEVICE_COUNT]={0};
 static Buffer_Struct g_s_vuart_rx_buffer;
 static uint32_t g_s_vuart_rx_base_len;
-#ifdef __LUATOS__
 
 typedef struct
 {
@@ -64,6 +63,7 @@ typedef struct
 
 static serials_info g_s_serials[MAX_DEVICE_COUNT - 1] ={0};
 
+#ifdef __LUATOS__
 static LUAT_RT_RET_TYPE luat_uart_wait_timer_cb(LUAT_RT_CB_PARAM)
 {
     uint32_t uartid = (uint32_t)param;
@@ -90,6 +90,7 @@ void luat_uart_sent_cb(int uart_id, void *param){
         msg.arg2 = 0;
         int re = luat_msgbus_put(&msg, 0);
 }
+#endif
 
 int luat_uart_pre_setup(int uart_id, uint8_t use_alt_type)
 {
@@ -99,7 +100,6 @@ int luat_uart_pre_setup(int uart_id, uint8_t use_alt_type)
     g_s_serials[uart_id].alt_type = use_alt_type;
 }
 
-#endif
 
 void luat_uart_sent_dummy_cb(int uart_id, void *param) {;}
 void luat_uart_recv_dummy_cb(int uart_id, void *param) {;}
@@ -182,14 +182,14 @@ int luat_uart_setup(luat_uart_t* uart) {
 	    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_19, 0), 1, 0, 0);
 	    break;
 	case UART_ID2:
-#ifdef __LUATOS__
+// #ifdef __LUATOS__
 		if (g_s_serials[UART_ID2].alt_type)
 		{
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 0), 5, 0, 0);
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 5, 0, 0);
 		}
 		else
-#endif
+// #endif
 		{
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_10, 0), 3, 0, 0);
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_11, 0), 3, 0, 0);
