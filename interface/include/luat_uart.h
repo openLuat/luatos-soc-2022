@@ -50,8 +50,8 @@
  * @brief 校验位
  */
 #define LUAT_PARITY_NONE                     0  /**< 无校验 */
-#define LUAT_PARITY_ODD                      1  /**< 偶校验 */
-#define LUAT_PARITY_EVEN                     2  /**< 奇校验 */
+#define LUAT_PARITY_ODD                      1  /**< 奇校验 */
+#define LUAT_PARITY_EVEN                     2  /**< 偶校验 */
 
 /**
  * @brief 高低位顺序
