@@ -78,9 +78,7 @@ static void kv_demo(void *param)
 
 static void task_demo_kv(void)
 {
-	int ret = 0;
-	ret = luat_kv_init();
-	LUAT_DEBUG_PRINT("luat_kv_init ret %d", ret);
+	
 	luat_rtos_task_handle handle;
 	luat_rtos_task_create(&handle, 8*1024, 50, "kv", kv_demo, NULL, 0);
 }
