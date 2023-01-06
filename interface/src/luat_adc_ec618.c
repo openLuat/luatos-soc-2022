@@ -61,7 +61,7 @@ typedef struct
 extern void delay_us(uint32_t us);
 
 static uint8_t adc_state[4] = {0}; // 注意实际映射, 当前不支持 AIO1/AIO2的映射
-static LUAT_ADC_RANGE_E adc_range[4] = {LUAT_ADC_AIO_RANGE_6_4, LUAT_ADC_AIO_RANGE_6_4, LUAT_ADC_VBAT_RANGE_5_3_RATIO, LUAT_ADC_VBAT_RANGE_5_3_RATIO}; 
+static LUAT_ADC_RANGE_E adc_range[4] = {LUAT_ADC_AIO_RANGE_3_8, LUAT_ADC_AIO_RANGE_3_8, LUAT_ADC_VBAT_RANGE_5_3_RATIO, LUAT_ADC_VBAT_RANGE_5_3_RATIO}; 
 static volatile uint32_t aio3ChannelResult = 0;
 static volatile uint32_t aio4ChannelResult = 0;
 static volatile uint32_t vbatChannelResult = 0;
@@ -87,10 +87,11 @@ static int adc_range_to_resdiv(int id, int range, AdcAioResDiv_e *resdiv, float 
         {LUAT_ADC_AIO_RANGE_2_7, ADC_AIO_RESDIV_RATIO_7OVER16, (float)16/7},
         {LUAT_ADC_AIO_RANGE_3_2, ADC_AIO_RESDIV_RATIO_6OVER16, (float)16/6},
         {LUAT_ADC_AIO_RANGE_3_8, ADC_AIO_RESDIV_RATIO_5OVER16, (float)16/5},
-        {LUAT_ADC_AIO_RANGE_4_8, ADC_AIO_RESDIV_RATIO_4OVER16, (float)16/4},
-        {LUAT_ADC_AIO_RANGE_6_4, ADC_AIO_RESDIV_RATIO_3OVER16, (float)16/3},
-        {LUAT_ADC_AIO_RANGE_9_6, ADC_AIO_RESDIV_RATIO_2OVER16, (float)16/2},
-        {LUAT_ADC_AIO_RANGE_19_2, ADC_AIO_RESDIV_RATIO_1OVER16, (float)16/1},
+        // 不再支持以下配置，无意义
+        // {LUAT_ADC_AIO_RANGE_4_8, ADC_AIO_RESDIV_RATIO_4OVER16, (float)16/4},
+        // {LUAT_ADC_AIO_RANGE_6_4, ADC_AIO_RESDIV_RATIO_3OVER16, (float)16/3},
+        // {LUAT_ADC_AIO_RANGE_9_6, ADC_AIO_RESDIV_RATIO_2OVER16, (float)16/2},
+        // {LUAT_ADC_AIO_RANGE_19_2, ADC_AIO_RESDIV_RATIO_1OVER16, (float)16/1},
 
         {LUAT_ADC_VBAT_RANGE_2_0_RATIO, ADC_VBAT_RESDIV_RATIO_8OVER16, (float)16/8},
         {LUAT_ADC_VBAT_RANGE_2_2_RATIO, ADC_VBAT_RESDIV_RATIO_7OVER16, (float)16/7},
