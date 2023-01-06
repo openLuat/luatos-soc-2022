@@ -89,14 +89,8 @@ static void demo_kv_init(void)
 	LUAT_DEBUG_PRINT("luat_kv_init ret %d", ret);
 }
 
-//启动hw_demoA_init，启动位置硬件初始1级
-// INIT_HW_EXPORT(hw_demoA_init, "1");
-//启动hw_demoB_init，启动位置硬件初始2级
-// INIT_HW_EXPORT(hw_demoB_init, "2");
-// 启动dr_demoC_init，启动位置驱动1级
-// INIT_DRV_EXPORT(dr_demo_kv_init, "1");
-//启动dr_demoD_init，启动位置驱动2级
-INIT_DRV_EXPORT(demo_kv_init, "2");
+// 调整kv_init到task执行, 应该放在最高优先级 . change by wendal, 2023-01-06
+INIT_TASK_EXPORT(demo_kv_init, "1");
 //启动task_demoE_init，启动位置任务1级
 // INIT_TASK_EXPORT(task_demoE_init, "1");
 //启动task_demoF_init，启动位置任务2级
