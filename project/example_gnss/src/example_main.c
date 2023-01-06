@@ -12,12 +12,28 @@
 #include "luat_debug.h"
 #include "luat_uart.h"
 #include "luat_gpio.h"
+#include "HTTPClient.h"
+#include "luat_mobile.h"
 
 // 注意：780EG内部gps与串口2相连
 #define UART_ID 2
+#define HTTP_RECV_BUF_SIZE      (6000)
+#define HTTP_HEAD_BUF_SIZE      (800)
+#define TEST_HOST "http://download.openluat.com/9501-xingli/HXXT_GPS_BDS_AGNSS_DATA.dat"
+
+
+static HttpClientContext        gHttpClient = {0};
 
 static luat_rtos_task_handle gps_task_handle;
+static luat_rtos_semaphore_t net_semaphore_handle;
+static luat_rtos_task_handle https_task_handle;
 
+void mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status){
+    if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_ON){
+        LUAT_DEBUG_PRINT("network ready");
+        luat_rtos_semaphore_release(net_semaphore_handle);
+    }
+}
 
 static int libminmea_parse_data(const char* data, size_t len) {
     size_t prev = 0;
@@ -35,7 +51,10 @@ static int libminmea_parse_data(const char* data, size_t len) {
             }
             memcpy(nmea_tmp_buff, data + prev, offset - prev - 1);
             nmea_tmp_buff[offset - prev - 1] = 0x00;
-            parse_nmea((const char*)nmea_tmp_buff);
+            if(strstr(nmea_tmp_buff, "GNRMC"))
+            {
+                parse_nmea((const char*)nmea_tmp_buff);
+            }
             prev = offset + 1;
         }
     }
@@ -51,16 +70,121 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
     free(data_buff);
 }
 
+static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len, UINT32 *dataLen)
+{
+    HTTPResult result = HTTP_INTERNAL;
+    HttpClientData    clientData = {0};
+    UINT32 count = 0;
+    uint16_t headerLen = 0;
+
+    LUAT_DEBUG_ASSERT(buf != NULL,0,0,0);
+
+    clientData.headerBuf = malloc(HTTP_HEAD_BUF_SIZE);
+    clientData.headerBufLen = HTTP_HEAD_BUF_SIZE;
+    clientData.respBuf = buf;
+    clientData.respBufLen = len;
+
+    result = httpSendRequest(&gHttpClient, getUrl, HTTP_GET, &clientData);
+    LUAT_DEBUG_PRINT("send request result=%d", result);
+    if (result != HTTP_OK)
+        goto exit;
+    do {
+    	LUAT_DEBUG_PRINT("recvResponse loop.");
+        memset(clientData.headerBuf, 0, clientData.headerBufLen);
+        memset(clientData.respBuf, 0, clientData.respBufLen);
+        result = httpRecvResponse(&gHttpClient, &clientData);
+        if(result == HTTP_OK || result == HTTP_MOREDATA){
+            headerLen = strlen(clientData.headerBuf);
+            if(headerLen > 0)
+            {
+            	LUAT_DEBUG_PRINT("total content length=%d", clientData.recvContentLength);
+            }
+
+            if(clientData.blockContentLen > 0)
+            {
+            	LUAT_DEBUG_PRINT("response content:{%s}", (uint8_t*)clientData.respBuf);
+            }
+            count += clientData.blockContentLen;
+            *dataLen = *dataLen + count;
+            LUAT_DEBUG_PRINT("has recv=%d", count);
+        }
+    } while (result == HTTP_MOREDATA || result == HTTP_CONN);
+
+    LUAT_DEBUG_PRINT("result=%d", result);
+    if (gHttpClient.httpResponseCode < 200 || gHttpClient.httpResponseCode > 404)
+    {
+    	LUAT_DEBUG_PRINT("invalid http response code=%d",gHttpClient.httpResponseCode);
+    } else if (count == 0 || count != clientData.recvContentLength) {
+    	LUAT_DEBUG_PRINT("data not receive complete");
+    } else {
+    	LUAT_DEBUG_PRINT("receive success");
+    }
+exit:
+    free(clientData.headerBuf);
+    return result;
+}
+
+
+static void task_test_https(void *param)
+{
+    luat_rtos_semaphore_create(&net_semaphore_handle, 1);
+
+	char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
+	HTTPResult result = HTTP_INTERNAL;
+    uint32_t dataLen = 0;
+    luat_mobile_event_register_handler(mobile_event_callback);
+    gHttpClient.timeout_s = 2;
+    gHttpClient.timeout_r = 20;
+    luat_rtos_semaphore_take(net_semaphore_handle, LUAT_WAIT_FOREVER);
+    result = httpConnect(&gHttpClient, TEST_HOST);
+    if (result == HTTP_OK)
+    {
+        result = httpGetData(TEST_HOST, recvBuf, HTTP_RECV_BUF_SIZE, &dataLen);
+        httpClose(&gHttpClient);
+
+        if (result == HTTP_OK)
+        {
+            LUAT_DEBUG_PRINT("http client get data success %d", dataLen);
+
+            for (size_t i = 0; i < dataLen; i = i + 512)
+            {
+                if (i + 512 < dataLen)
+                    luat_uart_write(UART_ID, &recvBuf[i], 512);
+                else
+                    luat_uart_write(UART_ID, &recvBuf[i], dataLen - i);
+                luat_rtos_task_sleep(100);
+            }
+        }
+        demo_udp_init();
+    }
+    else
+    {
+        LUAT_DEBUG_PRINT("http client connect error");
+    }
+    memset(recvBuf, 0x00, HTTP_RECV_BUF_SIZE);
+    free(recvBuf);
+	luat_rtos_task_delete(https_task_handle);
+}
+
+static void task_demo_https(void)
+{
+    // https所需的栈空间会大很多
+	luat_rtos_task_create(&https_task_handle, 32*1024, 20, "https", task_test_https, NULL, NULL);
+}
+
+//启动task_demoF_init，启动位置任务2级
+
 static void task_test_gps(void *param)
 {
+    
     luat_uart_t uart = {
         .id = UART_ID,
-        .baud_rate = 9600,
+        .baud_rate = 115200,
         .data_bits = 8,
         .stop_bits = 1,
         .parity    = 0
     };
-
+    luat_uart_pre_setup(UART_ID, 1);
     luat_uart_setup(&uart);
 
     luat_uart_ctrl(UART_ID, LUAT_UART_SET_RECV_CALLBACK, luat_uart_recv_cb);
@@ -72,10 +196,12 @@ static void task_test_gps(void *param)
     cfg.output_level = 1;
     cfg.alt_fun = 4;
     luat_gpio_open(&cfg);
-
+    luat_rtos_task_sleep(200);
     while (1)
     {
-        luat_rtos_task_sleep(1000);
+        char cmd2[] = "$AIDINFO";
+        luat_uart_write(UART_ID, cmd2, strlen(cmd2));
+        luat_rtos_task_sleep(5000);
     }
     luat_rtos_task_delete(gps_task_handle);
 }
@@ -202,4 +328,5 @@ static void task_demo_gps(void)
 
 
 INIT_TASK_EXPORT(task_demo_gps,"1");
+INIT_TASK_EXPORT(task_demo_https, "2");
 /* vim: set ts=4 sw=4 et: */
