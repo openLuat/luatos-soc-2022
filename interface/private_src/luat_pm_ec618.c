@@ -19,6 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "common_api.h"
+#include "luat_base.h"
+#include "luat_mem.h"
 #include "luat_pm.h"
 #include "FreeRTOS.h"
 #include "apmu_external.h"
