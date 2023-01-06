@@ -308,7 +308,7 @@ target("driver")
                 SDK_TOP.."/PLAT/driver/chip/ec618/ap/src_cmsis/bsp_spi.c"
 	)
 
-    set_targetdir("$(buildir)/lib")
+    set_targetdir("$(buildir)/libdriver_" .. USER_PROJECT_NAME)
 target_end()
 
 includes(USER_PROJECT_DIR)
