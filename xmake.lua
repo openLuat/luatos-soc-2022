@@ -249,7 +249,7 @@ else
 end
 --linkflags
 local LD_BASE_FLAGS = "-Wl,--cref -Wl,--check-sections -Wl,--gc-sections -lm -Wl,--print-memory-usage"
-LD_BASE_FLAGS = LD_BASE_FLAGS .. " -L " .. SDK_TOP .. "/PLAT/device/target/board/ec618_0h00/ap/gcc/"
+LD_BASE_FLAGS = LD_BASE_FLAGS .. " -L" .. SDK_TOP .. "/PLAT/device/target/board/ec618_0h00/ap/gcc/"
 --LD_BASE_FLAGS = LD_BASE_FLAGS .. " -T" .. SDK_TOP .. "/PLAT/device/target/board/ec618_0h00/ap/gcc/ec618_0h00_flash.ld -Wl,-Map,$(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME.."_$(mode).map "
 LD_BASE_FLAGS = LD_BASE_FLAGS .. " -T" .. SDK_TOP .. "/PLAT/core/ld/ec618_0h00_flash.ld -Wl,-Map,$(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME.."_$(mode).map "
 LD_BASE_FLAGS = LD_BASE_FLAGS .. " -Wl,--wrap=_malloc_r -Wl,--wrap=_free_r -Wl,--wrap=_realloc_r  -mcpu=cortex-m3 -mthumb -DTRACE_LEVEL=5 -DSOFTPACK_VERSION=\"\" -DHAVE_STRUCT_TIMESPEC"
@@ -273,7 +273,6 @@ LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libdeltapatc
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libfota.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libdriver_private.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libusb_private.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "$(buildir)/lib/libdriver.a "
 LIB_USER = ""
 
 after_load(function (target)
@@ -309,16 +308,16 @@ target("driver")
                 SDK_TOP.."/PLAT/driver/chip/ec618/ap/src_cmsis/bsp_spi.c"
 	)
 
-    set_targetdir("$(buildir)/lib")
+    set_targetdir("$(buildir)/libdriver_" .. USER_PROJECT_NAME)
 target_end()
 
 includes(USER_PROJECT_DIR)
 
 target(USER_PROJECT_NAME..".elf")
 	set_kind("binary")
-    add_deps(USER_PROJECT_NAME)
+    -- add_deps(USER_PROJECT_NAME)
     set_targetdir("$(buildir)/"..USER_PROJECT_NAME)
-
+    add_deps("driver")
 	-- if os.getenv("GCC_PATH") then
 	-- 	LD_BASE_FLAGS = " --specs=nano.specs " .. LD_BASE_FLAGS
 	-- end
@@ -337,7 +336,7 @@ target(USER_PROJECT_NAME..".elf")
 	)
     end
 
-	add_ldflags(LD_BASE_FLAGS .. " -Wl,--whole-archive -Wl,--start-group " .. LIB_BASE .. LIB_USER .. " -Wl,--end-group -Wl,--no-whole-archive -Wl,--no-undefined -Wl,--no-print-map-discarded", {force=true})
+	add_ldflags(LD_BASE_FLAGS .. " -Wl,--whole-archive -Wl,--start-group " .. LIB_BASE .. LIB_USER .. " -Wl,--end-group -Wl,--no-whole-archive -Wl,--no-undefined -Wl,--no-print-map-discarded  -ldriver", {force=true})
 	
     on_load(function (target)
         if USER_PROJECT_NAME == 'luatos' then

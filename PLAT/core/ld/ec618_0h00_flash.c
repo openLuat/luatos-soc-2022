@@ -305,13 +305,13 @@ SECTIONS
       __preinit_fun_array_end = .;
       . = ALIGN(4);
   } > FLASH_AREA   
-  .init_fun_array :
+  .drv_init_fun_array :
   {
       . = ALIGN(4);
-      __init_fun_array_start = .;
-      KEEP (*(SORT(.init_fun_array.*)))
-      KEEP (*(.init_fun_array*))
-      __init_fun_array_end = .;
+      __drv_init_fun_array_start = .;
+      KEEP (*(SORT(.drv_init_fun_array.*)))
+      KEEP (*(.drv_init_fun_array*))
+      __drv_init_fun_array_end = .;
       . = ALIGN(4);
   } > FLASH_AREA
   
