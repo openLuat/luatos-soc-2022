@@ -1,4 +1,4 @@
-local TARGET_NAME = "example_minmea"
+local TARGET_NAME = "example_gnss"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 
@@ -7,6 +7,8 @@ target(TARGET_NAME)
     set_targetdir(LIB_DIR)
     includes(SDK_TOP .. "/thirdparty/minmea")
     add_deps("minmea")
+    includes(SDK_TOP .. "/thirdparty/httpclient")
+    add_deps("httpclient")
     --加入代码和头文件
     add_includedirs("./inc",{public = true})
     add_files("./src/*.c",{public = true})
