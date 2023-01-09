@@ -59,6 +59,7 @@ static const luaL_Reg loadedlibs[] = {
   {"mqtt", luaopen_mqtt},
   {"websocket", luaopen_websocket},
   {"http", luaopen_http},
+  {"ftp", luaopen_ftp},
 #endif
 #ifdef LUAT_USE_WLAN
   {"wlan", luaopen_wlan},
