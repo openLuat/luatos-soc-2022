@@ -211,9 +211,13 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/fskv")
     add_files(LUATOS_ROOT.."components/fskv/*.c")
 
-    -- hmeta
+    -- sntp
     add_includedirs(LUATOS_ROOT.."components/network/libsntp")
     add_files(LUATOS_ROOT.."components/network/libsntp/*.c")
+
+    -- libftp
+    add_includedirs(LUATOS_ROOT.."components/network/libftp")
+    add_files(LUATOS_ROOT.."components/network/libftp/*.c")
 
     -- sfd
     add_includedirs(LUATOS_ROOT.."components/sfd")

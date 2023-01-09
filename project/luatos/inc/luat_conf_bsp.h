@@ -62,6 +62,7 @@
 // zlib压缩,更快更小的实现
 #define LUAT_USE_MINIZ 1
 #define LUAT_USE_SNTP 1
+#define LUAT_USE_FTP 1
 
 #define LUAT_USE_WLAN 1
 #define LUAT_USE_WLAN_SCANONLY 1
@@ -77,7 +78,7 @@
 
 //----------------------------
 // 高通字体, 需配合芯片使用
-// #define LUAT_USE_GTFONT 1
+#define LUAT_USE_GTFONT 1
 // #define LUAT_USE_GTFONT_UTF8
 
 //----------------------------
@@ -90,7 +91,7 @@
 
 #define LUAT_USE_RSA      1
 #define LUAT_USE_MEDIA    1
-#define LUAT_USE_TTS    1
+// #define LUAT_USE_TTS    1
 //---------------------
 // UI
 // LCD  是彩屏, 若使用LVGL就必须启用LCD
