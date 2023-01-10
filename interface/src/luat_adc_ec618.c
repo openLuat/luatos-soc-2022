@@ -40,14 +40,11 @@
 #include "ic.h"
 #include "hal_trim.h"
 
-#define ADC_ID_TMP  10
-#define ADC_ID_VBAT 11
 
 /*
 注意, 按硬件应用手册的描述, ADC0 对应的是 AIO3, ADC1 对应的 AIO4
 
-而 VBAT和TEMP 则使用LuatOS定义的10/11, 与硬件无关.
-
+而 VBAT和TEMP 则使用LuatOS定义的, 与硬件无关.
 
 */
 
@@ -70,7 +67,7 @@ static volatile uint32_t thermalChannelResult = 0;
 static int adc_exist(int id) {
     if (id >= 0 && id < 5)
         return 1;
-    if (id == 10 || id == 11)
+    if (id == LUAT_ADC_CH_CPU || id == LUAT_ADC_CH_VBAT)
         return 1;
     return 0;
 }
@@ -158,11 +155,11 @@ int luat_adc_open(int id, void* ptr) {
     }
 
     AdcAioResDiv_e resdiv;
-    if (ADC_ID_TMP == id)
+    if (LUAT_ADC_CH_CPU == id)
     {
        adc_range_to_resdiv(id, adc_range[2], &resdiv, NULL);
     }
-    else if (ADC_ID_VBAT == id)
+    else if (LUAT_ADC_CH_VBAT == id)
     {
        adc_range_to_resdiv(id, adc_range[3], &resdiv, NULL);
     }
@@ -183,12 +180,12 @@ int luat_adc_open(int id, void* ptr) {
         ADC_channelInit(ADC_CHANNEL_AIO4, ADC_USER_APP, &adcConfig, adc1_cb);
         adc_state[1] = 0;
         break;
-    case ADC_ID_VBAT: // vbat
+    case LUAT_ADC_CH_VBAT: // vbat
         adcConfig.channelConfig.vbatResDiv = resdiv;
         ADC_channelInit(ADC_CHANNEL_VBAT, ADC_USER_APP, &adcConfig, adc_vbat_cb);
         adc_state[2] = 0;
         break;
-    case ADC_ID_TMP: // temp
+    case LUAT_ADC_CH_CPU: // temp
         adcConfig.channelConfig.vbatResDiv = resdiv;
         ADC_channelInit(ADC_CHANNEL_THERMAL, ADC_USER_APP, NULL, adc_temp_cb);
         adc_state[3] = 0;
@@ -222,7 +219,7 @@ int luat_adc_read(int id, int* val, int* val2) {
         }; // 1w个循环,通常需要4000个循环
         if (adc_state[1] == 0) return -1;
         break;
-    case ADC_ID_VBAT:
+    case LUAT_ADC_CH_VBAT:
         ADC_startConversion(ADC_CHANNEL_VBAT, ADC_USER_APP);
         while(adc_state[2] == 0 && t > 0) {
             delay_us(10);
@@ -230,7 +227,7 @@ int luat_adc_read(int id, int* val, int* val2) {
         }; // 1w个循环,通常需要4000个循环
         if (adc_state[2] == 0) return -1;
         break;
-    case ADC_ID_TMP:
+    case LUAT_ADC_CH_CPU:
         ADC_startConversion(ADC_CHANNEL_THERMAL, ADC_USER_APP);
         while(adc_state[3] == 0 && t > 0) {
             delay_us(10);
@@ -243,11 +240,11 @@ int luat_adc_read(int id, int* val, int* val2) {
     }
 
     float ratio;
-    if (ADC_ID_TMP == id)
+    if (LUAT_ADC_CH_CPU == id)
     {
        adc_range_to_resdiv(id, adc_range[2], NULL, &ratio);
     }
-    else if (ADC_ID_VBAT == id)
+    else if (LUAT_ADC_CH_VBAT == id)
     {
        adc_range_to_resdiv(id, adc_range[3], NULL, &ratio);
     }
@@ -274,11 +271,11 @@ int luat_adc_read(int id, int* val, int* val2) {
         *val2 = (int)HAL_ADC_CalibrateRawCode(aio4ChannelResult) * ratio ;
 #endif
         break;
-    case ADC_ID_VBAT:
+    case LUAT_ADC_CH_VBAT:
         *val = vbatChannelResult;
         *val2 =  (int)HAL_ADC_CalibrateRawCode(vbatChannelResult) * ratio / 1000;
         break;
-    case ADC_ID_TMP:
+    case LUAT_ADC_CH_CPU:
         *val = thermalChannelResult;
         *val2 = (int)HAL_ADC_ConvertThermalRawCodeToTemperature(thermalChannelResult);
         break;
@@ -298,10 +295,10 @@ int luat_adc_close(int id) {
     case 1:
         ADC_channelDeInit(ADC_CHANNEL_AIO4, ADC_USER_APP);
         break;
-    case ADC_ID_VBAT:
+    case LUAT_ADC_CH_VBAT:
         ADC_channelDeInit(ADC_CHANNEL_VBAT, ADC_USER_APP);
         break;
-    case ADC_ID_TMP:
+    case LUAT_ADC_CH_CPU:
         ADC_channelDeInit(ADC_CHANNEL_THERMAL, ADC_USER_APP);
         break;
     default:
@@ -326,11 +323,11 @@ int luat_adc_ctrl(int id, LUAT_ADC_CTRL_CMD_E cmd, luat_adc_ctrl_param_t param)
     {
     case LUAT_ADC_SET_GLOBAL_RANGE:
         
-        if (ADC_ID_TMP == id)
+        if (LUAT_ADC_CH_CPU == id)
         {
             adc_range[2] = param.range;
         }
-        else if (ADC_ID_VBAT == id)
+        else if (LUAT_ADC_CH_VBAT == id)
         {
             adc_range[3] = param.range;
         }
