@@ -49,8 +49,6 @@ typedef struct
 
 static luat_audio_hardware_t g_s_audio_hardware;
 
-extern void soc_i2s_init(void);
-extern void soc_i2s_base_setup(uint8_t bus_id, uint8_t mode,  uint8_t frame_size);
 extern int l_multimedia_raw_handler(lua_State *L, void* ptr);
 extern void audio_play_file_default_fun(void *param);
 extern void audio_play_TTS_default_fun(void *param);
@@ -316,7 +314,7 @@ uint16_t luat_audio_vol(uint8_t multimedia_id, uint16_t vol)
 
 int luat_i2s_setup(luat_i2s_conf_t *conf)
 {
-	soc_i2s_base_setup(0, conf->communication_format, I2S_FRAME_SIZE_16_16);
+	luat_i2s_base_setup(0, conf->communication_format, I2S_FRAME_SIZE_16_16);
 	return 0;
 }
 int luat_i2s_send(uint8_t id, char* buff, size_t len)

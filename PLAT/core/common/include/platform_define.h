@@ -95,6 +95,10 @@ enum
 	SPI_ID1,
 	SPI_MAX,
 
+	I2S_ID0 = 0,
+	I2S_ID1,
+	I2S_MAX,
+
 	SPI_MODE_0 = 0,
 	SPI_MODE_1,
 	SPI_MODE_2,

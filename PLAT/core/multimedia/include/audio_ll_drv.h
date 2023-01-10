@@ -40,7 +40,6 @@ typedef struct
 	Buffer_Struct AudioDataBuffer;
 	Buffer_Struct RomDataBuffer;
 	llist_head DataHead;
-	llist_head NeedFreeDataHead;
 	uint32_t SampleRate;
 	uint32_t waitRequire;
 	uint8_t BitDepth;
