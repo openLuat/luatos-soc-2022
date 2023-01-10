@@ -67,7 +67,7 @@ static volatile uint32_t thermalChannelResult = 0;
 static int adc_exist(int id) {
     if (id >= 0 && id < 5)
         return 1;
-    if (id == 10 || id == 11)
+    if (id == LUAT_ADC_CH_CPU || id == LUAT_ADC_CH_VBAT)
         return 1;
     return 0;
 }
