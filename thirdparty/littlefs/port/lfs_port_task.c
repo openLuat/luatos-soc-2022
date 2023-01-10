@@ -797,7 +797,7 @@ void LFS_adjustDaemonTaskPriority(void)
     osThreadSetPriority(gLfsDaemonTaskthreadId, osPriorityNormal7);
 }
 
-
+int lfs_ready;
 // Initialize
 int LFS_init(void)
 {
@@ -832,7 +832,7 @@ int LFS_init(void)
     }
 
     LFS_createDaemonTaskAndQueue();
-
+    lfs_ready = 1;
     return 0;
 }
 
