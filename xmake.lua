@@ -219,8 +219,8 @@ add_includedirs(
                 SDK_TOP .. "/PLAT/middleware/thirdparty/lwip/src/include/posix",
                 SDK_TOP .. "/PLAT/os/freertos/inc",
                 SDK_TOP .. "/PLAT/os/freertos/portable/gcc",
-                SDK_TOP .. "/PLAT/middleware/thirdparty/littlefs",
-                SDK_TOP .. "/PLAT/middleware/thirdparty/littlefs/port",
+                SDK_TOP .. "/thirdparty/littlefs",
+                SDK_TOP .. "/thirdparty/littlefs/port",
                 SDK_TOP .. "/PLAT/os/freertos/portable/gcc",
                 SDK_TOP .. "/PLAT/prebuild/PS/inc",
                 SDK_TOP .. "/PLAT/prebuild/PLAT/inc",
@@ -262,7 +262,7 @@ LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libyrcompress.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libmiddleware_ec.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/liblwip.a "
 -- LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libmbedtls.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/liblfs.a "
+-- LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/liblfs.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PS/lib/gcc/lite/libps.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PS/lib/gcc/lite/libpsl1.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PS/lib/gcc/lite/libpsif.a "
@@ -335,6 +335,7 @@ target(USER_PROJECT_NAME..".elf")
         remove_files(SDK_TOP .. "/interface/src/luat_kv_ec618.c"
 	)
     end
+    add_files(SDK_TOP .. "/thirdparty/littlefs/**.c",{public = true})
 
 	add_ldflags(LD_BASE_FLAGS .. " -Wl,--whole-archive -Wl,--start-group " .. LIB_BASE .. LIB_USER .. " -Wl,--end-group -Wl,--no-whole-archive -Wl,--no-undefined -Wl,--no-print-map-discarded  -ldriver", {force=true})
 	
