@@ -30,17 +30,17 @@
 #include "pwrkey.h"
 extern void soc_usb_onoff(uint8_t onoff);
 extern void soc_set_usb_sleep(uint8_t onoff);
-static uint32_t reportMode[LUAT_PM_SLEEP_MODE_LIGHT + 1][10] = {0};
+static uint32_t reportMode[LUAT_PM_SLEEP_MODE_STANDBY + 1][10] = {0};
 
 int luat_pm_set_sleep_mode(int mode, const char *vote_tag)
 {
-    if (mode < LUAT_PM_SLEEP_MODE_NONE || mode > LUAT_PM_SLEEP_MODE_LIGHT || vote_tag == NULL)
+    if (mode < LUAT_PM_SLEEP_MODE_NONE || mode > LUAT_PM_SLEEP_MODE_STANDBY || vote_tag == NULL)
     {
         return -1;
     }
 
     bool findFirst = true;
-    for (int sleepMode = LUAT_PM_SLEEP_MODE_NONE; sleepMode < LUAT_PM_SLEEP_MODE_LIGHT + 1; sleepMode++)
+    for (int sleepMode = LUAT_PM_SLEEP_MODE_NONE; sleepMode < LUAT_PM_SLEEP_MODE_STANDBY + 1; sleepMode++)
     {
         for (int j = 0; j < 9; j++)
         {
@@ -71,7 +71,7 @@ int luat_pm_set_sleep_mode(int mode, const char *vote_tag)
     if (findFirst)
     {
         int count = 0;
-        for (int sleepMode = LUAT_PM_SLEEP_MODE_NONE; sleepMode < LUAT_PM_SLEEP_MODE_LIGHT + 1; sleepMode++)
+        for (int sleepMode = LUAT_PM_SLEEP_MODE_NONE; sleepMode < LUAT_PM_SLEEP_MODE_STANDBY + 1; sleepMode++)
         {
             count += reportMode[sleepMode][9];
         }
@@ -87,7 +87,7 @@ int luat_pm_set_sleep_mode(int mode, const char *vote_tag)
             reportMode[mode][9] = reportMode[mode][9] + 1;
         }
     }
-    for (int sleepMode = LUAT_PM_SLEEP_MODE_NONE; sleepMode < LUAT_PM_SLEEP_MODE_LIGHT + 1; sleepMode++)
+    for (int sleepMode = LUAT_PM_SLEEP_MODE_NONE; sleepMode < LUAT_PM_SLEEP_MODE_STANDBY + 1; sleepMode++)
     {
         for (int j = 0; j < 9; j++)
         {
@@ -104,6 +104,12 @@ int luat_pm_set_sleep_mode(int mode, const char *vote_tag)
                 case LUAT_PM_SLEEP_MODE_LIGHT:
                     apmuSetDeepestSleepMode(AP_STATE_SLEEP1);
                     break;
+                case LUAT_PM_SLEEP_MODE_DEEP:
+                    apmuSetDeepestSleepMode(AP_STATE_SLEEP2);
+                    break;
+                case LUAT_PM_SLEEP_MODE_STANDBY:
+                    apmuSetDeepestSleepMode(AP_STATE_HIBERNATE);
+                    break;
                 default:
                     apmuSetDeepestSleepMode(AP_STATE_IDLE);
                     break;
@@ -116,7 +122,7 @@ int luat_pm_set_sleep_mode(int mode, const char *vote_tag)
 
 int luat_pm_get_sleep_mode(const char *vote_tag)
 {
-    for (int sleepMode = LUAT_PM_SLEEP_MODE_NONE; sleepMode < LUAT_PM_SLEEP_MODE_LIGHT + 1; sleepMode++)
+    for (int sleepMode = LUAT_PM_SLEEP_MODE_NONE; sleepMode < LUAT_PM_SLEEP_MODE_STANDBY + 1; sleepMode++)
     {
         for (int j = 0; j < 9; j++)
         {
@@ -244,4 +250,38 @@ int luat_pm_set_usb_power(uint8_t onoff)
 {
 	soc_set_usb_sleep(!onoff);
 	soc_usb_onoff(onoff);
+}
+
+
+int luat_pm_deep_sleep_mode_timer_start(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id, int timeout, luat_pm_deep_sleep_mode_timer_callback_t callback)
+{
+    if (timer_id < LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id > LUAT_PM_DEEPSLEEP_TIMER_ID6 || timeout <= 0 ||callback == NULL)
+        return -1;
+    if ((timer_id == LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id == LUAT_PM_DEEPSLEEP_TIMER_ID1) && (timeout > 9000000))
+        timeout = 9000000;
+    if ((timer_id >= LUAT_PM_DEEPSLEEP_TIMER_ID2 && timer_id <= LUAT_PM_DEEPSLEEP_TIMER_ID6) && (timeout > 2664000000))
+        timeout = 2664000000;
+    slpManDeepSlpTimerRegisterExpCb(timer_id, callback);
+    slpManDeepSlpTimerStart(timer_id, timeout);
+    return 0;
+}
+
+int luat_pm_deep_sleep_mode_timer_stop(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id)
+{
+    if (timer_id < LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id > LUAT_PM_DEEPSLEEP_TIMER_ID6)
+        return -1;
+    slpManDeepSlpTimerDel(timer_id);
+    return 0;
+}
+
+int luat_pm_deep_sleep_mode_timer_is_running(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id)
+{
+    if (timer_id < LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id > LUAT_PM_DEEPSLEEP_TIMER_ID6)
+        return -1;
+    return slpManDeepSlpTimerIsRunning(timer_id) == true ? 1 : 0;
+}
+
+int luat_pm_get_wakeup_reason()
+{
+    return slpManGetWakeupSrc();
 }
