@@ -26,3 +26,7 @@ __py_cache__/
 tools//PLAT/core/ld/ec618_0h00_flash.ld
 /PLAT/core/ld/ec618_0h00_flash.ld
 tools/
+/PLAT/libs/libmbedtls.a
+/PLAT/libs/liblfs.a
+/PLAT/libs/libmbedtls.a
+/PLAT/libs/liblfs.a
