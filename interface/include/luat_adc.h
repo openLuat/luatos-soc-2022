@@ -25,6 +25,9 @@
 #include "luat_base.h"
 #include "luat_adc_legacy.h"
 
+#define LUAT_ADC_CH_CPU  (-1)
+#define LUAT_ADC_CH_VBAT (-2)
+
 /**
  * @ingroup luatos_device 外设接口
  * @{

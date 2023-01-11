@@ -212,6 +212,12 @@ int luat_fs_rmdir(char const* dir);
  */
 int luat_fs_lsdir(char const* dir, luat_fs_dirent_t* ents, size_t offset, size_t len);
 
+/**
+ * @brief 文件系统是否已经就绪
+ * @return int 0未就绪, >0已就绪
+ */
+int luat_fs_ready(void);
+
 
 #if LUAT_USE_FS_VFS
 

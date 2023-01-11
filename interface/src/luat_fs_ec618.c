@@ -488,5 +488,10 @@ int luat_fs_info(const char* path, luat_fs_info_t *info){
     return luat_vfs_ec618_info(NULL, path, info);
 }
 
+extern int lfs_ready;
+int luat_fs_ready(void) {
+    return lfs_ready;
+}
+
 #endif
 

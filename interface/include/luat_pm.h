@@ -253,50 +253,74 @@ int luat_pm_event_register_handler(luat_pm_event_callback_t callback_fun);
 /* ---------------------------------------------- vbat/vbus end---------------------------------------------- */
 
 
-/* ------------------------------------------------ timer begin----------------------------------------------- */
+/* ------------------------------------------------ timer begin----------------------------------------------- */\
 /**
- * @brief 深度睡眠模式下的软件定时器句柄
+ * @brief 深度睡眠模式的软件定时器ID
  */
-typedef void * luat_pm_deep_sleep_mode_timer_t;
+typedef enum LUAT_PM_DEEPSLEEP_TIMERID
+{
+	LUAT_PM_DEEPSLEEP_TIMER_ID0 = 0,		/**0和1，最大定时时间为2.5小时，精度为10ms，不需要存储信息到flash，*/
+	LUAT_PM_DEEPSLEEP_TIMER_ID1,
+	LUAT_PM_DEEPSLEEP_TIMER_ID2,          /**2到6，最大定时时间为740小时，精度为10ms，需要存储信息到flash，此类定时器尽量避免反复启动停止，防止减少flash寿命，如果定时时长不超过2.5小时，建议使用0和1*/
+	LUAT_PM_DEEPSLEEP_TIMER_ID3,
+	LUAT_PM_DEEPSLEEP_TIMER_ID4,
+	LUAT_PM_DEEPSLEEP_TIMER_ID5,
+	LUAT_PM_DEEPSLEEP_TIMER_ID6,
+}LUAT_PM_DEEPSLEEP_TIMERID_E;
+
+
+/**
+ * @brief 从深度休眠模式下唤醒的原因
+ */
+typedef enum LUAT_PM_WAKEUP_REASON
+{
+    LUAT_PM_WAKEUP_FROM_POR = 0,
+    LUAT_PM_WAKEUP_FROM_RTC,
+    LUAT_PM_WAKEUP_FROM_PAD,
+    LUAT_PM_WAKEUP_FROM_LPUART,
+    LUAT_PM_WAKEUP_FROM_LPUSB,
+    LUAT_PM_WAKEUP_FROM_PWRKEY,
+    LUAT_PM_WAKEUP_FROM_CHARG,
+}LUAT_PM_WAKEUP_REASON_E;
+
 /**
  * @brief 定义定时时间到后的回调函数类型
  */
-typedef LUAT_RT_RET_TYPE (*luat_pm_deep_sleep_mode_timer_callback_t)(LUAT_RT_CB_PARAM);
-/**
- * @brief 创建深度睡眠模式下的软件定时器
- * 
- * @param timer_handle 返回定时器句柄
- * @return int =0成功，其他失败
- */
-int luat_pm_deep_sleep_mode_timer_create(luat_pm_deep_sleep_mode_timer_t *timer_handle);
-
-/**
- * @brief 删除深度睡眠模式下的软件定时器
- * 
- * @param timer_handle 定时器句柄
- * @return int =0成功，其他失败
- */
-int luat_pm_deep_sleep_mode_timer_delete(luat_pm_deep_sleep_mode_timer_t timer_handle);
+typedef LUAT_RT_RET_TYPE (*luat_pm_deep_sleep_mode_timer_callback_t)(LUAT_PM_DEEPSLEEP_TIMERID_E);
 
 /**
  * @brief 启动深度睡眠模式下的软件定时器
  * 
- * @param timer_handle 定时器句柄
- * @param timeout 超时时间，单位ms，没有特殊值
- * @param repeat 0不重复，其他重复
- * @param callback_fun 定时时间到后的回调函数
- * @param user_param 回调函数时的最后一个输入参数
+ * @param timer_handle 定时器ID
+ * @param timeout 超时时间，单位ms
+ * @param callba 定时器超时回调函数
  * @return int =0成功，其他失败
  */
-int luat_pm_deep_sleep_mode_timer_start(luat_pm_deep_sleep_mode_timer_t timer_handle, uint32_t timeout, uint8_t repeat, luat_pm_deep_sleep_mode_timer_callback_t callback_fun, void *user_param);
+int luat_pm_deep_sleep_mode_timer_start(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id, int timeout, luat_pm_deep_sleep_mode_timer_callback_t callback);
 
 /**
  * @brief 停止深度睡眠模式下的软件定时器
  * 
- * @param timer_handle 定时器句柄
+ * @param timer_handle 定时器ID
  * @return int =0成功，其他失败
  */
-int luat_pm_deep_sleep_mode_timer_stop(luat_pm_deep_sleep_mode_timer_t timer_handle);
+int luat_pm_deep_sleep_mode_timer_stop(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id);
+
+/**
+ * @brief 检查深度睡眠模式下的软件定时器是否正在运行
+ * 
+ * @param timer_handle 定时器ID
+ * @return int =0未运行，int =1正在运行
+ */
+int luat_pm_deep_sleep_mode_timer_is_running(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id);
+/**
+ * @brief 检查深度睡眠模式下的软件定时器是否正在运行
+ * 
+ * @param timer_handle 定时器ID
+ * @return int =0未运行，int =1正在运行
+ */
+
+int luat_pm_get_wakeup_reason(void);
 /*------------------------------------------------ timer   end----------------------------------------------- */
 
 /**
