@@ -43,10 +43,6 @@ static int luat_dtimer_cb(lua_State *L, void* ptr) {
 static void appTimerExpFunc(uint8_t id) {
     wakeup_deeptimer_id = id;
     LLOGI("DeepTimer Wakeup by id=%d", id);
-    rtos_msg_t msg = {0};
-    msg.handler = luat_dtimer_cb;
-    msg.arg1 = id;
-    luat_msgbus_put(&msg, 0);
 }
 
 static slpManSlpState_t luat_user_slp_state(void)
@@ -76,7 +72,6 @@ int luat_pm_dtimer_start(int id, size_t timeout) {
     if (id < 0 || id > DEEPSLP_TIMER_ID6) {
         return -1;
     }
-    slpManDeepSlpTimerRegisterExpCb(id, appTimerExpFunc);
     slpManDeepSlpTimerStart(id, timeout);
     return 0;
 }
@@ -143,7 +138,13 @@ int luat_pm_dtimer_wakeup_id(int* id) {
 }
 
 //---------------------------------------------------------------
-
+void luat_pm_preinit(void)
+{
+	for(uint8_t i = 0; i <= DEEPSLP_TIMER_ID6; i++)
+	{
+	    slpManDeepSlpTimerRegisterExpCb(i, appTimerExpFunc);
+	}
+}
 
 void luat_pm_init(void) {
 	LLOGI("pm mode %d", apmuGetDeepestSleepMode());
@@ -169,6 +170,13 @@ void luat_pm_init(void) {
         LLOGI("poweron: Power/Reset");
     }
     slpManRegisterUsrSlpDepthCb(luat_user_slp_state);
+    if (wakeup_deeptimer_id != 0xff)
+    {
+        rtos_msg_t msg = {0};
+        msg.handler = luat_dtimer_cb;
+        msg.arg1 = wakeup_deeptimer_id;
+        luat_msgbus_put(&msg, 0);
+    }
 }
 
 int luat_pm_get_poweron_reason(void)

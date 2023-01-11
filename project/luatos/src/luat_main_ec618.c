@@ -228,7 +228,8 @@ static void luatos_task_init(void)
 	luat_rtos_task_create(&task_handle, 16 * 1024, 80, "luatos", luatos_task, NULL, 0);
 
 }
-
+extern void luat_pm_preinit(void);
+INIT_DRV_EXPORT(luat_pm_preinit, "1");
 INIT_HW_EXPORT(luatos_task_init, "1");
 
 
