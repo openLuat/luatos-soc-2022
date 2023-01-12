@@ -289,7 +289,7 @@ static void i2sEnterLpStatePrepare(void* pdata, slpManLpState state)
             {
                 if(i2sDataBase[i].isInited == true)
                 {
-                    GPR_clockDisable(i2sMClk[i]); // before sleep, disable MCLK
+                    GPR_mclkDisable(i2sMClk[i]); // before sleep, disable MCLK
                     i2sDataBase[i].mclkHasBeenClosed = true;
                     
                     i2sDataBase[i].regsBackup.DFMT       = i2sInstance[i]->DFMT;
@@ -771,7 +771,7 @@ int32_t i2sControl(uint32_t control, uint32_t arg, i2sResources_t *i2s)
 #ifdef PM_FEATURE_ENABLE
             if (i2sDataBase[instance].mclkHasBeenClosed == true)
             {
-                GPR_clockEnable(i2sMClk[instance]);
+                GPR_mclkEnable(i2sMClk[instance]);
                 i2sDataBase[instance].mclkHasBeenClosed = false; // already opened MCLK now
             }
 #endif
