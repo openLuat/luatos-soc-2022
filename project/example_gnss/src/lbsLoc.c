@@ -13,6 +13,15 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define DEMO_SERVER_UDP_IP "bs.openluat.com" // 基站定位网址
+#define DEMO_SERVER_UDP_PORT 12411           // 端口
+
+/// @brief 合宙IOT 项目productkey ，必须加上，否则定位失败
+static char *productKey = "vQfJesoQdXDK8X1sXkYg0KTU42UBhdjh";
+static luat_rtos_task_handle lbsloc_task_handle = NULL;
+
+static uint8_t lbsloc_task_tatus = 0;
+
 static bool ddddtoddmm(char *location, char *test)
 {
     char *integer = NULL;
@@ -34,13 +43,6 @@ static bool ddddtoddmm(char *location, char *test)
     return false;
 }
 
-#define DEMO_SERVER_UDP_IP "bs.openluat.com" // 基站定位网址
-#define DEMO_SERVER_UDP_PORT 12411           // 端口
-// extern uint8_t link_UP;                      // 网络状态指示
-
-/// @brief 合宙IOT 项目productkey ，必须加上，否则定位失败
-static char *productKey = "vQfJesoQdXDK8X1sXkYg0KTU42UBhdjh";
-luat_rtos_task_handle lbsloc_task_handle = NULL;
 
 /// @brief 把string 转换为BCD 编码
 /// @param arr 字符串输入
@@ -156,6 +158,7 @@ static bool location_service_parse_response(struct am_location_service_rsp_data_
 
 static void lbsloc_task(void *arg)
 {
+    lbsloc_task_tatus = 1;
     ip_addr_t remote_ip;
     struct sockaddr_in name;
     socklen_t sockaddr_t_size = sizeof(name);
@@ -175,19 +178,12 @@ static void lbsloc_task(void *arg)
     uint8_t hour = 0;            // 小时
     uint8_t minute = 0;          // 分钟
     uint8_t second = 0;          // 秒
-    // while (!link_UP)
-    // {
-    //     luat_rtos_task_sleep(1000);
-    //     LUAT_DEBUG_PRINT("等待网络注册");
-    // }
     uint8_t lbsLocReqBuf[176] = {0};
     memset(lbsLocReqBuf, 0, 176);
     uint8_t sendLen = 0;
     lbsLocReqBuf[sendLen++] = strlen(productKey);
     memcpy(&lbsLocReqBuf[sendLen], (UINT8 *)productKey, strlen(productKey));
     sendLen = sendLen + strlen(productKey);
-    // lbsLocReqBuf[sendLen++] = 0x01;
-    // lbsLocReqBuf[sendLen++] = '0';
     lbsLocReqBuf[sendLen++] = 0x28;
     CHAR imeiBuf[16];
     memset(imeiBuf, 0, sizeof(imeiBuf));
@@ -253,8 +249,8 @@ static void lbsloc_task(void *arg)
     {
         luat_rtos_task_sleep(1000);
         LUAT_DEBUG_PRINT("dns fail");
+        lbsloc_task_tatus = 0;
         luat_rtos_task_delete(lbsloc_task_handle);
-        lbsloc_task_handle = NULL;
         return;
     }
 
@@ -278,18 +274,19 @@ static void lbsloc_task(void *arg)
             {
                 LUAT_DEBUG_PRINT("latitude:%s,longitude:%s,year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n", latitude, longitude, year, month, day, hour, minute, second);
                 char data_buf[60] = {0};
+                snprintf(data_buf, 60, "$AIDTIME,%d,%d,%d,%d,%d,%d,000\r\n", year, month, day, hour, minute, second);
+                luat_uart_write(2, data_buf, strlen(data_buf));
+                LUAT_DEBUG_PRINT("this is test1 %s", data_buf);
+                luat_rtos_task_sleep(200);
+
+                memset(data_buf, 0x00, 60);
+
                 char lat[20] = {0};
                 char lng[20] = {0};
                 ddddtoddmm(latitude, lat);
-                LUAT_DEBUG_PRINT("this is test1 %s", lat);
+                LUAT_DEBUG_PRINT("this is test2 %s", lat);
                 ddddtoddmm(longitude, lng);
-                LUAT_DEBUG_PRINT("this is test2 %s", lng);
-
-                // snprintf(data_buf, 60, "$AIDTIME,%d,%d,%d,%d,%d,%d,000\r\n", year, month, day, hour, minute, second);
-                luat_uart_write(2, data_buf, strlen(data_buf));
-                LUAT_DEBUG_PRINT("this is test3 %s", data_buf);
-                luat_rtos_task_sleep(200);
-                memset(data_buf, 0x00, 60);
+                LUAT_DEBUG_PRINT("this is test3 %s", lng);
                 snprintf(data_buf, 60, "$AIDPOS,%s,N,%s,E,1.0\r\n", lat, lng);
                 LUAT_DEBUG_PRINT("this is test4 %s", data_buf);
                 luat_uart_write(2, data_buf, strlen(data_buf));
@@ -315,13 +312,13 @@ static void lbsloc_task(void *arg)
     LUAT_DEBUG_PRINT("socket quit");
     close(socket_id);
     socket_id = -1;
+    lbsloc_task_tatus = 0;
     luat_rtos_task_delete(lbsloc_task_handle);
-    lbsloc_task_handle = NULL;
 }
 
 void demo_udp_init(void)
 {
-    if (lbsloc_task_handle == NULL)
+    if (lbsloc_task_handle == NULL || lbsloc_task_tatus == 0)
         luat_rtos_task_create(&lbsloc_task_handle, 4 * 2048, 80, "udp", lbsloc_task, NULL, NULL);
     else
         LUAT_DEBUG_PRINT("lbsloc task create fail");

@@ -40,15 +40,15 @@
  */
 typedef struct luat_spi
 {
-    int  id;            /**< spi id */
-    int  CPHA;          /**< CPHA */  
-    int  CPOL;          /**< CPOL */  
-    int  dataw;         /**< 数据宽度 */
-    int  bit_dict;      /**< 高低位顺序    可选，默认高位在前 */  
-    int  master;        /**< 主模式     可选，默认主 */  
-    int  mode;          /**< 全双工       可选，默认全双工 */  
-    int bandrate;       /**< 频率 */  
-    int cs;             /**< cs控制引脚 */  
+    int  id;            /**< spi id        可选  1，0*/
+    int  CPHA;          /**< CPHA          可选  1，0*/  
+    int  CPOL;          /**< CPOL          可选  1，0*/  
+    int  dataw;         /**< 数据宽度        8：8bit */
+    int  bit_dict;      /**< 高低位顺序     可选  1：MSB，   0：LSB     */  
+    int  master;        /**< 设置主从模式   可选  1：主机，  0：从机     */  
+    int  mode;          /**< 设置全\半双工  可选  1：全双工，0：半双工    */  
+    int bandrate;       /**< 频率           最小100000， 最大25600000*/  
+    int cs;             /**< cs控制引脚     SPI0的片选为GPIO8, 当配置为8时，表示启用SPI0自带片选；其他配置时，需要自行编码控制片选*/  
 } luat_spi_t;
 
 

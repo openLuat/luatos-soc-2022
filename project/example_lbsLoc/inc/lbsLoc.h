@@ -1,5 +1,5 @@
-#ifndef _EXAMPLE_SOCKET_H
-#define _EXAMPLE_SOCKET_H
+#ifndef _LBSLOC_H
+#define _LBSLOC_H
 
 #include "commontypedef.h"
 
@@ -29,7 +29,7 @@ PACK_STRUCT_END
 
 
 
-
+void lbsloc_Init(void);
 
 
 
