@@ -28,6 +28,7 @@
 #include "slpman.h"
 #include "reset.h"
 #include "pwrkey.h"
+
 extern void soc_usb_onoff(uint8_t onoff);
 extern void soc_set_usb_sleep(uint8_t onoff);
 static uint32_t reportMode[LUAT_PM_SLEEP_MODE_STANDBY + 1][10] = {0};
@@ -252,16 +253,14 @@ int luat_pm_set_usb_power(uint8_t onoff)
 	soc_usb_onoff(onoff);
 }
 
-
-int luat_pm_deep_sleep_mode_timer_start(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id, int timeout, luat_pm_deep_sleep_mode_timer_callback_t callback)
+int luat_pm_deep_sleep_mode_timer_start(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id, int timeout)
 {
-    if (timer_id < LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id > LUAT_PM_DEEPSLEEP_TIMER_ID6 || timeout <= 0 ||callback == NULL)
+    if (timer_id < LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id > LUAT_PM_DEEPSLEEP_TIMER_ID6 || timeout <= 0)
         return -1;
     if ((timer_id == LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id == LUAT_PM_DEEPSLEEP_TIMER_ID1) && (timeout > 9000000))
         timeout = 9000000;
     if ((timer_id >= LUAT_PM_DEEPSLEEP_TIMER_ID2 && timer_id <= LUAT_PM_DEEPSLEEP_TIMER_ID6) && (timeout > 2664000000))
         timeout = 2664000000;
-    slpManDeepSlpTimerRegisterExpCb(timer_id, callback);
     slpManDeepSlpTimerStart(timer_id, timeout);
     return 0;
 }
@@ -279,6 +278,14 @@ int luat_pm_deep_sleep_mode_timer_is_running(LUAT_PM_DEEPSLEEP_TIMERID_E timer_i
     if (timer_id < LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id > LUAT_PM_DEEPSLEEP_TIMER_ID6)
         return -1;
     return slpManDeepSlpTimerIsRunning(timer_id) == true ? 1 : 0;
+}
+
+int luat_pm_deep_sleep_mode_register_timer_cb(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id, luat_pm_deep_sleep_mode_timer_callback_t callback)
+{
+    if (timer_id < LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id > LUAT_PM_DEEPSLEEP_TIMER_ID6 || callback == NULL)
+        return -1;
+    slpManDeepSlpTimerRegisterExpCb(timer_id, callback);
+    return 0;
 }
 
 int luat_pm_get_wakeup_reason()
