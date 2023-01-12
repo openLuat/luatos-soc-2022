@@ -36,8 +36,8 @@ static void task_test_spi(void *param)
         .dataw = 8,
         .bit_dict = 0,
         .master = 0,
-        .mode = 0,
-        .bandrate=24*1000*1000
+        .mode = 1,             // mode设置为1，全双工
+        .bandrate=24*1000*1000,
     };
 
     luat_spi_setup(&spi_conf);
@@ -49,10 +49,10 @@ static void task_test_spi(void *param)
     {
         luat_rtos_task_sleep(1000);
         luat_spi_transfer(0, send_buf, 4,recv_buf, 4);
-        for (size_t i = 0; i < 3; i++){
+        for (size_t i = 0; i < 4; i++){
             LUAT_DEBUG_PRINT("send_buf[%d]: 0x%02X",i,send_buf[i]);
         }
-        for (size_t i = 0; i < 3; i++){
+        for (size_t i = 0; i < 4; i++){
             LUAT_DEBUG_PRINT("recv_buf[%d]: 0x%02X",i,recv_buf[i]);
         }
     }

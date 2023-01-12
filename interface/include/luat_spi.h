@@ -44,9 +44,9 @@ typedef struct luat_spi
     int  CPHA;          /**< CPHA */  
     int  CPOL;          /**< CPOL */  
     int  dataw;         /**< 数据宽度 */
-    int  bit_dict;      /**< 高低位顺序    可选，默认高位在前 */  
-    int  master;        /**< 主模式     可选，默认主 */  
-    int  mode;          /**< 全双工       可选，默认全双工 */  
+    int  bit_dict;      /**< 高低位顺序    可选*/  
+    int  master;        /**< 主模式     可选*/  
+    int  mode;          /**< 设置全\半双工   1表示全双工，0表示半双工    可选 */  
     int bandrate;       /**< 频率 */  
     int cs;             /**< cs控制引脚 */  
 } luat_spi_t;
