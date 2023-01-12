@@ -37,7 +37,8 @@ static void task_test_spi(void *param)
         .bit_dict = 0,
         .master = 0,
         .mode = 1,             // mode设置为1，全双工
-        .bandrate=24*1000*1000,
+        .bandrate = 25600000,
+        .cs = 8
     };
 
     luat_spi_setup(&spi_conf);
