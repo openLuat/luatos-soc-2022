@@ -107,7 +107,9 @@ add_defines("__EC618",
             "RTE_ONE_UART_AT=0",
             "RTE_TWO_UART_AT=0",
             "__USER_CODE__",
-            "__PRINT_ALIGNED_32BIT__"
+            "__PRINT_ALIGNED_32BIT__",
+            "_REENT_SMALL",
+            "_REENT_GLOBAL_ATEXIT"
 )
 
 
