@@ -35,7 +35,7 @@ static void task_test_spi(void *param)
         .CPOL = 0,
         .dataw = 8,
         .bit_dict = 0,
-        .master = 0,
+        .master = 1,
         .mode = 1,             // mode设置为1，全双工
         .bandrate = 25600000,
         .cs = 8
@@ -57,7 +57,6 @@ static void task_test_spi(void *param)
             LUAT_DEBUG_PRINT("recv_buf[%d]: 0x%02X",i,recv_buf[i]);
         }
     }
-    
 }
 
 static void task_demo_spi(void)
