@@ -50,11 +50,11 @@ typedef struct
 static luat_audio_hardware_t g_s_audio_hardware;
 
 extern int l_multimedia_raw_handler(lua_State *L, void* ptr);
-extern void audio_play_file_default_fun(void *param);
-extern void audio_play_TTS_default_fun(void *param);
-extern void audio_play_tts_set_resource_ex(void *address, void *sdk_id, void *read_resource_fun);
-extern void audio_play_global_init_ex(audio_play_event_cb_fun_t event_cb, audio_play_data_cb_fun_t data_cb, audio_play_default_fun_t play_file_fun, audio_play_default_fun_t play_tts_fun, void *user_param);
-extern int audio_play_write_blank_raw_ex(uint8_t multimedia_id, uint8_t cnt, uint8_t add_font);
+//extern void audio_play_file_default_fun(void *param);
+//extern void audio_play_TTS_default_fun(void *param);
+//extern void audio_play_tts_set_resource_ex(void *address, void *sdk_id, void *read_resource_fun);
+//extern void audio_play_global_init_ex(audio_play_event_cb_fun_t event_cb, audio_play_data_cb_fun_t data_cb, audio_play_default_fun_t play_file_fun, audio_play_default_fun_t play_tts_fun, void *user_param);
+//extern int audio_play_write_blank_raw_ex(uint8_t multimedia_id, uint8_t cnt, uint8_t add_font);
 
 static void app_pa_on(uint32_t arg)
 {
