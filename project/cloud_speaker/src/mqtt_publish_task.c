@@ -40,26 +40,25 @@ void mqtt_publish_task(void *args)
                         publish_para->callback(MQTT_PUBLISH_SUCCESS);
                 }
             }
-        }
+            if (publish_para->publish->topic != NULL)
+            {
+                free(publish_para->publish->topic);
+            }
 
-        if (publish_para->publish->topic != NULL)
-        {
-            free(publish_para->publish->topic);
-        }
+            if (publish_para->publish->message.payload != NULL)
+            {
+                free(publish_para->publish->message.payload);
+            }
 
-        if (publish_para->publish->message.payload != NULL)
-        {
-            free(publish_para->publish->message.payload);
-        }
+            if (publish_para->publish != NULL)
+            {
+                free(publish_para->publish);
+            }
 
-        if (publish_para->publish != NULL)
-        {
-            free(publish_para->publish);
-        }
-
-        if (publish_para != NULL)
-        {
-            free(publish_para);
+            if (publish_para != NULL)
+            {
+                free(publish_para);
+            }
         }
     }
 }

@@ -15,7 +15,6 @@ static void mqtt_send_task(void)
 {
     while (1)
     {
-
         mqtt_publish_para_t *publish_para = NULL;
         publish_para = (mqtt_publish_para_t *)malloc(sizeof(mqtt_publish_para_t));
         memset(publish_para, 0x00, sizeof(mqtt_publish_para_t));
