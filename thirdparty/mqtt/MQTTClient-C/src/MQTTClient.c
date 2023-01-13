@@ -476,7 +476,7 @@ void MQTTRun(void* parm)
         MutexLock(&c->mutex);
 #endif
 
-        TimerCountdownMS(&timer, 8000); /* Don't wait too long if no traffic is incoming */
+        TimerCountdownMS(&timer, 1500); /* Don't wait too long if no traffic is incoming */
         int rc = cycle(c, &timer);
         if (rc == -2){
             c->isconnected = 0;
@@ -649,19 +649,17 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
     int mqttQos = (int)qos;
     MQTTString topic = MQTTString_initializer;
     topic.cstring = (char *)topicFilter;
-
 #if defined(MQTT_TASK)
       MutexLock(&c->mutex);
 #endif
       if (!c->isconnected)
             goto exit;
-
     TimerInit(&timer);
     TimerCountdownMS(&timer, c->command_timeout_ms);
-
     len = MQTTSerialize_subscribe(c->sendbuf, c->sendbuf_size, 0, getNextPacketId(c), 1, &topic, (int*)&mqttQos);
     if (len <= 0)
         goto exit;
+
     if ((rc = sendPacket(c, len, &timer)) != SUCCESS) // send the subscribe packet
         goto exit;             // there was a problem
 
@@ -682,7 +680,7 @@ int MQTTSubscribeWithResults(MQTTClient* c, const char* topicFilter, enum QoS qo
     }
     else
         rc = FAILURE;
-
+    DBG("tick5:%llu ",soc_get_poweron_time_tick());
 exit:
     if (rc == FAILURE)
         ;//MQTTCloseSession(c);

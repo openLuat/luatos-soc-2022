@@ -278,8 +278,8 @@ static int strToFile(char *money, audioQueueData *data, int *index, bool flag)
         }
         *index += 1;
     }
-    int decial = atoi(decStr);
-    if (decial > 0)
+    int fraction = atoi(decStr);
+    if (fraction > 0)
     {
         if (flag)
         {
@@ -288,24 +288,24 @@ static int strToFile(char *money, audioQueueData *data, int *index, bool flag)
             data->message.file.info[*index].rom_data_len = sizeof(audiodot);
         }
         *index += 1;
-        if (decial > 10)
+        if (fraction >= 10)
         {
-            int ten = decial / 10;
-            int unit = decial % 10;
+            int ten = fraction / 10;
+            int unit = fraction % 10;
             if (ten != 0 && unit != 0)
             {
                 if (flag)
                 {
                     data->message.file.info[*index].path = NULL; 
                     data->message.file.info[*index].address = audioArray[ten][0];
-                    data->message.file.info[*index].rom_data_len = audioArray[0][1];
+                    data->message.file.info[*index].rom_data_len = audioArray[ten][1];
                 }
                 *index += 1;
                 if(flag)
                 {
                     data->message.file.info[*index].path = NULL; 
                     data->message.file.info[*index].address = audioArray[unit][0];
-                    data->message.file.info[*index].rom_data_len = audioArray[0][1];
+                    data->message.file.info[*index].rom_data_len = audioArray[unit][1];
                 }
                 *index += 1;
             }
@@ -331,19 +331,29 @@ static int strToFile(char *money, audioQueueData *data, int *index, bool flag)
                 if (flag)
                 {
                     data->message.file.info[*index].path = NULL; 
-                    data->message.file.info[*index].address = audioArray[0][0];
-                    data->message.file.info[*index].rom_data_len = audioArray[0][1];
+                    data->message.file.info[*index].address = audioArray[ten][0];
+                    data->message.file.info[*index].rom_data_len = audioArray[ten][1];
                 }
                 *index += 1;
             }
         }
         else
         {
+            if(decStr[0] == 0x30)
+            {
+                if (flag)
+                {
+                    data->message.file.info[*index].path = NULL; 
+                    data->message.file.info[*index].address = audioArray[0][0];
+                    data->message.file.info[*index].rom_data_len = audioArray[0][1];
+                }
+                *index += 1;
+            }
             if (flag)
             {
                 data->message.file.info[*index].path = NULL; 
-                data->message.file.info[*index].address = audioArray[decial][0];
-                data->message.file.info[*index].rom_data_len = audioArray[decial][1];
+                data->message.file.info[*index].address = audioArray[fraction][0];
+                data->message.file.info[*index].rom_data_len = audioArray[fraction][1];
             }
             *index += 1;
         }
@@ -576,14 +586,6 @@ static void mqtt_demo(void){
     snprintf(mqtt_sub_topic, 40, "%s%s", mqtt_sub_topic_head, clientId);
     LUAT_DEBUG_PRINT("cloud_speaker_mqtt subscribe_topic %s %s %s %s", mqtt_sub_topic, clientId, username, password);
     connectData.keepAliveInterval = 120;
-    if (mqtt_publish_task_handle == NULL)
-    {
-        luat_rtos_task_create(&mqtt_publish_task_handle, 2048, 20, "mqtt_publish_task", mqtt_publish_task, (void *)&mqttClient, 10);
-    }
-
-luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
-
-
 
     while(!g_s_is_link_up)
 	{
@@ -632,6 +634,10 @@ luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
                 free(welcome.message.tts.data);
                 LUAT_DEBUG_PRINT("cloud_speaker_mqtt sub audio queue send error");
             }
+            if (mqtt_publish_task_handle == NULL)
+            {
+                luat_rtos_task_create(&mqtt_publish_task_handle, 2048, 20, "mqtt_publish_task", mqtt_publish_task, (void *)&mqttClient, 10);
+            }
         }
 
         while (1)
@@ -679,7 +685,7 @@ extern void mqtt_send_task_init(void);
 
 
 INIT_HW_EXPORT(task_init, "1");
-INIT_TASK_EXPORT(fdb_init, "1");
+INIT_HW_EXPORT(fdb_init, "1");
 INIT_TASK_EXPORT(mqttclient_task_init, "2");
 INIT_TASK_EXPORT(audio_task_init, "2");
 INIT_TASK_EXPORT(led_task_init, "2");
