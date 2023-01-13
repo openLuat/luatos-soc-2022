@@ -304,6 +304,7 @@ static void BSP_SetDefaultRawFlashPlatConfig(void)
 #ifdef __USER_CODE__
     g_rawFlashPlatConfig.faultAction = EXCEP_OPTION_DUMP_FLASH_RESET;//silent anable
     g_rawFlashPlatConfig.startWDT = 1;//start wdt
+    g_rawFlashPlatConfig.uartDumpPort = 0xff; // default at port
 #else
 #ifdef SDK_REL_BUILD
     g_rawFlashPlatConfig.faultAction = 4;//silent anable
@@ -312,9 +313,9 @@ static void BSP_SetDefaultRawFlashPlatConfig(void)
     g_rawFlashPlatConfig.faultAction = 0;
     g_rawFlashPlatConfig.startWDT = 0;
 #endif
-#endif
-    g_rawFlashPlatConfig.uartDumpPort = 1; // default at port
 
+    g_rawFlashPlatConfig.uartDumpPort = 1; // default at port
+#endif
     g_rawFlashPlatConfig.logControl = 0x2;
 
     g_rawFlashPlatConfig.uartBaudRate = 3000000;

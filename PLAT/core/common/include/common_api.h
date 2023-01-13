@@ -164,6 +164,14 @@ int soc_get_sn(char *sn, uint8_t buf_size);
  * @return 0成功，其他失败
  */
 int soc_free_later(void *point);
+/*
+ * 函数放到系统服务里运行，堆栈小，优先级高
+ */
+int soc_call_function_in_service(CBDataFun_t CB, uint32_t data, uint32_t param, uint32_t timeout);
+/*
+ * 函数放到audio服务里运行，堆栈大，优先级低，必须先初始化audio
+ */
+int soc_call_function_in_audio(CBDataFun_t CB, uint32_t data, uint32_t param, uint32_t timeout);
 /**
  * @brief 带函数名称和位置的格式化打印
  * 
