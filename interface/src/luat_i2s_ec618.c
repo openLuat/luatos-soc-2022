@@ -58,10 +58,20 @@ void luat_i2s_no_block_tx(uint8_t bus_id, uint8_t* address, uint32_t byte_len, C
 {
 	I2S_Tx(bus_id, address, byte_len, cb, param);
 }
+void luat_i2s_no_block_rx(uint8_t bus_id, uint32_t byte_len, CBFuncEx_t cb, void *param)
+{
+	I2S_Rx(bus_id,byte_len, cb, param);
+}
+
 
 void luat_i2s_tx_stop(uint8_t bus_id)
 {
 	I2S_TxStop(bus_id);
+}
+
+void luat_i2s_rx_stop(uint8_t bus_id)
+{
+	I2S_RxStop(bus_id);
 }
 
 void luat_i2s_deinit(uint8_t bus_id)
