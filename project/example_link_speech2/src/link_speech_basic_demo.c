@@ -361,7 +361,7 @@ int linkspeech_init(void *args)
             memcpy(&info, g_play_info, sizeof(play_info_t));
             free(g_play_info);
             g_play_info = NULL;
-            luat_rtos_mutex_unlock(&player_mutex);
+            luat_rtos_mutex_unlock(player_mutex);
             // char cmd[256];
             // memset(cmd, 0, sizeof(cmd));
             // snprintf(cmd, sizeof(cmd), "play %s", info.filename);
