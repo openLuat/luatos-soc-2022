@@ -114,6 +114,12 @@ static void record_encode_amr(uint8_t *data, uint32_t len)
 	free(data);
 }
 
+static void record_stop_encode_amr(uint8_t *data, uint32_t len)
+{
+	Encoder_Interface_exit(g_s_amr_encoder_handler);
+	g_s_amr_encoder_handler = NULL;
+	LUAT_DEBUG_PRINT("amr encode stop");
+}
 
 static int32_t record_cb(void *pdata, void *param)
 {
@@ -122,13 +128,16 @@ static int32_t record_cb(void *pdata, void *param)
 	{
 		void *buff = malloc(buffer->Pos);
 		memcpy(buff, buffer->Data, buffer->Pos);
+		//复杂耗时的操作不可以在回调里处理，这里放到audio task，当然也可以放到用户自己的task里
+		soc_call_function_in_audio(record_encode_amr, buff, buffer->Pos, LUAT_WAIT_FOREVER);
 		g_s_record_time++;
 		if (g_s_record_time >= (RECORD_TIME * 5))	//15秒
 		{
 			luat_i2s_rx_stop(I2S_ID0);
+			soc_call_function_in_audio(record_stop_encode_amr, NULL, NULL, LUAT_WAIT_FOREVER);
 		}
-		//复杂耗时的操作不可以在回调里处理，这里放到audio task，当然也可以放到用户自己的task里
-		soc_call_function_in_audio(record_encode_amr, buff, buffer->Pos, 0);
+
+
 		buffer->Pos = 0;
 
 	}
