@@ -243,10 +243,7 @@ int luat_pm_get_vbus_status(uint8_t *status)
     return 0;
 }
 
-int luat_pm_event_register_handler(luat_pm_event_callback_t callback_fun)
-{
-    return 0;
-}
+
 int luat_pm_set_usb_power(uint8_t onoff)
 {
 	soc_set_usb_sleep(!onoff);
