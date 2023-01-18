@@ -232,23 +232,8 @@ int luat_pm_reboot(void);
  * @param status 充电器状态
  */
 int luat_pm_get_vbus_status(uint8_t *status);
-/**
- * @brief 电源管理事件变化参数
-*/
-typedef enum LUAT_PM_EVENT
-{
-	LUAT_PM_BATTERY_VOLT_EVENT = 0,/**<电池电量发生变化*/
-    LUAT_PM_VBUS_STATUS_EVENT/**<VBUS状态发生变化*/
-}LUAT_PM_EVENT_E;
-/**
- * @brief 定义PM_event事件处理函数
- */
-typedef void (*luat_pm_event_callback_t)(LUAT_PM_EVENT_E event, uint32_t param);
-/**
- * @brief 定义PM_event事件处理函数回调函数
- * @param luat_pm_event_callback_t 指针函数
- */
-int luat_pm_event_register_handler(luat_pm_event_callback_t callback_fun);
+
+
 
 /* ---------------------------------------------- vbat/vbus end---------------------------------------------- */
 

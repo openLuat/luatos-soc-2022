@@ -222,7 +222,40 @@ int luat_pm_set_pwrkey(LUAT_PM_POWERKEY_MODE_E mode, bool pullUpEn, luat_pm_pwrk
 
 int luat_pm_get_poweron_reason(void)
 {
-    return 0;
+    LastResetState_e apRstState,cpRstState;
+	ResetStateGet(&apRstState, &cpRstState);
+	int id = 0;
+	switch(apRstState)
+	{
+	case LAST_RESET_POR:
+	case LAST_RESET_NORMAL:
+		id = 0;
+		break;
+	case LAST_RESET_SWRESET:
+		id = 3;
+		break;
+	case LAST_RESET_HARDFAULT:
+	case LAST_RESET_ASSERT:
+		id = 6;
+		break;
+	case LAST_RESET_WDTSW:
+	case LAST_RESET_WDTHW:
+	case LAST_RESET_LOCKUP:
+	case LAST_RESET_AONWDT:
+		id = 8;
+		break;
+	case LAST_RESET_BATLOW:
+	case LAST_RESET_TEMPHI:
+		id = 9;
+		break;
+	case LAST_RESET_FOTA:
+		id = 1;
+		break;
+	default:
+		id = 4;
+		break;
+	}
+	return id;
 }
 
 int luat_pm_poweroff(void)
@@ -243,10 +276,7 @@ int luat_pm_get_vbus_status(uint8_t *status)
     return 0;
 }
 
-int luat_pm_event_register_handler(luat_pm_event_callback_t callback_fun)
-{
-    return 0;
-}
+
 int luat_pm_set_usb_power(uint8_t onoff)
 {
 	soc_set_usb_sleep(!onoff);
