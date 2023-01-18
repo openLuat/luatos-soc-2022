@@ -38,7 +38,7 @@
  * @brief 检查i2c是否存在
  * 
  * @param id i2c_id
- * @return int 
+ * @return 1存在 0不存在
  */
 int luat_i2c_exist(int id);
 
@@ -48,7 +48,7 @@ int luat_i2c_exist(int id);
  * @param id i2c_id
  * @param speed i2c 速度
  * @param slaveaddr i2c 从地址
- * @return int 
+ * @return 0成功 其他失败
  */
 int luat_i2c_setup(int id, int speed);
 
@@ -56,7 +56,7 @@ int luat_i2c_setup(int id, int speed);
  * @brief 关闭 i2c
  * 
  * @param id i2c_id
- * @return int 
+ * @return 0成功 其他失败
  */
 int luat_i2c_close(int id);
 
@@ -68,7 +68,7 @@ int luat_i2c_close(int id);
  * @param buff 数据buff
  * @param len 数据长度
  * @param stop 是否发送停止位
- * @return int 
+ * @return 0成功 其他失败
  */
 int luat_i2c_send(int id, int addr, void* buff, size_t len, uint8_t stop);
 /**
@@ -78,7 +78,7 @@ int luat_i2c_send(int id, int addr, void* buff, size_t len, uint8_t stop);
  * @param addr 7位设备地址
  * @param buff 数据buff
  * @param len 数据长度
- * @return int 
+ * @return 0成功 其他失败
  */
 int luat_i2c_recv(int id, int addr, void* buff, size_t len);
 /**
@@ -90,7 +90,7 @@ int luat_i2c_recv(int id, int addr, void* buff, size_t len);
  * @param reg_len 发送数据长度
  * @param buff 数据buff
  * @param len 数据长度
- * @return int 
+ * @return 0成功 其他失败
  */
 int luat_i2c_transfer(int id, int addr, uint8_t *reg, size_t reg_len, uint8_t *buff, size_t len);
 /** @}*/
