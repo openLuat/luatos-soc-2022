@@ -321,16 +321,18 @@ int luat_i2s_send(uint8_t id, char* buff, size_t len)
 {
 	return -1;
 }
+
 int luat_i2s_recv(uint8_t id, char* buff, size_t len)
 {
-	return -1;
+	return I2S_Rx(id, len, luat_i2s_rx_cb, id);
 }
 int luat_i2s_close(uint8_t id)
 {
-	return -1;
+	luat_i2s_deinit(id);
+	return 0;
 }
 int l_i2s_play(lua_State *L) {
-    return 0;
+    return -1;
 }
 
 int l_i2s_pause(lua_State *L) {
@@ -338,7 +340,7 @@ int l_i2s_pause(lua_State *L) {
 }
 
 int l_i2s_stop(lua_State *L) {
-    return 0;
+	I2S_Stop(luaL_checkinteger(L, 1));
 }
 #ifdef LUAT_USE_TTS
 int luat_audio_play_tts_text(uint32_t multimedia_id, void *text, uint32_t text_bytes)
