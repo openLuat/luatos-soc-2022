@@ -38,6 +38,7 @@ typedef struct
 {
 	uint32_t dac_delay_len;
 	uint32_t pa_delay_time;
+	uint32_t record_sample_rate[I2S_MAX];
 	HANDLE pa_delay_timer;
 	int pa_pin;
 	int dac_pin;
@@ -314,7 +315,9 @@ uint16_t luat_audio_vol(uint8_t multimedia_id, uint16_t vol)
 
 int luat_i2s_setup(luat_i2s_conf_t *conf)
 {
-	luat_i2s_base_setup(0, conf->communication_format, I2S_FRAME_SIZE_16_16);
+	if (conf->id >= I2S_MAX) return -1;
+	luat_i2s_base_setup(conf->id, conf->communication_format, I2S_FRAME_SIZE_16_16);
+	g_s_audio_hardware.record_sample_rate[conf->id] = conf->sample_rate;
 	return 0;
 }
 int luat_i2s_send(uint8_t id, char* buff, size_t len)
@@ -324,6 +327,12 @@ int luat_i2s_send(uint8_t id, char* buff, size_t len)
 
 int luat_i2s_recv(uint8_t id, char* buff, size_t len)
 {
+	if (id >= I2S_MAX) return -1;
+	if (I2S_Start(id, 0, g_s_audio_hardware.record_sample_rate[id], 1))
+	{
+		DBG("!");
+		return -1;
+	}
 	return I2S_Rx(id, len, luat_i2s_rx_cb, id);
 }
 int luat_i2s_close(uint8_t id)
