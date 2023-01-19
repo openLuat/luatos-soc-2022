@@ -16,7 +16,7 @@
 #include "cmips.h"
 #include "ps_lib_api.h"
 
-#define LUAT_LOG_TAG "luat.pm"
+#define LUAT_LOG_TAG "pm"
 #include "luat_log.h"
 
 static uint8_t lastRequestMode = SLP_IDLE_STATE; // 在APP启动时设置
