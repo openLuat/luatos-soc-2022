@@ -41,14 +41,19 @@
 
 extern int luat_main(void);
 extern void luat_heap_init(void);
+extern void luat_pm_init(void);
+
+
 const char *soc_get_sdk_type(void)
 {
 	return "LuatOS-SoC";
 }
+
 const char *soc_get_sdk_version(void)
 {
 	return LUAT_BSP_VERSION;
 }
+
 luat_rtos_timer_t lvgl_timer_handle;
 #ifdef LUAT_USE_LVGL
 #define LVGL_TICK_PERIOD	10
@@ -87,7 +92,7 @@ void luat_lvgl_tick_sleep(uint8_t OnOff)
 #else
 void luat_lvgl_tick_sleep(uint8_t OnOff)
 {
-
+	(void)OnOff;
 }
 #endif
 extern int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
@@ -143,15 +148,18 @@ extern int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,u
 //}
 extern int soc_get_model_name(char *model);
 
-static void luat_main_print_model(void)
+static void self_info(void)
 {
 	char temp[40] = {0};
+	char imei[22] = {0};
 	soc_get_model_name(temp);
-	DBG("model %s", temp);
+	luat_mobile_get_imei(0, imei, 22);
+	DBG("model %s imei %s", temp, imei);
 }
 
 static void luatos_task(void *param)
 {
+	(void)param;
 	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, EXCEP_OPTION_DUMP_FLASH_EPAT_RESET);
     if(BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION) == EXCEP_OPTION_SILENT_RESET)
         ResetLockupCfg(true, true);
@@ -159,7 +167,7 @@ static void luatos_task(void *param)
         ResetLockupCfg(false, false);
 
 	luat_heap_init();
-	luat_main_print_model();
+	self_info();
 #ifdef LUAT_USE_MEDIA
 	luat_audio_global_init();
 #endif
@@ -181,7 +189,7 @@ static void luatos_task(void *param)
 	luat_pm_init();
 	luat_main();
 	while (1) {
-		DBG("LuatOS exit"); // TODO 咋就没重启呢
+		DBG("LuatOS exit");
 		luat_rtos_task_sleep(15000);
 		luat_os_reboot(0);
 	}
