@@ -356,6 +356,7 @@ const struct luat_vfs_filesystem vfs_fs_ec618 = {
 #ifdef __LUATOS__
 extern const struct luat_vfs_filesystem vfs_fs_lfs2;
 extern const struct luat_vfs_filesystem vfs_fs_luadb;
+extern const struct luat_vfs_filesystem vfs_fs_ram;
 void luat_lv_fs_init(void);
 void lv_split_jpeg_init(void);
 void lv_bmp_init(void);
@@ -377,6 +378,17 @@ int luat_fs_init(void) {
 		.mount_point = ""
 	};
 	luat_fs_mount(&conf);
+
+
+
+    luat_vfs_reg(&vfs_fs_ram);
+    luat_fs_conf_t conf3 = {
+		.busname = NULL,
+		.type = "ram",
+		.filesystem = "ram",
+		.mount_point = "/ram/"
+	};
+	luat_fs_mount(&conf3);
 
 #ifdef __LUATOS__
     // 以下为临时配置, 从APP区的末端,切出128k作为临时脚本区，80K作为OTA区
