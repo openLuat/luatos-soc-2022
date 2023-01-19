@@ -73,7 +73,11 @@ static char lfs_prog_buf[256];
 static __ALIGNED(4) char lfs_lookahead_buf[LFS_BLOCK_DEVICE_LOOK_AHEAD];
 
 // configuration of the filesystem is provided by this struct
+#ifdef __LUATOS__
+static const struct lfs_config lfs_cfg =
+#else
 static struct lfs_config lfs_cfg =
+#endif
 {
     .context = NULL,
     // block device operations
