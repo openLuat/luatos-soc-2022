@@ -34,6 +34,7 @@
 #endif
 
 #include <stdio.h>
+#include "cms_def.h"
 #include "bsp_custom.h"
 #include "bsp_common.h"
 #include "driver_gpio.h"
@@ -224,7 +225,21 @@ int luat_uart_setup(luat_uart_t* uart) {
 int luat_uart_write(int uartid, void* data, size_t length) {
     if (luat_uart_exist(uartid)) {
         if (uartid >= MAX_DEVICE_COUNT){
-            usb_serial_output(4,data,length);
+
+			unsigned i = 0;
+			while(i < length)
+			{
+				if ((length - i) < 512)
+				{
+					usb_serial_output(CMS_CHAN_4, data + i, length - i);
+					i = length;
+				}
+				else
+				{
+					usb_serial_output(CMS_CHAN_4, data + i, 512);
+					i += 512;
+				}
+			}
         }else{
 #ifdef __LUATOS__
         	if (g_s_serials[uartid].rs485_param_bit.is_485used) GPIO_Output(g_s_serials[uartid].rs485_pin, !g_s_serials[uartid].rs485_param_bit.rx_level);
