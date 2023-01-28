@@ -172,9 +172,72 @@ int luat_mobile_get_default_apn(int sim_id, char* buff, size_t buf_len)
 	return luat_mobile_get_apn(sim_id, -1, buff, buf_len);
 }
 
-int luat_mobile_set_apn(int sim_id, int cid, const char* buff, size_t buf_len)
+static uint8_t s_disable_default_pdp;
+
+uint8_t soc_disable_tcpip_use_default_pdp(void)
 {
-	return -1;
+	return s_disable_default_pdp;
+}
+
+void luat_mobile_user_ctrl_apn(void)
+{
+	s_disable_default_pdp = 1;
+}
+
+int luat_mobile_set_apn_base_info(int sim_id, int cid, uint8_t type, uint8_t* apn_name, uint8_t name_len)
+{
+	CmiPsDefPdpDefinition   pdpCtxInfo = {0};
+	pdpCtxInfo.cid = cid;
+	pdpCtxInfo.pdnType = type;
+	pdpCtxInfo.apnPresentType = CMI_UPDATE_WITH_NEW;
+	pdpCtxInfo.apnLength = name_len;
+	memcpy( pdpCtxInfo.apnStr, apn_name, name_len);
+	return psSetCdgcont(PS_DIAL_REQ_HANDLER, &pdpCtxInfo);
+}
+
+
+int luat_mobile_set_apn_auth_info(int sim_id, int cid, uint8_t protocol, uint8_t *user_name, uint8_t user_name_len, uint8_t *password, uint8_t password_len)
+{
+	CmiPsSetDefineAuthCtxReq req = {0};
+	req.cmiAuthInfo.cid = cid;
+	if (protocol != 0xff)
+	{
+		req.cmiAuthInfo.authProtPresent = 1;
+		req.cmiAuthInfo.authProtocol = protocol;
+	}
+
+	if (user_name_len)
+	{
+		if (user_name)
+		{
+			req.cmiAuthInfo.authUserNameLength = user_name_len;
+			memcpy(req.cmiAuthInfo.authUserName, user_name, user_name_len);
+		}
+		req.cmiAuthInfo.authUserPresent = 1;
+	}
+
+	if (password_len)
+	{
+		if (password)
+		{
+			req.cmiAuthInfo.authPasswordLength = password_len;
+			memcpy(req.cmiAuthInfo.authPassword, password, password_len);
+		}
+		req.cmiAuthInfo.authPswdPresent = 1;
+	}
+	return psSetCGAUTH(PS_DIAL_REQ_HANDLER, &req);
+}
+
+
+int luat_mobile_active_apn(int sim_id, int cid, uint8_t state)
+{
+	soc_mobile_active_cid(cid);
+	return psSetCGACT(PS_DIAL_REQ_HANDLER, cid, state);
+}
+
+int luat_mobile_active_netif(int sim_id, int cid)
+{
+	return psGetCGCONTRDPParam(PS_DIAL_REQ_HANDLER, cid);
 }
 
 

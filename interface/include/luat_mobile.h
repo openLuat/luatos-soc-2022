@@ -112,6 +112,58 @@ int luat_mobile_set_sim_id(int id);
 int luat_mobile_get_apn(int sim_id, int cid, char* buff, size_t buf_len);
 
 /**
+ * @brief 用户控制APN激活过程。只有使用了本函数后，才能通过手动激活用户的APN并加装网卡
+ */
+void luat_mobile_user_ctrl_apn(void);
+
+/**
+ * @brief 手动设置APN激活所需的最小信息，如果需要更详细的设置，可以自行修改本函数
+ *
+ * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
+ * @param cid cid位置 2~6
+ * @param type 激活类型 1 IPV4 2 IPV6 3 IPV4V6
+ * @param apn_name apn name
+ * @param name_len apn name 长度
+ * @return int <= 0错误 >0实际传出的大小
+ */
+int luat_mobile_set_apn_base_info(int sim_id, int cid, uint8_t type, uint8_t* apn_name, uint8_t name_len);
+
+
+/**
+ * @brief 手动设置APN激活所需的加密信息，如果需要更详细的设置，可以自行修改本函数。大部分情况下不需要加密信息，定向卡可能需要
+ *
+ * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
+ * @param cid cid位置 2~6
+ * @param protocol 加密协议 0~2，0xff表示不需要
+ * @param user_name 用户名
+ * @param user_name_len 用户名长度
+ * @param password 密码
+ * @param password_len 密码长度
+ * @return int <= 0错误 >0实际传出的大小
+ */
+int luat_mobile_set_apn_auth_info(int sim_id, int cid, uint8_t protocol, uint8_t *user_name, uint8_t user_name_len, uint8_t *password, uint8_t password_len);
+
+
+/**
+ * @brief 手动激活/去激活APN
+ *
+ * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
+ * @param cid cid位置 2~6
+ * @param state 1激活 0去激活
+ * @return int <= 0错误 >0实际传出的大小
+ */
+int luat_mobile_active_apn(int sim_id, int cid, uint8_t state);
+
+/**
+ * @brief 手动激活网卡
+ *
+ * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
+ * @param cid cid位置 2~6
+ * @return int <= 0错误 >0实际传出的大小
+ */
+int luat_mobile_active_netif(int sim_id, int cid);
+
+/**
  * @brief 获取默认CID的apn name，并不一定支持
  * 
  * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
@@ -330,6 +382,7 @@ typedef enum LUAT_MOBILE_EVENT
 	LUAT_MOBILE_EVENT_NETIF, 	/**< internet状态*/
 	LUAT_MOBILE_EVENT_TIME_SYNC, 	/**< 通过基站同步时间完成*/
 	LUAT_MOBILE_EVENT_CSCON, /**< RRC状态，0 idle 1 active*/
+	LUAT_MOBILE_EVENT_BEARER,/**< PDP承载状态*/
 }LUAT_MOBILE_EVENT_E;
 
 typedef enum LUAT_MOBILE_CFUN_STATUS
@@ -379,6 +432,15 @@ typedef enum LUAT_MOBILE_NETIF_STATUS
 	LUAT_MOBILE_NETIF_LINK_OFF,	/**< 断网*/
 	LUAT_MOBILE_NETIF_LINK_OOS,	/**< 失去网络连接，尝试恢复中，等同于LUAT_MOBILE_NETIF_LINK_OFF*/
 }LUAT_MOBILE_NETIF_STATUS_E;
+
+typedef enum LUAT_MOBILE_BEARER_STATUS
+{
+	LUAT_MOBILE_BEARER_GET_DEFAULT_APN = 0,/**< 获取到默认APN*/
+	LUAT_MOBILE_BEARER_APN_SET_DONE,/**< 设置APN信息完成*/
+	LUAT_MOBILE_BEARER_AUTH_SET_DONE,/**< 设置APN加密状态完成*/
+	LUAT_MOBILE_BEARER_DEL_DONE,/**< 删除APN信息完成*/
+	LUAT_MOBILE_BEARER_SET_ACT_STATE_DONE,/**< APN激活/去激活完成*/
+}LUAT_MOBILE_BEARER_STATUS_E;
 
 /**
  * @brief 获取当前移动网络注册状态

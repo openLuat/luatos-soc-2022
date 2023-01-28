@@ -139,14 +139,6 @@ void soc_get_heap_info(uint32_t *total, uint32_t *total_free, uint32_t *min_free
 void soc_require_lowpower_state(uint8_t state);
 
 /**
- * @brief 初始成sleep1，必须在init fun里，在task里就无效了
- */
-void soc_force_init_sleep(void);
-/**
- * @brief usb交由用户决定开启和关闭，必须在init fun里，在task里就无效了
- */
-void soc_force_usb_user_ctrl(void);
-/**
  * @brief 用户手动控制USB开关
  *
  * @param onoff 1打开，0关闭
