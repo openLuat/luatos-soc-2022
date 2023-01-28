@@ -120,7 +120,7 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		case LUAT_MOBILE_NETIF_LINK_ON:
 			LUAT_DEBUG_PRINT("可以上网");
 
-			luat_mobile_get_local_ip(0, 1, &ipv4, &ipv6);
+			luat_mobile_get_local_ip(0, g_s_test_cid, &ipv4, &ipv6);
 			if (ipv4.type != 0xff)
 			{
 				LUAT_DEBUG_PRINT("IPV4 %s", ip4addr_ntoa(&ipv4.u_addr.ip4));
