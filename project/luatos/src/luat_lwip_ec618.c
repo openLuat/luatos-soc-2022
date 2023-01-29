@@ -773,6 +773,28 @@ void net_lwip_init(void)
 	prvlwip.dns_timer = platform_create_timer(net_lwip_timer_cb, (void *)EV_LWIP_COMMON_TIMER, 0);
 }
 
+static ip_addr_t *net_lwip_get_ip6(void)
+{
+	int i;
+	for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+	{
+		if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_PREFERRED)
+		{
+			return &prvlwip.lwip_netif->ip6_addr[i];
+		}
+	}
+	if (0xff == ipv6->type)
+	{
+		for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+		{
+			if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_VALID)
+			{
+				return &prvlwip.lwip_netif->ip6_addr[i];
+			}
+		}
+	}
+	return NULL;
+}
 
 static void net_lwip_task(void *param)
 {
@@ -907,15 +929,7 @@ static void net_lwip_task(void *param)
 		}
 		else
 		{
-			for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
-			{
-				if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_VALID)
-				{
-					local_ip = &prvlwip.lwip_netif->ip6_addr[i];
-					break;
-				}
-			}
-
+			local_ip = net_lwip_get_ip6()
 		}
 		if (!local_ip)
 		{
@@ -1735,26 +1749,14 @@ static int net_lwip_get_full_ip_info(luat_ip_addr_t *ip, luat_ip_addr_t *submask
 	*ip = prvlwip.lwip_netif->ip_addr;
 	*submask = prvlwip.lwip_netif->netmask;
 	*gateway = prvlwip.lwip_netif->gw;
-	int i;
-	ipv6->type = 0xff;
-	for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+	luat_ip_addr_t *local_ip = net_lwip_get_ip6();
+	if (local_ip)
 	{
-		if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_PREFERRED)
-		{
-			*ipv6 = prvlwip.lwip_netif->ip6_addr[i];
-			break;
-		}
+		*ipv6 = *local_ip;
 	}
-	if (0xff == ipv6->type)
+	else
 	{
-		for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
-		{
-			if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_VALID)
-			{
-				*ipv6 = prvlwip.lwip_netif->ip6_addr[i];
-				break;
-			}
-		}
+		ipv6->type = 0xff;
 	}
 	return 0;
 }
