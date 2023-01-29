@@ -1745,6 +1745,17 @@ static int net_lwip_get_full_ip_info(luat_ip_addr_t *ip, luat_ip_addr_t *submask
 			break;
 		}
 	}
+	if (0xff == ipv6->type)
+	{
+		for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+		{
+			if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_VALID)
+			{
+				*ipv6 = prvlwip.lwip_netif->ip6_addr[i];
+				break;
+			}
+		}
+	}
 	return 0;
 }
 
