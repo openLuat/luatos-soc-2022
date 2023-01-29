@@ -2,6 +2,7 @@
 #include "common_api.h"
 #include "luat_rtos.h"
 #include "luat_mobile.h"
+#include "networkmgr.h"
 static luat_rtos_task_handle g_s_task_handle;
 static network_ctrl_t *g_s_network_ctrl;
 static int32_t luat_test_socket_callback(void *pdata, void *param)
