@@ -363,12 +363,16 @@ void lv_bmp_init(void);
 void lv_png_init(void);
 #endif
 
+static int fs_inited = 0;
 int luat_fs_init(void) {
-
+    if (fs_inited)
+        return 0;
+    fs_inited = 1;
     luat_vfs_reg(&vfs_fs_ec618);
 #ifdef __LUATOS__
     luat_vfs_reg(&vfs_fs_lfs2);
 	luat_vfs_reg(&vfs_fs_luadb);
+    luat_vfs_reg(&vfs_fs_ram);
 #endif
 
 	luat_fs_conf_t conf = {
@@ -379,9 +383,6 @@ int luat_fs_init(void) {
 	};
 	luat_fs_mount(&conf);
 
-
-
-    luat_vfs_reg(&vfs_fs_ram);
     luat_fs_conf_t conf3 = {
 		.busname = NULL,
 		.type = "ram",
@@ -391,7 +392,6 @@ int luat_fs_init(void) {
 	luat_fs_mount(&conf3);
 
 #ifdef __LUATOS__
-    // 以下为临时配置, 从APP区的末端,切出128k作为临时脚本区，80K作为OTA区
     #define LUADB_ADDR ((uint32_t)LUA_SCRIPT_ADDR | AP_FLASH_XIP_ADDR)
     //DBG("luadb tmp addr %p", LUADB_ADDR);
 	luat_fs_conf_t conf2 = {
