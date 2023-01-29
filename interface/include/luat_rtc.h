@@ -46,4 +46,6 @@ int luat_rtc_set(struct tm *tblock);
  */
 int luat_rtc_get(struct tm *tblock);
 
+int luat_rtc_timezone(int* timezone);
+
 #endif

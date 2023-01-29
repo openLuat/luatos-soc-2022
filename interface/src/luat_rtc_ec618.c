@@ -70,6 +70,12 @@ int luat_rtc_timer_stop(int id){
     return -1;
 }
 
+int luat_rtc_timezone(int* timezone) {
+    if (timezone != NULL)
+        g_s_local_tz = *timezone;
+    return g_s_local_tz;
+}
+
 #endif
 
 
