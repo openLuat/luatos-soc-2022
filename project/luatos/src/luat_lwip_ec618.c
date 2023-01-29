@@ -783,16 +783,15 @@ static ip_addr_t *net_lwip_get_ip6(void)
 			return &prvlwip.lwip_netif->ip6_addr[i];
 		}
 	}
-	if (0xff == ipv6->type)
+
+	for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
 	{
-		for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+		if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_VALID)
 		{
-			if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_VALID)
-			{
-				return &prvlwip.lwip_netif->ip6_addr[i];
-			}
+			return &prvlwip.lwip_netif->ip6_addr[i];
 		}
 	}
+
 	return NULL;
 }
 
@@ -929,7 +928,7 @@ static void net_lwip_task(void *param)
 		}
 		else
 		{
-			local_ip = net_lwip_get_ip6()
+			local_ip = net_lwip_get_ip6();
 		}
 		if (!local_ip)
 		{
