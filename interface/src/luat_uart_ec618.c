@@ -357,3 +357,15 @@ int luat_uart_ctrl(int uart_id, LUAT_UART_CTRL_CMD_E cmd, void* param){
     }
     return 0;
 }
+
+int luat_uart_wait_485_tx_done(int uartid)
+{
+	int cnt = 0;
+    if (luat_uart_exist(uartid)){
+		if (g_s_serials[uartid].rs485_param_bit.is_485used) {
+			while(!Uart_IsTSREmpty(uartid)) {cnt++;}
+			GPIO_Output(g_s_serials[uartid].rs485_pin, g_s_serials[uartid].rs485_param_bit.rx_level);
+		}
+    }
+    return cnt;
+}

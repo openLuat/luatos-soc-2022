@@ -169,7 +169,7 @@
 
 #define LUAT_COMPILER_NOWEAK
 #define LUAT_GPIO_PIN_MAX 36
-
+#define LUAT__UART_TX_NEED_WAIT_DONE
 // 内存优化: 减少内存消耗, 会稍微减低性能
 #define LUAT_USE_MEMORY_OPTIMIZATION_CODE_MMAP 1
 
