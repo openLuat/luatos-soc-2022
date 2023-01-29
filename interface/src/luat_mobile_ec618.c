@@ -164,8 +164,8 @@ int luat_mobile_set_sim_id(int id)
 int luat_mobile_get_apn(int sim_id, int cid, char* buff, size_t buf_len)
 {
 	uint8_t type;
-	int default_cid = soc_mobile_get_default_pdp_part_info(&type, NULL, NULL, NULL, NULL);
-	if (cid > 0 && default_cid != cid)
+	int work_cid = soc_mobile_get_default_pdp_part_info(&type, NULL, NULL, NULL, NULL);
+	if (cid > 0 && work_cid != cid)
 	{
 		return -1;
 	}
@@ -292,9 +292,21 @@ int luat_mobile_get_local_ip(int sim_id, int cid, ip_addr_t *ip_v4, ip_addr_t *i
 			ip_v6->type = 0xff;
 			for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
 			{
-				if (netif->ip6_addr_state[i] & IP6_ADDR_VALID)
+				if (netif->ip6_addr_state[i] & IP6_ADDR_PREFERRED)
 				{
 					*ip_v6 = netif->ip6_addr[i];
+					break;
+				}
+			}
+			if (0xff == ip_v6->type)
+			{
+				for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+				{
+					if (netif->ip6_addr_state[i] & IP6_ADDR_VALID)
+					{
+						*ip_v6 = netif->ip6_addr[i];
+						break;
+					}
 				}
 			}
 
