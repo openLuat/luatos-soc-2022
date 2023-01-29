@@ -9,6 +9,7 @@
 #include "tcpip.h"
 #include "udp.h"
 #include "pssys.h"
+#include "networkmgr.h"
 #ifndef SOCKET_BUF_LEN
 #define SOCKET_BUF_LEN	(3 * TCP_MSS)
 #endif
@@ -337,6 +338,7 @@ typedef struct
 	uint64_t socket_tag;
 	dns_client_t dns_client;
 	socket_ctrl_t socket[MAX_SOCK_NUM];
+	ip_addr_t ec618_ipv6;
 	struct netif *lwip_netif;
 	CBFuncEx_t socket_cb;
 	void *user_data;
@@ -773,26 +775,22 @@ void net_lwip_init(void)
 	prvlwip.dns_timer = platform_create_timer(net_lwip_timer_cb, (void *)EV_LWIP_COMMON_TIMER, 0);
 }
 
+void net_lwip_set_local_ip6(ip6_addr_t *ip)
+{
+	prvlwip.ec618_ipv6.u_addr.ip6 = *ip;
+	prvlwip.ec618_ipv6.type = IPADDR_TYPE_V6;
+}
+
 static ip_addr_t *net_lwip_get_ip6(void)
 {
-	int i;
-	for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+	if (IPADDR_TYPE_V6 == prvlwip.ec618_ipv6.type)
 	{
-		if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_PREFERRED)
-		{
-			return &prvlwip.lwip_netif->ip6_addr[i];
-		}
+		return &prvlwip.ec618_ipv6;
 	}
-
-	for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+	else
 	{
-		if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_VALID)
-		{
-			return &prvlwip.lwip_netif->ip6_addr[i];
-		}
+		return NULL;
 	}
-
-	return NULL;
 }
 
 static void net_lwip_task(void *param)
@@ -936,6 +934,8 @@ static void net_lwip_task(void *param)
 			net_lwip_callback_to_nw_task(adapter_index, EV_NW_SOCKET_ERROR, socket_id, 0, 0);
 			break;
 		}
+		NET_DBG("%s", ipaddr_ntoa(local_ip));
+
 		if (prvlwip.socket[socket_id].is_tcp)
 		{
 
@@ -1748,15 +1748,17 @@ static int net_lwip_get_full_ip_info(luat_ip_addr_t *ip, luat_ip_addr_t *submask
 	*ip = prvlwip.lwip_netif->ip_addr;
 	*submask = prvlwip.lwip_netif->netmask;
 	*gateway = prvlwip.lwip_netif->gw;
-	luat_ip_addr_t *local_ip = net_lwip_get_ip6();
-	if (local_ip)
+	luat_ip_addr_t *local_ipv6 = net_lwip_get_ip6();
+
+	if (local_ipv6)
 	{
-		*ipv6 = *local_ip;
+		*ipv6 = *local_ipv6;
 	}
 	else
 	{
 		ipv6->type = 0xff;
 	}
+
 	return 0;
 }
 

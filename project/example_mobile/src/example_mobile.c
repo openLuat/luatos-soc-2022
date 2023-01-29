@@ -109,7 +109,7 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		LUAT_DEBUG_PRINT("CID %d PDP激活状态变更为 %d", index, status);
 		break;
 	case LUAT_MOBILE_EVENT_NETIF:
-		LUAT_DEBUG_PRINT("internet工作状态变更为 %d", status);
+		LUAT_DEBUG_PRINT("internet工作状态变更为 %d,cause %d", status,index);
 		switch (status)
 		{
 		case LUAT_MOBILE_NETIF_LINK_ON:

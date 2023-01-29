@@ -336,6 +336,7 @@ typedef struct
 	uint64_t socket_tag;
 	dns_client_t dns_client;
 	socket_ctrl_t socket[MAX_SOCK_NUM];
+	ip_addr_t ec618_ipv6;
 	struct netif *lwip_netif;
 	CBFuncEx_t socket_cb;
 	void *user_data;
@@ -772,6 +773,23 @@ void net_lwip_init(void)
 	prvlwip.dns_timer = platform_create_timer(net_lwip_timer_cb, (void *)EV_LWIP_COMMON_TIMER, 0);
 }
 
+void net_lwip_set_local_ip6(ip6_addr_t *ip)
+{
+	prvlwip.ec618_ipv6.u_addr.ip6 = *ip;
+	prvlwip.ec618_ipv6.type = IPADDR_TYPE_V6;
+}
+
+static ip_addr_t *net_lwip_get_ip6(void)
+{
+	if (IPADDR_TYPE_V6 == prvlwip.ec618_ipv6.type)
+	{
+		return &prvlwip.ec618_ipv6;
+	}
+	else
+	{
+		return NULL;
+	}
+}
 
 static void net_lwip_task(void *param)
 {
@@ -906,14 +924,7 @@ static void net_lwip_task(void *param)
 		}
 		else
 		{
-			for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
-			{
-				if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_VALID)
-				{
-					local_ip = &prvlwip.lwip_netif->ip6_addr[i];
-					break;
-				}
-			}
+			local_ip = net_lwip_get_ip6();
 
 		}
 		if (!local_ip)

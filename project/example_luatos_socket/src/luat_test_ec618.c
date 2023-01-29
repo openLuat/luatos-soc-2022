@@ -21,6 +21,25 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 			uint8_t type, dns_num;
 			dns_num = 2;
 			soc_mobile_get_default_pdp_part_info(&type, NULL, NULL, &dns_num, dns_ip);
+
+			if (type & 0x80)
+			{
+				if (index != 4)
+				{
+					return;
+				}
+				else
+				{
+					NmAtiNetifInfo *pNetifInfo = malloc(sizeof(NmAtiNetifInfo));
+					NetMgrGetNetInfo(0xff, pNetifInfo);
+					if (pNetifInfo->ipv6Cid != 0xff)
+					{
+						net_lwip_set_local_ip6(&pNetifInfo->ipv6Info.ipv6Addr);
+
+					}
+					free(pNetifInfo);
+				}
+			}
 			if (dns_num > 0)
 			{
 				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 2, &dns_ip[0]);

@@ -280,52 +280,27 @@ int luat_mobile_get_flymode(int index)
 int luat_mobile_get_local_ip(int sim_id, int cid, ip_addr_t *ip_v4, ip_addr_t *ip_v6)
 {
 	int i;
-	struct netif *netif = netif_find_by_cid(cid);
-	if (netif)
+	NmAtiNetifInfo NetifInfo;
+	NetMgrGetNetInfo(cid, &NetifInfo);
+	if (NetifInfo.ipv4Cid != 0xff)
 	{
-		if (ip_v4)
-		{
-			*ip_v4 = netif->ip_addr;
-		}
-		if (ip_v6)
-		{
-			ip_v6->type = 0xff;
-			for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
-			{
-				if (netif->ip6_addr_state[i] & IP6_ADDR_PREFERRED)
-				{
-					*ip_v6 = netif->ip6_addr[i];
-					break;
-				}
-			}
-			if (0xff == ip_v6->type)
-			{
-				for(i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
-				{
-					if (netif->ip6_addr_state[i] & IP6_ADDR_VALID)
-					{
-						*ip_v6 = netif->ip6_addr[i];
-						break;
-					}
-				}
-			}
-
-		}
-		return 0;
+		ip_v4->u_addr.ip4 = NetifInfo.ipv4Info.ipv4Addr;
+		ip_v4->type = IPADDR_TYPE_V4;
 	}
 	else
 	{
-		if (ip_v4)
-		{
-			ip_v4->type = 0xff;
-		}
-		if (ip_v6)
-		{
-			ip_v6->type = 0xff;
-		}
-		return -1;
+		ip_v4->type = 0xff;
 	}
-
+	if (NetifInfo.ipv6Cid != 0xff)
+	{
+		ip_v6->u_addr.ip6 = NetifInfo.ipv6Info.ipv6Addr;
+		ip_v6->type = IPADDR_TYPE_V6;
+	}
+	else
+	{
+		ip_v6->type = 0xff;
+	}
+	return 0;
 }
 
 /* -------------------------------------------------- cell info begin -------------------------------------------------- */
