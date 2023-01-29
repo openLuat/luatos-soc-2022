@@ -205,6 +205,7 @@ void task_init(void)
 	luat_mobile_set_sim_id(2);
 	luat_rtos_task_handle task_handle;
 	luat_rtos_task_create(&task_handle, 4 * 1204, 50, "test", task_run, NULL, 32);
+//	luat_mobile_user_apn_auto_active(0, g_s_test_cid, 3,0xff, NULL, 0, NULL, 0, NULL, 0);
 }
 
 INIT_TASK_EXPORT(task_init, "0");

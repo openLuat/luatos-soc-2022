@@ -97,55 +97,6 @@ void luat_lvgl_tick_sleep(uint8_t OnOff)
 #endif
 extern int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
 
-
-//static INT32 ps_callback(PsEventID eventID, void *param, UINT32 paramLen)
-//{
-//	NmAtiNetInfoInd *net_info = (NmAtiNetInfoInd *)param;
-//	ip_addr_t dns_ip;
-//	if(PS_URC_ID_PS_NETINFO == eventID)
-//	{
-//		if (NM_NETIF_ACTIVATED == net_info->netifInfo.netStatus)
-//		{
-//			if (net_info->netifInfo.ipv4Cid != 0xFF)
-//			{
-//				dns_ip.type = IPADDR_TYPE_V4;
-//				dns_ip.u_addr.ip4 = net_info->netifInfo.ipv4Info.dns[0];
-//				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 2, &dns_ip);
-//				dns_ip.u_addr.ip4 = net_info->netifInfo.ipv4Info.dns[1];
-//				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip);
-//
-//			}
-//			else if (net_info->netifInfo.ipv6Cid != 0xFF)
-//			{
-//				// dns_ip.type = IPADDR_TYPE_V6;
-//				// dns_ip.u_addr.ip6 = net_info->netifInfo.ipv6Info.dns[0];
-//				// network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip);
-//				//dns_ip.u_addr.ip6 = net_info->netifInfo.ipv6Info.dns[1];
-//				//network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip);
-//			}
-//			net_lwip_set_link_state(NW_ADAPTER_INDEX_LWIP_GPRS, 1);
-//		}
-//	}
-//	return 0;
-//}
-
-//static void dft_usb_recv_cb(uint8_t channel, uint8_t *input, uint32_t len){
-//    if (input == NULL) {
-//        switch(len){
-//            case 0:
-//                LLOGD("usb serial connected");
-//                break;
-//            default:
-//                LLOGD("usb serial disconnected");
-//                break;
-//		}
-//    }
-//#ifdef LUAT_USE_SHELL
-//    else {
-//        luat_shell_push(input, len);
-//    }
-//#endif
-//}
 extern int soc_get_model_name(char *model);
 
 static void self_info(void)

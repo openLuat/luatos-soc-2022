@@ -39,6 +39,13 @@ extern void soc_mobile_set_sim_id(uint8_t sim_id);
 extern void soc_mobile_sms_event_register_handler(void *handle);
 extern uint8_t soc_mobile_get_csq(void);
 extern void soc_mobile_search_cell_info_async(uint8_t param);
+extern void soc_mobile_set_user_apn_auto_active(uint8_t cid,
+		uint8_t ip_type,
+		uint8_t protocol_type,
+		uint8_t *apn_name, uint8_t apn_name_len,
+		uint8_t *user, uint8_t user_len,
+		uint8_t *password, uint8_t password_len);
+
 int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
 
 int luat_mobile_get_imei(int sim_id, char* buff, size_t buf_len)
@@ -240,7 +247,16 @@ int luat_mobile_active_netif(int sim_id, int cid)
 	return psGetCGCONTRDPParam(PS_DIAL_REQ_HANDLER, cid);
 }
 
-
+void luat_mobile_user_apn_auto_active(int sim_id, uint8_t cid,
+		uint8_t ip_type,
+		uint8_t protocol_type,
+		uint8_t *apn_name, uint8_t apn_name_len,
+		uint8_t *user, uint8_t user_len,
+		uint8_t *password, uint8_t password_len)
+{
+	s_disable_default_pdp = 1;
+	soc_mobile_set_user_apn_auto_active(cid, ip_type, protocol_type, apn_name, apn_name_len, user, user_len, password, password_len);
+}
 // 进出飞行模式
 int luat_mobile_set_flymode(int index, int mode)
 {
