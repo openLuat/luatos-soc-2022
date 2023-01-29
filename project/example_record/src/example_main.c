@@ -81,8 +81,8 @@ static const i2c_reg_t es8311_reg_table[] =
 	{0x1C,0x6A},
 	{0x37,0x48},
 	{0x44,(0 <<7)},	//(0x44,(ADC2DAC_Sel <<7));
-	{0x17,210},//(0x17,ADC_Volume);
-	{0x32,200},//(0x32,DAC_Volume);
+	{0x17,0xd2},//(0x17,ADC_Volume);
+	{0x32,0xc8},//(0x32,DAC_Volume);
 
 };
 
@@ -201,7 +201,7 @@ static void demo_task(void *arg)
 	tx_buf[0] = 0xfe;
 	luat_i2c_transfer(I2C_ID0, i2c_address, tx_buf, 1, rx_buf + 1, 1);
 	luat_rtos_timer_create(&g_s_delay_timer);
-    luat_i2s_base_setup(I2S_ID0, I2S_MODE_MSB, I2S_FRAME_SIZE_16_16);
+    luat_i2s_base_setup(I2S_ID0, I2S_MODE_I2S, I2S_FRAME_SIZE_16_16);
     g_s_amr_encoder_handler = Encoder_Interface_init(0);
     OS_InitBuffer(&g_s_amr_rom_file, RECORD_TIME * 1604 + 6);	//1秒最高音质的AMRNB编码是1600
     OS_BufferWrite(&g_s_amr_rom_file, "#!AMR\n", 6);
@@ -232,6 +232,7 @@ static void demo_task(void *arg)
 			tx_buf[0] = 0x00;
 			tx_buf[1] = 0x80|(0 << 6);
 			luat_i2c_transfer(I2C_ID0, i2c_address, NULL, 0, tx_buf, 2);
+			luat_i2s_base_setup(I2S_ID0, I2S_MODE_MSB, I2S_FRAME_SIZE_16_16);
 			info[0].address = g_s_amr_rom_file.Data;
 			info[0].rom_data_len = g_s_amr_rom_file.Pos;
 			luat_audio_play_multi_files(0, info, 1);
