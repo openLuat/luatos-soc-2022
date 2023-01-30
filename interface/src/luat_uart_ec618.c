@@ -31,6 +31,7 @@
 #include "luat_malloc.h"
 #include "luat_msgbus.h"
 #include "luat_timer.h"
+#include "luat_hmeta.h"
 #endif
 
 #include <stdio.h>
@@ -173,7 +174,11 @@ int luat_uart_setup(luat_uart_t* uart) {
         return 0;
     }
     char model[40] = {0};
+#ifdef __LUATOS__
+    luat_hmeta_model_name(model);
+#else
 	soc_get_model_name(model);
+#endif
     switch (uart->id)
     {
 	case UART_ID0:
