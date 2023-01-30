@@ -99,14 +99,8 @@ extern int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,u
 
 extern int soc_get_model_name(char *model);
 
-//static void self_info(void)
-//{
-
-//}
-
-static void self_info(uint8_t *data, uint32_t len)
+static void self_info(uint16_t param_size, void* p_param)
 {
-	luat_rtos_task_sleep(50);
 	char temp[40] = {0};
 	char imei[22] = {0};
 	luat_mobile_get_imei(0, imei, 22);
@@ -132,7 +126,8 @@ static void luatos_task(void *param)
 
 	luat_heap_init();
 //	self_info();
-	soc_call_function_in_service(self_info, NULL, NULL, 0);
+	cmsNonBlockApiCall(self_info, 0, NULL);
+//	soc_call_function_in_service(self_info, NULL, NULL, 0);
 #ifdef LUAT_USE_MEDIA
 	luat_audio_global_init();
 #endif
