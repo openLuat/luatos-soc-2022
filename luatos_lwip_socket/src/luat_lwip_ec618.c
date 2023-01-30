@@ -769,7 +769,7 @@ void net_lwip_init(void)
 		INIT_LLIST_HEAD(&prvlwip.socket[i].rx_head);
 		prvlwip.socket[i].mutex = platform_create_mutex();
 	}
-
+	mbedtls_debug_set_threshold(0);
 	prvlwip.dns_timer = platform_create_timer(net_lwip_timer_cb, (void *)EV_LWIP_COMMON_TIMER, 0);
 }
 
