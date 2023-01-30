@@ -13,7 +13,5 @@ int luat_hmeta_model_name(char* buff) {
     if (ticks < 250) {
         luat_rtos_task_sleep(250 - ticks);
     }
-    memset(buff, 0, strlen(buff));
-    soc_get_model_name(buff);
-    return 0;
+    return soc_get_model_name(buff);
 }
