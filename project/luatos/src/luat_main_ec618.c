@@ -33,9 +33,6 @@
 #include "networkmgr.h"
 #include "plat_config.h"
 #include "driver_gpio.h"
-#include "luat_hmeta.h"
-#include "reset.h"
-#include "luat_fs.h"
 #ifdef LUAT_USE_LVGL
 #include "lvgl.h"
 #include "luat_lvgl.h"
@@ -102,28 +99,26 @@ extern int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,u
 
 extern int soc_get_model_name(char *model);
 
-static void model_name_task(void *param) {
-	(void)param;
-	luat_rtos_task_sleep(100);
-	char buff[40] = {0};
-	luat_hmeta_model_name(buff);
-	luat_rtos_task_delete(NULL);
-}
+//static void self_info(void)
+//{
 
-static void self_info(void)
+//}
+
+static void self_info(uint8_t *data, uint32_t len)
 {
+	luat_rtos_task_sleep(50);
 	char temp[40] = {0};
 	char imei[22] = {0};
-	int ret = luat_hmeta_model_name(temp);
-	if (ret != 0) {
-		temp[0] = '?';
-		temp[1] = 0;
-		luat_rtos_task_handle task_handle;
-		// xTaskCreateStatic(task1, "luatos", VM_STACK_SIZE, NULL, 20, s_vm_stackbuff, pxVMTaskTCBBuffer);
-		luat_rtos_task_create(&task_handle, 4 * 1024, 80, "model", model_name_task, NULL, 0);
-	}
 	luat_mobile_get_imei(0, imei, 22);
-	DBG("model %s imei %s", temp, imei); // 第一次启动会拿不到
+	if (soc_get_model_name(temp))
+	{
+		DBG("model maybe %s imei %s", temp, imei);
+	}
+	else
+	{
+		DBG("model %s imei %s", temp, imei);
+	}
+
 }
 
 static void luatos_task(void *param)
@@ -136,8 +131,8 @@ static void luatos_task(void *param)
         ResetLockupCfg(false, false);
 
 	luat_heap_init();
-	luat_fs_init();
-	self_info();
+//	self_info();
+	soc_call_function_in_service(self_info, NULL, NULL, 0);
 #ifdef LUAT_USE_MEDIA
 	luat_audio_global_init();
 #endif

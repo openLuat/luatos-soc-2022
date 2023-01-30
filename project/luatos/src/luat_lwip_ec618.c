@@ -934,7 +934,7 @@ static void net_lwip_task(void *param)
 			net_lwip_callback_to_nw_task(adapter_index, EV_NW_SOCKET_ERROR, socket_id, 0, 0);
 			break;
 		}
-		NET_DBG("%s", ipaddr_ntoa(local_ip));
+//		NET_DBG("%s", ipaddr_ntoa(local_ip));
 
 		if (prvlwip.socket[socket_id].is_tcp)
 		{
