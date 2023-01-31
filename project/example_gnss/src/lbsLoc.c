@@ -268,33 +268,38 @@ static void lbsloc_task(void *arg)
     {
         LUAT_DEBUG_PRINT("lbsLocSendRequest send lbsLoc request success");
         ret = recv(socket_id, &locationServiceResponse, sizeof(struct am_location_service_rsp_data_t), 0);
-        if (sizeof(struct am_location_service_rsp_data_t) == ret)
+        if(ret > 0)
         {
-            if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == TRUE)
+            LUAT_DEBUG_PRINT("lbsLocSendRequest recv lbsLoc success %d", ret);
+            if (sizeof(struct am_location_service_rsp_data_t) == ret)
             {
-                LUAT_DEBUG_PRINT("latitude:%s,longitude:%s,year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n", latitude, longitude, year, month, day, hour, minute, second);
-                char data_buf[60] = {0};
-                snprintf(data_buf, 60, "$AIDTIME,%d,%d,%d,%d,%d,%d,000\r\n", year, month, day, hour, minute, second);
-                luat_uart_write(2, data_buf, strlen(data_buf));
-                LUAT_DEBUG_PRINT("this is test1 %s", data_buf);
-                luat_rtos_task_sleep(200);
-
-                memset(data_buf, 0x00, 60);
-
-                char lat[20] = {0};
-                char lng[20] = {0};
-                ddddtoddmm(latitude, lat);
-                LUAT_DEBUG_PRINT("this is test2 %s", lat);
-                ddddtoddmm(longitude, lng);
-                LUAT_DEBUG_PRINT("this is test3 %s", lng);
-                snprintf(data_buf, 60, "$AIDPOS,%s,N,%s,E,1.0\r\n", lat, lng);
-                LUAT_DEBUG_PRINT("this is test4 %s", data_buf);
-                luat_uart_write(2, data_buf, strlen(data_buf));
+                if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == TRUE)
+                {
+                    LUAT_DEBUG_PRINT("location_service_task: rcv response, process success");
+                    LUAT_DEBUG_PRINT("latitude:%s,longitude:%s,year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n", latitude, longitude, year, month, day, hour, minute, second);
+                    char data_buf[60] = {0};
+                    snprintf(data_buf, 60, "$AIDTIME,%d,%d,%d,%d,%d,%d,000\r\n", year, month, day, hour, minute, second);
+                    LUAT_DEBUG_PRINT("location_service_task: AIDTIME %s", data_buf);
+                    luat_uart_write(2, data_buf, strlen(data_buf));
+                    luat_rtos_task_sleep(200);
+                    memset(data_buf, 0x00, 60);
+                    char lat[20] = {0};
+                    char lng[20] = {0};
+                    ddddtoddmm(latitude, lat);
+                    ddddtoddmm(longitude, lng);
+                    snprintf(data_buf, 60, "$AIDPOS,%s,N,%s,E,1.0\r\n", lat, lng);
+                    LUAT_DEBUG_PRINT("location_service_task: AIDPOS %s", data_buf);
+                    luat_uart_write(2, data_buf, strlen(data_buf));
+                }
+                else
+                {
+                    LUAT_DEBUG_PRINT("location_service_task: rcv response, but process fail");
+                }
             }
-            else
-            {
-                LUAT_DEBUG_PRINT("location_service_task: rcv response, but process fail");
-            }
+        }
+        else
+        {
+            LUAT_DEBUG_PRINT("lbsLocSendRequest recv lbsLoc fail %d", ret);
         }
     }
     else
