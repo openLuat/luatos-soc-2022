@@ -29,6 +29,7 @@
 extern void soc_mobile_event_deregister_handler(void);
 extern void soc_mobile_get_imsi(uint8_t *buf);
 extern void soc_mobile_get_iccid(uint8_t *buf);
+extern void soc_mobile_get_sim_number(uint8_t *buf);
 extern void soc_mobile_event_register_handler(void *handle);
 extern void soc_mobile_set_period(uint32_t get_cell_period, uint32_t check_sim_period, uint8_t search_cell_time);
 extern void soc_mobile_reset_stack(void);
@@ -121,6 +122,21 @@ int luat_mobile_get_imsi(int sim_id, char* buff, size_t buf_len)
 {
 	char temp[20] = {0};
 	soc_mobile_get_imsi(temp);
+	if (temp[0])
+	{
+		memcpy(buff, temp, (buf_len > sizeof(temp))?sizeof(temp):buf_len);
+		return (buf_len > sizeof(temp))?sizeof(temp):buf_len;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+int luat_mobile_get_sim_number(int sim_id, char* buff, size_t buf_len)
+{
+	char temp[24] = {0};
+	soc_mobile_get_sim_number(temp);
 	if (temp[0])
 	{
 		memcpy(buff, temp, (buf_len > sizeof(temp))?sizeof(temp):buf_len);
