@@ -1,3 +1,6 @@
+#include "luat_mobile.h"
+#include "HTTPClient.h"
+
 #include "common_api.h"
 #include "sockets.h"
 #include "dns.h"
@@ -5,17 +8,15 @@
 #include "netdb.h"
 #include "luat_debug.h"
 #include "luat_rtos.h"
-#include "luat_mobile.h"
-#include "string.h"
 #include "lbsLoc.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 
-#define DEMO_SERVER_UDP_IP "bs.openluat.com" // 基站定位网址
-#define DEMO_SERVER_UDP_PORT 12411           // 端口
-
+#define LBSLOC_SERVER_UDP_IP "bs.openluat.com" // 基站定位网址
+#define LBSLOC_SERVER_UDP_PORT 12411           // 端口
+#define UART_ID 2
 /// @brief 合宙IOT 项目productkey ，必须加上，否则定位失败
 static char *productKey = "vQfJesoQdXDK8X1sXkYg0KTU42UBhdjh";
 static luat_rtos_task_handle lbsloc_task_handle = NULL;
@@ -240,7 +241,7 @@ static void lbsloc_task(void *arg)
     lbsLocReqBuf[sendLen++] = cell_info.lte_service_info.cid & 0xFF;
 
     char hostname[128] = {0};
-    ret = lwip_gethostbyname_r(DEMO_SERVER_UDP_IP, &dns_result, hostname, 128, &p_result, &h_errnop);
+    ret = lwip_gethostbyname_r(LBSLOC_SERVER_UDP_IP, &dns_result, hostname, 128, &p_result, &h_errnop);
     if (!ret)
     {
         remote_ip = *((ip_addr_t *)dns_result.h_addr_list[0]);
@@ -262,15 +263,15 @@ static void lbsloc_task(void *arg)
     memset(&name, 0, sizeof(name));
     name.sin_family = AF_INET;
     name.sin_addr.s_addr = remote_ip.u_addr.ip4.addr;
-    name.sin_port = htons(DEMO_SERVER_UDP_PORT);
+    name.sin_port = htons(LBSLOC_SERVER_UDP_PORT);
     ret = sendto(socket_id, lbsLocReqBuf, sendLen, 0, (const struct sockaddr *)&name, sockaddr_t_size);
     if (ret == sendLen)
     {
-        LUAT_DEBUG_PRINT("lbsLocSendRequest send lbsLoc request success");
+        LUAT_DEBUG_PRINT("location_service_task send lbsLoc request success");
         ret = recv(socket_id, &locationServiceResponse, sizeof(struct am_location_service_rsp_data_t), 0);
         if(ret > 0)
         {
-            LUAT_DEBUG_PRINT("lbsLocSendRequest recv lbsLoc success %d", ret);
+            LUAT_DEBUG_PRINT("location_service_task recv lbsLoc success %d", ret);
             if (sizeof(struct am_location_service_rsp_data_t) == ret)
             {
                 if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == TRUE)
@@ -299,12 +300,12 @@ static void lbsloc_task(void *arg)
         }
         else
         {
-            LUAT_DEBUG_PRINT("lbsLocSendRequest recv lbsLoc fail %d", ret);
+            LUAT_DEBUG_PRINT("location_service_task recv lbsLoc fail %d", ret);
         }
     }
     else
     {
-        LUAT_DEBUG_PRINT("lbsLocSendRequest send lbsLoc request fail");
+        LUAT_DEBUG_PRINT("location_service_task send lbsLoc request fail");
     }
     memset(latitude, 0, 20);
     memset(longitude, 0, 20);
@@ -321,10 +322,130 @@ static void lbsloc_task(void *arg)
     luat_rtos_task_delete(lbsloc_task_handle);
 }
 
-void demo_udp_init(void)
+void lbsloc_request(void)
 {
     if (lbsloc_task_handle == NULL || lbsloc_task_tatus == 0)
-        luat_rtos_task_create(&lbsloc_task_handle, 4 * 2048, 80, "udp", lbsloc_task, NULL, NULL);
+        luat_rtos_task_create(&lbsloc_task_handle, 4 * 2048, 80, "lbsloc", lbsloc_task, NULL, NULL);
     else
         LUAT_DEBUG_PRINT("lbsloc task create fail");
+}
+
+
+#define HTTP_RECV_BUF_SIZE      (6000)
+#define HTTP_HEAD_BUF_SIZE      (800)
+#define TEST_HOST "http://download.openluat.com/9501-xingli/HXXT_GPS_BDS_AGNSS_DATA.dat"
+
+static HttpClientContext        gHttpClient = {0};
+static luat_rtos_semaphore_t net_semaphore_handle;
+static luat_rtos_task_handle http_task_handle;
+
+void mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status){
+    if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_ON){
+        LUAT_DEBUG_PRINT("network ready");
+        luat_rtos_semaphore_release(net_semaphore_handle);
+    }
+}
+
+
+
+static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len, UINT32 *dataLen)
+{
+    HTTPResult result = HTTP_INTERNAL;
+    HttpClientData    clientData = {0};
+    UINT32 count = 0;
+    uint16_t headerLen = 0;
+
+    LUAT_DEBUG_ASSERT(buf != NULL,0,0,0);
+
+    clientData.headerBuf = malloc(HTTP_HEAD_BUF_SIZE);
+    clientData.headerBufLen = HTTP_HEAD_BUF_SIZE;
+    clientData.respBuf = buf;
+    clientData.respBufLen = len;
+
+    result = httpSendRequest(&gHttpClient, getUrl, HTTP_GET, &clientData);
+    LUAT_DEBUG_PRINT("send request result=%d", result);
+    if (result != HTTP_OK)
+        goto exit;
+    do {
+    	LUAT_DEBUG_PRINT("recvResponse loop.");
+        memset(clientData.headerBuf, 0, clientData.headerBufLen);
+        memset(clientData.respBuf, 0, clientData.respBufLen);
+        result = httpRecvResponse(&gHttpClient, &clientData);
+        if(result == HTTP_OK || result == HTTP_MOREDATA){
+            headerLen = strlen(clientData.headerBuf);
+            if(headerLen > 0)
+            {
+            	LUAT_DEBUG_PRINT("total content length=%d", clientData.recvContentLength);
+            }
+
+            if(clientData.blockContentLen > 0)
+            {
+            	LUAT_DEBUG_PRINT("response content:{%s}", (uint8_t*)clientData.respBuf);
+            }
+            count += clientData.blockContentLen;
+            *dataLen = *dataLen + count;
+            LUAT_DEBUG_PRINT("has recv=%d", count);
+        }
+    } while (result == HTTP_MOREDATA || result == HTTP_CONN);
+
+    LUAT_DEBUG_PRINT("result=%d", result);
+    if (gHttpClient.httpResponseCode < 200 || gHttpClient.httpResponseCode > 404)
+    {
+    	LUAT_DEBUG_PRINT("invalid http response code=%d",gHttpClient.httpResponseCode);
+    } else if (count == 0 || count != clientData.recvContentLength) {
+    	LUAT_DEBUG_PRINT("data not receive complete");
+    } else {
+    	LUAT_DEBUG_PRINT("receive success");
+    }
+exit:
+    free(clientData.headerBuf);
+    return result;
+}
+
+
+static void ephemeris_get_task(void *param)
+{
+    luat_rtos_semaphore_create(&net_semaphore_handle, 1);
+    luat_mobile_event_register_handler(mobile_event_callback);
+    luat_rtos_semaphore_take(net_semaphore_handle, LUAT_WAIT_FOREVER);
+
+	char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
+	HTTPResult result = HTTP_INTERNAL;
+    uint32_t dataLen = 0;
+    gHttpClient.timeout_s = 2;
+    gHttpClient.timeout_r = 20;
+    
+    result = httpConnect(&gHttpClient, TEST_HOST);
+    if (result == HTTP_OK)
+    {
+        result = httpGetData(TEST_HOST, recvBuf, HTTP_RECV_BUF_SIZE, &dataLen);
+        httpClose(&gHttpClient);
+
+        if (result == HTTP_OK)
+        {
+            LUAT_DEBUG_PRINT("http client get data success %d", dataLen);
+
+            for (size_t i = 0; i < dataLen; i = i + 512)
+            {
+                if (i + 512 < dataLen)
+                    luat_uart_write(UART_ID, &recvBuf[i], 512);
+                else
+                    luat_uart_write(UART_ID, &recvBuf[i], dataLen - i);
+                luat_rtos_task_sleep(100);
+            }
+        }
+        lbsloc_request();
+    }
+    else
+    {
+        LUAT_DEBUG_PRINT("http client connect error");
+    }
+    memset(recvBuf, 0x00, HTTP_RECV_BUF_SIZE);
+    free(recvBuf);
+	luat_rtos_task_delete(http_task_handle);
+}
+
+void task_ephemeris(void)
+{
+	luat_rtos_task_create(&http_task_handle, 10*1024, 20, "http", ephemeris_get_task, NULL, NULL);
 }
