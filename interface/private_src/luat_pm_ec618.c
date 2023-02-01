@@ -28,7 +28,7 @@
 #include "slpman.h"
 #include "reset.h"
 #include "pwrkey.h"
-
+#include "luat_gpio.h"
 extern void soc_usb_onoff(uint8_t onoff);
 extern void soc_set_usb_sleep(uint8_t onoff);
 static uint32_t reportMode[LUAT_PM_SLEEP_MODE_STANDBY + 1][10] = {0};
@@ -188,16 +188,78 @@ int luat_pm_wakeup_pad_set(uint8_t enable, LUAT_PM_WAKEUP_PAD_E source_id, luat_
     {
         return -1;
     }
-    APmuWakeupPadSettings_t padConfig = {0};
-    padConfig.negEdgeEn = cfg->neg_edge_enable;
-    padConfig.posEdgeEn = cfg->pos_edge_enable;
-    padConfig.pullDownEn = cfg->pull_down_enable;
-    padConfig.pullUpEn = cfg->pull_up_enable;
-    apmuSetWakeupPadCfg(source_id, enable, &padConfig);
-    if(enable)
-        NVIC_EnableIRQ(source_id);
+    int pin;
+    switch (source_id)
+    {
+    case LUAT_PM_WAKEUP_PAD_0:
+        pin = HAL_WAKEUP_0;
+        break;
+    case LUAT_PM_WAKEUP_PAD_1:
+        pin = HAL_WAKEUP_1;
+        break;
+    case LUAT_PM_WAKEUP_PAD_2:
+        pin = HAL_WAKEUP_2;
+        break;
+    case LUAT_PM_WAKEUP_PAD_3:
+        pin = HAL_GPIO_20;
+        break;
+    case LUAT_PM_WAKEUP_PAD_4:
+        pin = HAL_GPIO_21;
+        break;
+    case LUAT_PM_WAKEUP_PAD_5:
+        pin = HAL_GPIO_22;
+        break;
+    default:
+        return -1;
+        break;
+    }
+
+    if (1 == enable)
+    {
+        luat_gpio_cfg_t gpio_cfg = {0};
+        gpio_cfg.irq_cb = NULL;
+        gpio_cfg.irq_type = NULL;
+        gpio_cfg.pin = pin;
+        gpio_cfg.mode = LUAT_GPIO_IRQ;
+        if (!cfg->pull_up_enable && !cfg->pull_down_enable)
+        {
+            gpio_cfg.pull = LUAT_GPIO_DEFAULT;
+        }
+        else if(cfg->pull_up_enable && !cfg->pull_down_enable)
+        {
+            gpio_cfg.pull = LUAT_GPIO_PULLUP;
+        }
+        else if(!cfg->pull_down_enable && cfg->pull_down_enable)
+        {
+            gpio_cfg.pull = Luat_GPIO_PULLDOWN;
+        }
+        else
+        {
+            return -1;
+        }
+
+        if(cfg->pos_edge_enable && cfg->neg_edge_enable)
+        {
+            gpio_cfg.irq_type = LUAT_GPIO_BOTH_IRQ;
+        }
+        else if(cfg->pos_edge_enable && !cfg->neg_edge_enable)
+        {
+            gpio_cfg.irq_type = LUAT_GPIO_RISING_IRQ;
+        }
+        else if(!cfg->pos_edge_enable && cfg->neg_edge_enable)
+        {
+            gpio_cfg.irq_type = LUAT_GPIO_FALLING_IRQ;
+        }
+        else
+        {
+            return -1;
+        }
+        luat_gpio_open(&gpio_cfg);
+    }
     else
-        NVIC_DisableIRQ(source_id);
+    {
+        luat_gpio_close(pin);
+    }
     return 0;
 }
 
@@ -207,7 +269,32 @@ int luat_pm_wakeup_pad_get_value(LUAT_PM_WAKEUP_PAD_E source_id)
     {
         return -1;
     }
-    return slpManGetWakeupPinValue() & (1 << source_id);
+    int pin;
+    switch (source_id)
+        {
+        case LUAT_PM_WAKEUP_PAD_0:
+            pin = HAL_WAKEUP_0;
+            break;
+        case LUAT_PM_WAKEUP_PAD_1:
+            pin = HAL_WAKEUP_1;
+            break;
+        case LUAT_PM_WAKEUP_PAD_2:
+            pin = HAL_WAKEUP_2;
+            break;
+        case LUAT_PM_WAKEUP_PAD_3:
+            pin = HAL_GPIO_20;
+            break;
+        case LUAT_PM_WAKEUP_PAD_4:
+            pin = HAL_GPIO_21;
+            break;
+        case LUAT_PM_WAKEUP_PAD_5:
+            pin = HAL_GPIO_22;
+            break;
+        default:
+            return -1;
+            break;
+        }
+    return luat_gpio_get(pin);
 }
 
 int luat_pm_set_pwrkey(LUAT_PM_POWERKEY_MODE_E mode, bool pullUpEn, luat_pm_pwrkey_cfg_t *cfg, luat_pm_pwrkey_callback_t callback)

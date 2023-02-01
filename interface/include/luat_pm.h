@@ -130,7 +130,7 @@ typedef void (*luat_pm_wakeup_pad_isr_callback_t)(LUAT_PM_WAKEUP_PAD_E num);
 int luat_pm_wakeup_pad_set_callback(luat_pm_wakeup_pad_isr_callback_t callback_fun);
 
 /**
- * @brief 配置wakeupPad中断参数，和GPIO20-22输入配置冲突，不可以和GPIO的API同时使用，建议使用GPIO的API
+ * @brief 配置wakeupPad中断参数，和GPIO20-22输入配置冲突，不可以和GPIO的API同时使用
  * 
  * @param enable 中断使能
  * @param source_id wakeupPad
