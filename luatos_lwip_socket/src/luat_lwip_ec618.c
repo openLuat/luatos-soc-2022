@@ -971,7 +971,7 @@ static void net_lwip_task(void *param)
 		{
 			platform_start_timer(prvlwip.dns_timer, 1000, 1);
 		}
-		dns_require_ipv6(&prvlwip.dns_client, event.Param1, event.Param2, event.Param3, event.ID - EV_LWIP_SOCKET_DNS);
+		dns_require_ipv6(&prvlwip.dns_client, event.Param1, event.Param2, event.Param3, (event.ID - EV_LWIP_SOCKET_DNS));
 		net_lwip_dns_tx_next(&tx_msg_buf);
 		break;
 	case EV_LWIP_SOCKET_LISTEN:
@@ -1757,7 +1757,7 @@ static int net_lwip_dns_ipv6(const char *domain_name, uint32_t len, void *param,
 	if ((uint32_t)user_data >= NW_ADAPTER_INDEX_LWIP_NETIF_QTY) return -1;
 	char *prv_domain_name = (char *)zalloc(len + 1);
 	memcpy(prv_domain_name, domain_name, len);
-	platform_send_event(prvlwip.task_handle, EV_LWIP_SOCKET_DNS_IPV6, prv_domain_name, param, user_data);
+	platform_send_event(prvlwip.task_handle, (prvlwip.ec618_ipv6.type != IPADDR_TYPE_V6)?EV_LWIP_SOCKET_DNS:EV_LWIP_SOCKET_DNS_IPV6, prv_domain_name, param, user_data);
 	return 0;
 }
 
