@@ -1848,6 +1848,7 @@ static network_adapter_info prv_net_lwip_adapter =
 		.setsockopt = net_lwip_setsockopt,
 		.user_cmd = net_lwip_user_cmd,
 		.dns = net_lwip_dns,
+		.dns_ipv6 = net_lwip_dns_ipv6,
 		.set_dns_server = net_lwip_set_dns_server,
 		.set_mac = net_lwip_set_mac,
 		.set_static_ip = net_lwip_set_static_ip,
