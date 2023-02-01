@@ -4,7 +4,6 @@
 #include "commontypedef.h"
 
 #define AM_LOCATION_SERVICE_LOCATION_BCD_LEN 5
-#define AM_LOCATION_SERVICE_RCV_TIMEOUT 15 
 
 #ifdef PACK_STRUCT_USE_INCLUDES
 #include "arch/bpstruct.h"
