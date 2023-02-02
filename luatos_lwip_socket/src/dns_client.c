@@ -49,7 +49,6 @@ typedef struct
 	uint8_t is_done;
 	uint8_t ipv6_mode;
 	uint8_t is_ipv6;
-	uint8_t ipv4_done;
 	uint8_t ipv6_done;
 }dns_process_t;
 
@@ -117,7 +116,7 @@ static int32_t dns_skip_name_field(Buffer_Struct *buf)
 
 static int32_t dns_set_result(void *pData, void *pParam)
 {
-	int i,j;
+	int i;
 	dns_process_t *process = (dns_process_t *)pParam;
 	luat_dns_require_t *require = (luat_dns_require_t *)pData;
 	if (!require->result)

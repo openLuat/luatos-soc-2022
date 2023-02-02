@@ -1712,7 +1712,6 @@ NETWORK_CONNECT_WAIT:
 			finish = 1;
 			break;
 		default:
-			DBG("%d", event.ID - EV_NW_RESULT_BASE);
 			if (ctrl->user_callback)
 			{
 				ctrl->user_callback((void *)&event, ctrl->user_data);
