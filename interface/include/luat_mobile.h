@@ -111,8 +111,21 @@ int luat_mobile_get_sim_id(int *id);
 int luat_mobile_set_sim_id(int id);
 
 /**
+ * @brief 设置默认PDN激活时是否要IPV6网络，现在默认情况下不开
+ * @param onoff 1开 0关
+ * @return uint8_t 1开 0关
+ */
+void luat_mobile_set_default_pdn_ipv6(uint8_t onoff);
+
+/**
+ * @brief 返回默认PDN激活时是否要IPV6网络
+ * @return uint8_t 1开 0关
+ */
+uint8_t luat_mobile_get_default_pdn_ipv6(void);
+
+/**
  * @brief 获取配置的apn name，并不一定支持
- * 
+ *
  * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
  * @param cid cid位置 1~6
  * @param buff[OUT] apn name

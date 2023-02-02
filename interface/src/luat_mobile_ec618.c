@@ -196,15 +196,29 @@ int luat_mobile_get_default_apn(int sim_id, char* buff, size_t buf_len)
 }
 
 static uint8_t s_disable_default_pdp;
-
+static uint8_t s_default_pdn_ip_type = 1;
 uint8_t soc_disable_tcpip_use_default_pdp(void)
 {
 	return s_disable_default_pdp;
+}
+uint8_t soc_mobile_default_pdn_ip_type(void)
+{
+	return s_default_pdn_ip_type;
 }
 
 void luat_mobile_user_ctrl_apn(void)
 {
 	s_disable_default_pdp = 1;
+}
+
+void luat_mobile_set_default_pdn_ipv6(uint8_t onoff)
+{
+	s_default_pdn_ip_type = onoff?3:1;
+}
+
+uint8_t luat_mobile_get_default_pdn_ipv6(void)
+{
+	return (s_default_pdn_ip_type == 2 || s_default_pdn_ip_type == 3)?1:0;
 }
 
 int luat_mobile_set_apn_base_info(int sim_id, int cid, uint8_t type, uint8_t* apn_name, uint8_t name_len)
