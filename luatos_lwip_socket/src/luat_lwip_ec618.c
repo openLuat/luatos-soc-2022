@@ -357,7 +357,7 @@ static void net_lwip_check_network_ready(uint8_t adapter_index);
 static void net_lwip_task(void *param);
 static void net_lwip_create_socket_now(uint8_t adapter_index, uint8_t socket_id);
 static void platform_send_event(void *p, uint32_t id, uint32_t param1, uint32_t param2, uint32_t param3);
-
+static ip_addr_t *net_lwip_get_ip6(void);
 
 static int net_lwip_del_data_cache(void *p, void *u)
 {
@@ -657,12 +657,25 @@ static int32_t net_lwip_dns_check_result(void *data, void *param)
 	}
 }
 
+static ip_addr_t *net_lwip_get_ip6(void)
+{
+	if (IPADDR_TYPE_V6 == prvlwip.ec618_ipv6.type)
+	{
+		return &prvlwip.ec618_ipv6;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
 static err_t net_lwip_dns_recv_cb(void *arg, struct udp_pcb *pcb, struct pbuf *p,
     const ip_addr_t *addr, u16_t port)
 {
 	Buffer_Struct msg_buf;
 	Buffer_Struct tx_msg_buf = {0,0,0};
 	struct pbuf *out_p;
+	ip_addr_t *t_ip;
 	int i;
 	if (p)
 	{
@@ -687,13 +700,10 @@ static err_t net_lwip_dns_recv_cb(void *arg, struct udp_pcb *pcb, struct pbuf *p
 					}
 					else
 					{
-						for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+						t_ip = net_lwip_get_ip6();
+						if (t_ip)
 						{
-							if (prvlwip.lwip_netif->ip6_addr_state[i] & IP6_ADDR_VALID)
-							{
-								prvlwip.dns_udp->local_ip = prvlwip.lwip_netif->ip6_addr[i];
-								break;
-							}
+							prvlwip.dns_udp->local_ip = *t_ip;
 						}
 					}
 					err_t err = udp_sendto(prvlwip.dns_udp, out_p, &prvlwip.dns_client.dns_server[i], DNS_SERVER_PORT);
@@ -702,6 +712,7 @@ static err_t net_lwip_dns_recv_cb(void *arg, struct udp_pcb *pcb, struct pbuf *p
 				OS_DeInitBuffer(&tx_msg_buf);
 				llist_traversal(&prvlwip.dns_client.require_head, net_lwip_dns_check_result, NULL);
 			}
+
 		}
 
 	}
@@ -721,7 +732,7 @@ static void net_lwip_dns_tx_next(Buffer_Struct *tx_msg_buf)
 	err_t err;
 	struct pbuf *p;
 	dns_run(&prvlwip.dns_client, NULL, tx_msg_buf, &i);
-	if (tx_msg_buf->Pos)
+	if (tx_msg_buf->Pos || prvlwip.dns_client.new_result)
 	{
 		p = pbuf_alloc(PBUF_RAW, tx_msg_buf->Pos, PBUF_ROM);
 		if (p)
@@ -749,7 +760,9 @@ static void net_lwip_dns_tx_next(Buffer_Struct *tx_msg_buf)
 		}
 		OS_DeInitBuffer(tx_msg_buf);
 		llist_traversal(&prvlwip.dns_client.require_head, net_lwip_dns_check_result, NULL);
+		prvlwip.dns_client.new_result = 0;
 	}
+
 }
 
 uint32_t net_lwip_rand()
@@ -780,17 +793,7 @@ void net_lwip_set_local_ip6(ip6_addr_t *ip)
 	prvlwip.ec618_ipv6.type = IPADDR_TYPE_V6;
 }
 
-static ip_addr_t *net_lwip_get_ip6(void)
-{
-	if (IPADDR_TYPE_V6 == prvlwip.ec618_ipv6.type)
-	{
-		return &prvlwip.ec618_ipv6;
-	}
-	else
-	{
-		return NULL;
-	}
-}
+
 
 static void net_lwip_task(void *param)
 {
