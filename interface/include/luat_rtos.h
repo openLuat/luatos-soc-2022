@@ -331,6 +331,15 @@ int luat_rtos_queue_send(luat_rtos_queue_t queue_handle, void *item, uint32_t it
  * @return int =0成功，其他失败
  */
 int luat_rtos_queue_recv(luat_rtos_queue_t queue_handle, void *item, uint32_t item_size, uint32_t timeout);
+
+/**
+ * @brief 查询队列中剩余未处理的元素数量
+ * 
+ * @param queue_handle 队列句柄
+ * @param item_cnt[OUT] 返回未处理的元素数量
+ * @return int =0成功，其他失败
+ */
+int luat_rtos_queue_get_cnt(luat_rtos_queue_t queue_handle, uint32_t *item_cnt);
 /* ------------------------------------------------ queue   end----------------------------------------------- */
 /** @}*/
 
