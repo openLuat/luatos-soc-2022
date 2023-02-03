@@ -37,6 +37,7 @@ extern void soc_mobile_get_signal(CmiMmCesqInd *info);
 extern void soc_mobile_get_cell_info(CmiDevGetBasicCellListInfoInd *info);
 extern void soc_mobile_get_sim_id(uint8_t *sim_id, uint8_t *is_auto);
 extern void soc_mobile_set_sim_id(uint8_t sim_id);
+extern void soc_mobile_sim_detect_sim0_first(void);
 extern void soc_mobile_sms_event_register_handler(void *handle);
 extern uint8_t soc_mobile_get_csq(void);
 extern void soc_mobile_search_cell_info_async(uint8_t param);
@@ -175,6 +176,11 @@ int luat_mobile_set_sim_id(int id)
 		soc_mobile_set_sim_id(id);
 		return 0;
 	}
+}
+
+void luat_mobile_set_sim_detect_sim0_fisrt(void)
+{
+	soc_mobile_sim_detect_sim0_first();
 }
 
 int luat_mobile_get_apn(int sim_id, int cid, char* buff, size_t buf_len)

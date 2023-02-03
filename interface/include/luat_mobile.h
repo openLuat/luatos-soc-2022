@@ -105,10 +105,17 @@ int luat_mobile_get_sim_id(int *id);
 /**
  * @brief 改变使用的SIM卡的位置，并不一定支持
  * 
- * @param id sim位置，对于双卡的设备，选0或者1，其他为自动选择模式。非双卡的设备不支持
+ * @param id sim位置，对于双卡的设备，选0或者1，其他为自动选择模式，但是0和1的优先级是一致的。非双卡的设备不支持
  * @return int =0成功，其他失败
  */
 int luat_mobile_set_sim_id(int id);
+
+/**
+ * @brief 在自动选择模式时，开机后优先探测sim0
+ *
+ */
+void luat_mobile_set_sim_detect_sim0_fisrt(void);
+
 
 /**
  * @brief 设置默认PDN激活时是否要IPV6网络，现在默认情况下不开

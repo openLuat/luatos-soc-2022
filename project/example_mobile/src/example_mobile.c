@@ -45,14 +45,17 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		LUAT_DEBUG_PRINT("CFUN消息，status %d", status);
 		break;
 	case LUAT_MOBILE_EVENT_SIM:
-		LUAT_DEBUG_PRINT("SIM卡消息，卡槽%d", index);
+		if (status != LUAT_MOBILE_SIM_NUMBER)
+		{
+			LUAT_DEBUG_PRINT("SIM卡消息，卡槽%d", index);
+		}
 		switch(status)
 		{
 		case LUAT_MOBILE_SIM_READY:
 			LUAT_DEBUG_PRINT("SIM卡正常工作");
-			luat_mobile_get_iccid(0, iccid, sizeof(iccid));
+			luat_mobile_get_iccid(index, iccid, sizeof(iccid));
 			LUAT_DEBUG_PRINT("ICCID %s", iccid);
-			luat_mobile_get_imsi(0, imsi, sizeof(imsi));
+			luat_mobile_get_imsi(index, imsi, sizeof(imsi));
 			LUAT_DEBUG_PRINT("IMSI %s", imsi);
 			break;
 		case LUAT_MOBILE_NO_SIM:
@@ -165,7 +168,7 @@ static void task_run(void *param)
 
 	while(1)
 	{
-		luat_rtos_task_sleep(10000);
+		luat_rtos_task_sleep(120000);
 		luat_mobile_set_sim_id(0);
 		luat_rtos_task_sleep(10000);
 		luat_mobile_set_sim_id(1);
@@ -206,6 +209,7 @@ void task_init(void)
 	luat_mobile_sms_event_register_handler(sms_event_cb);
 	luat_mobile_set_period_work(90000, 0, 4);
 	luat_mobile_set_sim_id(2);
+	luat_mobile_set_sim_detect_sim0_fisrt();
 	luat_rtos_task_handle task_handle;
 	luat_rtos_task_create(&task_handle, 4 * 1204, 50, "test", task_run, NULL, 32);
 }
