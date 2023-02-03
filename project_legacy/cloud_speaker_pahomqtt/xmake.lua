@@ -1,4 +1,4 @@
-local TARGET_NAME = "cloud_speaker"
+local TARGET_NAME = "cloud_speaker_pahomqtt"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 includes(SDK_TOP .. "/thirdparty/audio_decoder")
