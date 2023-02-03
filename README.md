@@ -103,6 +103,10 @@ set GCC_PATH=D:\gcc-arm-none-eabi-10.3-2021.10
 
 5. 测试ok后, 可以考虑将上述环境变量GCC_PATH放入系统的环境变量设置中, 然后还原`build.bat`
 
+## 应用文档
+
+1. 添加自定义数据到指定区域并[合成binpkg](project/example_flash), 用于量产刷机
+
 ## 授权协议
 
 [MIT License](LICENSE)
