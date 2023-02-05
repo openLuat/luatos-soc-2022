@@ -2108,6 +2108,10 @@ int network_wait_event(network_ctrl_t *ctrl, OS_EVENT *out_event, uint32_t timeo
 	if (ctrl->new_rx_flag)
 	{
 		ctrl->wait_target_state = NW_WAIT_EVENT;
+		if (out_event)
+		{
+			out_event->ID = 0;
+		}
 		return 0;
 	}
 	if ((ctrl->need_close) || (ctrl->socket_id < 0) || (ctrl->state != NW_STATE_ONLINE))
@@ -2139,6 +2143,10 @@ int network_wait_event(network_ctrl_t *ctrl, OS_EVENT *out_event, uint32_t timeo
 			if (result)
 			{
 				result = -1;
+			}
+			if (out_event)
+			{
+				out_event->ID = 0;
 			}
 			finish = 1;
 			break;
