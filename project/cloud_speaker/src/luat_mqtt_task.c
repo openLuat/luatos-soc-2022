@@ -34,9 +34,12 @@
 #include "luat_mqtt.h"
 #include "luat_debug.h"
 #include "luat_pm.h"
+#include "mqtt_task.h"
 uint8_t g_s_is_link_up = 0;
+
+luat_rtos_task_handle mqtt_publish_task_handle = NULL;
+
 static luat_rtos_task_handle mqtt_task_handle = NULL;
-static luat_rtos_task_handle mqtt_publish_task_handle = NULL;
 extern luat_rtos_queue_t audio_queue_handle;
 
 static luat_mqtt_ctrl_t *luat_mqtt_ctrl = NULL;
@@ -54,6 +57,9 @@ const static char mqtt_pub_topic[] = "/pub/topic/message";       //发布的主�
 static char mqtt_send_payload[] = "hello mqtt_test!!!";
 static char mqtt_sub_topic[40];                            //订阅的主题，待存放订阅的主题头和设备imei，共计17+15,32个字符
 
+static char mqtt_topic_1[] = "123123";
+static char mqtt_topic_2[] = "456456";
+static char mqtt_topic_3[] = "789789";
 
 uint8_t get_net_status()
 {
@@ -595,10 +601,10 @@ static void luat_mqtt_task(void *param)
 	LUAT_DEBUG_PRINT("mqtt_connect ok");
 
 	while(1){
-		if (luat_mqtt_ctrl->mqtt_state){
-			uint16_t message_id  = 0;
-			mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_pub_topic, mqtt_send_payload, strlen(mqtt_send_payload), 0, 1, &message_id);
-		}
+		// if (luat_mqtt_ctrl->mqtt_state){
+		// 	uint16_t message_id  = 0;
+		// 	mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_pub_topic, mqtt_send_payload, strlen(mqtt_send_payload), 0, 1, &message_id);
+		// }
         LUAT_DEBUG_PRINT("get_server_status link status %d, %d", get_server_status(), get_net_status());
 		luat_rtos_task_sleep(5000);
 	}
@@ -651,13 +657,74 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 	}
 }
 
+static void luat_mqtt_publish_task(void *args)
+{
+    uint32_t id = 0;
+    mqtt_publish_para_t *para = NULL;
+	while(1)
+	{
+		if(0 == luat_rtos_message_recv(mqtt_publish_task_handle, &id, (void **)&para, LUAT_WAIT_FOREVER))
+		{
+            uint8_t result = 0;
+			if(para != NULL)
+            {
+                if (1 == g_s_is_link_up)
+                {
+                    if (luat_mqtt_ctrl->mqtt_state)
+                    {
+                        int ret = -2;
+                        uint32_t message_id = 0;
+                        switch (id)
+                        {
+                        case TOPIC_1:
+                            ret = mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_topic_1, para->msg, para->msg_len, para->retain, para->qos, &message_id);
+                            break;
+                        case TOPIC_2:
+                            ret = mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_topic_2, para->msg, para->msg_len, para->retain, para->qos, &message_id);
+                            break;
+                        case TOPIC_3:
+                            ret = mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_topic_3, para->msg, para->msg_len, para->retain, para->qos, &message_id);
+                            break;
+                        default:
+                            break;
+                        }
+                        if (1 == ret)
+                            ret = MQTT_PUBLISH_SUCCESS;
+                        else
+                            ret = MQTT_PUBLISH_FAIL;
+                    }
+                else
+                {
+                    result = MQTT_NOT_READY;
+                }
+                }
+                else
+                {
+                    result = NETWORK_NOT_READY;
+                }
+                if(para->callback != NULL)
+                {
+                    para->callback(result);
+                }
+
+                luat_heap_free(para->msg);
+                para->msg = NULL;
+                
+                luat_heap_free(para);
+                para = NULL;
+            }
+        }
+	}
+}
+
 static void luat_libemqtt_init(void)
 {
 	luat_mobile_event_register_handler(luatos_mobile_event_callback);
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
-	luat_rtos_task_create(&mqtt_task_handle, 2 * 1024, 10, "libemqtt", luat_mqtt_task, NULL, 16);
+	luat_rtos_task_create(&mqtt_task_handle, 2 * 1024, 30, "libemqtt", luat_mqtt_task, NULL, 16);
+    luat_rtos_task_create(&mqtt_publish_task_handle, 2 * 1024, 20, "libemqtt pulish task", luat_mqtt_publish_task, NULL, 16);
 }
 
 extern void fdb_init(void);
@@ -665,6 +732,7 @@ extern void led_task_init(void);
 extern void key_task_init(void);
 extern void charge_task_init(void);
 extern void usb_uart_init(void);
+extern void mqtt_send_message_init(void);
 
 INIT_HW_EXPORT(fdb_init, "1");
 INIT_TASK_EXPORT(luat_libemqtt_init, "1");
@@ -673,4 +741,6 @@ INIT_TASK_EXPORT(led_task_init, "2");
 INIT_TASK_EXPORT(key_task_init, "3");
 INIT_TASK_EXPORT(charge_task_init, "2");
 INIT_TASK_EXPORT(usb_uart_init, "2");
+INIT_TASK_EXPORT(mqtt_send_message_init, "2");
+
 
