@@ -16,8 +16,8 @@ static void send_message_task(void *args)
         mqtt_publish_para_t *para = (mqtt_publish_para_t *)luat_heap_malloc(sizeof(mqtt_publish_para_t));
         memset(para, 0, sizeof(mqtt_publish_para_t));
         para->msg = (char *)luat_heap_malloc(50);
-        snprintf(para->msg, 50, "%s", "866714049416190");
-        para->msg_len = 15;
+        snprintf(para->msg, 50, "%s", "luat_mqtt_send_payload");
+        para->msg_len = strlen("luat_mqtt_send_payload");
         para->qos = 1;
         para->retain = 0;
         para->callback = mqtt_publish_callbcak;

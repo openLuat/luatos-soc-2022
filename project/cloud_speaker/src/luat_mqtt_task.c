@@ -53,13 +53,11 @@ static luat_mqtt_ctrl_t *luat_mqtt_ctrl = NULL;
 
 #define CLIENTID    "12345678"
 const static char mqtt_sub_topic_head[] = "/sub/topic/money/";    //订阅的主题头，待与设备imei进行拼接
-const static char mqtt_pub_topic[] = "/pub/topic/message";       //发布的主题
-static char mqtt_send_payload[] = "hello mqtt_test!!!";
 static char mqtt_sub_topic[40];                            //订阅的主题，待存放订阅的主题头和设备imei，共计17+15,32个字符
 
-static char mqtt_topic_1[] = "123123";
-static char mqtt_topic_2[] = "456456";
-static char mqtt_topic_3[] = "789789";
+static char mqtt_topic_1[] = "/mqtt_pub_topic_1";
+static char mqtt_topic_2[] = "/mqtt_pub_topic_2";
+static char mqtt_topic_3[] = "/mqtt_pub_topic_3";
 
 uint8_t get_net_status()
 {
@@ -601,10 +599,6 @@ static void luat_mqtt_task(void *param)
 	LUAT_DEBUG_PRINT("mqtt_connect ok");
 
 	while(1){
-		// if (luat_mqtt_ctrl->mqtt_state){
-		// 	uint16_t message_id  = 0;
-		// 	mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_pub_topic, mqtt_send_payload, strlen(mqtt_send_payload), 0, 1, &message_id);
-		// }
         LUAT_DEBUG_PRINT("get_server_status link status %d, %d", get_server_status(), get_net_status());
 		luat_rtos_task_sleep(5000);
 	}
