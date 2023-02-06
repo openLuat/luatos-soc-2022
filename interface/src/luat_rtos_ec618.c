@@ -281,10 +281,85 @@ int luat_rtos_queue_get_cnt(luat_rtos_queue_t queue_handle, uint32_t *item_cnt)
 {
 	if (!queue_handle || !item_cnt)
 		return -1;
-		
-	*item_cnt = uxQueueMessagesWaiting(queue_handle);
+	if (osIsInISRContext())
+		*item_cnt = uxQueueMessagesWaitingFromISR(queue_handle);
+	else
+		*item_cnt = uxQueueMessagesWaiting(queue_handle);
 	return 0;
 }
+
+int luat_rtos_flag_create(
+	luat_rtos_flag_t *flag_handle /* OS flag reference              		*/
+)
+{
+	if (!flag_handle)
+		return -1;
+	*flag_handle = xEventGroupCreate();
+	return (*flag_handle)?0:-1;
+}
+
+int luat_rtos_flag_wait(
+	luat_rtos_flag_t flag_handle,
+	uint32_t mask,
+	LUAT_FLAG_OP_E operation,
+	uint32_t *flags,
+	uint32_t timeout
+)
+{
+	if (!flag_handle)
+		return -1;
+	if (osIsInISRContext())
+		return -1;
+	switch(operation)
+	{
+	case LUAT_FLAG_AND:
+		*flags = xEventGroupWaitBits(flag_handle, mask, pdFALSE, pdTRUE, timeout);
+		break;
+	case LUAT_FLAG_AND_CLEAR:
+		*flags = xEventGroupWaitBits(flag_handle, mask, pdTRUE, pdTRUE, timeout);
+		break;
+	case LUAT_FLAG_OR:
+		*flags = xEventGroupWaitBits(flag_handle, mask, pdFALSE, pdFALSE, timeout);
+		break;
+	case LUAT_FLAG_OR_CLEAR:
+		*flags = xEventGroupWaitBits(flag_handle, mask, pdTRUE, pdFALSE, timeout);
+		break;
+	}
+	return 0;
+}
+
+int luat_rtos_flag_release(
+	luat_rtos_flag_t flag_handle,		/* OS flag reference 					   		*/
+	uint32_t mask,				/* flag mask to wait for				   		*/
+	LUAT_FLAG_OP_E operation /* IOT_FLAG_AND, IOT_FLAG_AND_CLEAR,	   		*/
+							/* IOT_FLAG_OR, IOT_FLAG_OR_CLEAR		   		*/
+)
+{
+	if (!flag_handle)
+		return -1;
+	if (osIsInISRContext())
+	{
+		BaseType_t yield;
+		xEventGroupSetBitsFromISR(flag_handle, mask, &yield);
+		portYIELD_FROM_ISR(yield);
+
+	}
+	else
+	{
+		xEventGroupSetBits(flag_handle, mask);
+	}
+	return 0;
+}
+int luat_rtos_flag_delete(
+	luat_rtos_flag_t flag_handle /* OS flag reference	*/
+)
+{
+	if (!flag_handle)
+		return -1;
+	vEventGroupDelete(flag_handle);
+	return 0;
+}
+
 
 static void s_timer_callback(TimerHandle_t hTimer)
 {

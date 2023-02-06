@@ -39,6 +39,14 @@ typedef enum LUAT_RTOS_WAIT
 	LUAT_WAIT_FOREVER = (uint32_t)0xFFFFFFFF /**< 最大超时时间0xFFFFFFFF*/
 } LUAT_RTOS_WAIT_E;
 
+typedef enum
+{
+	LUAT_FLAG_AND 		= 5,
+	LUAT_FLAG_AND_CLEAR 	= 6,
+	LUAT_FLAG_OR 			= 7,
+	LUAT_FLAG_OR_CLEAR	= 8
+} LUAT_FLAG_OP_E;
+
 /* ------------------------------------------------ task begin------------------------------------------------ */
 /**
  * @defgroup  luatos_os_Task 线程任务接口函数
@@ -341,6 +349,50 @@ int luat_rtos_queue_recv(luat_rtos_queue_t queue_handle, void *item, uint32_t it
  */
 int luat_rtos_queue_get_cnt(luat_rtos_queue_t queue_handle, uint32_t *item_cnt);
 /* ------------------------------------------------ queue   end----------------------------------------------- */
+/** @}*/
+
+/**
+ * @defgroup  luatos_os_flag 事件接口函数
+ * @{
+ */
+/* ------------------------------------------------ flag begin----------------------------------------------- */
+
+/**
+ * @brief 定义事件句柄
+ */
+typedef void * luat_rtos_flag_t;
+/**
+ * @brief 创建事件
+ *
+ * @param flag_handle[OUT] 返回的事件句柄
+ * @return int =0成功，其他失败
+ */
+int luat_rtos_flag_create(luat_rtos_flag_t	*flag_handle);
+/**
+ * @brief 等待事件
+ * @param mask 等待的事件掩码
+ * @param operation 事件触发要求（与操作需要全部满足才触发，或操作有一个就触发）和操作（是否要清除）
+ * @param flags[OUT] 当前事件状态值
+ * @param timeout 超时时间
+ * @return int =0成功，其他失败
+ */
+int luat_rtos_flag_wait(luat_rtos_flag_t flag_handle, uint32_t mask, LUAT_FLAG_OP_E	operation, uint32_t *flags,uint32_t timeout);
+/**
+ * @brief 设置事件
+ * @param flag_handle 事件句柄
+ * @param mask 设置掩码
+ * @param operation 事件判断（与或）和操作（是否要清除），freertos支持或操作LUAT_FLAG_OR
+ * @return int =0成功，其他失败
+ */
+int luat_rtos_flag_release(luat_rtos_flag_t	flag_handle, uint32_t mask, LUAT_FLAG_OP_E operation);
+/**
+ * @brief 删除事件
+ *
+ * @param flag_handle 事件句柄
+ * @return int =0成功，其他失败
+ */
+int luat_rtos_flag_delete(luat_rtos_flag_t flag_handle);
+/* ------------------------------------------------ flag  end----------------------------------------------- */
 /** @}*/
 
 /**
