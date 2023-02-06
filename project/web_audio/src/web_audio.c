@@ -7,6 +7,9 @@
 
 #include "libemqtt.h"
 #include "luat_mqtt.h"
+#include "luat_rtos.h"
+
+luat_rtos_queue_t MQTT_payload_queue;
 
 extern QueueHandle_t audioQueueHandle;
 extern uint8_t link_UP;
@@ -18,7 +21,11 @@ static HttpClientContext AirM2mhttpClient;
 #define HTTP_RECV_BUF_SIZE (11520)
 #define HTTP_HEAD_BUF_SIZE (800)
 
-/*------------------------------------------------http------------------------------------------------*/
+/************************云端音频MQTT 负载消息类型***************************************/
+//0---4字节大端文字长度--文字的gbk编码--1--4字节大端音频url长度--url的gbk编码
+//0表示后面是普通文字。1表示后面是音频。两种任意组合。长度是后面编码的长度
+/************************云端音频MQTT 负载消息类型***************************************/
+/************************HTTP         音频下载处理**************************************/
 static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
 {
     HTTPResult result = HTTP_INTERNAL;
@@ -77,12 +84,9 @@ exit:
     return result;
 }
 
-static void task_test_https(CHAR *getUrl, uint16_t *buf, UINT32 len)
+static void task_test_https(CHAR *getUrl, uint32_t *buf, UINT32 len)
 {
-    // HttpClientData    clientData = {0};
-    // char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
     HTTPResult result = HTTP_INTERNAL;
-
     result = httpConnect(&AirM2mhttpClient, getUrl);
     if (result == HTTP_OK)
     {
@@ -95,15 +99,14 @@ static void task_test_https(CHAR *getUrl, uint16_t *buf, UINT32 len)
     }
 }
 
-
-void messageArrived(uint8_t payloadlen,uint8_t *data)
+void messageArrived(uint8_t payloadlen, uint8_t *data)//对MQTT的负载消息进行处理，解析数据
 {
     luat_audio_play_info_t info[1];
     memset(info, 0, sizeof(info));
     static uint32_t *tmpbuff[HTTP_RECV_BUF_SIZE] = {0};
     uint32_t status;
     char *p = (char *)data;
-    uint8_t payload_len =payloadlen;
+    uint8_t payload_len = payloadlen;
     for (size_t i = 0; i < payloadlen; i++)
     {
         LUAT_DEBUG_PRINT("ceshi%c", p[i]);
@@ -139,14 +142,14 @@ void messageArrived(uint8_t payloadlen,uint8_t *data)
     else if (p[0] == 1)
     {
         uint16_t URL_Len = p[4];
-        CHAR *URL = malloc(URL_Len * sizeof(char));
-        memset(URL, '\0', URL_Len * sizeof(char));
+        CHAR *URL = malloc(URL_Len * sizeof(uint16_t));
+        memset(URL,'\0', URL_Len * sizeof(uint16_t));
         if (URL_Len == payload_len - 5)
         {
             memcpy(URL, p + 5, URL_Len);
             task_test_https(URL, tmpbuff, HTTP_RECV_BUF_SIZE);
             FILE *fp1 = luat_fs_fopen("test1.mp3", "wb+");
-            status = luat_fs_fwrite((uint8_t *)tmpbuff, sizeof(tmpbuff), 1, fp1);
+            status = luat_fs_fwrite((uint32_t *)tmpbuff, sizeof(tmpbuff), 1, fp1);
             if (status == 0)
             {
                 while (1)
@@ -178,32 +181,69 @@ void messageArrived(uint8_t payloadlen,uint8_t *data)
     memset(tmpbuff, 0, HTTP_RECV_BUF_SIZE);
 }
 
+void mqtt_payload_task(void *param)
+{
+    payloaddata mqtt_queue_recv = {0};
+    while (1)
+    {
+        if (0 == luat_rtos_queue_recv(MQTT_payload_queue, &mqtt_queue_recv, NULL, portMAX_DELAY))
+        {
+            LUAT_DEBUG_PRINT("pub_msg: %d", mqtt_queue_recv.payload_len);
+            messageArrived(mqtt_queue_recv.payload_len, mqtt_queue_recv.payload_data);
+        }
+    }
+}
 
+void Mqtt_payload_task_Init(void)//单独搞个任务负责下载，数据通过消息队列传输
+{
+    int ret = -1;
+    luat_rtos_task_handle Mqtt_payload_handle;
+    ret = luat_rtos_queue_create(&MQTT_payload_queue, 100, sizeof(payloaddata));
+    if (0 == ret)
+    {
+        LUAT_DEBUG_PRINT("mqtt_payload_queue create sucessed\r\n");
+    }
+    luat_rtos_task_create(&Mqtt_payload_handle, 6 * 1024, 50, "Mqtt_payload_task", mqtt_payload_task, NULL, NULL);
+}
+/************************HTTP       音频下载处理**************************************/
+static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event)
+{
+    switch (event)
+    {
+    case MQTT_MSG_CONNACK:
+    {
+        LUAT_DEBUG_PRINT("mqtt_subscribe");
+        mqtt_subscribe(&(luat_mqtt_ctrl->broker), mqtt_subTopic, NULL, 0);
+        break;
+    }
+    case MQTT_MSG_PUBLISH:
+    {
+        const uint8_t *ptr;
+        int ret = -1;
+        uint8_t payloadlen = mqtt_parse_pub_msg_ptr(luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
+        LUAT_DEBUG_PRINT("pub_msg: %d%s", payloadlen, ptr);
+        payloaddata payload_send = {0};
+        payload_send.payload_len = payloadlen;
+        payload_send.payload_data = ptr;
+        ret = luat_rtos_queue_send(MQTT_payload_queue, &payload_send, NULL, 0);
+        LUAT_DEBUG_PRINT("laut_rtos_send_sucessed%d", ret);
+        if (0 == ret)
+        {
+            LUAT_DEBUG_PRINT("laut_rtos_send_sucessed");
+        }
 
-
-static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
-	switch (event)
-	{
-	case MQTT_MSG_CONNACK:{
-		LUAT_DEBUG_PRINT("mqtt_subscribe");
-		mqtt_subscribe(&(luat_mqtt_ctrl->broker), mqtt_subTopic,NULL, 0);
-		break;
-	}
-	case MQTT_MSG_PUBLISH : {
-		const uint8_t* ptr;
-		uint8_t payload_len = mqtt_parse_pub_msg_ptr(luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
-        messageArrived(payload_len,ptr);
-		break;
-	}
-	case MQTT_MSG_PUBACK : 
-	case MQTT_MSG_PUBCOMP : {
-		LUAT_DEBUG_PRINT("msg_id: %d",mqtt_parse_msg_id(luat_mqtt_ctrl->mqtt_packet_buffer));
-		break;
-	}
-	default:
-		break;
-	}
-	return;
+        break;
+    }
+    case MQTT_MSG_PUBACK:
+    case MQTT_MSG_PUBCOMP:
+    {
+        LUAT_DEBUG_PRINT("msg_id: %d", mqtt_parse_msg_id(luat_mqtt_ctrl->mqtt_packet_buffer));
+        break;
+    }
+    default:
+        break;
+    }
+    return;
 }
 
 static void mqtt_demo(void)
@@ -248,7 +288,7 @@ static void mqtt_demo(void)
             luat_rtos_task_sleep(1000);
         }
         rc = luat_mqtt_connect(luat_mqtt_ctrl);
-        if (!rc)
+        if (0 == rc)
         {
             audioQueueData MQTT_link = {0};
             MQTT_link.playType = TTS_PLAY;
@@ -291,5 +331,7 @@ static void mqttclient_task_init(void)
 
 INIT_HW_EXPORT(Task_netinfo_call, "0");
 INIT_TASK_EXPORT(mqttclient_task_init, "1");
+INIT_TASK_EXPORT(Mqtt_payload_task_Init, "1");
 INIT_TASK_EXPORT(audio_task_init, "2");
 INIT_TASK_EXPORT(NET_LED_Task, "3");
+

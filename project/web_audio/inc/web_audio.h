@@ -23,6 +23,11 @@
 #define Password "password" 
 
 
+typedef struct mqtt_payload
+{
+    uint8_t payload_len;
+    uint8_t* payload_data;
+}payloaddata;
 
 
 #endif
