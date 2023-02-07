@@ -27,12 +27,12 @@
 #include "HTTPClient.h"
 
 /*
-FOTA应用开发可以参考：https://doc.openluat.com/wiki/37?wiki_page_id=4562
+FOTA应用开发可以参考：https://doc.openluat.com/wiki/37?wiki_page_id=4727
 */
 
 
 #define PROJECT_VERSION  "1.0.0"
-#define PROJECT_KEY "6UpqRWp2jTqBVDHVlI7FbC9TC3g6bGwO"  //修改为自己iot上面的PRODUCT_KEY，这里是一个错误的
+#define PROJECT_KEY "ABCDEFGHIJKLMNOPQRSTUVWXYZ"  //修改为自己iot上面的PRODUCT_KEY，这里是一个错误的
 #define PROJECT_NAME "TEST_FOTA"
 
 char g_test_server_name[200] = {0};
