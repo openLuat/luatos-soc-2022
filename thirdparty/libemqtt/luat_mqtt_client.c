@@ -28,11 +28,7 @@ int l_luat_mqtt_msg_cb(luat_mqtt_ctrl_t * ptr, int arg1, int arg2) {
 LUAT_RT_RET_TYPE luat_mqtt_timer_callback(LUAT_RT_CB_PARAM){
 	luat_mqtt_ctrl_t * mqtt_ctrl = (luat_mqtt_ctrl_t *)param;
     l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_TIMER_PING, 0);
-}
-
-static LUAT_RT_RET_TYPE reconnect_timer_cb(LUAT_RT_CB_PARAM){
-	luat_mqtt_ctrl_t * mqtt_ctrl = (luat_mqtt_ctrl_t *)param;
-	l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_RECONNECT, 0);
+	luat_mqtt_ping(mqtt_ctrl);
 }
 
 int luat_mqtt_reconnect(luat_mqtt_ctrl_t *mqtt_ctrl) {
@@ -41,6 +37,12 @@ int luat_mqtt_reconnect(luat_mqtt_ctrl_t *mqtt_ctrl) {
 		DBG("reconnect init socket ret=%d\n", ret);
 		luat_mqtt_close_socket(mqtt_ctrl);
 	}
+}
+
+static LUAT_RT_RET_TYPE reconnect_timer_cb(LUAT_RT_CB_PARAM){
+	luat_mqtt_ctrl_t * mqtt_ctrl = (luat_mqtt_ctrl_t *)param;
+	l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_RECONNECT, 0);
+	luat_mqtt_reconnect(mqtt_ctrl);
 }
 
 int luat_mqtt_ping(luat_mqtt_ctrl_t *mqtt_ctrl) {

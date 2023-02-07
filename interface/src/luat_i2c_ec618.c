@@ -215,8 +215,8 @@ int luat_i2c_setup(int id, int speed) {
         	GPIO_IomuxEC618(28, 2, 1, 0);
     		break;
     	case 2:
-        	GPIO_IomuxEC618(16, 2, 1, 0);
-        	GPIO_IomuxEC618(17, 2, 1, 0);
+        	GPIO_IomuxEC618(31, 2, 1, 0);
+        	GPIO_IomuxEC618(32, 2, 1, 0);
     		break;
     	default:
         	GPIO_IomuxEC618(13, 2, 1, 0);
@@ -255,8 +255,8 @@ int luat_i2c_close(int id) {
         	GPIO_IomuxEC618(28, 0, 1, 0);
     		break;
     	case 2:
-        	GPIO_IomuxEC618(16, 0, 1, 0);
-        	GPIO_IomuxEC618(17, 0, 1, 0);
+        	GPIO_IomuxEC618(31, 0, 1, 0);
+        	GPIO_IomuxEC618(32, 0, 1, 0);
     		break;
     	default:
         	GPIO_IomuxEC618(13, 0, 1, 0);
