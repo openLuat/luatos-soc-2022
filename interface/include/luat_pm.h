@@ -179,7 +179,7 @@ typedef struct
     int16_t pwroff_timeout;						/**关机时间，此值无意义*/
 }luat_pm_pwrkey_cfg_t;
 
-typedef void(* luat_pm_pwrkey_callback_t)(LUAT_PM_POWERKEY_MODE_E status);
+typedef void(* luat_pm_pwrkey_callback_t)(LUAT_PM_POWERKEY_STATE_E status);
 
 /**
  * @brief 配置powerkey按键
