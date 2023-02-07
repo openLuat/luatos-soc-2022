@@ -212,6 +212,16 @@ int luat_fs_rmdir(char const* dir);
  */
 int luat_fs_lsdir(char const* dir, luat_fs_dirent_t* ents, size_t offset, size_t len);
 
+
+/**
+ * @brief 文件路径是否存在
+ * @param dir[IN] 文件路径
+ * @return int =0不存在,否则存在
+ */
+int luat_fs_dexist(const char *dir){
+    return luat_vfs_ec618_dexist(NULL, dir);
+}
+
 /**
  * @brief 文件系统是否已经就绪
  * @return int 0未就绪, >0已就绪
