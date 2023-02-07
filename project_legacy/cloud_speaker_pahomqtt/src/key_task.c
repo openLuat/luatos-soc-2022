@@ -52,7 +52,7 @@ static luat_rtos_timer_callback_t pwrkey_long_press_callback(void *param)
     }
 }
 
-luat_pm_pwrkey_callback_t pwrkey_callback(LUAT_PM_POWERKEY_STATE_E status)
+void pwrkey_callback(LUAT_PM_POWERKEY_STATE_E status)
 {
     if (LUAT_PM_PWRKEY_PRESS == status)
     {
