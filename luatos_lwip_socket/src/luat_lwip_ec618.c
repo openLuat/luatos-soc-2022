@@ -619,7 +619,7 @@ static err_t net_lwip_tcp_sent_cb(void *arg, struct tcp_pcb *tpcb,
 	return ERR_OK;
 SOCEKT_ERROR:
 	SOCKET_UNLOCK(socket_id);
-	net_lwip_callback_to_nw_task(adapter_index, EV_NW_SOCKET_ERROR, socket_id, 0, 0);
+	net_lwip_tcp_error(adapter_index, socket_id);
 	return ERR_OK;
 }
 
