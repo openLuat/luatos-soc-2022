@@ -143,6 +143,10 @@ static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
 		LUAT_DEBUG_PRINT("msg_id: %d",mqtt_parse_msg_id(luat_mqtt_ctrl->mqtt_packet_buffer));
 		break;
 	}
+	case MQTT_MSG_RELEASE : {
+		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt release");
+		break;
+	}
 	default:
 		break;
 	}
