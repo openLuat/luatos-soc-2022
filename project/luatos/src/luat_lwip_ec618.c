@@ -1041,6 +1041,7 @@ static void net_lwip_task(void *param)
 		dns_require_ipv6(&prvlwip.dns_client, event.Param1, event.Param2, event.Param3, event.ID - EV_LWIP_SOCKET_DNS);
 		net_lwip_dns_tx_next(&tx_msg_buf);
 		break;
+	case EV_LWIP_SOCKET_LISTEN:
 		if (!prvlwip.socket[socket_id].in_use || !prvlwip.socket[socket_id].pcb.ip)
 		{
 			NET_DBG("adapter %d socket %d cannot use! %d,%x", adapter_index, socket_id, prvlwip.socket[socket_id].in_use, prvlwip.socket[socket_id].pcb.ip);
