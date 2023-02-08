@@ -248,6 +248,21 @@ int luat_vfs_ec618_rmdir(__attribute__((unused))void* userdata, __attribute__((u
     return LFS_remove(dir);
 }
 
+int luat_vfs_ec618_dexist(__attribute__((unused))void* userdata, char const* dir_name) {
+    int ret = 0;
+    lfs_dir_t dir;
+    const char* dirpath = check_path(dir_name);
+    if (dirpath == NULL)
+        return 0;
+    ret = LFS_dirOpen(&dir, dirpath);
+    if (ret < 0) {
+        // LLOGE("no such dir %s _DirName");
+        return 0;
+    }
+    LFS_dirClose(&dir);
+    return 1;
+}
+
 int luat_vfs_ec618_lsdir(__attribute__((unused))void* userdata, char const* dir_name, luat_fs_dirent_t* ents, size_t offset, size_t len) {
     int ret = 0;
     size_t num = 0;
@@ -490,6 +505,10 @@ int luat_fs_rmdir(char const* dir) {
 
 int luat_fs_lsdir(char const* dir, luat_fs_dirent_t* ents, size_t offset, size_t len) {
     return luat_vfs_ec618_lsdir(NULL, dir, ents, offset, len);
+}
+
+int luat_fs_dexist(char const *dir){
+    return luat_vfs_ec618_dexist(NULL, dir);
 }
 
 int luat_fs_init(void) {

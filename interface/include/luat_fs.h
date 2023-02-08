@@ -212,6 +212,14 @@ int luat_fs_rmdir(char const* dir);
  */
 int luat_fs_lsdir(char const* dir, luat_fs_dirent_t* ents, size_t offset, size_t len);
 
+
+/**
+ * @brief 文件夹是否存在
+ * @param dir[IN] 文件夹名称
+ * @return int =0不存在,否则存在
+ */
+int luat_fs_dexist(const char *dir);
+
 /**
  * @brief 文件系统是否已经就绪
  * @return int 0未就绪, >0已就绪
