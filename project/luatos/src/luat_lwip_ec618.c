@@ -547,12 +547,6 @@ static err_t net_lwip_tcp_recv_cb(void *arg, struct tcp_pcb *tpcb,
 	}
 	else if (err == ERR_OK)
 	{
-		if (prvlwip.socket[socket_id].state)
-		{
-			tcp_abort(tpcb);
-			net_lwip_tcp_close_done(adapter_index, socket_id, 1);
-		}
-		else
 		{
 			prvlwip.socket[socket_id].remote_close = 1;
 			net_lwip_callback_to_nw_task(adapter_index, EV_NW_SOCKET_REMOTE_CLOSE, socket_id, 0, 0);
@@ -639,7 +633,6 @@ static err_t net_lwip_tcp_err_cb(void *arg, err_t err)
 		net_lwip_tcp_error(adapter_index, socket_id);
 	}
 	return 0;
-
 }
 
 static err_t net_lwip_tcp_fast_accept_cb(void *arg, struct tcp_pcb *newpcb, err_t err)
@@ -858,6 +851,18 @@ void net_lwip_set_local_ip6(ip6_addr_t *ip)
 	prvlwip.ec618_ipv6.type = IPADDR_TYPE_V6;
 }
 
+static void net_lwip_close_tcp(int socket_id)
+{
+	prvlwip.socket[socket_id].pcb.tcp->sent = NULL;
+	prvlwip.socket[socket_id].pcb.tcp->errf = NULL;
+	prvlwip.socket[socket_id].pcb.tcp->recv = tcp_recv_null;
+	prvlwip.socket[socket_id].pcb.tcp->callback_arg = (uint32_t)(luat_mcu_tick64_ms()/1000);
+	if (tcp_close(prvlwip.socket[socket_id].pcb.tcp))
+	{
+		tcp_abort(prvlwip.socket[socket_id].pcb.tcp);
+	}
+}
+
 static void net_lwip_task(void *param)
 {
 	luat_network_cb_param_t cb_param;
@@ -874,7 +879,6 @@ static void net_lwip_task(void *param)
 	uint8_t active_flag;
 	uint8_t socket_id;
 	uint8_t adapter_index;
-
 	socket_id = event.Param1;
 	adapter_index = event.Param3;
 	switch(event.ID)
@@ -1080,7 +1084,7 @@ static void net_lwip_task(void *param)
 			prvlwip.socket[socket_id].listen_tcp = NULL;
 			if (prvlwip.socket[socket_id].pcb.tcp)
 			{
-				tcp_abort(prvlwip.socket[socket_id].pcb.tcp);
+				net_lwip_close_tcp(socket_id);
 			}
 			net_lwip_tcp_close_done(adapter_index, socket_id, event.Param2);
 			break;
@@ -1089,30 +1093,7 @@ static void net_lwip_task(void *param)
 		{
 			if (prvlwip.socket[socket_id].is_tcp)
 			{
-				if (event.Param2)
-				{
-					if (prvlwip.socket[socket_id].remote_close)
-					{
-						tcp_abort(prvlwip.socket[socket_id].pcb.tcp);
-					}
-					else
-					{
-						if (!tcp_close(prvlwip.socket[socket_id].pcb.tcp))
-						{
-							prvlwip.socket[socket_id].pcb.ip = NULL;
-							break;
-						}
-						else
-						{
-							NET_DBG("socket %d normal close failed", socket_id);
-							tcp_abort(prvlwip.socket[socket_id].pcb.tcp);
-						}
-					}
-				}
-				else
-				{
-					tcp_abort(prvlwip.socket[socket_id].pcb.tcp);
-				}
+				net_lwip_close_tcp(socket_id);
 			}
 			else
 			{
@@ -1208,6 +1189,29 @@ static void net_lwip_create_socket_now(uint8_t adapter_index, uint8_t socket_id)
 	if (prvlwip.socket[socket_id].is_tcp)
 	{
 		prvlwip.socket[socket_id].pcb.tcp = tcp_new();
+		if (!prvlwip.socket[socket_id].pcb.tcp)
+		{
+			NET_DBG("try to abort fin wait 1 tcp");
+			struct tcp_pcb *pcb, *dpcb;
+			uint32_t low_time = (uint32_t)(luat_mcu_tick64_ms() / 1000);
+			dpcb = NULL;
+			for (pcb = tcp_active_pcbs; pcb != NULL; pcb = pcb->next)
+			{
+				if (FIN_WAIT_1 == pcb->state)
+				{
+					if (((uint32_t)pcb->callback_arg) < low_time)
+					{
+						dpcb = pcb;
+						low_time = (uint32_t)pcb->callback_arg;
+					}
+				}
+			}
+			if (dpcb)
+			{
+				tcp_abort(dpcb);
+			}
+			prvlwip.socket[socket_id].pcb.tcp = tcp_new();
+		}
 		if (prvlwip.socket[socket_id].pcb.tcp)
 		{
 			prvlwip.socket[socket_id].pcb.tcp->local_ip = prvlwip.lwip_netif->ip_addr;
@@ -1224,6 +1228,7 @@ static void net_lwip_create_socket_now(uint8_t adapter_index, uint8_t socket_id)
 		else
 		{
 			NET_DBG("tcp pcb full!");
+			net_lwip_tcp_error(adapter_index, socket_id);
 		}
 	}
 	else
@@ -1238,6 +1243,7 @@ static void net_lwip_create_socket_now(uint8_t adapter_index, uint8_t socket_id)
 		else
 		{
 			NET_DBG("udp pcb full!");
+			net_lwip_tcp_error(adapter_index, socket_id);
 		}
 	}
 }
