@@ -235,6 +235,7 @@ int luat_pm_power_ctrl(int id, uint8_t onoff)
 		break;
 	case LUAT_PM_POWER_GPS:
 	case LUAT_PM_POWER_GPS_ANT:
+	case LUAT_PM_POWER_CAMERA:
 		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 4), 4, 0, 0);
 		GPIO_Config(HAL_GPIO_13, 0, onoff);
 		break;
