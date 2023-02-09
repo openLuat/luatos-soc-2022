@@ -496,6 +496,14 @@ typedef enum LUAT_MOBILE_BEARER_STATUS
 	LUAT_MOBILE_BEARER_SET_ACT_STATE_DONE,/**< APN激活/去激活完成*/
 }LUAT_MOBILE_BEARER_STATUS_E;
 
+
+/**
+ * @brief 获取SIM卡状态
+ * 
+ * @return 见@enum LUAT_MOBILE_SIM_STATUS_E
+ */
+LUAT_MOBILE_SIM_STATUS_E luat_mobile_get_sim_status(void);
+
 /**
  * @brief 获取当前移动网络注册状态
  * 
