@@ -160,7 +160,19 @@ int luat_spi_recv(int spi_id, char* recv_buf, size_t length) {
 int luat_spi_send(int spi_id, const char* send_buf, size_t length) {
     if (!spi_exist(spi_id))
         return -1;
-    if (SPI_BlockTransfer(spi_id, send_buf, send_buf, length))
+    uint8_t fast_temp[64];
+    int result;
+	if (length > sizeof(fast_temp))
+	{
+		uint8_t *temp = luat_heap_malloc(length);
+		result = SPI_BlockTransfer(spi_id, send_buf, temp, length);
+		luat_heap_free(temp);
+	}
+	else
+	{
+		result = SPI_BlockTransfer(spi_id, send_buf, fast_temp, length);
+	}
+    if (result)
     {
     	return 0;
     }
