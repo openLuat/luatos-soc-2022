@@ -557,6 +557,29 @@ int luat_mobile_get_last_notify_signal_strength(uint8_t *csq)
 
 
 /* ------------------------------------------------ mobile status begin ----------------------------------------------- */
+LUAT_MOBILE_SIM_STATUS_E luat_mobile_get_sim_status(void)
+{
+	uint8_t pin_state = CMI_SIM_PIN_STATE_UNKNOWN;
+	CmiRcCode result = simGetPinStateSync(&pin_state);
+	if (CME_SUCC == result)
+	{
+		switch (pin_state)
+		{
+			case CMI_SIM_PIN_STATE_READY:
+				return LUAT_MOBILE_SIM_READY;
+				break;
+			default:
+				break;
+		}
+	}
+	else if(CME_SIM_NOT_INSERT == result)
+	{
+		return LUAT_MOBILE_NO_SIM;
+	}
+	
+	return LUAT_MOBILE_SIM_NUMBER;
+}
+
 LUAT_MOBILE_REGISTER_STATUS_E luat_mobile_get_register_status(void)
 {
 	CeregGetStateParams param;
