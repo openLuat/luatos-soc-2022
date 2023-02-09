@@ -234,10 +234,10 @@ int luat_pm_power_ctrl(int id, uint8_t onoff)
 		soc_usb_onoff(onoff);
 		break;
 	case LUAT_PM_POWER_GPS:
+	case LUAT_PM_POWER_GPS_ANT:
 		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 4), 4, 0, 0);
 		GPIO_Config(HAL_GPIO_13, 0, onoff);
 		break;
-	case LUAT_PM_POWER_GPS_ANT:
 	case LUAT_PM_POWER_DAC_EN_PIN:
 		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 4), 4, 0, 0);
 		GPIO_Config(HAL_GPIO_12, 0, onoff);
