@@ -243,6 +243,14 @@ int luat_pm_power_ctrl(int id, uint8_t onoff)
 		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 4), 4, 0, 0);
 		GPIO_Config(HAL_GPIO_12, 0, onoff);
 		break;
+	case LUAT_PM_POWER_POWERKEY_MODE:
+		if(BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_PWRKEY_MODE) != onoff)
+		{
+			LLOGD("powerkey mode %d to %d", BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_PWRKEY_MODE), onoff);
+			BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_PWRKEY_MODE, onoff);
+			BSP_SavePlatConfigToRawFlash();
+		}
+		break;
 	default:
 		return -1;
 	}
