@@ -10,10 +10,13 @@ target(TARGET_NAME)
     includes(SDK_TOP .. "/thirdparty/miniz")
     add_deps("miniz")
     
+    includes(SDK_TOP .. "/thirdparty/httpclient")
+    add_deps("httpclient")
     --加入代码和头文件
     add_includedirs("./include",{public = true})
     add_includedirs(SDK_TOP .. "/PLAT/core/tts/include/16k_lite_ver",{public = true})
-    add_files("./src/*.c",{public = true})
+    add_files("./src/example_main.c",{public = true})
+    -- add_files("./src/example_post_record.c",{public = true})
 
     --路径可以随便写,可以加任意路径的代码,下面代码等效上方代码
     -- add_includedirs(SDK_TOP .. "project/" .. TARGET_NAME .. "/inc",{public = true})
