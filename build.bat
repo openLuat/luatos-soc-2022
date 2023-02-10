@@ -22,8 +22,7 @@ if not "%2"=="" (
 )
 
 
-rem 判断是不是rndis csdk, 然后设置环境变量EC618_RNDIS
-rem 带rndis的CSDK是需要额外编译的, 带csdk_rndis标识文件
+rem check csdk rndis
 set RNDIS_MARK="csdk_rndis"
 if exist %RNDIS_MARK% (
 	@echo This is CSDK with RNDIS
