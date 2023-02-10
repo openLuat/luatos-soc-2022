@@ -10,6 +10,7 @@ if not "%1"=="" (
 	@echo PROJECT not set
 )
 
+
 if not "%2"=="" (
 	set LSPD_MODE=%2
 ) ELSE (
@@ -20,9 +21,25 @@ if not "%2"=="" (
 	)
 )
 
-@echo PROJECT : %PROJECT_NAME%  
 
+rem 判断是不是rndis csdk, 然后设置环境变量EC618_RNDIS
+rem 带rndis的CSDK是需要额外编译的, 带csdk_rndis标识文件
+set RNDIS_MARK="csdk_rndis"
+if exist %RNDIS_MARK% (
+	@echo This is CSDK with RNDIS
+	set EC618_RNDIS=enable
+	set LSPD_MODE=disable
+) else (
+	set EC618_RNDIS=disable
+)
 
+@echo "=============================="
+@echo "AirM2M https://openluat.com"
+@echo "=============================="
+@echo PROJECT   : %PROJECT_NAME%  
+@echo LSPD_MODE : %LSPD_MODE%  
+@echo RNDIS     : %EC618_RNDIS%
+@echo "=============================="
 
 if not exist xmake.lua (
 	echo xmake.lua not exist

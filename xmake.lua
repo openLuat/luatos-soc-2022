@@ -45,11 +45,27 @@ else
 	set_toolchains("gnu-rm@gnu_rm")
 end
 
+-- 获取项目名称
 if os.getenv("PROJECT_NAME") then
 	USER_PROJECT_NAME = os.getenv("PROJECT_NAME")
 end
 
-if os.getenv("LSPD_MODE") == "enable" then
+-- 是否为rndis csdk
+if os.getenv("EC618_RNDIS") then
+    is_rndis = true
+else
+    is_rndis = false
+end
+
+-- 是否启用低速模式, 内存更大, 但与rndis不兼容
+if is_rndis == false and os.getenv("LSPD_MODE") == "enable" then
+    is_lspd = true
+else
+    is_lspd = false
+end
+
+-- 若启用is_lspd, 加上额外的宏
+if is_lspd == true then
     add_defines("LOW_SPEED_SERVICE_ONLY")
 end
 
@@ -98,10 +114,10 @@ add_defines("__EC618",
             "HAVE_STRUCT_TIMESPEC",
             "HTTPS_WITH_CA",
             "FEATURE_HTTPC_ENABLE",
-            "LITE_FEATURE_MODE",
+            is_lspd and "LITE_FEATURE_MODE" or "FULL_FEATURE_MODE",
             "RTE_USB_EN=1",
-            "RTE_RNDIS_EN=0",
-            "RTE_ETHER_EN=0",
+            is_rndis and "RTE_RNDIS_EN=1" or "RTE_RNDIS_EN=0",
+            is_rndis and "RTE_ETHER_EN=1" or "RTE_ETHER_EN=0",
             "RTE_PPP_EN=0",
             "RTE_OPAQ_EN=0",
             "RTE_ONE_UART_AT=0",
@@ -354,7 +370,7 @@ target(USER_PROJECT_NAME..".elf")
         else
             GCC_DIR = target:toolchains()[1]:sdkdir().."/"
         end
-        if os.getenv("LSPD_MODE") == "enable" then
+        if is_lspd then
             FLAGS = "-DLOW_SPEED_SERVICE_ONLY"
         else
             FLAGS = ""
