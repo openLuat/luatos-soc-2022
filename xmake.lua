@@ -114,10 +114,9 @@ add_defines("__EC618",
             "HAVE_STRUCT_TIMESPEC",
             "HTTPS_WITH_CA",
             "FEATURE_HTTPC_ENABLE",
-            is_lspd and "LITE_FEATURE_MODE" or "FULL_FEATURE_MODE",
+            "LITE_FEATURE_MODE",
+            -- "RTE_RNDIS_EN=0", "RTE_ETHER_EN=0",
             "RTE_USB_EN=1",
-            is_rndis and "RTE_RNDIS_EN=1" or "RTE_RNDIS_EN=0",
-            is_rndis and "RTE_ETHER_EN=1" or "RTE_ETHER_EN=0",
             "RTE_PPP_EN=0",
             "RTE_OPAQ_EN=0",
             "RTE_ONE_UART_AT=0",
@@ -127,6 +126,12 @@ add_defines("__EC618",
             "_REENT_SMALL",
             "_REENT_GLOBAL_ATEXIT"
 )
+
+if is_rndis then
+    add_defines("RTE_RNDIS_EN=1", "RTE_ETHER_EN=1")
+else
+    add_defines("RTE_RNDIS_EN=0", "RTE_ETHER_EN=0")
+end
 
 
 add_cxflags("-g3",
