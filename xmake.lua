@@ -51,7 +51,7 @@ if os.getenv("PROJECT_NAME") then
 end
 
 -- 是否为rndis csdk
-if os.getenv("EC618_RNDIS") then
+if os.getenv("EC618_RNDIS") == "enable" then
     is_rndis = true
 else
     is_rndis = false
