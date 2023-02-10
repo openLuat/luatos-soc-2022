@@ -139,7 +139,7 @@ target(TARGET_NAME)
     -- http
     add_includedirs(LUATOS_ROOT.."components/network/libhttp")
     -- add_files(LUATOS_ROOT.."components/network/libhttp/luat_lib_http.c")
-    add_files(LUATOS_ROOT.."components/network/libhttp/luat_http_client.c")
+    add_files(LUATOS_ROOT.."components/network/libhttp/*.c")
 
     -- http_parser
     add_includedirs(LUATOS_ROOT.."components/network/http_parser")
