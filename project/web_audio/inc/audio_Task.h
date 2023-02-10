@@ -20,14 +20,7 @@
 #define CODEC_PWR_PIN_ALT_FUN	4
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
-#define LED2_PIN	HAL_GPIO_24
-#define LED2_PIN_ALT_FUN	0
-#define LED3_PIN	HAL_GPIO_23
-#define LED3_PIN_ALT_FUN	0
-#define LED4_PIN	HAL_GPIO_27
-#define LED4_PIN_ALT_FUN	0
-#define CHARGE_EN_PIN	HAL_GPIO_2
-#define CHARGE_EN_PIN_ALT_FUN	0
+
 
 typedef struct
 {

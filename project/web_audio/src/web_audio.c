@@ -22,8 +22,8 @@ static HttpClientContext AirM2mhttpClient;
 #define HTTP_HEAD_BUF_SIZE (800)
 
 /************************云端音频MQTT 负载消息类型***************************************/
-//0---4字节大端文字长度--文字的gbk编码--1--4字节大端音频url长度--url的gbk编码
-//0表示后面是普通文字。1表示后面是音频。两种任意组合。长度是后面编码的长度
+// 0---4字节大端文字长度--文字的gbk编码--1--4字节大端音频url长度--url的gbk编码
+// 0表示后面是普通文字。1表示后面是音频。两种任意组合。长度是后面编码的长度
 /************************云端音频MQTT 负载消息类型***************************************/
 /************************HTTP         音频下载处理**************************************/
 static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
@@ -99,86 +99,94 @@ static void task_test_https(CHAR *getUrl, uint32_t *buf, UINT32 len)
     }
 }
 
-void messageArrived(uint8_t payloadlen, uint8_t *data)//对MQTT的负载消息进行处理，解析数据
+void messageArrived(uint8_t payloadlen, uint8_t *data) // 对MQTT的负载消息进行处理，解析数据
 {
+    int payload_array[60];
+    int payload_array_len = 0;
     luat_audio_play_info_t info[1];
     memset(info, 0, sizeof(info));
     static uint32_t *tmpbuff[HTTP_RECV_BUF_SIZE] = {0};
-    uint32_t status;
     char *p = (char *)data;
     uint8_t payload_len = payloadlen;
-    for (size_t i = 0; i < payloadlen; i++)
+    for (uint8_t i = 0; i < payload_len; i++)
     {
-        LUAT_DEBUG_PRINT("ceshi%c", p[i]);
-    }
-    if (p[0] == 0)
-    {
-        uint16_t TTS_Len = p[4];
-        CHAR *TTS = malloc(TTS_Len * sizeof(char));
-        if (TTS_Len == payload_len - 5)
+        if ((p[i] == 0) || (p[i] == 1))
         {
-            memcpy(TTS, p + 5, TTS_Len);
-            luat_audio_play_tts_text(0, TTS, TTS_Len);
-        }
-        else
-        {
-            int URL_Len = p[9 + TTS_Len];
-            CHAR *URL = malloc(URL_Len * sizeof(char));
-            memset(URL, '\0', URL_Len * sizeof(char));
-            memcpy(TTS, p + 5, TTS_Len);
-            memcpy(URL, p + 10 + TTS_Len, URL_Len);
-            task_test_https(URL, tmpbuff, HTTP_RECV_BUF_SIZE);
-            info[0].path = NULL;
-            info[0].address = (uint32_t)tmpbuff;
-            info[0].rom_data_len = sizeof(tmpbuff);
-            luat_audio_play_tts_text(0, TTS, TTS_Len);
-            luat_rtos_task_sleep(2000);
-            luat_audio_play_multi_files(0, info, 1);
-            free(URL);
-        }
-        luat_rtos_task_sleep(2000);
-        free(TTS);
-    }
-    else if (p[0] == 1)
-    {
-        uint16_t URL_Len = p[4];
-        CHAR *URL = malloc(URL_Len * sizeof(uint16_t));
-        memset(URL,'\0', URL_Len * sizeof(uint16_t));
-        if (URL_Len == payload_len - 5)
-        {
-            memcpy(URL, p + 5, URL_Len);
-            task_test_https(URL, tmpbuff, HTTP_RECV_BUF_SIZE);
-            FILE *fp1 = luat_fs_fopen("test1.mp3", "wb+");
-            status = luat_fs_fwrite((uint32_t *)tmpbuff, sizeof(tmpbuff), 1, fp1);
-            if (status == 0)
+            if ((p[i + 1] == 0) && (p[i + 2] == 0) && (p[i + 3] == 0))
             {
-                while (1)
-                    ;
+                payload_array[payload_array_len] = p[i];
+                payload_array_len = payload_array_len + 1;
+                payload_array[payload_array_len] = p[i + 4];
+                payload_array_len = payload_array_len + 1;
+                payload_array[payload_array_len] = &p[i + 4];
+                payload_array_len = payload_array_len + 1;
             }
-            luat_fs_fclose(fp1);
-            info[0].path = "test1.mp3";
-            luat_audio_play_multi_files(0, info, 1);
-            luat_rtos_task_sleep(3000);
         }
-        else
-        {
-
-            int TTS_Len = p[9 + URL_Len];
-            CHAR *TTS = malloc(TTS_Len * sizeof(char));
-            memcpy(URL, p + 5, URL_Len);
-            memcpy(TTS, p + 10 + URL_Len, TTS_Len);
-            task_test_https(URL, tmpbuff, HTTP_RECV_BUF_SIZE);
-            info[0].path = NULL;
-            info[0].address = (uint32_t)tmpbuff;
-            info[0].rom_data_len = sizeof(tmpbuff);
-            luat_audio_play_multi_files(0, info, 1);
-            luat_rtos_task_sleep(2000);
-            luat_audio_play_tts_text(0, TTS, TTS_Len);
-            free(TTS);
-        }
-        free(URL);
+        LUAT_DEBUG_PRINT("ceshi%d", p[i]);
     }
-    memset(tmpbuff, 0, HTTP_RECV_BUF_SIZE);
+    LUAT_DEBUG_PRINT("payload_array_len%d", payload_array_len);
+    for (int i = 0; i < payload_array_len; i = i + 3)
+    {
+        if (payload_array[i] == 0)
+        {
+            CHAR *TTS = malloc(payload_array[i + 1] * sizeof(char));
+            memcpy(TTS, payload_array[i + 2] + 1, payload_array[i + 1]);
+            int ret = luat_audio_play_tts_text(0, TTS, payload_array[i + 1]);
+            if (0 == ret)
+            {
+                free(TTS);
+            }
+        }
+        else if (payload_array[i]==1)
+        {
+            CHAR *URL = malloc(payload_array[i + 1] * sizeof(int));
+            memset(URL, '\0', payload_array[i + 1] * sizeof(int));
+            memcpy(URL, payload_array[i + 2] + 1, payload_array[i + 1]);
+            task_test_https(URL, tmpbuff, HTTP_RECV_BUF_SIZE);
+            LUAT_DEBUG_PRINT("name%c",URL[payload_array[i + 1]-1]);
+            if (URL[payload_array[i + 1]-1]=='3')
+            {
+                FILE *fp1=luat_fs_fopen("test1.mp3","wb+");
+                uint32_t status=luat_fs_fwrite((uint32_t*)tmpbuff,sizeof(tmpbuff),1,fp1);
+                if (0==status)
+                {
+                   while (1);
+                }
+                luat_fs_fclose(fp1);
+                info[0].path="test1.mp3";
+                luat_audio_play_multi_files(0,info,1);
+            }
+            else if (URL[payload_array[i + 1]-1]=='r')
+            {
+                FILE *fp2=luat_fs_fopen("test1.amr","wb+");
+                uint32_t status=luat_fs_fwrite((uint32_t*)tmpbuff,sizeof(tmpbuff),1,fp2);
+                if (0==status)
+                {
+                   while (1);
+                }
+                luat_fs_fclose(fp2);
+                info[0].path="test1.amr";
+                luat_audio_play_multi_files(0,info,1);
+            }
+            else if (URL[payload_array[i + 1]-1]=='v')
+            {
+                FILE *fp3=luat_fs_fopen("test1.wav","wb+");
+                uint32_t status=luat_fs_fwrite((uint32_t*)tmpbuff,sizeof(tmpbuff),1,fp3);
+                if (0==status)
+                {
+                   while (1);
+                }
+                luat_fs_fclose(fp3);
+                info[0].path="test1.wav";
+                luat_audio_play_multi_files(0,info,1);
+            }   
+        }
+        luat_rtos_task_sleep(1500);
+        memset(tmpbuff, 0, HTTP_RECV_BUF_SIZE);
+        LUAT_DEBUG_PRINT("payload_array%d", payload_array[i]);
+    }
+   
+   
 }
 
 void mqtt_payload_task(void *param)
@@ -194,7 +202,7 @@ void mqtt_payload_task(void *param)
     }
 }
 
-void Mqtt_payload_task_Init(void)//单独搞个任务负责下载，数据通过消息队列传输
+void Mqtt_payload_task_Init(void) // 单独搞个任务负责下载，数据通过消息队列传输
 {
     int ret = -1;
     luat_rtos_task_handle Mqtt_payload_handle;
@@ -273,7 +281,7 @@ static void mqtt_demo(void)
 
     mqtt_init_auth(&(luat_mqtt_ctrl->broker), User, Password);
 
-    // luat_mqtt_ctrl->netc->is_debug = 1;// debug锟斤拷息
+    // luat_mqtt_ctrl->netc->is_debug = 1;// debug
     luat_mqtt_ctrl->broker.clean_session = 1;
     luat_mqtt_ctrl->keepalive = 240;
 
@@ -334,4 +342,3 @@ INIT_TASK_EXPORT(mqttclient_task_init, "1");
 INIT_TASK_EXPORT(Mqtt_payload_task_Init, "1");
 INIT_TASK_EXPORT(audio_task_init, "2");
 INIT_TASK_EXPORT(NET_LED_Task, "3");
-
