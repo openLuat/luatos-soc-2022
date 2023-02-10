@@ -66,6 +66,7 @@ end
 
 -- 若启用is_lspd, 加上额外的宏
 if is_lspd == true then
+    print("add LOW_SPEED_SERVICE_ONLY")
     add_defines("LOW_SPEED_SERVICE_ONLY")
 end
 
@@ -370,7 +371,8 @@ target(USER_PROJECT_NAME..".elf")
         else
             GCC_DIR = target:toolchains()[1]:sdkdir().."/"
         end
-        if is_lspd then
+        if os.getenv("LSPD_MODE") == "enable" then
+            print("add -DLOW_SPEED_SERVICE_ONLY")
             FLAGS = "-DLOW_SPEED_SERVICE_ONLY"
         else
             FLAGS = ""
