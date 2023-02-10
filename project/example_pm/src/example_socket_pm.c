@@ -8,9 +8,19 @@
 #include "luat_mobile.h"
 #include "string.h"
 #include "luat_pm.h"
+#include "luat_gpio.h"
 #define DEMO_SERVER_TCP_IP "112.125.89.8"
-#define DEMO_SERVER_TCP_PORT 34724
+#define DEMO_SERVER_TCP_PORT 36514
 #define TEST_TAG "test_tag"
+
+/* 
+此demo测试模块进入HIBERNATE模式的功耗 
+
+测试硬件：除单模块和sim卡座、USB插座以外，无任何外设器件
+
+此demo进入HIBERNATE休眠模式后，模块休眠电流将近4uA
+*/
+
 static uint8_t link_UP; // 网络状态指示
 static luat_rtos_task_handle tcp_task_handle;
 static void mobile_event_callback_t(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
@@ -74,6 +84,12 @@ static void demo_socket_pm_task(void *arg)
     struct hostent dns_result;
     struct hostent *p_result;
 
+    luat_gpio_cfg_t gpio = {0};
+    luat_gpio_set_default_cfg(&gpio);
+    gpio.pin = HAL_GPIO_23;
+    gpio.mode = LUAT_GPIO_INPUT;
+    luat_gpio_open(&gpio);                //将AGPIO3配置为输入，默认为输出高，给VDD_EXT做上拉，配置为输入后可以降低12uA的电流
+                                          //如果需要VDD_EXT在模块休眠后保持电平输出，则不要配置AGPIO3，否则VDDEXT会随着模块休眠唤醒掉电上电     
     luat_pm_wakeup_pad_cfg_t cfg = {0};
     cfg.neg_edge_enable = 1;
     cfg.pos_edge_enable = 0;
@@ -82,6 +98,8 @@ static void demo_socket_pm_task(void *arg)
     luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_0, &cfg); // 配置wakeup中断，深度休眠也可以通过wakeup唤醒
     luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_3, &cfg);
     luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_4, &cfg);
+    cfg.pull_up_enable = 0;
+    luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_1, &cfg); // 禁用wakeup1上拉，可以降低8uA的电流
     luat_rtos_task_sleep(2000);
     int wakeup_reason = luat_pm_get_wakeup_reason();
     LUAT_DEBUG_PRINT("wakeup reason %d", wakeup_reason);
