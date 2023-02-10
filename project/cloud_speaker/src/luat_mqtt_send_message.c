@@ -5,7 +5,7 @@
 #include "luat_mem.h"
 luat_rtos_task_handle mqtt_send_message_task_handle = NULL;
 extern luat_rtos_task_handle mqtt_publish_task_handle;
-static void mqtt_publish_callbcak(MQTT_PUBLISH_ERROR_CODE_E code)
+static void mqtt_publish_callbcak(LUAT_MQTT_PUBLISH_ERROR_CODE_E code)
 {
     LUAT_DEBUG_PRINT("cloud_speaker mqtt publish result %d", code);
 }
