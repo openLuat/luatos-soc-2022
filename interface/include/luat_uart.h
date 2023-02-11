@@ -76,14 +76,14 @@ typedef struct luat_uart {
     int baud_rate;              /**< 波特率 */
 
     uint8_t data_bits;          /**< 数据位 */
-    uint8_t stop_bits;          /**< 停止位 */ 
-    uint8_t bit_order;          /**< 高低位 */ 
-    uint8_t parity;             /**< 奇偶校验位 */ 
+    uint8_t stop_bits;          /**< 停止位 */
+    uint8_t bit_order;          /**< 高低位 */
+    uint8_t parity;             /**< 奇偶校验位 */
 
-    size_t bufsz;               /**< 接收数据缓冲区大小 */ 
-    uint32_t pin485;            /**< 转换485的pin, 如果没有则是0xffffffff*/ 
-    uint32_t delay;             /**< 485翻转延迟时间，单位us */ 
-    uint8_t rx_level;           /**< 接收方向的电平 */ 
+    size_t bufsz;               /**< 接收数据缓冲区大小 */
+    uint32_t pin485;            /**< 转换485的pin, 如果没有则是0xffffffff*/
+    uint32_t delay;             /**< 485翻转延迟时间，单位us */
+    uint8_t rx_level;           /**< 接收方向的电平 */
 } luat_uart_t;
 
 /**
@@ -140,7 +140,7 @@ typedef enum LUAT_UART_CTRL_CMD
 }LUAT_UART_CTRL_CMD_E;
 
 /**
- * @brief 接收回调函数
+ * @brief 接收回调函数，对于带有休眠唤醒功能的uart，如果data_len==0说明唤醒了
  * 
  */
 typedef void (*luat_uart_recv_callback_t)(int uart_id, uint32_t data_len);
