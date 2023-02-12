@@ -74,6 +74,13 @@ int luat_spi_bus_setup(luat_spi_device_t* spi_dev){
 	return 0;
 }
 
+int luat_spi_change_speed(int spi_id, uint32_t speed)
+{
+    if (!spi_exist(spi_id))
+        return -1;
+	SPI_SetNewConfig(spi_id, speed, 0xff);
+	return 0;
+}
 #endif
 
 int luat_spi_setup(luat_spi_t* spi) {
