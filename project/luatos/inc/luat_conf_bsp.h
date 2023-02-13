@@ -70,10 +70,10 @@
 //---------------SDIO-FATFS特别配置
 // sdio库对接的是fatfs
 // fatfs的长文件名和非英文文件名支持需要180k的ROM, 非常奢侈
-// #define LUAT_USE_FATFS
-// #define LUAT_TF_SPI_FAST
-// #define FF_USE_LFN 3
-// #define FF_LFN_UNICODE 3
+#define LUAT_USE_FATFS
+#define LUAT_TF_SPI_FAST
+// #define LUAT_FF_USE_LFN 3
+// #define LUAT_FF_LFN_UNICODE 3
 
 #define LUAT_USE_PROFILER 1
 
