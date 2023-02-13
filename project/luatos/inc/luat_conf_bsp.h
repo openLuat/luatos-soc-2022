@@ -200,7 +200,6 @@
 
 #undef LV_DISP_DEF_REFR_PERIOD
 #define LV_DISP_DEF_REFR_PERIOD g_lvgl_flash_time
-extern unsigned int g_lvgl_flash_time;
 
 #define LV_TICK_CUSTOM 1
 #define LV_TICK_CUSTOM_INCLUDE  "common_api.h"         /*Header for the system time function*/
