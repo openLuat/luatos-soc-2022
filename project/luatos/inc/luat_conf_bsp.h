@@ -13,6 +13,12 @@
 //#define LUAT_HEAP_SIZE (200*1024)
 //-----------------------------
 
+// #define LUAT_SCRIPT_SIZE 128
+// #define LUAT_SCRIPT_OTA_ZONE 96
+//------- V1103 及之前版本的默认值, 适合云喇叭的配置, V1104开始改成默认的128+96方案
+#define LUAT_SCRIPT_SIZE 448
+#define LUAT_SCRIPT_OTA_SIZE 284
+
 //------------------------------------------------------
 // 以下custom --> 到  <-- custom 之间的内容,是供用户配置的
 // 同时也是云编译可配置的部分. 提交代码时切勿删除会修改标识
@@ -71,14 +77,12 @@
 // fatfs的长文件名和非英文文件名支持需要180k的ROM, 非常奢侈
 #define LUAT_USE_FATFS 1
 //#define LUAT_USE_FATFS_CHINESE
-// #define LUAT_FF_USE_LFN 3
-// #define LUAT_FF_LFN_UNICODE 3
 
-#define LUAT_USE_PROFILER 1
+// #define LUAT_USE_PROFILER 1
 
 //----------------------------
 // 高通字体, 需配合芯片使用
-#define LUAT_USE_GTFONT 1
+// #define LUAT_USE_GTFONT 1
 // #define LUAT_USE_GTFONT_UTF8
 
 //----------------------------
@@ -223,8 +227,19 @@ extern unsigned int g_lvgl_flash_time;
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_MOBILE
 
-#define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - 732 * 1024)
-#define LUA_SCRIPT_OTA_ADDR (FLASH_FOTA_REGION_START - 284 * 1024)
+// 脚本区分配方案
+#ifndef LUAT_SCRIPT_SIZE
+#define LUAT_SCRIPT_SIZE 448
+#ifndef LUAT_SCRIPT_OTA_SIZE
+#define LUAT_SCRIPT_OTA_SIZE 284
+#endif
+#endif
+#ifndef LUAT_SCRIPT_OTA_SIZE
+#define LUAT_SCRIPT_OTA_SIZE (LUAT_SCRIPT_SIZE * 0.75)
+#endif
+
+#define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - (LUAT_SCRIPT_SIZE + LUAT_SCRIPT_OTA_SIZE) * 1024)
+#define LUA_SCRIPT_OTA_ADDR FLASH_FOTA_REGION_START - (LUAT_SCRIPT_OTA_SIZE * 1024)
 
 #ifdef LUAT_USE_TTS
 #undef LUAT_USE_SFUD

@@ -369,18 +369,6 @@ target(USER_PROJECT_NAME..".elf")
             local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
             USER_PROJECT_NAME_VERSION = conf_data:match("#define LUAT_BSP_VERSION \"(%w+)\"")
             VM_64BIT = conf_data:find("\r#define LUAT_CONF_VM_64bit") or conf_data:find("\n#define LUAT_CONF_VM_64bit")
-
-            local mem_map_data = io.readfile("$(projectdir)/PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h")
-            FLASH_FOTA_REGION_START = tonumber(mem_map_data:match("#define FLASH_FOTA_REGION_START%s+%((%g+)%)"))
-            LUA_SCRIPT_ADDR_OFFSET = tonumber(conf_data:match("#define LUA_SCRIPT_ADDR .FLASH_FOTA_REGION_START . (%d+) *"))
-            LUA_SCRIPT_OTA_ADDR_OFFSET = tonumber(conf_data:match("#define LUA_SCRIPT_OTA_ADDR .FLASH_FOTA_REGION_START . (%d+) *"))
-            LUA_SCRIPT_ADDR = FLASH_FOTA_REGION_START - LUA_SCRIPT_ADDR_OFFSET * 1024
-            LUA_SCRIPT_OTA_ADDR = FLASH_FOTA_REGION_START - LUA_SCRIPT_OTA_ADDR_OFFSET * 1024
-            script_addr = string.format("%X", LUA_SCRIPT_ADDR)
-            full_addr = string.format("%X", LUA_SCRIPT_OTA_ADDR)
-            -- print(script_addr,full_addr)
-            FLASH_LENGTH = 2944 - LUA_SCRIPT_ADDR_OFFSET
-            io.gsub("$(projectdir)/PLAT/core/ld/ec618_0h00_flash.c", "#ifdef __LUATOS__\n  FLASH_AREA%(rx%)              : ORIGIN = 0x00824000, LENGTH = (%d+)", "#ifdef __LUATOS__\n  FLASH_AREA(rx)              : ORIGIN = 0x00824000, LENGTH = "..FLASH_LENGTH)
         end
     end)
     before_build(function(target)
@@ -395,7 +383,7 @@ target(USER_PROJECT_NAME..".elf")
             FLAGS = ""
         end
         if USER_PROJECT_NAME == "luatos" then
-            FLAGS = FLAGS .. " -D__LUATOS__"
+            FLAGS = FLAGS .. " -D__LUATOS__ -I" .. SDK_PATH .. "/project/luatos/inc"
         end
         os.exec(GCC_DIR .. "bin/arm-none-eabi-gcc -E " .. FLAGS .. " -I " .. SDK_PATH .. "/PLAT/device/target/board/ec618_0h00/common/inc" .. " -P " .. SDK_PATH .. "/PLAT/core/ld/ec618_0h00_flash.c" ..  " -o " .. SDK_PATH .. "/PLAT/core/ld/ec618_0h00_flash.ld")
     end)

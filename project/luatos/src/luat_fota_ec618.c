@@ -147,7 +147,8 @@ REPEAT:
 		{
 			BSP_QSPI_Erase_Safe(__SOC_OTA_COMMON_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len, __FLASH_SECTOR_SIZE__);
 			BSP_QSPI_Write_Safe(g_s_fota.data_buffer.Data, __SOC_OTA_COMMON_DATA_SAVE_ADDRESS__ + g_s_fota.ota_done_len, save_len);
-			mbedtls_md5_update_ret(g_s_fota.md5_ctx, (uint8_t *)(__SOC_OTA_COMMON_DATA_LOAD_ADDRESS__ + g_s_fota.ota_done_len), save_len );
+			size_t loadaddr = __SOC_OTA_COMMON_DATA_LOAD_ADDRESS__;
+			mbedtls_md5_update_ret(g_s_fota.md5_ctx, (uint8_t *)(loadaddr + g_s_fota.ota_done_len), save_len );
 			OS_BufferRemove(&g_s_fota.data_buffer, save_len);
 		}
 		else
