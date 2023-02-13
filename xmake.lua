@@ -10,6 +10,8 @@ local SDK_PATH
 local USER_PROJECT_NAME = "example"
 local USER_PROJECT_NAME_VERSION
 local USER_PROJECT_DIR  = ""
+local script_addr
+local full_addr
 
 package("gnu_rm")
 	set_kind("toolchain")
@@ -367,6 +369,16 @@ target(USER_PROJECT_NAME..".elf")
             local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
             USER_PROJECT_NAME_VERSION = conf_data:match("#define LUAT_BSP_VERSION \"(%w+)\"")
             VM_64BIT = conf_data:find("\r#define LUAT_CONF_VM_64bit") or conf_data:find("\n#define LUAT_CONF_VM_64bit")
+
+            local mem_map_data = io.readfile("$(projectdir)/PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h")
+            FLASH_FOTA_REGION_START = tonumber(mem_map_data:match("#define FLASH_FOTA_REGION_START%s+%((%g+)%)"))
+            LUA_SCRIPT_ADDR_OFFSET = tonumber(conf_data:match("#define LUA_SCRIPT_ADDR .FLASH_FOTA_REGION_START . (%d+) *"))
+            LUA_SCRIPT_OTA_ADDR_OFFSET = tonumber(conf_data:match("#define LUA_SCRIPT_OTA_ADDR .FLASH_FOTA_REGION_START . (%d+) *"))
+            LUA_SCRIPT_ADDR = FLASH_FOTA_REGION_START - LUA_SCRIPT_ADDR_OFFSET * 1024
+            LUA_SCRIPT_OTA_ADDR = FLASH_FOTA_REGION_START - LUA_SCRIPT_OTA_ADDR_OFFSET * 1024
+            script_addr = string.format("%X", LUA_SCRIPT_ADDR)
+            full_addr = string.format("%X", LUA_SCRIPT_OTA_ADDR)
+            -- print(script_addr,full_addr)
         end
     end)
     before_build(function(target)
@@ -440,6 +452,12 @@ target(USER_PROJECT_NAME..".elf")
                     import("core.base.json")
                     local info_table = json.loadfile(OUT_PATH.."/pack/info.json")
                     info_table["script"]["bitw"] = 64
+                    if script_addr then
+                        info_table["download"]["script_addr"] = script_addr
+                    end
+                    if full_addr then
+                        info_table["fota"]["full_addr"] = full_addr
+                    end
                     json.savefile(OUT_PATH.."/pack/info.json", info_table)
                 end
                 os.cp(OUT_PATH.."/luatos.binpkg", OUT_PATH.."/pack")
