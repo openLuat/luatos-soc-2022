@@ -223,7 +223,10 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/sfd")
     add_files(LUATOS_ROOT.."components/sfd/*.c")
 
-
+    -- fatfs
+    add_includedirs(LUATOS_ROOT.."components/fatfs")
+    add_files(LUATOS_ROOT.."components/fatfs/*.c")
+    
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "interface/include")
 
