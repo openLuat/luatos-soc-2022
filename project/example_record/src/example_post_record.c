@@ -1,3 +1,34 @@
+/*
+ * Copyright (c) 2022 OpenLuat & AirM2M
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+
+/* 
+	此demo演示的功能为，录音后将录音数据上传至服务器
+	打印record start后表示走到开始录音的流程，录音时长默认五秒，可自行修改
+	打印amr encode stop表示录音+amr编码结束
+
+	默认的录音文件名为“设备imei_上传前的设备本地时间.amr”
+	上传的录音文件可至http://tools.openluat.com/tools/device-upload-test界面查看
+*/
+
 #include "common_api.h"
 
 #include "luat_rtos.h"
@@ -10,13 +41,14 @@
 #include "HTTPClient.h"
 #include "luat_mobile.h"
 
+
+
 #define TEST_HOST "http://tools.openluat.com/api/site/device_upload_file"
 
 #define HTTP_RECV_BUF_SIZE      (1501)
 #define HTTP_HEAD_BUF_SIZE      (800)
 #define HTTP_HEAD_CONTYPE_SIZE	(140)
-#define RECORD_FILE_NAME "record.amr"
-#define RECORD_FILE_NAME_LEN 10
+
 //AIR780E+TM8211开发板配置
 #define CODEC_PWR_PIN HAL_GPIO_12
 #define CODEC_PWR_PIN_ALT_FUN	4
@@ -219,6 +251,11 @@ static void es8218_demo_task(void *arg)
 	uint8_t tx_buf[2];
 	uint8_t rx_buf[2];
 	luat_audio_play_info_t info[1] = {0};
+	char imeiBuf [20] = {0};
+	char fileName[50] = {0};
+	HttpClientContext    gHttpClient = {0};
+	HttpClientData data = {0};
+
 	luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, NULL, NULL);
 	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
 	luat_i2c_setup(I2C_ID0, 400000);
@@ -239,6 +276,7 @@ static void es8218_demo_task(void *arg)
 			LUAT_DEBUG_PRINT("write reg %x %x %x", es8218_reg_table[i].reg, es8218_reg_table[i].value, rx_buf[0]);
 		}
 	}
+	LUAT_DEBUG_PRINT("record start");
 	luat_i2s_start(I2S_ID0, 0, 8000, 1);
 	luat_i2s_no_block_rx(I2S_ID0, 320 * 10, record_cb, NULL); // 单声道8K的amr编码一次320字节，这里每200ms回调一次
 	tx_buf[0] = 0x01;
@@ -248,12 +286,12 @@ static void es8218_demo_task(void *arg)
 	tx_buf[0] = 0x01;
 	tx_buf[1] = (0x2f) + (0 << 7);
 	luat_i2c_transfer(I2C_ID0, i2c_address, NULL, 0, tx_buf, 2);
-	HttpClientContext    gHttpClient = {0};
+	
 	gHttpClient.caCert= NULL;
     gHttpClient.caCertLen= 0;
     gHttpClient.timeout_s = 2;
     gHttpClient.timeout_r = 20;
-	HttpClientData data = {0};
+	
 
 	data.headerBuf = malloc(HTTP_HEAD_BUF_SIZE);
 	data.headerBufLen = HTTP_HEAD_BUF_SIZE;
@@ -266,14 +304,36 @@ static void es8218_demo_task(void *arg)
 	data.postContentType = malloc(HTTP_HEAD_CONTYPE_SIZE);
 	memset(data.postContentType, 0, HTTP_HEAD_CONTYPE_SIZE);
 
-	int bufMaxLen = 172 + RECORD_FILE_NAME_LEN + g_s_amr_rom_file.Pos;
+	time_t nowtime;
+	time(&nowtime);
+	struct tm *timeInfo = NULL;
+	timeInfo = localtime(&nowtime);
+	if (luat_mobile_get_imei(0, imeiBuf, 20) > 0 )
+	{
+		// timeInfo->tm
+		snprintf(fileName, 50, "%s_%4d%02d%02d_%02d%02d%02d.amr", imeiBuf, 1900 + timeInfo->tm_year, timeInfo->tm_mon + 1, timeInfo->tm_mday, timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
+	}
+	else
+	{
+		snprintf(fileName, 50, "%s_%4d%02d%02d_%02d%02d%02d.amr", "record",1900 + timeInfo->tm_year, timeInfo->tm_mon + 1, timeInfo->tm_mday, timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
+	}
+	LUAT_DEBUG_PRINT("file name %s", fileName);
+	int bufMaxLen = 172 + strlen(fileName) + g_s_amr_rom_file.Pos;
 	data.postBuf = malloc(bufMaxLen);
 	memset(data.postBuf, 0, bufMaxLen);
 
-	if(0 == postMultipartFormData(&data, HTTP_HEAD_CONTYPE_SIZE, g_s_amr_rom_file.Data, g_s_amr_rom_file.Pos, RECORD_FILE_NAME, bufMaxLen))
+	if(0 == postMultipartFormData(&data, HTTP_HEAD_CONTYPE_SIZE, g_s_amr_rom_file.Data, g_s_amr_rom_file.Pos, fileName, bufMaxLen))
     {
         HTTPResult result = httpPostURL(&gHttpClient, TEST_HOST, &data, 30000);
-	    LUAT_DEBUG_PRINT("http post result %d", result);
+		LUAT_DEBUG_PRINT("http post result %d", result);
+		if(HTTP_OK == result)
+		{
+			LUAT_DEBUG_PRINT("http post success");
+		}
+	    else
+		{
+			LUAT_DEBUG_PRINT("http post fail");
+		}
     }
     free(data.headerBuf);
     free(data.respBuf);
