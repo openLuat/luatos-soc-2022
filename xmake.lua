@@ -381,9 +381,13 @@ target(USER_PROJECT_NAME..".elf")
             full_addr = string.format("%X", LUA_SCRIPT_OTA_ADDR)
             -- print(FLASH_FOTA_REGION_START,LUAT_SCRIPT_SIZE,LUAT_SCRIPT_OTA_SIZE)
             -- print(script_addr,full_addr)
+            
         end
     end)
     before_build(function(target)
+        local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
+        LUAT_SCRIPT_SIZE = tonumber(conf_data:match("\r#define LUAT_SCRIPT_SIZE (%d+)") or conf_data:match("\n#define LUAT_SCRIPT_SIZE (%d+)"))
+            LUAT_SCRIPT_OTA_SIZE = tonumber(conf_data:match("\r#define LUAT_SCRIPT_OTA_SIZE (%d+)") or conf_data:match("\n#define LUAT_SCRIPT_OTA_SIZE (%d+)"))
         if os.getenv("GCC_PATH") then
             GCC_DIR = os.getenv("GCC_PATH").."/"
         else
@@ -395,9 +399,10 @@ target(USER_PROJECT_NAME..".elf")
             FLAGS = ""
         end
         if USER_PROJECT_NAME == "luatos" then
-            FLAGS = FLAGS .. " -D__LUATOS__ -I" .. SDK_PATH .. "/project/luatos/inc"
+            FLAGS = FLAGS .. " -D__LUATOS__ -DFLASH_AREA_SIZE=" .. string.format("%dK", 2944 - LUAT_SCRIPT_SIZE - LUAT_SCRIPT_OTA_SIZE)
         end
         os.exec(GCC_DIR .. "bin/arm-none-eabi-gcc -E " .. FLAGS .. " -I " .. SDK_PATH .. "/PLAT/device/target/board/ec618_0h00/common/inc" .. " -P " .. SDK_PATH .. "/PLAT/core/ld/ec618_0h00_flash.c" ..  " -o " .. SDK_PATH .. "/PLAT/core/ld/ec618_0h00_flash.ld")
+        
     end)
 	after_build(function(target)
 		if os.getenv("GCC_PATH") then

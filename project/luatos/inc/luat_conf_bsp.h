@@ -13,11 +13,11 @@
 //#define LUAT_HEAP_SIZE (200*1024)
 //-----------------------------
 
-// #define LUAT_SCRIPT_SIZE 128
-// #define LUAT_SCRIPT_OTA_ZONE 96
+#define LUAT_SCRIPT_SIZE 128
+#define LUAT_SCRIPT_OTA_SIZE 96
 //------- V1103 及之前版本的默认值, 适合云喇叭的配置, V1104开始改成默认的128+96方案
-#define LUAT_SCRIPT_SIZE 448
-#define LUAT_SCRIPT_OTA_SIZE 284
+// #define LUAT_SCRIPT_SIZE 448
+// #define LUAT_SCRIPT_OTA_SIZE 284
 
 //------------------------------------------------------
 // 以下custom --> 到  <-- custom 之间的内容,是供用户配置的
@@ -225,17 +225,6 @@
 
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_MOBILE
-
-// 脚本区分配方案
-#ifndef LUAT_SCRIPT_SIZE
-#define LUAT_SCRIPT_SIZE 448
-#ifndef LUAT_SCRIPT_OTA_SIZE
-#define LUAT_SCRIPT_OTA_SIZE 284
-#endif
-#endif
-#ifndef LUAT_SCRIPT_OTA_SIZE
-#define LUAT_SCRIPT_OTA_SIZE (LUAT_SCRIPT_SIZE * 0.75)
-#endif
 
 #define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - (LUAT_SCRIPT_SIZE + LUAT_SCRIPT_OTA_SIZE) * 1024)
 #define LUA_SCRIPT_OTA_ADDR FLASH_FOTA_REGION_START - (LUAT_SCRIPT_OTA_SIZE * 1024)
