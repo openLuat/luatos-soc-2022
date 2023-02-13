@@ -10,8 +10,8 @@ local SDK_PATH
 local USER_PROJECT_NAME = "example"
 local USER_PROJECT_NAME_VERSION
 local USER_PROJECT_DIR  = ""
-local script_addr
-local full_addr
+local script_addr = nil
+local full_addr = nil
 
 package("gnu_rm")
 	set_kind("toolchain")
@@ -379,6 +379,8 @@ target(USER_PROJECT_NAME..".elf")
             script_addr = string.format("%X", LUA_SCRIPT_ADDR)
             full_addr = string.format("%X", LUA_SCRIPT_OTA_ADDR)
             -- print(script_addr,full_addr)
+            FLASH_LENGTH = 2944 - LUA_SCRIPT_ADDR_OFFSET
+            io.gsub("$(projectdir)/PLAT/core/ld/ec618_0h00_flash.c", "#ifdef __LUATOS__\n  FLASH_AREA%(rx%)              : ORIGIN = 0x00824000, LENGTH = (%d+)", "#ifdef __LUATOS__\n  FLASH_AREA(rx)              : ORIGIN = 0x00824000, LENGTH = "..FLASH_LENGTH)
         end
     end)
     before_build(function(target)
@@ -448,18 +450,19 @@ target(USER_PROJECT_NAME..".elf")
             end
             if path7z then
                 os.cp("$(projectdir)/project/luatos/pack", OUT_PATH)
+                import("core.base.json")
+                local info_table = json.loadfile(OUT_PATH.."/pack/info.json")
                 if VM_64BIT then
-                    import("core.base.json")
-                    local info_table = json.loadfile(OUT_PATH.."/pack/info.json")
                     info_table["script"]["bitw"] = 64
-                    if script_addr then
-                        info_table["download"]["script_addr"] = script_addr
-                    end
-                    if full_addr then
-                        info_table["fota"]["full_addr"] = full_addr
-                    end
-                    json.savefile(OUT_PATH.."/pack/info.json", info_table)
                 end
+                if script_addr then
+                    info_table["download"]["script_addr"] = script_addr
+                    io.gsub(OUT_PATH.."/pack/config_ec618_usb.ini", "filepath = .\\script.bin\nburnaddr = 0x(%g+)", "filepath = .\\script.bin\nburnaddr = 0x"..script_addr)
+                end
+                if full_addr then
+                    info_table["fota"]["full_addr"] = full_addr
+                end
+                json.savefile(OUT_PATH.."/pack/info.json", info_table)
                 os.cp(OUT_PATH.."/luatos.binpkg", OUT_PATH.."/pack")
                 os.cp(OUT_PATH.."/luatos.elf", OUT_PATH.."/pack")
                 os.cp("./PLAT/comdb.txt", OUT_PATH.."/pack")
