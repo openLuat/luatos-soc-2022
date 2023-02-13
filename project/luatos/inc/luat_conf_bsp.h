@@ -67,8 +67,7 @@
 #define LUAT_USE_WLAN 1
 #define LUAT_USE_WLAN_SCANONLY 1
 
-//---------------SDIO-FATFS特别配置
-// sdio库对接的是fatfs
+//---------------FATFS特别配置
 // fatfs的长文件名和非英文文件名支持需要180k的ROM, 非常奢侈
 #define LUAT_USE_FATFS
 #define LUAT_TF_SPI_FAST
