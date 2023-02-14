@@ -19,6 +19,11 @@
 // #define LUAT_SCRIPT_SIZE 448
 // #define LUAT_SCRIPT_OTA_SIZE 284
 
+// 适合tts_onchip的极限操作
+// 并注释掉lora,mlx90640等等外设库
+// #define LUAT_SCRIPT_SIZE 64
+// #define LUAT_SCRIPT_OTA_SIZE 48
+
 //------------------------------------------------------
 // 以下custom --> 到  <-- custom 之间的内容,是供用户配置的
 // 同时也是云编译可配置的部分. 提交代码时切勿删除会修改标识
@@ -230,15 +235,23 @@
 #define LUA_SCRIPT_OTA_ADDR FLASH_FOTA_REGION_START - (LUAT_SCRIPT_OTA_SIZE * 1024)
 
 #ifdef LUAT_USE_TTS
-#undef LUAT_USE_SFUD
-#define LUAT_USE_SFUD  1
 #undef LUAT_USE_LCD
 #undef LUAT_USE_TJPGD
 #undef LUAT_USE_LORA
 #undef LUAT_USE_IR
 #undef USE_U8G2_OPPOSANSM_ENGLISH
 #undef LUAT_USE_EINK
+#undef LUAT_USE_FONTS
 #define LUAT_USE_TTS_16K 1
+
+#ifdef LUAT_USE_TTS_ONCHIP
+#undef LUAT_USE_SFUD
+#else
+#ifndef LUAT_USE_SFUD
+#define LUAT_USE_SFUD  1
+#endif
+#endif
+
 
 #endif
 

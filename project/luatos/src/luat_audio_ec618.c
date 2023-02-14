@@ -49,6 +49,8 @@ typedef struct
 }luat_audio_hardware_t;
 
 static luat_audio_hardware_t g_s_audio_hardware;
+extern const unsigned char ivtts_16k[];
+extern const unsigned char ivtts_8k[];
 
 extern int l_multimedia_raw_handler(lua_State *L, void* ptr);
 //extern void audio_play_file_default_fun(void *param);
@@ -133,6 +135,17 @@ static void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t cha
 	}
 }
 #ifdef LUAT_USE_TTS
+#ifdef LUAT_USE_TTS_ONCHIP
+static ivBool tts_read_data(
+		  ivPointer		pParameter,			/* [in] user callback parameter */
+		  ivPointer		pBuffer,			/* [out] read resource buffer */
+		  ivResAddress	iPos,				/* [in] read start position */
+ivResSize		nSize )			/* [in] read size */
+{
+	memcpy(pBuffer, pParameter + iPos, nSize);
+	return ivTrue;
+}
+#else
 #define FLASH_TTS_ADDR (64 * 1024)
 extern luat_sfud_flash_t luat_sfud;
 static PV_Union g_s_spi_config;
@@ -154,11 +167,10 @@ ivResSize		nSize )			/* [in] read size */
 	}
 	
 	GPIO_FastOutput(g_s_spi_config.u8[1], 1);
-	// if (memcmp(buff, ivtts_16k + offset, len)) {
-	// 	LUAT_DEBUG_PRINT("tts data NOT match %04X %04X", offset, len);
-	// }
+
 	return ivTrue;
 }
+#endif
 #endif
 HANDLE soc_audio_fopen(const char *fname, const char *mode)
 {
@@ -182,15 +194,22 @@ int soc_audio_fclose(void *fp)
 
 void luat_audio_global_init(void)
 {
-
 #ifdef LUAT_USE_TTS
 	audio_play_global_init_ex(audio_event_cb, audio_data_cb, audio_play_file_default_fun, audio_play_TTS_default_fun, NULL);
 #ifdef LUAT_USE_TTS_16K
-	ivCStrA sdk_id = AISOUND_SDK_USERID_16K;
+#ifdef LUAT_USE_TTS_ONCHIP
+	audio_play_tts_set_resource_ex(ivtts_16k, AISOUND_SDK_USERID_16K, tts_read_data);
+#else
+	audio_play_tts_set_resource_ex(NULL, AISOUND_SDK_USERID_16K, tts_read_data);
+#endif
 #else
 	ivCStrA sdk_id = AISOUND_SDK_USERID_8K;
+	#ifdef LUAT_USE_TTS_ONCHIP
+	audio_play_tts_set_resource_ex(ivtts_8k, AISOUND_SDK_USERID_8K, tts_read_data);
+#else
+	audio_play_tts_set_resource_ex(NULL, AISOUND_SDK_USERID_8K, tts_read_data);
 #endif
-	audio_play_tts_set_resource_ex(NULL, sdk_id, tts_read_data);
+#endif
 #else
 	audio_play_global_init_ex(audio_event_cb, audio_data_cb, audio_play_file_default_fun, NULL, NULL);
 #endif
@@ -354,6 +373,8 @@ int l_i2s_stop(lua_State *L) {
 #ifdef LUAT_USE_TTS
 int luat_audio_play_tts_text(uint32_t multimedia_id, void *text, uint32_t text_bytes)
 {
+#ifdef LUAT_USE_TTS_ONCHIP
+#else
 	if (!g_s_spi_config.u32)
 	{
 		if (LUAT_TYPE_SPI == luat_sfud.luat_spi)
@@ -373,6 +394,7 @@ int luat_audio_play_tts_text(uint32_t multimedia_id, void *text, uint32_t text_b
 			return -1;
 		}
 	}
+#endif
 	return audio_play_tts_text(multimedia_id, text, text_bytes);
 }
 
