@@ -1,5 +1,7 @@
 # CSDK for ABCDEGF
 
+**强烈推荐使用git来下载本代码库**, 不会命令行操作git可以用 [tortoiseGit](https://tortoisegit.org/download/)
+
 ## 文档中心
 [CSDK软件开发资料](https://doc.openluat.com/wiki/37?wiki_page_id=4544)
 
@@ -89,7 +91,7 @@ error: fatal: not a git repository
 
 1. 下载[gcc for arm工具链](http://cdndownload.openluat.com/xmake/toolchains/gcc-arm/gcc-arm-none-eabi-10.3-2021.10-win32.zip)
 2. 解压, 不要选太深的目录, 不要包含中文字符和特殊符号, 建议解压到`D盘根目录`, 压缩包内自带一层目录`gcc-arm-none-eabi-10.3-2021.10`
-3. 假设解压后的路径是 `D:\gcc-arm-none-eabi-10.3-2021.10`, 检查 `D:\gcc-arm-none-eabi-10.3-2021.10\bin\arm-none-eabi-g++.exe` 是否存在, 如果不存在, 那肯定是多一层目录.
+3. 假设解压后的路径是 `D:\gcc-arm-none-eabi-10.3-2021.10`, 检查 `D:\gcc-arm-none-eabi-10.3-2021.10\bin\arm-none-eabi-g++.exe` 是否存在, 如果不存在, 那肯定是多一层目录. **务必检查!!!**
 4. 用文本编辑器(例如vscode)打开 `本代码库` 的 `build.bat`, 修改内容如下
 
 ```
