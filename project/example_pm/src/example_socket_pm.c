@@ -95,6 +95,12 @@ static void demo_socket_pm_task(void *arg)
     cfg.pos_edge_enable = 0;
     cfg.pull_up_enable = 1;
     cfg.pull_down_enable = 0;
+
+    uint32_t expire_time = luat_pm_get_deep_sleep_mode_timer_remain_time(LUAT_PM_DEEPSLEEP_TIMER_ID2);
+    if(0xffffffff == expire_time)
+        LUAT_DEBUG_PRINT("timer id is invalid or timer is stop");
+    else
+        LUAT_DEBUG_PRINT("timer id expire times %d", expire_time);
     luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_0, &cfg); // 配置wakeup中断，深度休眠也可以通过wakeup唤醒
     luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_3, &cfg);
     luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_4, &cfg);

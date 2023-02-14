@@ -289,7 +289,7 @@ int luat_pm_deep_sleep_mode_register_timer_cb(LUAT_PM_DEEPSLEEP_TIMERID_E timer_
  * @param timeout 超时时间，单位ms
  * @return int =0成功，其他失败
  */
-int luat_pm_deep_sleep_mode_timer_start(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id, int timeout);
+int luat_pm_deep_sleep_mode_timer_start(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id, uint32_t timeout);
 
 /**
  * @brief 停止深度睡眠模式下的软件定时器
@@ -306,6 +306,14 @@ int luat_pm_deep_sleep_mode_timer_stop(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id);
  * @return int =0未运行，int =1正在运行
  */
 int luat_pm_deep_sleep_mode_timer_is_running(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id);
+
+/**
+ * @brief 获取深度睡眠模式下的软件定时器剩余定时时间
+ * 
+ * @param timer_id 定时器ID
+ * @return uint32_t =0xffffffff定时器未运行或定时器id不存在，其他 剩余运行时间，单位ms
+ */
+uint32_t luat_pm_get_deep_sleep_mode_timer_remain_time(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id);
 
 /**
  * @brief 获取唤醒原因
