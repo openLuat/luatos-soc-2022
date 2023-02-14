@@ -203,8 +203,7 @@ void luat_audio_global_init(void)
 	audio_play_tts_set_resource_ex(NULL, AISOUND_SDK_USERID_16K, tts_read_data);
 #endif
 #else
-	ivCStrA sdk_id = AISOUND_SDK_USERID_8K;
-	#ifdef LUAT_USE_TTS_ONCHIP
+#ifdef LUAT_USE_TTS_ONCHIP
 	audio_play_tts_set_resource_ex(ivtts_8k, AISOUND_SDK_USERID_8K, tts_read_data);
 #else
 	audio_play_tts_set_resource_ex(NULL, AISOUND_SDK_USERID_8K, tts_read_data);
