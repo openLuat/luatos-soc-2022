@@ -347,10 +347,10 @@ target(USER_PROJECT_NAME..".elf")
 	-- 	LD_BASE_FLAGS = " --specs=nano.specs " .. LD_BASE_FLAGS
 	-- end
     if USER_PROJECT_NAME ~= 'luatos' then
-        add_files(SDK_TOP .. "interface/src/*.c",{public = true})
-        add_files(SDK_TOP .. "interface/private_src/*.c",{public = true})
-        add_files(SDK_TOP .. "thirdparty/mbedtls/library/*.c",{public = true})
-        add_files(SDK_TOP .. "thirdparty/printf/*.c",{public = true})
+        add_files(SDK_TOP .. "/interface/src/*.c",{public = true})
+        add_files(SDK_TOP .. "/interface/private_src/*.c",{public = true})
+        add_files(SDK_TOP .. "/thirdparty/mbedtls/library/*.c",{public = true})
+        add_files(SDK_TOP .. "/thirdparty/printf/*.c",{public = true})
     end
 
     if USER_PROJECT_NAME ~= 'luatos' then
