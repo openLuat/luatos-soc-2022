@@ -58,15 +58,15 @@ int luat_spi_bus_setup(luat_spi_device_t* spi_dev){
 	else if(spi_dev->spi_config.CPHA)spi_mode = SPI_MODE_1;
 	if (spi_dev->bus_id)
 	{
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 1, 0, 0);
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_14, 0), 1, 0, 0);
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_15, 0), 1, 0, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 1, 1, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_14, 0), 1, 1, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_15, 0), 1, 1, 0);
 	}
 	else
 	{
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_9, 0), 1, 0, 0);
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_10, 0), 1, 0, 0);
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_11, 0), 1, 0, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_9, 0), 1, 1, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_10, 0), 1, 1, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_11, 0), 1, 1, 0);
 	}
 	g_s_luat_spi_mode[spi_dev->bus_id] = spi_dev->spi_config.mode;
 	// LLOGD("SPI_MasterInit luat_bus_%d:%d dataw:%d spi_mode:%d bandrate:%d ",bus_id,luat_spi[bus_id].id, spi_dev->spi_config.dataw, spi_mode, spi_dev->spi_config.bandrate);
@@ -94,21 +94,21 @@ int luat_spi_setup(luat_spi_t* spi) {
 	{
 		if (HAL_GPIO_12 == spi->cs)
 		{
-			GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 0), 1, 0, 0);
+			GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 0), 1, 1, 0);
 		}
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 1, 0, 0);
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_14, 0), 1, 0, 0);
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_15, 0), 1, 0, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 1, 1, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_14, 0), 1, 1, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_15, 0), 1, 1, 0);
 	}
 	else
 	{
 		if (HAL_GPIO_8 == spi->cs)
 		{
-			GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_8, 0), 1, 0, 0);
+			GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_8, 0), 1, 1, 0);
 		}
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_9, 0), 1, 0, 0);
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_10, 0), 1, 0, 0);
-		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_11, 0), 1, 0, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_9, 0), 1, 1, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_10, 0), 1, 1, 0);
+		GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_11, 0), 1, 1, 0);
 	}
 	g_s_luat_spi_mode[spi->id] = spi->mode;
 //    LLOGD("SPI_MasterInit luat_spi%d:%d dataw:%d spi_mode:%d bandrate:%d ",spi_id,luat_spi[spi_id].id, spi->dataw, spi_mode, spi->bandrate);
