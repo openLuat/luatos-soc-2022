@@ -74,10 +74,12 @@ static void luat_test_task(void *param)
 	network_init_ctrl(g_s_network_ctrl, g_s_task_handle, luat_test_socket_callback, NULL);
 	network_set_base_mode(g_s_network_ctrl, 1, 15000, 1, 300, 5, 9);
 	g_s_network_ctrl->is_debug = 1;
+	const char remote_ip[] = "2603:c023:1:5fcc:c028:8ed:49a7:6e08";
 	const char hello[] = "hello, luatos!";
 	uint8_t *tx_data = malloc(1024);
 	uint8_t *rx_data = malloc(1024);
 	uint32_t tx_len, rx_len, cnt;
+	uint64_t uplink, downlink;
 	int result;
 	uint8_t is_break,is_timeout;
 	cnt = 0;
@@ -89,7 +91,7 @@ static void luat_test_task(void *param)
 			continue;
 		}
 
-		result = network_connect(g_s_network_ctrl, NULL, 0, &g_s_server_ip, server_port, 30000);
+		result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, 51288, 30000);
 		if (!result)
 		{
 			result = network_tx(g_s_network_ctrl, hello, sizeof(hello) - 1, 0, NULL, 0, &tx_len, 15000);
@@ -97,7 +99,7 @@ static void luat_test_task(void *param)
 			{
 				while(!result)
 				{
-					result = network_wait_rx(g_s_network_ctrl, 15000, &is_break, &is_timeout);
+					result = network_wait_rx(g_s_network_ctrl, 5000, &is_break, &is_timeout);
 					if (!result)
 					{
 						if (!is_timeout && !is_break)
@@ -116,6 +118,12 @@ static void luat_test_task(void *param)
 							sprintf(tx_data, "test %u cnt", cnt);
 							result = network_tx(g_s_network_ctrl, tx_data, strlen(tx_data), 0, NULL, 0, &tx_len, 15000);
 							cnt++;
+							if (!(cnt % 10))
+							{
+								luat_mobile_get_ip_flow(&uplink, &downlink);
+								LUAT_DEBUG_PRINT("%u,%u", (uint32_t)uplink, (uint32_t)downlink);
+								luat_mobile_clear_ip_flow(1, 1);
+							}
 						}
 					}
 				}
