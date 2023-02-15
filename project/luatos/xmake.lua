@@ -16,7 +16,7 @@ target(TARGET_NAME)
     -- add_includedirs(SDK_TOP .. "/interface/private_include", 
     --                 {public = true})
     add_files("./src/*.c",{public = true})
-    add_files(SDK_TOP .. "interface/src/*.c",{public = true})
+    add_files(SDK_TOP .. "/interface/src/*.c",{public = true})
 	
     add_includedirs(LUATOS_ROOT .. "lua/include")
     add_includedirs(LUATOS_ROOT .. "luat/include")
@@ -55,10 +55,10 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/serialization/protobuf/*.c")
 
     -- fdb
-    add_includedirs(SDK_TOP.."thirdparty/fal/inc")
-    add_includedirs(SDK_TOP.."thirdparty/flashdb/inc")
-    add_files(SDK_TOP.."thirdparty/fal/src/*.c")
-    add_files(SDK_TOP.."thirdparty/flashdb/src/*.c")
+    add_includedirs(SDK_TOP.."/thirdparty/fal/inc")
+    add_includedirs(SDK_TOP.."/thirdparty/flashdb/inc")
+    add_files(SDK_TOP.."/thirdparty/fal/src/*.c")
+    add_files(SDK_TOP.."/thirdparty/flashdb/src/*.c")
     add_files(LUATOS_ROOT.."components/flashdb/src/luat_lib_fdb.c")
 
     -- rsa
@@ -226,11 +226,15 @@ target(TARGET_NAME)
     -- fatfs
     add_includedirs(LUATOS_ROOT.."components/fatfs")
     add_files(LUATOS_ROOT.."components/fatfs/*.c")
+
+    -- iconv
+    add_includedirs(LUATOS_ROOT.."components/iconv")
+    add_files(LUATOS_ROOT.."components/iconv/*.c")
     
     -- 作为最后补充, 不然总是报主库没有的头文件
-    add_includedirs(SDK_TOP .. "interface/include")
+    add_includedirs(SDK_TOP .. "/interface/include")
 
     --自动链接
-    LIB_USER = LIB_USER .. SDK_TOP .. LIB_DIR .. LIB_NAME .. " "
+    LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. LIB_NAME .. " "
     --甚至可以加入自己的库
 target_end()

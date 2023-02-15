@@ -99,6 +99,9 @@
 #define LUAT_USE_PROTOBUF 1
 #define LUAT_USE_RSA      1
 
+// 编码转换,需要不少Flash空间,默认关闭
+// #define LUAT_USE_ICONV 1
+
 // ------------------------------
 // 音频相关
 // TTS的特别提醒:
