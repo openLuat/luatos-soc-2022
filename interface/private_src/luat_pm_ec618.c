@@ -370,7 +370,7 @@ int luat_pm_set_usb_power(uint8_t onoff)
 	soc_usb_onoff(onoff);
 }
 
-int luat_pm_deep_sleep_mode_timer_start(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id, int timeout)
+int luat_pm_deep_sleep_mode_timer_start(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id, uint32_t timeout)
 {
     if (timer_id < LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id > LUAT_PM_DEEPSLEEP_TIMER_ID6 || timeout <= 0)
         return -1;
@@ -404,6 +404,14 @@ int luat_pm_deep_sleep_mode_register_timer_cb(LUAT_PM_DEEPSLEEP_TIMERID_E timer_
     slpManDeepSlpTimerRegisterExpCb(timer_id, callback);
     return 0;
 }
+
+uint32_t luat_pm_get_deep_sleep_mode_timer_remain_time(LUAT_PM_DEEPSLEEP_TIMERID_E timer_id)
+{
+    if (timer_id < LUAT_PM_DEEPSLEEP_TIMER_ID0 || timer_id > LUAT_PM_DEEPSLEEP_TIMER_ID6)
+        return 0xffffffff;
+    return slpManDeepSlpTimerRemainMs(timer_id);
+}
+
 
 int luat_pm_get_wakeup_reason()
 {

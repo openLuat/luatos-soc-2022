@@ -1,3 +1,6 @@
+#ifndef _SNTP_H_
+#define _SNTP_H_
+
 #include "commontypedef.h"
 #include "common_api.h"
 
@@ -22,5 +25,6 @@ void SntpTerminat(void);
 //check sntp whether running,TRUE->running, FALSE->not run
 BOOL SntpChkStatus(CHAR *serverAddr, UINT16 *serverPort, UINT8 *cid);
 
+#endif
 
 

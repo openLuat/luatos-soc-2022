@@ -19,6 +19,11 @@
 // #define LUAT_SCRIPT_SIZE 448
 // #define LUAT_SCRIPT_OTA_SIZE 284
 
+// 适合tts_onchip的极限操作, 无需外置SPI FLASH也支持TTS.
+// 一定要看 LUAT_USE_TTS_ONCHIP的说明
+// #define LUAT_SCRIPT_SIZE 64
+// #define LUAT_SCRIPT_OTA_SIZE 48
+
 //------------------------------------------------------
 // 以下custom --> 到  <-- custom 之间的内容,是供用户配置的
 // 同时也是云编译可配置的部分. 提交代码时切勿删除会修改标识
@@ -86,16 +91,29 @@
 // #define LUAT_USE_GTFONT_UTF8
 
 //----------------------------
-// 高级功能, 其中shell是推荐启用, 除非你打算uart0也读数据
+// 高级功能
 // #define LUAT_USE_SHELL 1
 // #define LUAT_USE_DBG
 // 多虚拟机支持,实验性,一般不启用
 // #define LUAT_USE_VMX 1
 #define LUAT_USE_PROTOBUF 1
-
 #define LUAT_USE_RSA      1
+
+// ------------------------------
+// 音频相关
+// TTS的特别提醒:
+// TTS分2种实现:
+// 1. 启用 LUAT_USE_TTS_ONCHIP, 资源文件放在片上Flash
+// 2. 不启用 LUAT_USE_TTS_ONCHIP, 资源文件放片外SPI Flash
+//
+// 资源数据很大,需要近800k, 默认配置直接启用TTS_ONCHIP是放不下的!!!
+// 1. 禁用所有UI库,包括字体和fonts库
+// 2. 禁用大部分工具库,例如rsa,lora等
+// 3. 缩减脚本区到 64+48模式, 甚至 32+24 模式
+// ------------------------------
 #define LUAT_USE_MEDIA    1
 // #define LUAT_USE_TTS    1
+// #define LUAT_USE_TTS_ONCHIP    1
 //---------------------
 // UI
 // LCD  是彩屏, 若使用LVGL就必须启用LCD
@@ -230,15 +248,26 @@
 #define LUA_SCRIPT_OTA_ADDR FLASH_FOTA_REGION_START - (LUAT_SCRIPT_OTA_SIZE * 1024)
 
 #ifdef LUAT_USE_TTS
-#undef LUAT_USE_SFUD
-#define LUAT_USE_SFUD  1
 #undef LUAT_USE_LCD
 #undef LUAT_USE_TJPGD
 #undef LUAT_USE_LORA
 #undef LUAT_USE_IR
 #undef USE_U8G2_OPPOSANSM_ENGLISH
 #undef LUAT_USE_EINK
+#undef LUAT_USE_FONTS
+#undef LUAT_USE_LVGL
+#undef LUAT_USE_DISP
+
 #define LUAT_USE_TTS_16K 1
+
+#ifdef LUAT_USE_TTS_ONCHIP
+#undef LUAT_USE_SFUD
+#else
+#ifndef LUAT_USE_SFUD
+#define LUAT_USE_SFUD  1
+#endif
+#endif
+
 
 #endif
 
