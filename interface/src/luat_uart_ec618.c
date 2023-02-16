@@ -254,7 +254,7 @@ int luat_uart_write(int uartid, void* data, size_t length) {
         }
     }
     else {
-        DBG("not such uart id=%ld", uartid);
+        return -1;
     }
     return 0;
 }
@@ -286,8 +286,9 @@ int luat_uart_close(int uartid) {
             return 0;
         }
         Uart_DeInit(uartid);
+        return 0;
     }
-    return 0;
+    return -1;
 }
 
 int luat_uart_exist(int uartid) {
@@ -358,8 +359,9 @@ int luat_uart_ctrl(int uart_id, LUAT_UART_CTRL_CMD_E cmd, void* param){
         }else if(cmd == LUAT_UART_SET_SENT_CALLBACK){
             uart_cb[uart_id].sent_callback_fun = param;
         }
+        return 0;
     }
-    return 0;
+    return -1;
 }
 
 int luat_uart_wait_485_tx_done(int uartid)

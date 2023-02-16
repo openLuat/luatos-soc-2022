@@ -2044,7 +2044,7 @@ int network_rx(network_ctrl_t *ctrl, uint8_t *data, uint32_t len, int flags, lua
 			}
 			if (!read_len)
 			{
-				mbedtls_ssl_set_timer(ctrl, 0);
+				mbedtls_ssl_set_timer(ctrl->ssl, 0);
 			}
 		}
 		else
@@ -2093,7 +2093,7 @@ int network_rx(network_ctrl_t *ctrl, uint8_t *data, uint32_t len, int flags, lua
 			}
 			if (!read_len)
 			{
-				mbedtls_ssl_set_timer(ctrl, 0);
+				mbedtls_ssl_set_timer(ctrl->ssl, 0);
 			}
 		}
 		else
