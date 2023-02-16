@@ -590,6 +590,7 @@ static int network_state_connecting(network_ctrl_t *ctrl, OS_EVENT *event, netwo
 			ctrl->ssl->p_bio = ctrl;
 			ctrl->ssl->f_send = tls_send;
 			ctrl->ssl->f_recv = tls_recv;
+			mbedtls_ssl_set_timer( ctrl->ssl, 0 );
 			// add by wendal
 			// cloudflare的https需要设置hostname才能访问
 			if (ctrl->domain_name_len > 0 && ctrl->domain_name_len < 256) {
