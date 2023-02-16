@@ -1488,7 +1488,7 @@ void net_lwip_socket_clean(int *vaild_socket_list, uint32_t num, void *user_data
 	uint32_t i;
 	for(i = 0; i < num; i++)
 	{
-		if ( (vaild_socket_list[i] > 0) && (vaild_socket_list[i] < MAX_SOCK_NUM) )
+		if ( (vaild_socket_list[i] >= 0) && (vaild_socket_list[i] < MAX_SOCK_NUM) )
 		{
 			socket_list[vaild_socket_list[i]] = 1;
 		}
@@ -1496,7 +1496,7 @@ void net_lwip_socket_clean(int *vaild_socket_list, uint32_t num, void *user_data
 	}
 	for(i = 0; i < MAX_SOCK_NUM; i++)
 	{
-		NET_DBG("%d,%d",i,socket_list[i]);
+		NET_DBG("%d,%d,%d,%d",i,socket_list[i],prvlwip.socket[i].in_use, !prvlwip.socket[i].state);
 		if ( !socket_list[i] )
 		{
 			net_lwip_socket_force_close(i, user_data);

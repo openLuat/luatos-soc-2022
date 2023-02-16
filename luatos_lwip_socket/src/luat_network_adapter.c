@@ -2016,7 +2016,6 @@ int network_rx(network_ctrl_t *ctrl, uint8_t *data, uint32_t len, int flags, lua
 #ifdef LUAT_USE_TLS
 		if (ctrl->tls_mode)
 		{
-
 			do
 			{
 				result = mbedtls_ssl_read(ctrl->ssl, data + read_len, len - read_len);
@@ -2042,6 +2041,10 @@ int network_rx(network_ctrl_t *ctrl, uint8_t *data, uint32_t len, int flags, lua
 			else
 			{
 				result = -1;
+			}
+			if (!read_len)
+			{
+				mbedtls_ssl_set_timer(ctrl, 0);
 			}
 		}
 		else
@@ -2087,6 +2090,10 @@ int network_rx(network_ctrl_t *ctrl, uint8_t *data, uint32_t len, int flags, lua
 			else
 			{
 				result = -1;
+			}
+			if (!read_len)
+			{
+				mbedtls_ssl_set_timer(ctrl, 0);
 			}
 		}
 		else
