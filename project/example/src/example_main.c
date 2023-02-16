@@ -64,6 +64,7 @@ static void task2(void *param)
 	{
 		luat_rtos_task_sleep(1000);
 		LUAT_DEBUG_PRINT("task2 loop");
+		luat_debug_print_onoff(0);
 	}
 }
 

@@ -23,9 +23,10 @@
 #include "common_api.h"
 #include "plat_config.h"
 #include "reset.h"
-
+static unsigned char g_s_debug_onoff = 1;
 extern void soc_assert(const char *fun_name, uint32_t line_no, const char *fmt, va_list ap);
 extern void soc_vsprintf(uint8_t no_print, const char *fmt, va_list ap);
+extern void soc_printf_onoff(uint8_t no_printf);
 void luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_MODE_E mode)
 {
 	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, (LUAT_DEBUG_FAULT_RESET == mode)?4:0);
@@ -46,8 +47,15 @@ void luat_debug_assert(const char *fun_name, unsigned int line_no, const char *f
 
 void luat_debug_print(const char *fmt, ...)
 {
+	if (!g_s_debug_onoff) return;
 	va_list ap;
 	va_start(ap, fmt);
 	soc_vsprintf(0, fmt, ap);
 	va_end(ap);
+}
+
+void luat_debug_print_onoff(unsigned char onoff)
+{
+	soc_printf_onoff(!onoff);
+	g_s_debug_onoff = onoff;
 }

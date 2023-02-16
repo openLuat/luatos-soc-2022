@@ -54,7 +54,7 @@ void luat_debug_print(const char *fmt, ...);
 /**
  * @brief 断言处理，并格式打印输出到LOG口
  * 
- * @param fun_name 断言的函数 
+ * @param fun_name 断言的函数
  * @param line_no 行号
  * @param fmt 格式
  * @param ... 后续变量
@@ -79,6 +79,12 @@ void luat_debug_assert(const char *fun_name, unsigned int line_no, const char *f
  */
 void luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_MODE_E mode);
 
+/**
+ * @brief 是否开启/停止csdk log
+ *
+ * @param onoff 开关  0关闭 1打开，开机默认开状态
+ */
+void luat_debug_print_onoff(unsigned char onoff);
 /** @}*/
 
 #endif
