@@ -47,8 +47,8 @@ extern void soc_mobile_set_user_apn_auto_active(uint8_t cid,
 		uint8_t *apn_name, uint8_t apn_name_len,
 		uint8_t *user, uint8_t user_len,
 		uint8_t *password, uint8_t password_len);
-extern void soc_mobile_get_ip_flow(uint64_t *uplink, uint64_t *downlink);
-extern void soc_mobile_clear_ip_flow(uint8_t clear_uplink, uint8_t clear_downlink);
+extern void soc_mobile_get_ip_data_traffic(uint64_t *uplink, uint64_t *downlink);
+extern void soc_mobile_clear_ip_data_traffic(uint8_t clear_uplink, uint8_t clear_downlink);
 
 
 int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
@@ -643,12 +643,12 @@ int luat_mobile_set_period_work(uint32_t get_cell_period, uint32_t check_sim_per
 	return 0;
 }
 
-void luat_mobile_get_ip_flow(uint64_t *uplink, uint64_t *downlink)
+void luat_mobile_get_ip_data_traffic(uint64_t *uplink, uint64_t *downlink)
 {
-	soc_mobile_get_ip_flow(uplink, downlink);
+	soc_mobile_get_ip_data_traffic(uplink, downlink);
 }
 
-void luat_mobile_clear_ip_flow(uint8_t clear_uplink, uint8_t clear_downlink)
+void luat_mobile_clear_ip_data_traffic(uint8_t clear_uplink, uint8_t clear_downlink)
 {
-	soc_mobile_clear_ip_flow(clear_uplink, clear_downlink);
+	soc_mobile_clear_ip_data_traffic(clear_uplink, clear_downlink);
 }

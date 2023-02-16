@@ -120,9 +120,9 @@ static void luat_test_task(void *param)
 							cnt++;
 							if (!(cnt % 10))
 							{
-								luat_mobile_get_ip_flow(&uplink, &downlink);
+								luat_mobile_get_ip_data_traffic(&uplink, &downlink);
 								LUAT_DEBUG_PRINT("%u,%u", (uint32_t)uplink, (uint32_t)downlink);
-								luat_mobile_clear_ip_flow(1, 1);
+								luat_mobile_clear_ip_data_traffic(1, 1);
 							}
 						}
 					}
