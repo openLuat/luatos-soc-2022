@@ -248,6 +248,7 @@ static void tls_settimer( void *data, uint32_t int_ms, uint32_t fin_ms )
 	{
 		return;
 	}
+
 	if (!fin_ms)
 	{
 		platform_stop_timer(ctrl->tls_short_timer);
@@ -267,7 +268,14 @@ static int tls_gettimer( void *data )
 	{
 		return -ERROR_PARAM_INVALID;
 	}
-	return ctrl->tls_timer_state;
+	if (ctrl->ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER)
+	{
+		return ctrl->tls_timer_state;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 static void tls_dbg(void *data, int level,
@@ -2042,10 +2050,6 @@ int network_rx(network_ctrl_t *ctrl, uint8_t *data, uint32_t len, int flags, lua
 			{
 				result = -1;
 			}
-			if (!read_len)
-			{
-				mbedtls_ssl_set_timer(ctrl->ssl, 0);
-			}
 		}
 		else
 #endif
@@ -2090,10 +2094,6 @@ int network_rx(network_ctrl_t *ctrl, uint8_t *data, uint32_t len, int flags, lua
 			else
 			{
 				result = -1;
-			}
-			if (!read_len)
-			{
-				mbedtls_ssl_set_timer(ctrl->ssl, 0);
 			}
 		}
 		else
