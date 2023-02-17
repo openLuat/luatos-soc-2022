@@ -200,14 +200,13 @@ int luat_pm_set_pwrkey(LUAT_PM_POWERKEY_MODE_E mode, bool pullUpEn, luat_pm_pwrk
  */
 typedef enum LUAT_PM_POWERON_REASON
 {
-	LUAT_PM_POWERON_REASON_KEY,			 /**<按键开机*/
-	LUAT_PM_POWERON_REASON_CHARGER,		 /**<充电开机*/
-	LUAT_PM_POWERON_REASON_ALARM,		 /**<闹钟开机*/
-	LUAT_PM_POWERON_REASON_REBOOT,		 /**<软件重启开机*/
-	LUAT_PM_POWERON_REASON_EXCEPTION,	 /**<异常重启*/
-	LUAT_PM_POWERON_REASON_RESET,		 /**<reset 键重启*/
-	LUAT_PM_POWERON_REASON_WDT,			 /**<看门狗重启*/
-	LUAT_PM_POWERON_REASON_UNKOWN = 0xFF /**<未知原因*/
+	LUAT_PM_POWERON_REASON_NORMAL = 0,			/**<正常开机*/
+	LUAT_PM_POWERON_REASON_FOTA,		 		/**<fota完毕开机*/
+	LUAT_PM_POWERON_REASON_REBOOT = 3,		 	/**<软件重启开机*/
+	LUAT_PM_POWERON_REASON_UNKNOWN,	 			/**<未知原因*/
+	LUAT_PM_POWERON_REASON_EXCEPTION = 6,		/**<异常重启重启*/	 
+	LUAT_PM_POWERON_REASON_WDT = 8,		 		/**<看门狗重启*/
+	LUAT_PM_POWERON_REASON_EXTERNAL, 			/**<外部重启*/
 } LUAT_PM_POWERON_REASON_E;
 /**
  * @brief 获取开机原因

@@ -316,30 +316,30 @@ int luat_pm_get_poweron_reason(void)
 	{
 	case LAST_RESET_POR:
 	case LAST_RESET_NORMAL:
-		id = 0;
+		id = LUAT_PM_POWERON_REASON_NORMAL;
 		break;
 	case LAST_RESET_SWRESET:
-		id = 3;
+		id = LUAT_PM_POWERON_REASON_REBOOT;
 		break;
 	case LAST_RESET_HARDFAULT:
 	case LAST_RESET_ASSERT:
-		id = 6;
+		id = LUAT_PM_POWERON_REASON_EXCEPTION;
 		break;
 	case LAST_RESET_WDTSW:
 	case LAST_RESET_WDTHW:
 	case LAST_RESET_LOCKUP:
 	case LAST_RESET_AONWDT:
-		id = 8;
+		id = LUAT_PM_POWERON_REASON_WDT;
 		break;
 	case LAST_RESET_BATLOW:
 	case LAST_RESET_TEMPHI:
-		id = 9;
+		id = LUAT_PM_POWERON_REASON_EXTERNAL;
 		break;
 	case LAST_RESET_FOTA:
-		id = 1;
+		id = LUAT_PM_POWERON_REASON_FOTA;
 		break;
 	default:
-		id = 4;
+		id = LUAT_PM_POWERON_REASON_UNKNOWN;
 		break;
 	}
 	return id;
