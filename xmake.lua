@@ -116,7 +116,7 @@ add_defines("__EC618",
             "HAVE_STRUCT_TIMESPEC",
             "HTTPS_WITH_CA",
             "FEATURE_HTTPC_ENABLE",
-            "LITE_FEATURE_MODE",
+            -- "LITE_FEATURE_MODE",
             -- "RTE_RNDIS_EN=0", "RTE_ETHER_EN=0",
             "RTE_USB_EN=1",
             "RTE_PPP_EN=0",
@@ -130,9 +130,9 @@ add_defines("__EC618",
 )
 
 if is_rndis then
-    add_defines("RTE_RNDIS_EN=1", "RTE_ETHER_EN=1")
+    
 else
-    add_defines("RTE_RNDIS_EN=0", "RTE_ETHER_EN=0")
+    add_defines("LITE_FEATURE_MODE")
 end
 
 
@@ -286,18 +286,23 @@ LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libtcpipmgr.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libyrcompress.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libmiddleware_ec.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/liblwip.a "
--- LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libmbedtls.a "
--- LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/liblfs.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PS/lib/gcc/lite/libps.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PS/lib/gcc/lite/libpsl1.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PS/lib/gcc/lite/libpsif.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libosa.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libmiddleware_ec_private.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libccio.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libdeltapatch.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libfota.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libdriver_private.a "
-LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite/libusb_private.a "
+if is_rndis then
+    LIB_PS_PRE = SDK_TOP .. "/PLAT/prebuild/PS/lib/gcc"
+    LIB_PLAT_PRE = SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc"
+else
+    LIB_PS_PRE = SDK_TOP .. "/PLAT/prebuild/PS/lib/gcc/lite"
+    LIB_PLAT_PRE = SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc/lite"
+end
+LIB_BASE = LIB_BASE .. LIB_PS_PRE .. "/libps.a "
+LIB_BASE = LIB_BASE .. LIB_PS_PRE .. "/libpsl1.a "
+LIB_BASE = LIB_BASE .. LIB_PS_PRE .. "/libpsif.a "
+LIB_BASE = LIB_BASE .. LIB_PLAT_PRE .. "/libosa.a "
+LIB_BASE = LIB_BASE .. LIB_PLAT_PRE .. "/libmiddleware_ec_private.a "
+LIB_BASE = LIB_BASE .. LIB_PLAT_PRE .. "/libccio.a "
+LIB_BASE = LIB_BASE .. LIB_PLAT_PRE .. "/libdeltapatch.a "
+LIB_BASE = LIB_BASE .. LIB_PLAT_PRE .. "/libfota.a "
+LIB_BASE = LIB_BASE .. LIB_PLAT_PRE .. "/libdriver_private.a "
+LIB_BASE = LIB_BASE .. LIB_PLAT_PRE .. "/libusb_private.a "
 LIB_USER = ""
 
 after_load(function (target)
