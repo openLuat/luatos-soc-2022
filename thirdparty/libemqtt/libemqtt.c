@@ -260,7 +260,7 @@ int mqtt_connect(mqtt_broker_handle_t* broker)
 		DBG("out of memory when malloc connect packet");
 		return -2;
 	}
-	memset(packet, 0, sizeof(packet));
+	memset(packet, 0, packet_size);
 	memcpy(packet, fixed_header, sizeof(fixed_header));
 	offset += sizeof(fixed_header);
 	memcpy(packet+offset, var_header, sizeof(var_header));
