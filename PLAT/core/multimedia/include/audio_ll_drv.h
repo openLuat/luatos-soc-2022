@@ -25,6 +25,7 @@ typedef enum
 {
     AUSTREAM_BUS_DAC,
 	AUSTREAM_BUS_I2S,
+	AUSTREAM_BUS_SOFT_DAC,	//PWM模拟DAC
 } auStreamBusType_t;
 
 typedef struct

@@ -188,4 +188,5 @@ void audio_play_TTS_default_fun(void *param);
 void audio_play_tts_set_resource_ex(void *address, void *sdk_id, void *read_resource_fun);
 void audio_play_global_init_ex(audio_play_event_cb_fun_t event_cb, audio_play_data_cb_fun_t data_cb, audio_play_default_fun_t play_file_fun, audio_play_default_fun_t play_tts_fun, void *user_param);
 int audio_play_write_blank_raw_ex(uint32_t multimedia_id, uint8_t cnt, uint8_t add_font);
+void audio_play_set_bus_type(uint8_t bus_type);
 #endif
