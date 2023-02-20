@@ -147,6 +147,9 @@ static void luatos_task(void *param)
 
 #endif
 	luat_pm_init();
+	#ifdef LUAT_EC618_RNDIS_ENABLED
+	DBG("RNDIS feature enabled");
+	#endif
 	luat_main();
 	while (1) {
 		DBG("LuatOS exit");

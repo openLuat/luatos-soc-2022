@@ -55,6 +55,7 @@ end
 -- 是否为rndis csdk
 if os.getenv("EC618_RNDIS") == "enable" then
     is_rndis = true
+    add_defines("LUAT_EC618_RNDIS_ENABLED=1")
 else
     is_rndis = false
 end
