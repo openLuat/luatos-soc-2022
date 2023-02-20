@@ -243,7 +243,7 @@
 #define LUAT_USE_DHCP  1
 #define LUAT_USE_ERRDUMP 1
 #define LUAT_USE_FOTA 1
-
+#define LUAT_SUPPORT_AMR
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_MOBILE
 //#define LUAT_USE_I2S
