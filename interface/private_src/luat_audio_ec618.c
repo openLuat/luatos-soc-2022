@@ -105,3 +105,7 @@ void luat_audio_play_tts_set_resource(void *address, void *sdk_id, void *tts_res
 	audio_play_tts_set_resource_ex(address, sdk_id, tts_resource_read_fun);
 }
 
+void luat_audio_play_set_bus_type(uint8_t bus_type)
+{
+	audio_play_set_bus_type(bus_type);
+}

@@ -49,6 +49,10 @@ enum
 	LUAT_MULTIMEDIA_CB_DECODE_DONE,			/**< 音频解码完成 */
 	LUAT_MULTIMEDIA_CB_TTS_INIT,				/**< TTS做完了必要的初始化，用户可以通过audio_play_tts_set_param做个性化配置 */
 	LUAT_MULTIMEDIA_CB_TTS_DONE,				/**< TTS编码完成了。注意不是播放完成 */
+
+	LUAT_AUDIO_BUS_DAC=0,
+	LUAT_AUDIO_BUS_I2S,
+	LUAT_AUDIO_BUS_SOFT_DAC
 };
 
 void luat_audio_play_file_default_fun(void *param);
@@ -176,5 +180,11 @@ int luat_audio_play_tts_set_param(uint32_t multimedia_id, uint32_t param_id, uin
  * @param tts_resource_read_fun 读取资源文件的函数，如果是NULL，则使用默认函数，即单纯的拷贝，如果用自己的函数，必须按照ivCBReadResExt定义
  */
 void luat_audio_play_tts_set_resource(void *address, void *sdk_id, void *tts_resource_read_fun);
+/**
+ * @brief 设置音频硬件输出类型
+ *
+ * @param bus_type 见LUAT_AUDIO_BUS，目前只有1=I2S 2=SOFT_DAC
+ */
+void luat_audio_play_set_bus_type(uint8_t bus_type);
 /**@}*/
 #endif
