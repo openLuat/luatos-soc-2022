@@ -336,7 +336,7 @@ int luat_pm_get_poweron_reason(void)
 		id = LUAT_PM_POWERON_REASON_EXTERNAL;
 		break;
 	case LAST_RESET_FOTA:
-		id = LUAT_PM_POWERON_REASON_DOWNLOAD_DONE;
+		id = LUAT_PM_POWERON_REASON_FOTA;
 		break;
 	default:
 		id = LUAT_PM_POWERON_REASON_UNKNOWN;

@@ -201,13 +201,13 @@ int luat_pm_set_pwrkey(LUAT_PM_POWERKEY_MODE_E mode, bool pullUpEn, luat_pm_pwrk
 typedef enum LUAT_PM_POWERON_REASON
 {
 	LUAT_PM_POWERON_REASON_NORMAL = 0,			/**<powerkey或者上电开机*/
-	LUAT_PM_POWERON_REASON_DOWNLOAD_DONE,		/**<充电或者AT指令下载完成后开机*/
+	LUAT_PM_POWERON_REASON_FOTA,				/**<充电或者AT指令下载完成后开机*/
 	LUAT_PM_POWERON_REASON_ALARM,				/**<闹钟开机*/
 	LUAT_PM_POWERON_REASON_SWRESET,				/**<软件重启*/
 	LUAT_PM_POWERON_REASON_UNKNOWN,				/**<未知原因*/
 	LUAT_PM_POWERON_REASON_HWRESET,				/**<RESET键重启*/
 	LUAT_PM_POWERON_REASON_EXCEPTION,			/**<异常重启*/
-	LUAT_PM_POWERON_REASON_GONGJU,				/**<工具控制重启*/
+	LUAT_PM_POWERON_REASON_TOOL,				/**<工具控制重启*/
 	LUAT_PM_POWERON_REASON_WDT,					/**<内部看门狗重启*/
 	LUAT_PM_POWERON_REASON_EXTERNAL,			/**<外部重启*/
 	LUAT_PM_POWERON_REASON_CHARGING,			/**<充电开机*/
