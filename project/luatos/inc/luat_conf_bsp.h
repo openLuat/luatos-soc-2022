@@ -23,6 +23,8 @@
 // 一定要看 LUAT_USE_TTS_ONCHIP的说明
 // #define LUAT_SCRIPT_SIZE 64
 // #define LUAT_SCRIPT_OTA_SIZE 48
+// #define LUAT_SCRIPT_SIZE 32
+// #define LUAT_SCRIPT_OTA_SIZE 24
 
 //------------------------------------------------------
 // 以下custom --> 到  <-- custom 之间的内容,是供用户配置的
@@ -113,10 +115,12 @@
 // 1. 禁用所有UI库,包括字体和fonts库
 // 2. 禁用大部分工具库,例如rsa,lora等
 // 3. 缩减脚本区到 64+48模式, 甚至 32+24 模式
+// 4. 使用8k的资源文件可节省100k,音质见仁见智,可选
 // ------------------------------
 #define LUAT_USE_MEDIA    1
 // #define LUAT_USE_TTS    1
 // #define LUAT_USE_TTS_ONCHIP    1
+// #define LUAT_USE_TTS_8K 1
 //---------------------
 // UI
 // LCD  是彩屏, 若使用LVGL就必须启用LCD
@@ -262,7 +266,9 @@
 #undef LUAT_USE_LVGL
 #undef LUAT_USE_DISP
 
+#ifndef LUAT_USE_TTS_8K
 #define LUAT_USE_TTS_16K 1
+#endif
 
 #ifdef LUAT_USE_TTS_ONCHIP
 #undef LUAT_USE_SFUD
