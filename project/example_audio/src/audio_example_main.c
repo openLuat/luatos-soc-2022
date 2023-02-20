@@ -135,6 +135,8 @@ static void demo_task(void *arg)
 	download_file();
 	luat_rtos_timer_create(&g_s_delay_timer);
     luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, luat_audio_play_tts_default_fun, NULL);
+    //如果用模拟DAC通道，打开下面
+//    luat_audio_play_set_bus_type(LUAT_AUDIO_BUS_SOFT_DAC);
     // 无压缩版本
     luat_audio_play_tts_set_resource(ivtts_16k, sdk_id, NULL);
     //8K用下面的
