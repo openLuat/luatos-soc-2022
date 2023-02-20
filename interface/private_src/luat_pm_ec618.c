@@ -319,7 +319,7 @@ int luat_pm_get_poweron_reason(void)
 		id = LUAT_PM_POWERON_REASON_NORMAL;
 		break;
 	case LAST_RESET_SWRESET:
-		id = LUAT_PM_POWERON_REASON_REBOOT;
+		id = LUAT_PM_POWERON_REASON_SWRESET;
 		break;
 	case LAST_RESET_HARDFAULT:
 	case LAST_RESET_ASSERT:
