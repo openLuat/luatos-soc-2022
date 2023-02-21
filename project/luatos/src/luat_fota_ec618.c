@@ -277,6 +277,7 @@ int luat_fota_end(uint8_t is_ok)
 		OS_DeInitBuffer(&g_s_fota.data_buffer);
 		BSP_QSPI_Erase_Safe(__SOC_OTA_INFO_DATA_SAVE_ADDRESS__, __FLASH_SECTOR_SIZE__);
 		LLOGI("fota failed");
+		return -1;
 	}
 	return 0;
 }
