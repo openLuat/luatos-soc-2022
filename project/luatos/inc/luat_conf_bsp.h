@@ -238,7 +238,7 @@
 #define LUAT_RT_CB_PARAM void *param
 
 #define time(X)	luat_time(X)
-
+#define LUAT_USE_W5500 1
 #define LUAT_USE_NETWORK 1
 #define LUAT_USE_TLS 1
 #define LUAT_USE_LWIP 1

@@ -63,6 +63,9 @@ static const luaL_Reg loadedlibs[] = {
   {"ftp", luaopen_ftp},
 #endif
 #endif
+#ifdef LUAT_USE_W5500
+  {"w5500", luaopen_w5500},
+#endif
 #ifdef LUAT_USE_WLAN
   {"wlan", luaopen_wlan},
 #endif
