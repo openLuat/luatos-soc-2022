@@ -604,7 +604,7 @@ static err_t net_lwip_tcp_sent_cb(void *arg, struct tcp_pcb *tpcb,
 			}
 			else
 			{
-				NET_DBG("tcp buf is full, wait ack and send again");
+//				NET_DBG("tcp buf is full, wait ack and send again");
 				break;
 			}
 		}
@@ -877,7 +877,7 @@ static void net_lwip_task(void *param)
 	struct pbuf *out_p;
 	int error, i;
 	PV_Union uPV;
-	uint8_t active_flag;
+//	uint8_t active_flag;
 	uint8_t socket_id;
 	uint8_t adapter_index;
 	socket_id = event.Param1;
@@ -889,14 +889,14 @@ static void net_lwip_task(void *param)
 		SOCKET_LOCK(socket_id);
 		if (prvlwip.socket[socket_id].in_use && prvlwip.socket[socket_id].pcb.ip)
 		{
-			if (!prvlwip.socket[socket_id].pcb.tcp->unsent && !prvlwip.socket[socket_id].pcb.tcp->unacked)
-			{
-				active_flag = 0;
-			}
-			else
-			{
-				active_flag = 1;
-			}
+//			if (!prvlwip.socket[socket_id].pcb.tcp->unsent && !prvlwip.socket[socket_id].pcb.tcp->unacked)
+//			{
+//				active_flag = 0;
+//			}
+//			else
+//			{
+//				active_flag = 1;
+//			}
 			if (prvlwip.socket[socket_id].is_tcp)
 			{
 				while (!llist_empty(&prvlwip.socket[socket_id].tx_head))
@@ -914,6 +914,11 @@ static void net_lwip_task(void *param)
 							//	NET_DBG("tcp buf is full, wait ack and send again");
 							break;
 						}
+					}
+					else
+					{
+						//	NET_DBG("tcp buf is full, wait ack and send again");
+						break;
 					}
 				}
 				SOCKET_UNLOCK(socket_id);
