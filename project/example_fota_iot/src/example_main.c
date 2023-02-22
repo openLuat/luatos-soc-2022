@@ -142,7 +142,7 @@ static void task_test_fota(void *param)
     gHttpClient.ignore = 1;
     char imei[16] = {0};
     luat_mobile_get_imei(0, imei, 15);
-    snprintf(g_test_server_name, 200, "%s/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_%s_%s_%s&version=%s", TEST_HOST, PROJECT_KEY, imei, PROJECT_VERSION, PROJECT_NAME, soc_get_sdk_type(), "EC618", PROJECT_VERSION);
+    snprintf(g_test_server_name, 200, "%s/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_%s_%s&version=%s", TEST_HOST, PROJECT_KEY, imei, PROJECT_NAME, soc_get_sdk_type(), "EC618", PROJECT_VERSION);
     LUAT_DEBUG_PRINT("test print url %s", g_test_server_name);
     luat_rtos_semaphore_take(net_semaphore_handle, LUAT_WAIT_FOREVER);
 
