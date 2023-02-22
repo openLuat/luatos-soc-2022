@@ -123,12 +123,13 @@ target(TARGET_NAME)
     
 
     -- network
-    add_includedirs(LUATOS_ROOT .. "components/ethernet/common")
-    add_includedirs(LUATOS_ROOT .. "components/common")
-    add_includedirs(LUATOS_ROOT .. "components/network/adapter")
+    add_includedirs(LUATOS_ROOT .. "components/ethernet/common", {public = true})
+    add_includedirs(LUATOS_ROOT .. "components/ethernet/w5500", {public = true})
+    add_includedirs(LUATOS_ROOT .. "components/common", {public = true})
+    add_includedirs(LUATOS_ROOT .. "components/network/adapter", {public = true})
     add_includedirs(LUATOS_ROOT .. "components/mbedtls/include", {public = true})
     add_includedirs(LUATOS_ROOT .. "components/mbedtls/library", {public = true})
-    add_files(LUATOS_ROOT .. "components/ethernet/common/*.c")
+    add_files(LUATOS_ROOT.."components/ethernet/**.c")
     add_files(LUATOS_ROOT .. "components/network/adapter/*.c")
     add_files(LUATOS_ROOT .. "components/mbedtls/library/*.c")
 
