@@ -3,14 +3,24 @@ local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 
 local LUATOS_ROOT = SDK_TOP .. "/../LuatOS/"
+local LUAT_USE_TTS_8K
 
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)
-    add_includedirs(SDK_TOP .. "/PLAT/core/tts/include/16k_lite_ver",{public = true})   --为了编译通过而已
-    LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_16K.a "
-    --8K版本用下面的库，注释掉16K的库
-    -- LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_8K.a "
+
+    on_load(function (target)
+            local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
+            LUAT_USE_TTS_8K = conf_data:find("\r#define LUAT_USE_TTS_8K") or conf_data:find("\n#define LUAT_USE_TTS_8K")
+        if LUAT_USE_TTS_8K then
+            target:add("includedirs","$(projectdir)/PLAT/core/tts/include/8k_lite_ver")
+            target:add("files","$(projectdir)/PLAT/core/lib/libaisound50_8K.a")
+        else 
+            target:add("includedirs","$(projectdir)/PLAT/core/tts/include/16k_lite_ver")
+            target:add("files","$(projectdir)/PLAT/core/lib/libaisound50_16K.a")
+        end
+    end)
+
     --加入代码和头文件
     add_includedirs("./inc",{public = true})
     -- add_includedirs(SDK_TOP .. "/interface/private_include", 
@@ -123,12 +133,13 @@ target(TARGET_NAME)
     
 
     -- network
-    add_includedirs(LUATOS_ROOT .. "components/ethernet/common")
-    add_includedirs(LUATOS_ROOT .. "components/common")
-    add_includedirs(LUATOS_ROOT .. "components/network/adapter")
+    add_includedirs(LUATOS_ROOT .. "components/ethernet/common", {public = true})
+    add_includedirs(LUATOS_ROOT .. "components/ethernet/w5500", {public = true})
+    add_includedirs(LUATOS_ROOT .. "components/common", {public = true})
+    add_includedirs(LUATOS_ROOT .. "components/network/adapter", {public = true})
     add_includedirs(LUATOS_ROOT .. "components/mbedtls/include", {public = true})
     add_includedirs(LUATOS_ROOT .. "components/mbedtls/library", {public = true})
-    add_files(LUATOS_ROOT .. "components/ethernet/common/*.c")
+    add_files(LUATOS_ROOT.."components/ethernet/**.c")
     add_files(LUATOS_ROOT .. "components/ethernet/w5500/*.c")
     add_files(LUATOS_ROOT .. "components/network/adapter/*.c")
     add_files(LUATOS_ROOT .. "components/mbedtls/library/*.c")
