@@ -12,14 +12,15 @@ target(TARGET_NAME)
     on_load(function (target)
             local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
             LUAT_USE_TTS_8K = conf_data:find("\r#define LUAT_USE_TTS_8K") or conf_data:find("\n#define LUAT_USE_TTS_8K")
+        if LUAT_USE_TTS_8K then
+            target:add("includedirs","$(projectdir)/PLAT/core/tts/include/8k_lite_ver")
+            target:add("files","$(projectdir)/PLAT/core/lib/libaisound50_8K.a")
+        else 
+            target:add("includedirs","$(projectdir)/PLAT/core/tts/include/16k_lite_ver")
+            target:add("files","$(projectdir)/PLAT/core/lib/libaisound50_16K.a")
+        end
     end)
-    if LUAT_USE_TTS_8K then
-        add_includedirs(SDK_TOP .. "/PLAT/core/tts/include/8k_lite_ver",{public = true})
-        LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_8K.a "
-    else 
-        add_includedirs(SDK_TOP .. "/PLAT/core/tts/include/16k_lite_ver",{public = true})
-        LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_16K.a "
-    end
+
     --加入代码和头文件
     add_includedirs("./inc",{public = true})
     -- add_includedirs(SDK_TOP .. "/interface/private_include", 
