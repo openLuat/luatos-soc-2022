@@ -4,7 +4,7 @@
 #include "luat_gpio.h"
 #include "luat_fota.h"
 
-#if 0
+#if 1
 
 #define LUAT_LOG_TAG "sc"
 #include "luat_log.h"
