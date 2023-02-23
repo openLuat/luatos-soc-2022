@@ -12,10 +12,16 @@ IP网络准备就绪之后，外部功能模块才能正常使用socket、http�
 
 
 static uint8_t g_s_is_link_up;
+static uint8_t g_s_cid;
 
 uint8_t network_service_is_ready(void)
 {
 	return g_s_is_link_up;
+}
+
+uint8_t network_service_get_cid(void)
+{
+	return g_s_cid;
 }
 
 
@@ -54,6 +60,7 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		break;
 	case LUAT_MOBILE_EVENT_PDP:
         LUAT_DEBUG_PRINT("pdp event, cid %d, status %d", index, status);
+		g_s_cid = index;
 		break;
 	case LUAT_MOBILE_EVENT_NETIF:
 		switch (status)
