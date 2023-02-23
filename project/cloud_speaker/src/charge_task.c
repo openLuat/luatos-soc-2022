@@ -5,7 +5,6 @@
 #include "luat_adc.h"
 static luat_rtos_task_handle charge_task_handle;
 
-#define ADC_ID_VBAT 11
 static volatile uint16_t vbat = 0;
 
 uint16_t get_vbat()
@@ -16,12 +15,12 @@ uint16_t get_vbat()
 static void charge_task(void *param)
 {
     int origin, revert;
-    luat_adc_open(ADC_ID_VBAT, NULL);
-    luat_adc_read(ADC_ID_VBAT, &origin, &revert);
+    luat_adc_open(LUAT_ADC_CH_VBAT, NULL);
+    luat_adc_read(LUAT_ADC_CH_VBAT, &origin, &revert);
     luat_rtos_task_sleep(1000);
     while (1)
     {
-        luat_adc_read(ADC_ID_VBAT, &origin, &revert);
+        luat_adc_read(LUAT_ADC_CH_VBAT, &origin, &revert);
         vbat = revert;
         luat_rtos_task_sleep(60000);
     }
