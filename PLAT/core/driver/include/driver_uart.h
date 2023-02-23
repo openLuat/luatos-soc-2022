@@ -66,5 +66,5 @@ void Uart_RxBufferClear(uint8_t UartID);
 void Uart_PrintReg(uint8_t UartID);
 void Uart_ChangeBR(uint8_t UartID, uint32_t BaudRate);
 uint32_t Uart_GetLastError(uint8_t UartID);
-void Uart_Sleep(uint8_t UartID, uint8_t OnOff);
+
 #endif
