@@ -10,6 +10,8 @@ local SDK_PATH
 local USER_PROJECT_NAME = "example"
 local USER_PROJECT_NAME_VERSION
 local USER_PROJECT_DIR  = ""
+local LUAT_SCRIPT_SIZE
+local LUAT_SCRIPT_OTA_SIZE
 local script_addr = nil
 local full_addr = nil
 
@@ -391,9 +393,6 @@ target(USER_PROJECT_NAME..".elf")
         end
     end)
     before_build(function(target)
-        local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
-        LUAT_SCRIPT_SIZE = tonumber(conf_data:match("\r#define LUAT_SCRIPT_SIZE (%d+)") or conf_data:match("\n#define LUAT_SCRIPT_SIZE (%d+)"))
-            LUAT_SCRIPT_OTA_SIZE = tonumber(conf_data:match("\r#define LUAT_SCRIPT_OTA_SIZE (%d+)") or conf_data:match("\n#define LUAT_SCRIPT_OTA_SIZE (%d+)"))
         if os.getenv("GCC_PATH") then
             GCC_DIR = os.getenv("GCC_PATH").."/"
         else
@@ -468,6 +467,7 @@ target(USER_PROJECT_NAME..".elf")
                 end
                 if script_addr then
                     info_table["download"]["script_addr"] = script_addr
+                    info_table["rom"]["fs"]["script"]["size"] = LUAT_SCRIPT_SIZE
                     io.gsub(OUT_PATH.."/pack/config_ec618_usb.ini", "filepath = .\\script.bin\nburnaddr = 0x(%g+)", "filepath = .\\script.bin\nburnaddr = 0x"..script_addr)
                 end
                 if full_addr then
