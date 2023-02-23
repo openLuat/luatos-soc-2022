@@ -487,10 +487,12 @@ typedef struct CmiDevSetExtCfgReq_Tag
 
     BOOL    pdpReactPresent;
     BOOL    bPdpReact;
-
     BOOL    updateFreqCtrlPresent;
     BOOL    updateFreqCtrl;
 
+    BOOL    ignoreEmmCausePresent;
+    BOOL    ignoreEmmCause;
+    UINT8   rsvd3[2];
 
     /* ERRC */
     BOOL    dataInactTimerPresent;
@@ -509,7 +511,7 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    weakCellOptPresent;
     BOOL    weakCellOpt;
 
-    UINT8   rsvd3;
+    UINT8   rsvd4;
     BOOL    qRxLevMinPresent;
     INT16   qRxLevMinWeakCell;
 
@@ -521,7 +523,7 @@ typedef struct CmiDevSetExtCfgReq_Tag
 
     BOOL    staticConfigPresent;
     BOOL    staticConfig;
-    UINT16  rsvd4;
+    UINT16  rsvd5;
 }CmiDevSetExtCfgReq;    // 64 bytes
 
 typedef CamCmiEmptySig CmiDevSetExtCfgCnf;
@@ -570,7 +572,8 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     BOOL    bPdpReact;
 
     BOOL    updateFreqCtrl;
-    UINT8   rsvd1[3];
+    BOOL    ignoreEmmCause;
+    UINT8   rsvd1[2];
 
     /* ERRC */
     UINT8   ueCfgDataInactTimer;        /* ERRC data inactivity timer, in seconds */

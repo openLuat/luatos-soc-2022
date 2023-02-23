@@ -99,6 +99,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CEMM_CFG_ATTACH_WITH_IMSI_CTRL,                 /* TV,  UINT8 */
     CEMM_CFG_POWER_ATTACH_WITHOUT_EIA,              /* TV,  BOOL */
     CEMM_CFG_UPDATE_LOCI_CTRL,                      /* TV,  BOOL */
+    CEMM_CFG_IGNORE_EMM_CAUSE,                      /* TV,  BOOL */
 
     CERRC_CFG_AS_RELEASE_TYPE = 50,                 /* TV,  AsReleaseType_t */
     CERRC_CFG_UE_CATEGORY_TYPE,                     /* TV,  UeCategoryType_t */
