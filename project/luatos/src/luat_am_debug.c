@@ -28,7 +28,7 @@ static const uint8_t cmd_fota_end[]  = {0x7e, 0x00, 0x32, 0x7e};
 
 void am_debug(uint8_t *data, uint32_t len) {
     int ret = 0;
-    // LLOGD(">>>>>>>>>>> %d", len);
+    LLOGD(">>>>>>>>>>> %d", len);
     if (len >= 4) {
         // 初始化命令
         if (!memcmp(data, cmd_fota_init, 4)) {
@@ -46,10 +46,13 @@ void am_debug(uint8_t *data, uint32_t len) {
                     LLOGD(">>>> FOTA WRITE OK <<<<");
                 }
             }
+            else {
+                LLOGD(">>>> FOTA WRITE FAIL <<<<");
+            }
         }
         // 结束命令, 后续应该会有重启命令发过来
         else if (!memcmp(data, cmd_fota_end, 4)) {
-            if (0 == luat_fota_done()) {
+            if (0 == luat_fota_end(0)) {
                 LLOGD(">>>> FOTA DONE OK <<<<");
             }
             else {
