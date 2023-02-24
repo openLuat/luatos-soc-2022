@@ -203,11 +203,9 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 	luat_mobile_event_cb(event, index, status);
 }
 
-#include "slpman.h"
 static void luatos_task_init(void)
 {
 	GPIO_GlobalInit(NULL);
-	slpManNormalIOVoltSet(IOVOLT_3_30V);
 	luat_mobile_event_register_handler(luatos_mobile_event_callback);
 	luat_sms_init();
 	luat_sms_recv_msg_register_handler(luat_sms_recv_cb);
