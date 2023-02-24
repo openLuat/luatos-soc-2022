@@ -87,8 +87,27 @@ int luat_fota_init(uint32_t start_address, uint32_t len, luat_spi_device_t* spi_
 	{
 		g_s_fota.p_fota_file_head = luat_heap_malloc(sizeof(CoreUpgrade_FileHeadCalMD5Struct));
 		g_s_fota.crc32_table = luat_heap_malloc(256 * sizeof(uint32_t));
-		memset(g_s_fota.crc32_table, 0, 1024);
 		g_s_fota.md5_ctx = luat_heap_malloc(sizeof(mbedtls_md5_context));
+		if (g_s_fota.p_fota_file_head == NULL || 
+			g_s_fota.crc32_table == NULL ||
+			g_s_fota.md5_ctx == NULL) {
+			LLOGI("fota init fail, out of sys memory!!!");
+			if (g_s_fota.p_fota_file_head) {
+				luat_heap_free(g_s_fota.p_fota_file_head);
+				g_s_fota.p_fota_file_head = NULL;
+			}
+			if (g_s_fota.crc32_table) {
+				luat_heap_free(g_s_fota.crc32_table);
+				g_s_fota.crc32_table = NULL;
+			}
+			if (g_s_fota.md5_ctx) {
+				luat_heap_free(g_s_fota.md5_ctx);
+				g_s_fota.md5_ctx = NULL;
+			}
+			return -1;
+		}
+
+		memset(g_s_fota.crc32_table, 0, 1024);
 		CRC32_CreateTable(g_s_fota.crc32_table, CRC32_GEN);
 	}
 	memset(g_s_fota.p_fota_file_head, 0, sizeof(CoreUpgrade_FileHeadCalMD5Struct));
@@ -101,6 +120,10 @@ int luat_fota_init(uint32_t start_address, uint32_t len, luat_spi_device_t* spi_
 int luat_fota_write(uint8_t *data, uint32_t len)
 {
 	uint32_t save_len;
+	if (!g_s_fota.crc32_table) {
+		LLOGI("fota need init");
+		return -1;
+	}
 	OS_BufferWrite(&g_s_fota.data_buffer, data, len);
 REPEAT:
 	switch(g_s_fota.ota_state)
@@ -267,12 +290,18 @@ int luat_fota_end(uint8_t is_ok)
 {
 	if (g_s_fota.ota_state != OTA_STATE_OK)
 	{
-		luat_heap_free(g_s_fota.crc32_table);
-		g_s_fota.crc32_table = NULL;
-		luat_heap_free(g_s_fota.md5_ctx);
-		g_s_fota.md5_ctx = NULL;
-		luat_heap_free(g_s_fota.p_fota_file_head);
-		g_s_fota.p_fota_file_head = NULL;
+		if (g_s_fota.crc32_table) {
+			luat_heap_free(g_s_fota.crc32_table);
+			g_s_fota.crc32_table = NULL;
+		}
+		if (g_s_fota.md5_ctx) {
+			luat_heap_free(g_s_fota.md5_ctx);
+			g_s_fota.md5_ctx = NULL;
+		}
+		if (g_s_fota.p_fota_file_head) {
+			luat_heap_free(g_s_fota.p_fota_file_head);
+			g_s_fota.p_fota_file_head = NULL;
+		}
 		OS_DeInitBuffer(&g_s_fota.data_buffer);
 		OS_DeInitBuffer(&g_s_fota.data_buffer);
 		BSP_QSPI_Erase_Safe(__SOC_OTA_INFO_DATA_SAVE_ADDRESS__, __FLASH_SECTOR_SIZE__);
