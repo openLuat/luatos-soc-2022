@@ -79,7 +79,7 @@
 
 #define LUAT_USE_WLAN 1
 #define LUAT_USE_WLAN_SCANONLY 1
-
+#define LUAT_USE_W5500 1
 //---------------FATFS特别配置
 // fatfs的长文件名和非英文文件名支持需要180k的ROM, 非常奢侈
 #define LUAT_USE_FATFS 1
@@ -238,7 +238,6 @@
 #define LUAT_RT_CB_PARAM void *param
 
 #define time(X)	luat_time(X)
-#define LUAT_USE_W5500 1
 #define LUAT_USE_NETWORK 1
 #define LUAT_USE_TLS 1
 #define LUAT_USE_LWIP 1
@@ -247,9 +246,9 @@
 #define LUAT_USE_DHCP  1
 #define LUAT_USE_ERRDUMP 1
 #define LUAT_USE_FOTA 1
-#define LUAT_SUPPORT_AMR
+#define LUAT_SUPPORT_AMR 1
+#define LUAT_USE_MOBILE 1
 //目前没用到的宏，但是得写在这里
-//#define LUAT_USE_MOBILE
 //#define LUAT_USE_I2S
 
 #define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - (LUAT_SCRIPT_SIZE + LUAT_SCRIPT_OTA_SIZE) * 1024)
