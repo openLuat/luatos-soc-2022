@@ -4,6 +4,7 @@
 #include "luat_gpio.h"
 #include "luat_fota.h"
 #include "luat_malloc.h"
+#include "luat_debug.h"
 #include "cms_def.h"
 
 #if 1
@@ -41,6 +42,11 @@ static const uint8_t cmd_fota_end[]  = {0x7e, 0x00, 0x32, 0x7e};
 // 其中: $X 是 OK 代表成功, 其他值代表失败
 //       $Y 对应 INIT WRITE DONE
 
+// 其他命令
+// 日志开启与关闭, 没有后续数据
+static const uint8_t cmd_log_off[] = {0x7e, 0x00, 0x50, 0x7e};
+static const uint8_t cmd_log_on[] =  {0x7e, 0x00, 0x51, 0x7e};
+
 // 处理USB分包, 尤其是cmd_fota_data的分包处理
 static uint8_t* tmpbuff;
 static size_t buff_size; // 保存tmpbuff已写入的数据量
@@ -50,7 +56,7 @@ extern int32_t am_usb_direct_output(uint8_t atCid, uint8_t* atStr, uint16_t atSt
 
 // 方便输出响应
 static void usb_output_str(const char* data) {
-    am_usb_direct_output(CMS_CHAN_USB, data, strlen(data));
+    am_usb_direct_output(CMS_CHAN_USB, (uint8_t*)data, strlen(data));
 }
 // static void usb_output_raw(const char* data, size_t len) {
 //     am_usb_direct_output(CMS_CHAN_USB, data, len);
@@ -65,13 +71,14 @@ next:
         tmpbuff = luat_heap_malloc(CMD_BUFF_SIZE);
     }
     if (tmpbuff == NULL) { // 内存炸了?
-        LLOGW("sorry, out of memory");
+        usb_output_str(">>>>OUT OF MEMORY<<<<");
         return;
     }
-    if (buff_size + len > CMD_BUFF_SIZE) {
-        LLOGW("too many data, drop old data");
+    if (buff_size + len > CMD_BUFF_SIZE) { // 不太可能,但仍需防御
+        usb_output_str(">>>>too many data, drop old data<<<<");
         buff_size = 0;
     }
+    // 拷贝到本地buff, 处理分包问题
     memcpy(tmpbuff + buff_size, data, len);
     buff_size += len;
     if (buff_size < 4)
@@ -86,6 +93,7 @@ next:
         luat_fota_init(0, 0, NULL, NULL, 0);
         buff_size -= 4;
         if (buff_size > 0) {
+            // 理论上是没有后续数据的, 防御一下吧
             memmove(tmpbuff, tmpbuff + 4, buff_size);
         }
         // FOTA INIT 总是成功. TODO 好像也不是吧??
@@ -101,16 +109,19 @@ next:
         if (rlen > buff_size - 5) {
             return; // 等待下一个包
         }
-        //LLOGD("fota write %d", rlen);
+        // 将数据写入fota api
         ret = luat_fota_write(tmpbuff + 5, rlen);
         if (ret < 0) {
+            // 失败啦-_-
             usb_output_str(">>>>ERR FOTA WRITE<<<<");
             buff_size = 0;
             return;
         }
         else {
+            // 很好很强大, 写入成功了
             usb_output_str(">>>>OK FOTA WRITE<<<<");
         }
+        // 搬迁剩余数据,如果有的话
         buff_size -= rlen + 5;
         if (buff_size > 0) {
             memmove(tmpbuff, tmpbuff + 5, buff_size);
@@ -125,16 +136,37 @@ next:
         else {
             usb_output_str(">>>>ERR FOTA DONE<<<<");
         }
+        // 结束了, tmpbuff 释放掉
         if (tmpbuff != NULL) {
             luat_heap_free(tmpbuff);
             tmpbuff = NULL;
             buff_size = 0;
         }
     }
+    // 其他命令
+    else if (!memcmp(tmpbuff, cmd_log_off, 4)) {
+        luat_debug_print_onoff(0);
+        usb_output_str(">>>>OK LOG OFF<<<<");
+        buff_size -= 4;
+        if (buff_size > 0) {
+            memmove(tmpbuff, tmpbuff + 4, buff_size);
+        }
+    }
+    else if (!memcmp(tmpbuff, cmd_log_on, 4)) {
+        luat_debug_print_onoff(1);
+        usb_output_str(">>>>OK LOG ON<<<<");
+        buff_size -= 4;
+        if (buff_size > 0) {
+            memmove(tmpbuff, tmpbuff + 4, buff_size);
+        }
+    }
     else {
-        LLOGD(">>>>ERR FOTA<<<<");
+        // 不认识的命令, 一概作为错误处理
+        // TODO 后续还可以扩展更多命令
+        usb_output_str(">>>>ERR FOTA<<<<");
         return;
     }
+    // 如果还有剩余数据, 循环处理. 不太可能有-_-
     if (buff_size >= 4) {
         goto next;
     }
