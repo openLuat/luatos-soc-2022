@@ -69,34 +69,25 @@ static void task_test_sfud(void *param)
         LUAT_DEBUG_PRINT("sfud_read %s\n", data);
     }
     
-
-extern ARM_DRIVER_SPI Driver_SPI0;
-// static ARM_DRIVER_SPI *spiDrv0 = &CREATE_SYMBOL(Driver_SPI, 0);
-
-    int t1 = luat_mcu_tick64();
-    Driver_SPI0.Transfer(send_data, read_data, 64);
-    // sfud_read(flash, 0, 64, &read_data);
-    int t2 = luat_mcu_tick64();
-    LUAT_DEBUG_PRINT("ticks: %u\n", (uint32_t)(t2-t1));
-
     while (1)
     {
         luat_rtos_task_sleep(1000);
     }
 }
 
-#define FLASH_EN	HAL_GPIO_26
-#define FLASH_EN_ALT_FUN	0
+// 合宙云喇叭开发板打开下面注释使能flash
+// #define FLASH_EN	HAL_GPIO_26
+// #define FLASH_EN_ALT_FUN	0
 
 static void task_demo_sfud(void)
 {
-    luat_gpio_cfg_t gpio_cfg;
-	luat_gpio_set_default_cfg(&gpio_cfg);
+    // luat_gpio_cfg_t gpio_cfg;
+	// luat_gpio_set_default_cfg(&gpio_cfg);
 
-	gpio_cfg.pin = FLASH_EN;
-	gpio_cfg.alt_fun = FLASH_EN_ALT_FUN;
-	luat_gpio_open(&gpio_cfg);
-	luat_gpio_set(FLASH_EN, LUAT_GPIO_HIGH);
+	// gpio_cfg.pin = FLASH_EN;
+	// gpio_cfg.alt_fun = FLASH_EN_ALT_FUN;
+	// luat_gpio_open(&gpio_cfg);
+	// luat_gpio_set(FLASH_EN, LUAT_GPIO_HIGH);
 
     luat_rtos_task_create(&sfud_task_handle, 1024, 20, "sfud", task_test_sfud, NULL, NULL);
 }
