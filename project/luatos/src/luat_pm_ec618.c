@@ -147,7 +147,11 @@ void luat_pm_preinit(void)
 }
 
 void luat_pm_init(void) {
-	LLOGI("pm mode %d", apmuGetDeepestSleepMode());
+	//LLOGI("pm mode %d", apmuGetDeepestSleepMode());
+    if (BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_PWRKEY_MODE) != 0) {
+        LLOGD("PowerKey-Debounce is enabled");
+        // 开机键防抖处于开启状态, 如需禁用可以调用 pm.power(pm.PWR_MODE, false)
+    }
     apmuSetDeepestSleepMode(AP_STATE_HIBERNATE);
     soc_set_usb_sleep(0);
     slpManSlpState_t slpstate = slpManGetLastSlpState();
@@ -251,6 +255,16 @@ int luat_pm_power_ctrl(int id, uint8_t onoff)
 			BSP_SavePlatConfigToRawFlash();
 		}
 		break;
+    // case LUAT_PM_IOSEL_VOLT:
+    //     if (onoff == 0) {
+    //         LLOGD("io volt force 1.8v");
+    //         slpManNormalIOVoltSet(IOVOLT_1_80V);
+    //     }
+    //     else {
+    //         LLOGD("io volt force 3.3v");
+    //         slpManNormalIOVoltSet(IOVOLT_3_30V);
+    //     }
+    //     break;
 	default:
 		return -1;
 	}
