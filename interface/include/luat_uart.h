@@ -140,7 +140,8 @@ typedef enum LUAT_UART_CTRL_CMD
 }LUAT_UART_CTRL_CMD_E;
 
 /**
- * @brief 接收回调函数，对于带有休眠唤醒功能的uart，如果data_len==0说明唤醒了
+ * @brief 接收回调函数，对于带有休眠唤醒功能的uart，如果data_len==0说明唤醒了，但是用来唤醒uart的数据可能会丢失，需要再次发送
+ * @note ec618的uart1在600,1200,2400,4800,9600波特率下可以休眠继续接收数据，因此不会有唤醒提醒，直接返回接收到数据，不丢数据。其他波特率则只有唤醒功能
  * 
  */
 typedef void (*luat_uart_recv_callback_t)(int uart_id, uint32_t data_len);
