@@ -101,7 +101,7 @@
 #define LUAT_USE_PROTOBUF 1
 #define LUAT_USE_RSA      1
 
-// 编码转换,需要不少Flash空间,默认关闭
+// 编码转换,需要大概40k空间,并非完整的GBK映射默认关闭
 // #define LUAT_USE_ICONV 1
 
 // ------------------------------
@@ -195,6 +195,12 @@
 //------------------------------------------------------------------------------
 
 // 以下选项仅开发人员可修改, 一般用户切勿自行修改
+
+// 将UART0切换到用户模式, 默认是UNILOG模式
+// 使用UART0, 日志将完全依赖USB输出, 若USB未引出或失效, 将无法获取底层日志
+// 本功能仅限完全了解风险的用户使用
+// #define LUAT_UART0_FORCE_USER     1
+// #define LUAT_UART0_FORCE_ALT1     1
 
 #define LUAT_COMPILER_NOWEAK
 #define LUAT_GPIO_PIN_MAX 36
