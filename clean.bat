@@ -18,9 +18,9 @@ if not exist xmake.lua (
 	goto end
 )
 if "%2"=="-v" (
-	call xmake -v clean
+	call xmake -v clean --all
 ) ELSE (
-	call xmake clean
+	call xmake clean --all
 )
 
 :end
