@@ -172,6 +172,15 @@ typedef struct luat_uart_ctrl_param
  */
 int luat_uart_ctrl(int uart_id, LUAT_UART_CTRL_CMD_E cmd, void* param);
 
+/**
+ * @brief 串口ALT函数，目前支持UART0，UART2
+ * 
+ * @param uart_id 串口id
+ * @param use_alt_type 如果为1，UART0，复用到GPIO16,GPIO17;UART2复用到GPIO12 GPIO13
+ * @return int 0 失败，其他成功
+ */
+int luat_uart_pre_setup(int uart_id, uint8_t use_alt_type);
+
 /** @}*/
 /** @}*/
 #endif
