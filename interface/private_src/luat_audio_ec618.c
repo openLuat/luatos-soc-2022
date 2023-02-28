@@ -59,6 +59,11 @@ int luat_audio_play_stop(uint32_t multimedia_id)
 	return audio_play_stop(multimedia_id);
 }
 
+int luat_audio_play_clear_stop_flag(uint32_t multimedia_id)
+{
+	return audio_play_clear_stop_flag(multimedia_id);
+}
+
 int luat_audio_play_pause_raw(uint32_t multimedia_id, uint8_t is_pause)
 {
 	return audio_play_pause_raw(multimedia_id, is_pause);

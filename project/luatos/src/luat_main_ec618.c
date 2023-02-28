@@ -33,6 +33,7 @@
 #include "networkmgr.h"
 #include "plat_config.h"
 #include "driver_gpio.h"
+#include "luat_uart.h"
 #ifdef LUAT_USE_LVGL
 #include "lvgl.h"
 #include "luat_lvgl.h"
@@ -54,8 +55,8 @@ const char *soc_get_sdk_version(void)
 	return LUAT_BSP_VERSION;
 }
 
-luat_rtos_timer_t lvgl_timer_handle;
 #ifdef LUAT_USE_LVGL
+luat_rtos_timer_t lvgl_timer_handle;
 #define LVGL_TICK_PERIOD	10
 unsigned int g_lvgl_flash_time;
 static uint32_t lvgl_tick_cnt;
@@ -125,14 +126,10 @@ static void luatos_task(void *param)
         ResetLockupCfg(false, false);
 
 	luat_heap_init();
-//	self_info();
 	cmsNonBlockApiCall(self_info, 0, NULL);
-//	soc_call_function_in_service(self_info, NULL, NULL, 0);
 #ifdef LUAT_USE_MEDIA
 	luat_audio_global_init();
 #endif
-//	set_usb_serial_input_callback(dft_usb_recv_cb);
-	//DBG("LuatOS starting ...");
 
 #ifdef LUAT_USE_LVGL
 	g_lvgl_flash_time = 33;
@@ -206,6 +203,14 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 static void luatos_task_init(void)
 {
 	GPIO_GlobalInit(NULL);
+#ifdef LUAT_UART0_FORCE_USER
+	// https://gitee.com/openLuat/LuatOS/issues/I6H86Q
+	extern void soc_uart0_set_log_off(uint8_t is_off);
+    soc_uart0_set_log_off(1);
+	#ifdef LUAT_UART0_FORCE_ALT1
+	luat_uart_pre_setup(0, 1);
+	#endif
+#endif
 	luat_mobile_event_register_handler(luatos_mobile_event_callback);
 	luat_sms_init();
 	luat_sms_recv_msg_register_handler(luat_sms_recv_cb);
@@ -213,7 +218,6 @@ static void luatos_task_init(void)
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
 	luat_rtos_task_handle task_handle;
-	// xTaskCreateStatic(task1, "luatos", VM_STACK_SIZE, NULL, 20, s_vm_stackbuff, pxVMTaskTCBBuffer);
 	luat_rtos_task_create(&task_handle, 16 * 1024, 80, "luatos", luatos_task, NULL, 0);
 
 }
