@@ -99,9 +99,9 @@ static void audio_event_cb(uint32_t event, void *param)
 		luat_rtos_timer_stop(g_s_audio_hardware.pa_delay_timer);
 //		luat_audio_play_get_last_error(0);
 		luat_gpio_set(g_s_audio_hardware.pa_pin, !g_s_audio_hardware.pa_on_level);
-		if (g_s_audio_hardware.dac_delay_time)
+		if (g_s_audio_hardware.dac_off_delay_time)
 		{
-			luat_rtos_task_sleep(g_s_audio_hardware.dac_delay_time);
+			luat_rtos_task_sleep(g_s_audio_hardware.dac_off_delay_time);
 		}
 		luat_gpio_set(g_s_audio_hardware.dac_pin, !g_s_audio_hardware.dac_on_level);
 		msg.handler = l_multimedia_raw_handler;
@@ -328,7 +328,7 @@ void luat_audio_config_dac(uint8_t multimedia_id, int pin, int level, uint32_t d
 			g_s_audio_hardware.dac_pin = -1;
 		}
 	}
-	g_s_audio_hardware.dac_off_delay_time = dac_delay_time;
+	g_s_audio_hardware.dac_off_delay_time = dac_off_delay_time;
 }
 
 uint16_t luat_audio_vol(uint8_t multimedia_id, uint16_t vol)
