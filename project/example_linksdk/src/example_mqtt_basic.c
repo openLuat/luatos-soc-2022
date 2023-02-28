@@ -274,7 +274,7 @@ int linksdk_mqtt_task(void *param)
 
     /* 创建一个单独的线程, 专用于执行aiot_mqtt_process, 它会自动发送心跳保活, 以及重发QoS1的未应答报文 */
     g_mqtt_process_thread_running = 1;
-    luat_rtos_task_create(&g_mqtt_process_thread, 4096, 20, "", demo_mqtt_process_thread, mqtt_handle, NULL);
+    luat_rtos_task_create(&g_mqtt_process_thread, 8 * 1024, 20, "", demo_mqtt_process_thread, mqtt_handle, NULL);
     if (g_mqtt_process_thread == NULL) {
         LUAT_DEBUG_PRINT("task_create demo_mqtt_process_thread failed: %d\n", res);
         luat_rtos_task_delete(linksdk_task_handle);
@@ -283,7 +283,7 @@ int linksdk_mqtt_task(void *param)
 
     /* 创建一个单独的线程用于执行aiot_mqtt_recv, 它会循环收取服务器下发的MQTT消息, 并在断线时自动重连 */
     g_mqtt_recv_thread_running = 1;
-    luat_rtos_task_create(&g_mqtt_recv_thread, 4096, 20, "", demo_mqtt_recv_thread, mqtt_handle, NULL);
+    luat_rtos_task_create(&g_mqtt_recv_thread, 8 * 1024, 20, "", demo_mqtt_recv_thread, mqtt_handle, NULL);
     if (g_mqtt_recv_thread == NULL) {
         LUAT_DEBUG_PRINT("task_create demo_mqtt_recv_thread failed: %d\n", res);
         luat_rtos_task_delete(linksdk_task_handle);
@@ -323,7 +323,7 @@ int linksdk_mqtt_task(void *param)
 
 static void task_demo_init(void)
 {
-    luat_rtos_task_create(&linksdk_task_handle, 4096, 20, "", linksdk_mqtt_task, NULL, NULL);
+    luat_rtos_task_create(&linksdk_task_handle, 8 * 1024, 20, "", linksdk_mqtt_task, NULL, NULL);
 }
 
 INIT_TASK_EXPORT(task_demo_init, "1");
