@@ -38,6 +38,7 @@ typedef struct
 {
 	uint32_t dac_delay_len;
 	uint32_t pa_delay_time;
+	uint32_t dac_delay_time;
 	uint32_t record_sample_rate[I2S_MAX];
 	HANDLE pa_delay_timer;
 	int pa_pin;
@@ -98,6 +99,7 @@ static void audio_event_cb(uint32_t event, void *param)
 		luat_rtos_timer_stop(g_s_audio_hardware.pa_delay_timer);
 //		luat_audio_play_get_last_error(0);
 		luat_gpio_set(g_s_audio_hardware.pa_pin, !g_s_audio_hardware.pa_on_level);
+		luat_rtos_task_sleep(g_s_audio_hardware.dac_delay_time);
 		luat_gpio_set(g_s_audio_hardware.dac_pin, !g_s_audio_hardware.dac_on_level);
 		msg.handler = l_multimedia_raw_handler;
 		msg.arg1 = MULTIMEDIA_CB_AUDIO_DONE;
@@ -213,6 +215,7 @@ void luat_audio_global_init(void)
 	audio_play_global_init_ex(audio_event_cb, audio_data_cb, audio_play_file_default_fun, NULL, NULL);
 #endif
 	g_s_audio_hardware.dac_delay_len = 6;
+	g_s_audio_hardware.dac_delay_time = 20;
 	g_s_audio_hardware.pa_delay_time = 200;
 	g_s_audio_hardware.pa_delay_timer = luat_create_rtos_timer(app_pa_on, NULL, NULL);
 	g_s_audio_hardware.vol = 100;
@@ -300,7 +303,7 @@ void luat_audio_config_pa(uint8_t multimedia_id, uint32_t pin, int level, uint32
 	g_s_audio_hardware.pa_delay_time = pa_delay_time;
 }
 
-void luat_audio_config_dac(uint8_t multimedia_id, int pin, int level)
+void luat_audio_config_dac(uint8_t multimedia_id, int pin, int level, uint32_t dac_delay_time)
 {
 	if (pin < 0)
 	{	g_s_audio_hardware.dac_pin = HAL_GPIO_12;
@@ -322,7 +325,7 @@ void luat_audio_config_dac(uint8_t multimedia_id, int pin, int level)
 			g_s_audio_hardware.dac_pin = -1;
 		}
 	}
-
+	g_s_audio_hardware.dac_delay_time = dac_delay_time;
 }
 
 uint16_t luat_audio_vol(uint8_t multimedia_id, uint16_t vol)
