@@ -252,11 +252,15 @@ int luat_uart_write(int uartid, void* data, size_t length) {
 					i += 512;
 				}
 			}
+            return length;
         }else{
 #ifdef __LUATOS__
         	if (g_s_serials[uartid].rs485_param_bit.is_485used) GPIO_Output(g_s_serials[uartid].rs485_pin, !g_s_serials[uartid].rs485_param_bit.rx_level);
 #endif
-        	Uart_TxTaskSafe(uartid, data, length);
+        	int ret = Uart_TxTaskSafe(uartid, data, length);
+            if (ret == 0)
+                return length;
+            return 0;
         }
     }
     else {
