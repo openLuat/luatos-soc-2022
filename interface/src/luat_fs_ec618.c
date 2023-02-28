@@ -68,6 +68,7 @@ FILE* luat_vfs_ec618_fopen(__attribute__((unused)) void* userdata, const char *f
         //LLOGE("out of memory when open file");
         return NULL;
     }
+    memset(file, 0, sizeof(lfs_file_t));
 /*
 "r": 读模式（默认）；
 "w": 写模式；
