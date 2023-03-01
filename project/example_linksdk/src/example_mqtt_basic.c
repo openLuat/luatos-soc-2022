@@ -216,8 +216,8 @@ int linksdk_mqtt_task(void *param)
     /* TODO: 如果以下代码不被注释, 则例程会用TCP而不是TLS连接云平台 */
     
   
-    memset(&cred, 0, sizeof(aiot_sysdep_network_cred_t));
-    cred.option = AIOT_SYSDEP_NETWORK_CRED_NONE;
+    //memset(&cred, 0, sizeof(aiot_sysdep_network_cred_t));
+    //cred.option = AIOT_SYSDEP_NETWORK_CRED_NONE;
    
    
 
