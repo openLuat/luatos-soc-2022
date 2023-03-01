@@ -58,6 +58,7 @@ typedef struct
 			uint32_t is_485used:1;
 		}rs485_param_bit;
 	};
+	uint32_t rx_buf_size;
 	uint16_t unused;
 	uint8_t alt_type;
 	uint8_t rs485_pin;
@@ -151,10 +152,11 @@ static int32_t luat_uart_cb(void *pData, void *pParam){
             uart_cb[uartid].recv_callback_fun(uartid, len);
             break;
         case UART_CB_RX_NEW:
-#if 0
         	len = Uart_RxBufferRead(uartid, NULL, 0);
-        	uart_cb[uartid].recv_callback_fun(uartid, len);
-#endif
+        	if (len > g_s_serials[uartid].rx_buf_size)
+        	{
+        		uart_cb[uartid].recv_callback_fun(uartid, len);
+        	}
             break;
         case UART_CB_ERROR:
             break;
@@ -218,6 +220,7 @@ int luat_uart_setup(luat_uart_t* uart) {
      {
     	 uart_cb[uart->id].recv_callback_fun = luat_uart_recv_dummy_cb;
     	 uart_cb[uart->id].sent_callback_fun = luat_uart_sent_dummy_cb;
+    	 g_s_serials[uart->id].rx_buf_size = uart->bufsz?uart->bufsz:1024;
          Uart_BaseInitEx(uart->id, uart->baud_rate, 1024, uart->bufsz?uart->bufsz:1024, (uart->data_bits), parity, stop_bits, luat_uart_cb);
 #ifdef __LUATOS__
          g_s_serials[uart->id].rs485_param_bit.is_485used = (uart->pin485 < HAL_GPIO_NONE)?1:0;
