@@ -191,6 +191,7 @@ static void task_test_fota(void *param)
         LUAT_DEBUG_PRINT("http client connect error");
     }
     exit:
+    free(recvBuf);
     luat_rtos_task_delete(https_task_handle);
 }
 
