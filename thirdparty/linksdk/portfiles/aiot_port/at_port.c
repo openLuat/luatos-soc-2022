@@ -538,7 +538,7 @@ static int32_t _core_sysdep_network_mbedtls_establish(core_network_handle_t *net
     mbedtls_ssl_conf_handshake_timeout(&network_handle->mbedtls.ssl_config,(MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN * 2),
                                 (MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN * 2 * 4));
     mbedtls_ssl_conf_rng(&network_handle->mbedtls.ssl_config, _mbedtls_random, NULL);
-    mbedtls_ssl_conf_dbg(&network_handle->mbedtls.ssl_config, _mbedtls_debug, "[MBEDTLS]");
+    // mbedtls_ssl_conf_dbg(&network_handle->mbedtls.ssl_config, _mbedtls_debug, "[MBEDTLS]");
     mbedtls_ssl_conf_verify(&network_handle->mbedtls.ssl_config, my_verify, NULL);
 
     if (network_handle->cred->option == AIOT_SYSDEP_NETWORK_CRED_SVRCERT_CA) {

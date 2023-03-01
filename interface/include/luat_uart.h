@@ -100,7 +100,7 @@ int luat_uart_setup(luat_uart_t* uart);
  * @param uart_id 串口id
  * @param data 数据
  * @param length 数据长度
- * @return int 
+ * @return int 实际写入的长度,通常不用检查,只有uart_id错误才会有问题
  */
 int luat_uart_write(int uart_id, void* data, size_t length);
 
