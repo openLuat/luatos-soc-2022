@@ -243,19 +243,21 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/iconv")
     add_files(LUATOS_ROOT.."components/iconv/*.c")
 
+    add_files(LUATOS_ROOT.."components/max30102/*.c")
+    add_includedirs(LUATOS_ROOT.."components/max30102")
+
     -- SM
     add_includedirs(LUATOS_ROOT.."components/SM/include")
     add_includedirs(LUATOS_ROOT.."components/SM/include/internal")
     add_includedirs(LUATOS_ROOT.."components/SM/include/openssl")
-    add_includedirs(LUATOS_ROOT.."components/SM/include/rsa")
     add_includedirs(LUATOS_ROOT.."components/SM/include/sm2")
     add_includedirs(LUATOS_ROOT.."components/SM/include/sm3")
     add_includedirs(LUATOS_ROOT.."components/SM/include/sm4")
     add_files(LUATOS_ROOT.."components/SM/src/modes/*.c")
-    add_files(LUATOS_ROOT.."components/SM/src/rsa/*.c")
     add_files(LUATOS_ROOT.."components/SM/src/sm2/*.c")
     add_files(LUATOS_ROOT.."components/SM/src/sm3/*.c")
     add_files(LUATOS_ROOT.."components/SM/src/sm4/*.c")
+    add_files(LUATOS_ROOT.."components/SM/src/*.c")
     
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "/interface/include")
