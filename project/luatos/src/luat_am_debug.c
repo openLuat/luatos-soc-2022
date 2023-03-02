@@ -12,7 +12,7 @@
 #define LUAT_LOG_TAG "sc"
 #include "luat_log.h"
 
-#define CMD_BUFF_SIZE (1024)
+#define CMD_BUFF_SIZE (4*1024 + 8)
 
 // 接管usb虚拟log口的输入数据, 实现免boot刷脚本
 // 需要 LuaTools 2.1.94或以上
@@ -101,16 +101,22 @@ next:
     }
     // 2.数据命令
     else if (!memcmp(tmpbuff, cmd_fota_data, 4)) {
-        if (buff_size == 4) {
+        #define DATA_HEAD_SIZE (6)
+        if (buff_size < DATA_HEAD_SIZE) {
             // 数据还不够,等下一批
             return;
         }
-        size_t rlen = tmpbuff[4]; // 每个包最大256字节
-        if (rlen > buff_size - 5) {
+        size_t rlen = (tmpbuff[4] << 8) + tmpbuff[5]; // 改到4k
+        if (rlen > CMD_BUFF_SIZE - DATA_HEAD_SIZE) {
+            usb_output_str(">>>>ERR FOTA WRITE<<<<");
+            buff_size = 0;
+            return;
+        }
+        if (rlen > buff_size - DATA_HEAD_SIZE) {
             return; // 等待下一个包
         }
         // 将数据写入fota api
-        ret = luat_fota_write(tmpbuff + 5, rlen);
+        ret = luat_fota_write(tmpbuff + DATA_HEAD_SIZE, rlen);
         if (ret < 0) {
             // 失败啦-_-
             usb_output_str(">>>>ERR FOTA WRITE<<<<");
@@ -122,9 +128,9 @@ next:
             usb_output_str(">>>>OK FOTA WRITE<<<<");
         }
         // 搬迁剩余数据,如果有的话
-        buff_size -= rlen + 5;
+        buff_size -= rlen + DATA_HEAD_SIZE;
         if (buff_size > 0) {
-            memmove(tmpbuff, tmpbuff + 5, buff_size);
+            memmove(tmpbuff, tmpbuff + DATA_HEAD_SIZE, buff_size);
         }
     }
     // 3. 结束命令, 后续应该会有重启命令发过来
