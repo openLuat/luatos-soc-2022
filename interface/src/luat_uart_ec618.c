@@ -388,3 +388,109 @@ int luat_uart_wait_485_tx_done(int uartid)
     }
     return cnt;
 }
+
+#ifdef __LUATOS__
+#include "pssys.h"
+#include "ec618.h"
+#include "timer.h"
+#include "c_common.h"
+#define EIGEN_TIMER(n)             ((TIMER_TypeDef *) (AP_TIMER0_BASE_ADDR + 0x1000*n))
+static IrqHandler irq_cb[2];
+static PS_CODE_IN_RAM void luat_uart_soft_hwtimer0_callback(void)
+{
+	__IO uint32_t SR = EIGEN_TIMER(SOC_TICK_TIMER)->TSR;
+	EIGEN_TIMER(SOC_TICK_TIMER)->TSR = SR;
+	irq_cb[0](PXIC0_TIMER0_IRQn, NULL);
+}
+
+static PS_CODE_IN_RAM void luat_uart_soft_hwtimer2_callback(void)
+{
+	__IO uint32_t SR = EIGEN_TIMER(SOC_TICK_TIMER)->TSR;
+	EIGEN_TIMER(SOC_TICK_TIMER)->TSR = SR;
+	irq_cb[1](PXIC0_TIMER2_IRQn, NULL);
+}
+
+int luat_uart_soft_setup_hwtimer_callback(int hwtimer_id, IrqHandler callback, void *param)
+{
+    TimerConfig_t timerConfig;
+	switch(hwtimer_id)
+	{
+	case 0:
+		if (callback)
+		{
+			CLOCK_setClockSrc(FCLK_TIMER0, FCLK_TIMER0_SEL_26M);
+			CLOCK_setClockDiv(FCLK_TIMER0, 1);
+		    XIC_SetVector(PXIC0_TIMER0_IRQn, luat_uart_soft_hwtimer0_callback);
+		    XIC_EnableIRQ(PXIC0_TIMER0_IRQn);
+		    TIMER_getDefaultConfig(&timerConfig);
+		    timerConfig.reloadOption = TIMER_RELOAD_ON_MATCH0;
+		    TIMER_init(0, &timerConfig);
+		    TIMER_interruptConfig(0, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_LEVEL);
+		    TIMER_interruptConfig(0, TIMER_MATCH1_SELECT, TIMER_INTERRUPT_DISABLED);
+		    TIMER_interruptConfig(0, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_DISABLED);
+		}
+		else
+		{
+			TIMER_deInit(0);
+		}
+		irq_cb[0] = callback;
+
+		break;
+	case 2:
+		if (callback)
+		{
+			CLOCK_setClockSrc(FCLK_TIMER2, FCLK_TIMER0_SEL_26M);
+			CLOCK_setClockDiv(FCLK_TIMER2, 1);
+		    XIC_SetVector(PXIC0_TIMER2_IRQn, luat_uart_soft_hwtimer2_callback);
+		    XIC_EnableIRQ(PXIC0_TIMER2_IRQn);
+		    TIMER_getDefaultConfig(&timerConfig);
+		    timerConfig.reloadOption = TIMER_RELOAD_ON_MATCH0;
+		    TIMER_init(2, &timerConfig);
+		    TIMER_interruptConfig(2, TIMER_MATCH0_SELECT, TIMER_INTERRUPT_LEVEL);
+		    TIMER_interruptConfig(2, TIMER_MATCH1_SELECT, TIMER_INTERRUPT_DISABLED);
+		    TIMER_interruptConfig(2, TIMER_MATCH2_SELECT, TIMER_INTERRUPT_DISABLED);
+		}
+		else
+		{
+			TIMER_deInit(2);
+		}
+		irq_cb[1] = callback;
+		break;
+	default:
+		return -1;
+	}
+}
+void luat_uart_soft_gpio_fast_output(int pin, uint8_t value)
+{
+	GPIO_FastOutput(pin, value);
+}
+uint8_t luat_uart_soft_gpio_fast_input(int pin)
+{
+	return GPIO_Input(pin);
+}
+void luat_uart_soft_gpio_fast_irq_set(int pin, uint8_t on_off)
+{
+	if (on_off)
+	{
+		GPIO_ExtiConfig(pin, 0, 0, 1);
+	}
+	else
+	{
+		GPIO_ExtiConfig(pin, 0, 0, 0);
+	}
+}
+uint32_t luat_uart_soft_cal_baudrate(uint32_t baudrate)
+{
+	return 26000000/baudrate;
+}
+void luat_uart_soft_hwtimer_onoff(int hwtimer_id, uint32_t period)
+{
+	TIMER_stop(hwtimer_id);
+	TIMER_setMatch(hwtimer_id, 0, period - 1);
+    // Enable TIMER IRQ
+    if (period)
+    {
+    	TIMER_start(hwtimer_id);
+    }
+}
+#endif
