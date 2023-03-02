@@ -254,6 +254,7 @@
 #define LUAT_USE_FOTA 1
 #define LUAT_SUPPORT_AMR 1
 #define LUAT_USE_MOBILE 1
+#define LUAT_USE_SM 1
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_I2S
 
