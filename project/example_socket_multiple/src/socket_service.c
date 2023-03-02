@@ -32,8 +32,6 @@ typedef struct socket_item_info
 	int protocol; //0:tcp 1:udp
 	char *address;
 	int port;
-	int dns_result;
-	ip_addr_t remote_ip;
 	int is_connected;
 	int connect_task_exist;
 	socket_service_event_callback_t callback;
@@ -44,7 +42,6 @@ typedef struct socket_item_info
 	char recv_task_name[SOCKET_TASK_NAME_MAX_LEN+1];
 	luat_rtos_task_handle recv_task_handle;
 	luat_rtos_semaphore_t connect_ok_semaphore;
-	luat_rtos_semaphore_t dns_callback_semaphore;
 }socket_item_info_t;
 
 typedef struct socket_send_data
@@ -260,29 +257,15 @@ static void recv_task_proc(void *arg)
 	
 }
 
-static void dns_callback(const char *name, const ip_addr_t *ipaddr, u32_t ttl, void *callback_arg)
-{
-	socket_item_info_t *socket_item = (socket_item_info_t *)callback_arg;
-
-	if (NULL == ipaddr)
-	{
-		socket_item->dns_result = 0;
-	}
-	else
-	{
-		socket_item->dns_result = 1;
-		memcpy(&(socket_item->remote_ip), ipaddr, sizeof(ip_addr_t));
-	}
-	
-
-	luat_rtos_semaphore_release(socket_item->dns_callback_semaphore);
-}
 
 static void connect_task_proc(void *arg)
 {
+	ip_addr_t remote_ip;
     struct sockaddr_in name;
     socklen_t sockaddr_t_size = sizeof(name);
-	int ret;
+    int ret, h_errnop;
+    struct hostent dns_result;
+    struct hostent *p_result;
 	int app_id = *(int*)(arg);
 	socket_event_param_t event_param;
 
@@ -297,25 +280,12 @@ static void connect_task_proc(void *arg)
 			luat_rtos_task_sleep(1000);
 		}
 
-		if (NULL == g_s_sockets[app_id].dns_callback_semaphore)
+		//执行DNS，如果失败，等待1秒后，返回检查网络逻辑，重试
+		char buf[128] = {0};
+		ret = lwip_gethostbyname_r(g_s_sockets[app_id].address, &dns_result, buf, sizeof(buf), &p_result, &h_errnop);
+		if(ret == 0)
 		{
-			luat_rtos_semaphore_create(&g_s_sockets[app_id].dns_callback_semaphore, 1);			
-		}
-
-		ret = dns_gethostbyname(g_s_sockets[app_id].address, &g_s_sockets[app_id].remote_ip, dns_callback, &g_s_sockets[app_id], network_service_get_cid());
-		if (ERR_OK == ret)
-		{
-
-		}
-		else if (ERR_INPROGRESS == ret)
-		{
-			luat_rtos_semaphore_take(g_s_sockets[app_id].dns_callback_semaphore, LUAT_WAIT_FOREVER);
-			if (!g_s_sockets[app_id].dns_result)
-			{
-				luat_rtos_task_sleep(1000);
-				LUAT_SOCKET_SERVICE_PRINT("dns fail");
-				continue;
-			}			
+			remote_ip = *((ip_addr_t *)dns_result.h_addr_list[0]);
 		}
 		else
 		{
@@ -338,7 +308,7 @@ static void connect_task_proc(void *arg)
 		
 		//连接服务器，如果失败，关闭套接字，等待5秒后，返回检查网络逻辑，重试
 		name.sin_family = AF_INET;
-		name.sin_addr.s_addr = g_s_sockets[app_id].remote_ip.u_addr.ip4.addr;
+		name.sin_addr.s_addr = remote_ip.u_addr.ip4.addr;
 		name.sin_port = htons(g_s_sockets[app_id].port);
 
         ret = connect(socket_id, (const struct sockaddr *)&name, sockaddr_t_size);
