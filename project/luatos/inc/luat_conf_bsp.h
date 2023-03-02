@@ -106,6 +106,9 @@
 // 编码转换,需要大概40k空间,并非完整的GBK映射默认关闭
 // #define LUAT_USE_ICONV 1
 
+// 国密算法 SM2/SM3/SM4
+// #define LUAT_USE_GMSSL 1
+
 // ------------------------------
 // 音频相关
 // TTS的特别提醒:
@@ -256,7 +259,6 @@
 #define LUAT_USE_FOTA 1
 #define LUAT_SUPPORT_AMR 1
 #define LUAT_USE_MOBILE 1
-//#define LUAT_USE_SM 1
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_I2S
 
