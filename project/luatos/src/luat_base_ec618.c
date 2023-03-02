@@ -233,6 +233,12 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_ICONV
   {"iconv", luaopen_iconv},
 #endif
+#ifdef LUAT_USE_SM
+  {"sm",luaopen_sm},
+#endif
+#ifdef LUAT_USE_MAX30102
+  {"max30102", luaopen_max30102},
+#endif
   {NULL, NULL}
 };
 

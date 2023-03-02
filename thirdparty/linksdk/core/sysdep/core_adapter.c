@@ -281,7 +281,7 @@ int32_t _tls_network_establish(void *handle)
     mbedtls_ssl_conf_handshake_timeout(&adapter_handle->mbedtls.ssl_config, (MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN * 2),
                                        (MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN * 2 * 4));
     mbedtls_ssl_conf_rng(&adapter_handle->mbedtls.ssl_config, _core_mbedtls_random, NULL);
-    mbedtls_ssl_conf_dbg(&adapter_handle->mbedtls.ssl_config, _core_mbedtls_debug, stdout);
+    // mbedtls_ssl_conf_dbg(&adapter_handle->mbedtls.ssl_config, _core_mbedtls_debug, stdout);
 
     if (adapter_handle->cred->option == AIOT_SYSDEP_NETWORK_CRED_SVRCERT_CA) {
         if (adapter_handle->cred->x509_server_cert == NULL && adapter_handle->cred->x509_server_cert_len == 0) {

@@ -328,7 +328,7 @@ int luat_pm_get_wakeup_reason(void);
 
 /**
  * @brief 手动控制USB电源
- *
+ * @attention 关闭之后，插入USB会重新激活，从而导致会USB充电器状态一样为1
  * @param onoff 0关，其他开
  * @return int =0成功，其他失败
  */
