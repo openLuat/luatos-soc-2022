@@ -39,15 +39,12 @@ typedef struct socket_service_send_data
 static int g_s_remote_server_port = 37954;
 
 static luat_rtos_task_handle g_s_tcp_connect_task_handle, g_s_tcp_send_task_handle, g_s_tcp_recv_task_handle;
-static luat_rtos_semaphore_t g_s_connect_ok_semaphore, g_s_dns_callback_semaphore;
+static luat_rtos_semaphore_t g_s_connect_ok_semaphore;
 
 //socket id、连接状态、连接task存在状态
 static int g_s_socket_id = -1;
 static uint8_t g_s_is_connected = 0;
 static uint8_t g_s_is_tcp_connect_task_exist = 0;
-
-static int g_s_dns_result;
-static ip_addr_t g_s_remote_ip;
 
 
 
@@ -273,27 +270,15 @@ static void tcp_send_task_proc(void *arg)
 	}
 }
 
-static void dns_callback(const char *name, const ip_addr_t *ipaddr, u32_t ttl, void *callback_arg)
-{
-	if (NULL == ipaddr)
-	{
-		g_s_dns_result = 0;
-	}
-	else
-	{
-		g_s_dns_result = 1;
-		memcpy(&g_s_remote_ip, ipaddr, sizeof(ip_addr_t));
-	}
-	
-
-	luat_rtos_semaphore_release(g_s_dns_callback_semaphore);
-}
 
 static void tcp_connect_task_proc(void *arg)
 {
+	ip_addr_t remote_ip;
     struct sockaddr_in name;
     socklen_t sockaddr_t_size = sizeof(name);
-    int ret;
+    int ret, h_errnop;
+    struct hostent dns_result;
+    struct hostent *p_result;
 
 	LUAT_DEBUG_PRINT("enter");
 
@@ -307,25 +292,11 @@ static void tcp_connect_task_proc(void *arg)
 		}
 
 		//执行DNS，如果失败，等待1秒后，返回检查网络逻辑，重试
-		if (NULL == g_s_dns_callback_semaphore)
+		char buf[128] = {0};
+		ret = lwip_gethostbyname_r(REMOTE_SERVER_ADDRESS, &dns_result, buf, sizeof(buf), &p_result, &h_errnop);
+		if(ret == 0)
 		{
-			luat_rtos_semaphore_create(&g_s_dns_callback_semaphore, 1);			
-		}
-
-		ret = dns_gethostbyname(REMOTE_SERVER_ADDRESS, &g_s_remote_ip, dns_callback, NULL, network_service_get_cid());
-		if (ERR_OK == ret)
-		{
-
-		}
-		else if (ERR_INPROGRESS == ret)
-		{
-			luat_rtos_semaphore_take(g_s_dns_callback_semaphore, LUAT_WAIT_FOREVER);
-			if (!g_s_dns_result)
-			{
-				luat_rtos_task_sleep(1000);
-				LUAT_DEBUG_PRINT("dns fail");
-				continue;
-			}			
+			remote_ip = *((ip_addr_t *)dns_result.h_addr_list[0]);
 		}
 		else
 		{
@@ -345,7 +316,7 @@ static void tcp_connect_task_proc(void *arg)
 		
 		//连接服务器，如果失败，关闭套接字，等待5秒后，返回检查网络逻辑，重试
 		name.sin_family = AF_INET;
-		name.sin_addr.s_addr = g_s_remote_ip.u_addr.ip4.addr;
+		name.sin_addr.s_addr = remote_ip.u_addr.ip4.addr;
 		name.sin_port = htons(g_s_remote_server_port);
         ret = connect(g_s_socket_id, (const struct sockaddr *)&name, sockaddr_t_size);
 		if(ret < 0)
