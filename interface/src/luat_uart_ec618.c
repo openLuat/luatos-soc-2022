@@ -393,24 +393,26 @@ int luat_uart_wait_485_tx_done(int uartid)
 #include "pssys.h"
 #include "ec618.h"
 #include "timer.h"
+#ifndef __BSP_COMMON_H__
 #include "c_common.h"
+#endif
 #define EIGEN_TIMER(n)             ((TIMER_TypeDef *) (AP_TIMER0_BASE_ADDR + 0x1000*n))
-static IrqHandler irq_cb[2];
+static CommonFun_t irq_cb[2];
 static PS_CODE_IN_RAM void luat_uart_soft_hwtimer0_callback(void)
 {
 	__IO uint32_t SR = EIGEN_TIMER(SOC_TICK_TIMER)->TSR;
 	EIGEN_TIMER(SOC_TICK_TIMER)->TSR = SR;
-	irq_cb[0](PXIC0_TIMER0_IRQn, NULL);
+	irq_cb[0]();
 }
 
 static PS_CODE_IN_RAM void luat_uart_soft_hwtimer2_callback(void)
 {
 	__IO uint32_t SR = EIGEN_TIMER(SOC_TICK_TIMER)->TSR;
 	EIGEN_TIMER(SOC_TICK_TIMER)->TSR = SR;
-	irq_cb[1](PXIC0_TIMER2_IRQn, NULL);
+	irq_cb[1]();
 }
 
-int luat_uart_soft_setup_hwtimer_callback(int hwtimer_id, IrqHandler callback, void *param)
+int luat_uart_soft_setup_hwtimer_callback(int hwtimer_id, CommonFun_t callback)
 {
     TimerConfig_t timerConfig;
 	switch(hwtimer_id)
