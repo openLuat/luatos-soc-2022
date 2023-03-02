@@ -256,6 +256,7 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/SM/src/sm2/*.c")
     add_files(LUATOS_ROOT.."components/SM/src/sm3/*.c")
     add_files(LUATOS_ROOT.."components/SM/src/sm4/*.c")
+    add_files(LUATOS_ROOT.."components/SM/src/*.c")
     
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "/interface/include")
