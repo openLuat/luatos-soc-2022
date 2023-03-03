@@ -364,13 +364,3 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 	return tm_buf;
 
 }
-
-#include "osasys.h"
-
-time_t luat_time(time_t *_Time) {
-  utc_timer_value_t *timeUtc = OsaSystemTimeReadUtc();
-  if (_Time != NULL) {
-    *_Time = timeUtc->UTCsecs;
-  }
-  return timeUtc->UTCsecs;
-}
