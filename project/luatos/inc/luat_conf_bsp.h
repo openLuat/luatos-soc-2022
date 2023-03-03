@@ -50,6 +50,7 @@
 #define LUAT_USE_IOTAUTH 1
 #define LUAT_USE_WEBSOCKET 1
 
+#define LUAT_USE_SOFT_UART 1
 //----------------------------
 // 常用工具库, 按需启用, cjson和pack是强烈推荐启用的
 #define LUAT_USE_CRYPTO  1
@@ -104,6 +105,9 @@
 
 // 编码转换,需要大概40k空间,并非完整的GBK映射默认关闭
 // #define LUAT_USE_ICONV 1
+
+// 国密算法 SM2/SM3/SM4
+// #define LUAT_USE_GMSSL 1
 
 // ------------------------------
 // 音频相关
@@ -244,7 +248,6 @@
 #define LUAT_RT_RET_TYPE	void
 #define LUAT_RT_CB_PARAM void *param
 
-#define time(X)	luat_time(X)
 #define LUAT_USE_NETWORK 1
 #define LUAT_USE_TLS 1
 #define LUAT_USE_LWIP 1
@@ -255,7 +258,6 @@
 #define LUAT_USE_FOTA 1
 #define LUAT_SUPPORT_AMR 1
 #define LUAT_USE_MOBILE 1
-//#define LUAT_USE_SM 1
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_I2S
 
@@ -287,5 +289,7 @@
 
 
 #endif
+
+#define __LUAT_C_CODE_IN_RAM__ __attribute__((__section__(".psFMRamcode")))
 
 #endif

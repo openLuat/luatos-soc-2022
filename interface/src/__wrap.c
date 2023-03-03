@@ -14,7 +14,7 @@ struct tm *__wrap_localtime (const time_t *_timer)
 	Time_UserDataStruct Time;
 	Date_UserDataStruct Date;
 	uint64_t Sec;
-	utc_timer_value_t *timeUtc = OsaSystemTimeReadUtc();
+	utc_timer_value_t *timeUtc = OsaSystemTimeReadRamUtc();
 	if (_timer)
 	{
 		Sec = *_timer;
@@ -69,7 +69,7 @@ clock_t	   __wrap_clock (void)
 
 time_t	   __wrap_time (time_t *_Time)
 {
-  utc_timer_value_t *timeUtc = OsaSystemTimeReadUtc();
+  utc_timer_value_t *timeUtc = OsaSystemTimeReadRamUtc();
   if (_Time != NULL) {
     *_Time = timeUtc->UTCsecs;
   }

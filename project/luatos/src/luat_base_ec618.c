@@ -233,8 +233,8 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_ICONV
   {"iconv", luaopen_iconv},
 #endif
-#ifdef LUAT_USE_SM
-  {"sm",luaopen_sm},
+#ifdef LUAT_USE_GMSSL
+  {"gmssl",luaopen_gmssl},
 #endif
 #ifdef LUAT_USE_MAX30102
   {"max30102", luaopen_max30102},
@@ -363,14 +363,4 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 	tm_buf->tm_sec = Time.Sec;
 	return tm_buf;
 
-}
-
-#include "osasys.h"
-
-time_t luat_time(time_t *_Time) {
-  utc_timer_value_t *timeUtc = OsaSystemTimeReadUtc();
-  if (_Time != NULL) {
-    *_Time = timeUtc->UTCsecs;
-  }
-  return timeUtc->UTCsecs;
 }
