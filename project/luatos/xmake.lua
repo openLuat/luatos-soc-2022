@@ -13,7 +13,7 @@ target("gmssl")
     add_cxflags("-finline")
     
     --加入代码和头文件
-    add_includedirs("/inc",{public = true})
+    add_includedirs("./inc",{public = true})
     add_includedirs(LUATOS_ROOT .. "lua/include")
     add_includedirs(LUATOS_ROOT .. "luat/include")
     add_includedirs(LUATOS_ROOT .. "components/cmux")
