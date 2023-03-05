@@ -9,6 +9,8 @@ target("gmssl")
     set_kind("static")
     set_targetdir(LIB_DIR)
     set_optimize("fastest")
+
+    add_cxflags("-finline")
     
     --加入代码和头文件
     add_includedirs("/inc",{public = true})
