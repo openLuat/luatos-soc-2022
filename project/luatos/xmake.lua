@@ -5,6 +5,27 @@ local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 local LUATOS_ROOT = SDK_TOP .. "/../LuatOS/"
 local LUAT_USE_TTS_8K
 
+target("gmssl")
+    set_kind("static")
+    set_targetdir(LIB_DIR)
+    set_optimize("fastest")
+    
+    --加入代码和头文件
+    add_includedirs("/inc",{public = true})
+    add_includedirs(LUATOS_ROOT .. "lua/include")
+    add_includedirs(LUATOS_ROOT .. "luat/include")
+    add_includedirs(LUATOS_ROOT .. "components/cmux")
+    add_includedirs(LUATOS_ROOT .. "components/cjson")
+    add_includedirs(LUATOS_ROOT .. "components/fatfs")
+    add_includedirs(LUATOS_ROOT .. "components/shell")
+
+    -- 国密算法, by chenxudong1208, 基于GMSSL
+    add_includedirs(LUATOS_ROOT.."components/gmssl/include")
+    add_files(LUATOS_ROOT.."components/gmssl/**.c")
+
+    LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. "libgmssl.a "
+target_end()
+
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)
@@ -246,9 +267,6 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/max30102/*.c")
     add_includedirs(LUATOS_ROOT.."components/max30102")
 
-    -- 国密算法, by chenxudong1208, 基于GMSSL
-    add_includedirs(LUATOS_ROOT.."components/gmssl/include")
-    add_files(LUATOS_ROOT.."components/gmssl/**.c")
     
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "/interface/include")

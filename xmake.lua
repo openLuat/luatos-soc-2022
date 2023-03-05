@@ -138,14 +138,13 @@ else
     add_defines("LITE_FEATURE_MODE")
 end
 
-
+set_optimize("smallest")
 add_cxflags("-g3",
             "-mcpu=cortex-m3",
             "-mthumb",
             "-std=gnu99",
             "-nostartfiles",
             "-mapcs-frame",
-            "-Os",
             "-ffunction-sections",
             "-fdata-sections",
             "-fno-isolate-erroneous-paths-dereference",
@@ -157,7 +156,6 @@ add_cxflags("-g3",
             "-mslow-flash-data",
             "-fstack-usage",
             "-Wstack-usage=4096",
-            "-fcallgraph-info",
 {force=true})
 
 add_ldflags(" -Wl,--wrap=clock ",{force = true})
