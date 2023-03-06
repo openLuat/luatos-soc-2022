@@ -30,12 +30,20 @@
 #define LUAT_LOG_TAG "fota"
 #include "luat_log.h"
 #include "mbedtls/md5.h"
+#include "mbedtls/sha256.h"
 #include "fota_nvm.h"
 extern void fotaNvmNfsPeInit(uint8_t isSmall);
 #define __SOC_OTA_COMMON_DATA_LOAD_ADDRESS__	(LUA_SCRIPT_OTA_ADDR + AP_FLASH_XIP_ADDR)
 #define __SOC_OTA_COMMON_DATA_SAVE_ADDRESS__	(LUA_SCRIPT_OTA_ADDR)
 #define __SOC_OTA_SDK_DATA_LOAD_ADDRESS__	(FLASH_FOTA_REGION_START + AP_FLASH_XIP_ADDR)
 #define __SOC_OTA_SDK_DATA_SAVE_ADDRESS__	(FLASH_FOTA_REGION_START)
+
+#if MBEDTLS_VERSION_NUMBER >= 0x03000000
+#define mbedtls_md5_starts_ret mbedtls_md5_starts
+#define mbedtls_md5_update_ret mbedtls_md5_update
+#define mbedtls_md5_finish_ret mbedtls_md5_finish
+#endif
+
 typedef struct
 {
 	Buffer_Struct data_buffer;
@@ -55,6 +63,18 @@ enum
 };
 
 static luat_fota_ctrl_t g_s_fota;
+
+#if MBEDTLS_VERSION_NUMBER >= 0x03000000
+int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 ) {
+	mbedtls_sha256_starts(ctx, is224);
+}
+int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx, const unsigned char *input, size_t ilen ) {
+	mbedtls_sha256_update(ctx, input, ilen);
+}
+int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx, unsigned char output[32]) {
+	mbedtls_sha256_finish(ctx, output);
+}
+#endif
 
 static void luat_fota_finish(void)
 {
