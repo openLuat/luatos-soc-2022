@@ -69,6 +69,9 @@ void*  ccioGetPppServEnt(void);
 int32_t ccioDisablePmuSleep(uint32_t lanMedia, uint32_t slpState);
 int32_t ccioEnablePmuSleep(uint32_t lanMedia, uint32_t slpState);
 
+void  ccioResetOutMode(CcioOutXferMode_e *outMode);
+void  ccioRestoreOutMode(CcioOutXferMode_e *outMode);
+
 #ifdef __cplusplus
 }
 #endif

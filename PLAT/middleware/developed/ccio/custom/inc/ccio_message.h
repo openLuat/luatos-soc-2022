@@ -53,6 +53,7 @@ typedef enum
     CCIO_CHAN_CMSG_BEGIN = CCIO_CHAN_CMSG_FLAG,
     CCIO_CHAN_DEV_ADD = CCIO_CHAN_CMSG_BEGIN,
     CCIO_CHAN_DEV_DEL,
+    CCIO_CHAN_DEV_ALT,
     CCIO_CHAN_ULPDU_FREE,
     CCIO_CHAN_DLPDU_FREE,
     CCIO_CHAN_RBUF_FLUSH,
@@ -129,6 +130,7 @@ int32_t ccioHandleChanMsg(CcioChanMessage_t *chmsg, CcioChanMsgTblIdx_t *tblIdx,
 
 int32_t ccioBuildMsgDevAdd(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, CcioDsaDevAdd_t *dsaDevAdd);
 int32_t ccioBuildMsgDevDel(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, CcioDsaDevDel_t *dsaDevDel);
+int32_t ccioBuildMsgDevAlt(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, CcioDsaDevAlt_t *dsaDevAlt);
 int32_t ccioBuildMsgUlPduFree(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, CcioDsaUlPduFree_t *dsaPduFree);
 int32_t ccioBuildMsgDlPduFree(CcioChanMessage_t *chmsg, CcioChanMessageId_e msgId, CcioDsaDlPduFree_t *dsaPduFree);
 

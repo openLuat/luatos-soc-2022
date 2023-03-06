@@ -14,7 +14,7 @@ History:        - 08/09/2020, Originated by Jason
 #define CMI_DEV_QENG_INTRA_NCELL_NUM            4
 #define CMI_DEV_QENG_INTER_NCELL_NUM            16
 
-typedef enum CMI_DEV_PRIM_ID_TAG
+typedef enum _EPAT_CMI_DEV_PRIM_ID_TAG
 {
     CMI_DEV_PRIM_BASE = 0,
     CMI_DEV_SET_CFUN_REQ = 1, //AT+CFUN
@@ -130,7 +130,7 @@ typedef enum CMI_DEV_PRIM_ID_TAG
 
     CMI_DEV_ERRC_EXIT_DEACT_IND,
 
-    CMI_DEV_SET_WIFISCAN_REQ,              //AT+QWIFISCAN=[<time>],[<round>],[<maxbssidnum>],[<scantimeout>],[<priority>]
+    CMI_DEV_SET_WIFISCAN_REQ,              //AT+QWIFISCAN=[<time>],[<round>],[<maxbssidnum>],[<scantimeout>],[<priority>],[<channelRecLen>],[<channelId1>],[<channelId2>],...,[<channelId14>]
     CMI_DEV_SET_WIFISCAN_CNF,
 
     CMI_DEV_GET_WIFISCAN_REQ,              //AT+QWIFISCAN?
@@ -523,7 +523,8 @@ typedef struct CmiDevSetExtCfgReq_Tag
 
     BOOL    staticConfigPresent;
     BOOL    staticConfig;
-    UINT16  rsvd5;
+    BOOL    disableCDRXPresent;
+    BOOL    disableCDRX;
 }CmiDevSetExtCfgReq;    // 64 bytes
 
 typedef CamCmiEmptySig CmiDevSetExtCfgCnf;
@@ -588,7 +589,7 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     UINT8   reselToWeakNcellOpt;
     BOOL    bQualityFirst;
     BOOL    bStaticConfig;
-    UINT8   rsvd2;
+    BOOL    bDisableCDRX;
 }CmiDevGetExtCfgCnf;    // 36 bytes
 
 /******************************************************************************
@@ -2539,6 +2540,8 @@ typedef CamCmiEmptySig CmiDevErrcExitDeactInd;
 /******************************************************************************
  * CMI_DEV_GET_WIFISCAN_REQ
 ******************************************************************************/
+#define CMI_DEV_MAX_CHANNEL_NUM     14
+
 typedef CamCmiEmptySig CmiDevGetWifiSacnReq;
 
 /******************************************************************************
@@ -2551,6 +2554,10 @@ typedef struct CmiDevGetWifiScanCnf_Tag
     UINT8   maxBssidNum;        //wifiscan max report num
     UINT8   scanTimeOut;        //s, max time of each round executed by RRC
     UINT8   wifiPriority;       //0 - data Perferred, 1 - wifi Perferred
+    UINT8   channelCount;       //channel count
+    UINT8   rsvd[3];
+    UINT16  channelRecLen;      //ms, max scantime of each channel
+    UINT8   channelId[CMI_DEV_MAX_CHANNEL_NUM];          //channel id 1-14: scan a specific channel
 }CmiDevGetWifiScanCnf;
 
 /******************************************************************************
@@ -2569,12 +2576,16 @@ typedef struct CmiDevSetWifiSacnReq_Tag
     UINT8   maxBssidNum;        //wifiscan max report num
     UINT8   scanTimeOut;        //s, max time of each round executed by RRC
     UINT8   wifiPriority;       //CmiWifiScanPriority
+    UINT8   channelCount;       //channel count; if count is 1 and all channelId are 0, UE will scan all frequecny channel
+    UINT8   rsvd[3];
+    UINT16  channelRecLen;      //ms, max scantime of each channel
+    UINT8   channelId[CMI_DEV_MAX_CHANNEL_NUM];          //channel id 1-14: scan a specific channel
 }CmiDevSetWifiSacnReq;
 
 /******************************************************************************
  * CMI_DEV_SET_WIFISCAN_CNF
 ******************************************************************************/
-#define CMI_DEV_MAX_WIFI_BSSID_NUM      10
+#define CMI_DEV_MAX_WIFI_BSSID_NUM      40
 #define CMI_DEV_MAX_SSID_HEX_LENGTH     32
 
 typedef struct CmiDevSetWifiScanCnf_Tag

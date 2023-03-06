@@ -44,6 +44,15 @@ typedef uint8_t AtosEntFlags;
 
 typedef enum
 {
+    SERIAL_EF_BASEONLY = 0,
+    SERIAL_EF_ATOS,   /* including pppos */
+    SERIAL_EF_OPAQOS,
+
+    SERIAL_EF_MAXNUM
+}SerialEntityFlags_e;
+
+typedef enum
+{
     SERIAL_CHM_CMD_OFFLINE = 0,
     SERIAL_CHM_CMD_ONLINE,
     SERIAL_CHM_DATA_ONLINE,
@@ -53,8 +62,16 @@ typedef enum
 
 typedef struct
 {
-    uint8_t  flags;      /* AtosEntFlags */
+    uint8_t  opaqCid;    /* opaq context Id between a certain app. */
+    uint8_t  rsvd[3];
+
+    void    *extras;     /* for user context. */
+}OpaqosEntity_t;
+
+typedef struct
+{
     uint8_t  atCid;      /* at context Id between ps  */
+    uint8_t  flags;      /* AtosEntFlags */
     uint8_t  outFmt;     /* CcioOutXferFormat_e */
     uint8_t  rsvd;
 
@@ -79,9 +96,9 @@ typedef struct
     /* inherited field & MUST be placed on the top! */
     CcioEntity_t  base;
 
-    uint8_t  baseOnly  :1;  /* if set 1, other fields are meaningless except baseEnt. */
+    uint8_t  entFlags  :2;  /* refer to 'SerialEntityFlags_e' */
     uint8_t  isChgMode :1;  /* is channel mode changing or not? */
-    uint8_t  rsvdBits  :6;
+    uint8_t  rsvdBits  :5;
     uint8_t  chanMode;      /* refer to 'SerialChanMode_e', via monitor */
     uint8_t  rsvd[2];
     uint32_t memThres;      /* dlfc memory threshold */
@@ -92,6 +109,7 @@ typedef struct
 
     AtosEntity_t   at;
     PpposEntity_t *ppp;
+    OpaqosEntity_t opaq;  /* union is more appropriate here, either at or opaq! */
 }SerialEntity_t;
 
 /*----------------------------------------------------------------------------*
@@ -212,6 +230,16 @@ int32_t csioPullDownChannel(SerialEntity_t *serlEnt);
  * @return 0 succ; < 0 failure with errno.
  */
 int32_t csioSetChanMode(SerialEntity_t *serlEnt, SerialChanMode_e chanMode);
+
+/**
+ * @brief csioAltChanType(SerialEntity_t *serlEnt, CsioDevType_e newType)
+ * @details the serial channel will be altered to a new service
+ *
+ * @param serlEnt  The serial entity whose chanType is altered
+ * @param newType  The new service type of the channel
+ * @return 0 succ; < 0 failure with errno.
+ */
+int32_t csioAltChanType(SerialEntity_t *serlEnt, CsioDevType_e newType);
 
 /**
  * @brief csioTryAdjustDlfcMemThres(SerialEntity_t *serlEnt)

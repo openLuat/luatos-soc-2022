@@ -31,4 +31,8 @@ void apmuPeriClearCPTimerInterrupt(void);
 
 void apmuPeriStartCPTimer(uint32_t cpStartTime, void* expFunc);
 
+void apmuPeriCPPowerOnSetIrqMask(void);
+
+void apmuPeriCPPowerOnSetIrqRestore(void);
+
 #endif

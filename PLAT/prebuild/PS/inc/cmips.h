@@ -23,6 +23,7 @@ History:        - 08/09/2020, Originated by Jason
 #define CMI_PS_MAX_AUTH_STR_LEN     64
 #define CMI_PDN_MAX_NW_ADDR_NUM     4
 #define CMI_PS_MAX_BEARER_NUM       11
+#define CMI_PCSCF_MAX_NW_ADDR_NUM      6
 
 #define CMI_PS_CHECK_CID_VALID(cid) ((UINT32)(cid) <= CMI_PS_MAX_VALID_CID)
 
@@ -31,7 +32,7 @@ History:        - 08/09/2020, Originated by Jason
  * Enums
  *****************************************************************************
 ******************************************************************************/
-typedef enum CMI_PS_PRIM_ID_TAG
+typedef enum _EPAT_CMI_PS_PRIM_ID_TAG
 {
     CMI_PS_PRIM_BASE = 0,
 
@@ -661,7 +662,7 @@ typedef struct CmiPsDedicateBearerCtxReqTag
     BOOL    imCnSigFlagPresent;
     UINT8   imCnSigFlag;    //CmiPsImCnSigFlag
 
-}CmiPsDedicateBearerCtxReq;
+}CmiPsDedicateBearerCtxReq;         /* 4 bytes */
 
 
 typedef struct CmiPsBearerCtxDynParamTag
@@ -676,12 +677,12 @@ typedef struct CmiPsBearerCtxDynParamTag
     CmiIpAddr           gwIpv4Addr;
 
     UINT8               dnsAddrNum;
-    UINT8               pCscfAddrNum;
+    UINT8               pCscfAddrNum; //max value is CMI_PCSCF_MAX_NW_ADDR_NUM
     UINT8               imCnSigFlag;  //0, 1
     UINT8               lipaInd;      //0, 1;
 
     CmiIpAddr           dnsAddr[CMI_PDN_MAX_NW_ADDR_NUM];
-    CmiIpAddr           pCscfAddr[CMI_PDN_MAX_NW_ADDR_NUM];
+    CmiIpAddr           pCscfAddr[CMI_PCSCF_MAX_NW_ADDR_NUM];
 
     BOOL                ipv4MtuPresent;
     UINT16              ipv4Mtu;
@@ -690,7 +691,7 @@ typedef struct CmiPsBearerCtxDynParamTag
     //UINT16              servingPlmnRateCtrl;
     BOOL                needRetryAnotherIPType;//retry another IP type bearer needed;
 
-}CmiPsBearerCtxDynParam;    //312 bytes
+}CmiPsBearerCtxDynParam;    //352 bytes
 
 typedef struct CmiPsDedBearerCtxDynParamTag
 {

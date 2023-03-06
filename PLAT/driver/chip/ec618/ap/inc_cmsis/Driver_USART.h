@@ -204,6 +204,13 @@ typedef volatile struct _ARM_USART_MODEM_STATUS {
 #define ARM_USART_EVENT_RI                  (1UL << 13) ///< RI  state changed (optional)
 #define ARM_USART_EVENT_AUTO_BAUDRATE_DONE  (1UL << 14) ///< Auto baudrate dection completed
 
+#define ARM_USART_RX_EVENTS                 (ARM_USART_EVENT_RECEIVE_COMPLETE | \
+                                             ARM_USART_EVENT_RX_OVERFLOW | \
+                                             ARM_USART_EVENT_RX_TIMEOUT | \
+                                             ARM_USART_EVENT_RX_BREAK | \
+                                             ARM_USART_EVENT_RX_FRAMING_ERROR | \
+                                             ARM_USART_EVENT_RX_PARITY_ERROR | \
+                                             ARM_USART_EVENT_AUTO_BAUDRATE_DONE)
 
 // Function documentation
 /**

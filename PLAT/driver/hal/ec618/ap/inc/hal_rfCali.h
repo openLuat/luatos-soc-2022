@@ -163,6 +163,7 @@ enum
     RF_FCCALI_TABLE_APC = 7,
     RF_FCCALI_TABLE_END = 8,
     RF_FCCALI_TABLE_SELFCAL = 9,
+    RF_FCCALI_TABLE_NoClear_Start = 10,
 };
 
 // EC+ECRFTEST command Index

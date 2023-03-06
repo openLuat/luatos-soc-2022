@@ -62,6 +62,54 @@ uint32_t HAL_I2SGetTotalNum()
 	return i2sDrv->getTotalCnt();
 }
 
+void HAL_i2sSetSampleRate(i2sRole_e i2sRole, uint32_t sampleRate)
+{
+    i2sSampleRate_e sampleRateIndex = 0;
+    
+    switch (sampleRate)
+    {
+        case 8000:
+            sampleRateIndex = SAMPLERATE_8K;
+        break;
+
+        case 16000:
+            sampleRateIndex = SAMPLERATE_16K;
+        break;
+
+        case 32000:
+            sampleRateIndex = SAMPLERATE_32K;
+        break;
+
+        case 22050:
+            sampleRateIndex = SAMPLERATE_22_05K;
+        break;
+
+        case 44100:
+            sampleRateIndex = SAMPLERATE_44_1K;
+        break;
+
+        case 48000:
+            sampleRateIndex = SAMPLERATE_48K;
+        break;
+
+        case 96000:
+            sampleRateIndex = SAMPLERATE_96K;
+        break;
+
+        default:
+            break;
+    }
+    
+    if (i2sRole == CODEC_MASTER_MODE) // Codec act as master
+    {
+        i2sDrv->ctrl(I2S_CTRL_SAMPLE_RATE_SLAVE, sampleRateIndex); // I2S Set sample rate in slave role
+    }
+    else
+    {
+        i2sDrv->ctrl(I2S_CTRL_SAMPLE_RATE_MASTER, sampleRateIndex); // I2S Set sample rate in master role
+    }
+}
+
 void HAL_I2SSetPlayRecord(i2sPlayRecord_e playRecord)
 {
     if (playRecord == PLAY)

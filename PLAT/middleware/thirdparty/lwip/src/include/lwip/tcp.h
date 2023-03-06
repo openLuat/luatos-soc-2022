@@ -99,6 +99,10 @@ typedef err_t (*tcp_recv_fn)(void *arg, struct tcp_pcb *tpcb,
 typedef err_t (*tcp_sent_fn)(void *arg, struct tcp_pcb *tpcb,
                               u16_t len);
 
+#if LWIP_SOCKET_CALL_BACK_ENABLE
+typedef err_t (*tcp_sentack_fn)(void *arg, struct tcp_pcb *tpcb,
+                              u16_t len);
+#endif
 /** Function prototype for tcp poll callback functions. Called periodically as
  * specified by @see tcp_poll.
  *
@@ -318,6 +322,9 @@ struct tcp_pcb {
 #if ENABLE_PSIF
   tcp_process_oos_fn poosf;
 #endif
+#if LWIP_SOCKET_CALL_BACK_ENABLE
+  tcp_sentack_fn sendackf;
+#endif
 #endif /* LWIP_CALLBACK_API */
 
 #if LWIP_TCP_TIMESTAMPS
@@ -397,6 +404,9 @@ void             tcp_err     (struct tcp_pcb *pcb, tcp_err_fn err);
 void             tcp_accept  (struct tcp_pcb *pcb, tcp_accept_fn accept);
 #if ENABLE_PSIF
 void             tcp_poosf(struct tcp_pcb *pcb, tcp_process_oos_fn poosf);
+#endif
+#if LWIP_SOCKET_CALL_BACK_ENABLE
+void tcp_sendack(struct tcp_pcb *pcb, tcp_sentack_fn sendack);
 #endif
 #endif /* LWIP_CALLBACK_API */
 void             tcp_poll    (struct tcp_pcb *pcb, tcp_poll_fn poll, u8_t interval);
@@ -522,6 +532,7 @@ void tcp_active_poll_timeout_timer(struct tcp_pcb *pcb, UINT32 timeout);
 
 void tcp_disable_keepalive_time(struct tcp_pcb *pcb);
 
+void tcp_enable_keeplive_time(struct tcp_pcb *pcb);
 
 #endif
 

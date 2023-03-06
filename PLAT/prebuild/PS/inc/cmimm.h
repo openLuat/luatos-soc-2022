@@ -8,7 +8,7 @@ History:        - 08/09/2020, Originated by Jason
 ******************************************************************************/
 #include "cmicomm.h"
 
-typedef enum CMI_MM_PRIM_ID_TAG
+typedef enum _EPAT_CMI_MM_PRIM_ID_TAG
 {
     CMI_MM_PRIM_BASE = 0,
     //CMI_MM_SET_CREG_MODE_REQ,   //CmiMmSetCregModeReq, AT+CREG=<n>, disabled, save in ATCMDSRV side

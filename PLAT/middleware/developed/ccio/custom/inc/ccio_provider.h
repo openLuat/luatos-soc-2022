@@ -41,10 +41,10 @@ extern "C" {
 #define CCIO_RBUF_REAL_SIZE(sz)  ((sz) + CCIO_RBUF_XTRA_SIZE)
 #ifdef __USER_CODE__
 #define DIAG_RBUF_REAL_SIZE       CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_128)
-#define ATOSN_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_2K)  /* Normal atos */
+#define ATOSN_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_8)  /* Normal atos */
 #define ATOSC_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_8)  /* atos for rf calibration */
-#define PPPOS_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_2K)
-#define OPAQOS_RBUF_REAL_SIZE     CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_8)  /* opaque or raw data */
+#define PPPOS_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_8)
+#define OPAQOS_RBUF_REAL_SIZE     CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_2K)  /* opaque or raw data */
 #define ETHER_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_16K)
 #else
 #define DIAG_RBUF_REAL_SIZE       CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_128)
@@ -76,11 +76,6 @@ extern "C" {
  *                   DATA TYPE DEFINITION                                     *
  *----------------------------------------------------------------------------*/
 
-typedef struct
-{
-    void    *chent;
-    void    *respArgs;  //passed in atRespFunc/atRespPduFunc
-}CcioAtCmdCtx_t;
 
 /*----------------------------------------------------------------------------*
  *                    GLOBAL FUNCTIONS DECLEARATION                           *
@@ -127,6 +122,20 @@ void ccioInitOpaqServProvider(CcioDevice_t *chdev);
   \return
 */
 void ccioDeinitOpaqServProvider(CcioEntity_t *chent);
+
+/**
+  \fn     void ccioAlterAtServProvider(CcioEntity_t *chent, CsioDevType_e newType)
+  \brief  alter at service provider
+  \return
+*/
+void ccioAlterAtServProvider(CcioEntity_t *chent, CsioDevType_e newType);
+
+/**
+  \fn     void ccioAlterOpaqServProvider(CcioEntity_t *chent, CsioDevType_e newType)
+  \brief  alter opaq service provider
+  \return
+*/
+void ccioAlterOpaqServProvider(CcioEntity_t *chent, CsioDevType_e newType);
 
 /**
   \fn     void ccioInitRndisServProvider(CcioDevice_t *chdev)

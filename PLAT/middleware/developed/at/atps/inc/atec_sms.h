@@ -222,6 +222,20 @@ typedef enum atecMoSmsType_enum
 #define ATC_ECCMGS_4_MSG_PART_NUM_VAL_MAX           255
 #define ATC_ECCMGS_4_MSG_PART_NUM_VAL_DEFAULT       0
 
+#define CONCAT_SMS_MAX_BUFFER_SIZE              5
+#define CONCAT_SMS_BUFFER_GARD_TIMER_SEC        600     /* 600 second */
+
+typedef enum ConcatSmsReportMode_enum
+{
+    CONCAT_SMS_REPORT_NONE      = 0,
+    CONCAT_SMS_REPORT_SEGMENT   = 1,
+    CONCAT_SMS_REPORT_MERGE     = 2,
+}ConcatSmsReportMode;
+
+/* AT sub id for CMGS and ECCMGS */
+#define ATC_CMGS_SUB_AT_ID      CMS_DEFAULT_SUB_AT_ID
+#define ATC_ECCMGS_SUB_AT_ID    1
+
 /******************************************************************************
  *****************************************************************************
  * STRUCT
@@ -236,12 +250,10 @@ typedef struct AtecSmsCMSSinfo_TAG
     CmiSmsAddressInfo     *pDestAddrInfo;
 }AtecSmsCMSSinfo;
 
-#define CONCAT_SMS_MAX_BUFFER_SIZE 5
-
 typedef struct AtecConcatSmsSegment_TAG
 {
     UINT8                           seqNum;     /* Sequence number of the current segment */
-    CHAR                            *strBuf;    /* Buffered +CMT report */
+    CHAR                            *strBuf;    /* Buffered SMS body */
     struct AtecConcatSmsSegment_TAG *next;      /* Pointer to the next segment*/
 }AtecConcatSmsSegment;
 
@@ -249,9 +261,11 @@ typedef struct AtecConcatSmsBuf_TAG
 {
     UINT8                   refNum;             /* Concatenated SMS reference number */
     UINT8                   maxNum;             /* Maximum number of segments */
-    UINT8                   lastSeqNumRpt;      /* Last sequence number of segment reported */
     UINT8                   segmentCount;       /* Count of segments bufferted */
+    UINT16                  smsLen;             /* Total SMS length of all segments */
+    CHAR                    *strCmt;            /* Buffered +CMT report except for the SMS body */
     AtecConcatSmsSegment    *segmentListHead;   /* Head of buffered SMS segments list  */
+    osTimerId_t             guardTimer;         /* Clean the buffer after guardTimer expired */
 }AtecConcatSmsBuf;
 
 /******************************************************************************

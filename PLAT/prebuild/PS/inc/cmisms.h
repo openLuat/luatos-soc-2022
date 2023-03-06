@@ -9,7 +9,7 @@ History:        - 10/12/2017, Originated by xpliu
 #include "cmicomm.h"
 
 
-typedef enum CMI_SMS_PRIM_ID_TAG
+typedef enum _EPAT_CMI_SMS_PRIM_ID_TAG
 {
     CMI_SMS_PRIM_BASE = 0,
 

@@ -20,8 +20,9 @@
 /*----------------------------------------------------------------------------*
  *                    INCLUDES                                                *
  *----------------------------------------------------------------------------*/
-#include "ccio_base.h"
+#include "sctdef.h"
 #include "RTE_Device.h"
+#include "ccio_base.h"
 
 
 #ifdef __cplusplus
@@ -32,6 +33,26 @@ extern "C" {
 /*----------------------------------------------------------------------------*
  *                    MACROS                                                  *
  *----------------------------------------------------------------------------*/
+#ifdef __USER_CODE__
+#if (defined LOW_SPEED_SERVICE_ONLY)
+#define CCIO_NET_PERFORMACE_ENABLE  1
+#else
+#define CCIO_NET_PERFORMACE_ENABLE  1
+#endif
+#else
+#if ((defined LOW_SPEED_SERVICE_ONLY) || (defined LITE_FEATURE_MODE))
+#define CCIO_NET_PERFORMACE_ENABLE  0
+#else
+#define CCIO_NET_PERFORMACE_ENABLE  1
+#endif
+#endif
+#if (CCIO_NET_PERFORMACE_ENABLE == 1)
+#define CCIO_NET_FM_RAMCODE  PLAT_FM_RAMCODE
+#else
+#define CCIO_NET_FM_RAMCODE
+#endif
+
+
 #define CCIO_CHAN_MSG_TYPE_MASK   0xFF000000
 #define CCIO_CHAN_MSG_CTRL_MASK   0x00FF0000
 #define CCIO_CHAN_MSG_CODE_MASK   0x0000FFFF
@@ -76,6 +97,29 @@ extern "C" {
 /*----------------------------------------------------------------------------*
  *                   DATA TYPE DEFINITION                                     *
  *----------------------------------------------------------------------------*/
+typedef enum
+{
+    CUST_RBUF_FOR_DIAG = 0,
+    CUST_RBUF_FOR_AT_NORM,
+    CUST_RBUF_FOR_AT_CALI,
+    CUST_RBUF_FOR_OPAQ,
+    CUST_RBUF_FOR_PPP,
+    CUST_RBUF_FOR_RNDIS,
+    CUST_RBUF_FOR_ECM
+}CcioRbufUsage_e;
+
+/**
+ * extra info about customized rbuf.
+ */
+typedef struct
+{
+    uint8_t   xtraSize;
+    uint8_t   isPreGet;
+    uint8_t   rsvd[2];
+    uint16_t  avlbThres;
+    uint16_t  totalSize; /* real size, including xtra size */
+}CcioRbufXtras_t;
+
 
 /* prototype definition */
 struct CcioDevice;
@@ -124,7 +168,9 @@ typedef struct CcioDevice
     uint32_t bmHwAcm       :2;  /* refer to 'CcioDevHwAcm_e', via monitor */
     uint32_t isWaitTxCmplt :1;  /* wait Tx complete IRQ or not, via driver */
     uint32_t asgnTxCos     :2;  /* the assigned tx channel(primary/secondary/customed), via monitor */
-    uint32_t rsvdBits      :25;
+    uint32_t rbufFlags     :4;  /* which rbuf will be used? refer to 'CcioRbufUsage_e' */
+    uint32_t custFlags     :3;  /* flags for customers' private purpose */
+    uint32_t rsvdBits      :18;
     void    *chent;             /* for fast accessing, via monitor */
 
     chdevOutFunc         chdevOutFn;     /* via driver */
@@ -187,8 +233,9 @@ typedef struct
     uint8_t  pdp4Cid;      /* ipv4 pdp context Id, via monitor */
     uint8_t  pdp6Cid;      /* ipv6 pdp context Id, via monitor */
     uint8_t  isWanAvlb  :1;
+    uint8_t  isLanUp    :1;
     uint8_t  notifAgain :1;
-    uint8_t  rsvd :6;
+    uint8_t  rsvd :5;
 
     void    *extras;       /* for user context. */
 

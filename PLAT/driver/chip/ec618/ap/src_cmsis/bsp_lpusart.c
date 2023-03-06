@@ -69,8 +69,8 @@ static lpusart_database_t g_lpusartDataBase = {0};
 
 #ifdef PM_FEATURE_ENABLE
 /**
-  \brief Bitmap of LPUSART working status */
-static uint32_t g_lpusartWorkingStatus = 0;
+  \brief Bitmap of LPUSART working status, msb acts as mask*/
+static uint32_t g_lpusartWorkingStatus = 0x80000000;
 
 /**
   \fn        static void LPUSART_EnterLowPowerStatePrepare(void* pdata, slpManLpState state)
@@ -160,24 +160,27 @@ static void LPUSART_ExitLowPowerStateRestore(void* pdata, slpManLpState state)
 
 }
 
-#define  LOCK_SLEEP(tx, rx)     do                                                                        \
-                                          {                                                               \
-                                              g_lpusartWorkingStatus |= (rx);                             \
-                                              g_lpusartWorkingStatus |= (tx << 1);                        \
-                                              slpManDrvVoteSleep(SLP_VOTE_LPUSART, SLP_ACTIVE_STATE);     \
-                                          }                                                               \
+#define  LOCK_SLEEP(tx, rx)               do                                                                       \
+                                          {                                                                        \
+                                              if((g_lpusartWorkingStatus & 0x80000000) == 0)                       \
+                                              {                                                                    \
+                                                  g_lpusartWorkingStatus |= (rx);                                  \
+                                                  g_lpusartWorkingStatus |= (tx << 1);                             \
+                                                  slpManDrvVoteSleep(SLP_VOTE_LPUSART, SLP_ACTIVE_STATE);          \
+                                              }                                                                    \
+                                          }                                                                        \
                                           while(0)
 
-#define  CHECK_TO_UNLOCK_SLEEP(tx, rx)      do                                                              \
-                                                      {                                                     \
-                                                          g_lpusartWorkingStatus &= ~(rx);                  \
-                                                          g_lpusartWorkingStatus &= ~(tx << 1);             \
-                                                          if(g_lpusartWorkingStatus == 0)                   \
-                                                          {                                                 \
-                                                              NVIC_ClearPendingIRQ(LpuartWakeup_IRQn);                    \
-                                                              slpManDrvVoteSleep(SLP_VOTE_LPUSART, SLP_SLP1_STATE);       \
-                                                          }                                                               \
-                                                      }                                                                   \
+#define  CHECK_TO_UNLOCK_SLEEP(tx, rx)                do                                                            \
+                                                      {                                                             \
+                                                          g_lpusartWorkingStatus &= ~(rx);                          \
+                                                          g_lpusartWorkingStatus &= ~(tx << 1);                     \
+                                                          if((g_lpusartWorkingStatus & 0xFF) == 0)                  \
+                                                          {                                                         \
+                                                              NVIC_ClearPendingIRQ(LpuartWakeup_IRQn);              \
+                                                              slpManDrvVoteSleep(SLP_VOTE_LPUSART, SLP_SLP1_STATE); \
+                                                          }                                                         \
+                                                      }                                                             \
                                                       while(0)
 #endif
 
@@ -673,9 +676,10 @@ int32_t LPUSART_Uninitialize(LPUSART_RESOURCES *lpusart)
     }
 
 #ifdef PM_FEATURE_ENABLE
+    CHECK_TO_UNLOCK_SLEEP(1, 1);
 
     g_lpusartDataBase.isInited = false;
-    g_lpusartWorkingStatus = 0;
+    g_lpusartWorkingStatus = 0x80000000;
     slpManUnregisterPredefinedBackupCb(SLP_CALLBACK_LPUSART_MODULE);
     slpManUnregisterPredefinedRestoreCb(SLP_CALLBACK_LPUSART_MODULE);
 #endif
@@ -698,6 +702,7 @@ int32_t LPUSART_PowerControl(ARM_POWER_STATE state,LPUSART_RESOURCES *lpusart)
             if(lpusart->info->flags & LPUSART_FLAG_POWER_LOW)
             {
                 GPR_swReset(RST_LPUA);
+                GPR_swReset(RST_PCLK_LPUC);
 
                 LPUSART_AON_REGISTER_WRITE(lpusart->aon_regs->CR1, 0);
 
@@ -1979,7 +1984,10 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
         info->cb_event (event);
 
 #ifdef PM_FEATURE_ENABLE
-        CHECK_TO_UNLOCK_SLEEP(0, 1);
+        if((event & ARM_USART_RX_EVENTS) != 0)
+        {
+            CHECK_TO_UNLOCK_SLEEP(0, 1);
+        }
 #endif
 
     }

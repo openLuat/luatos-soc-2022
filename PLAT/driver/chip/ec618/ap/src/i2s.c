@@ -217,11 +217,13 @@ static ClockId_e i2sClk[I2S_INSTANCE_NUM * 2] =
     FCLK_I2S1
 };
 
+#ifdef PM_FEATURE_ENABLE
 static ClockId_e i2sMClk[I2S_INSTANCE_NUM] = 
 {
     MCLK0,
     MCLK1,
 };
+#endif
 
 static ClockResetId_e i2sRstClk[I2S_INSTANCE_NUM * 2] =
 {
@@ -709,6 +711,7 @@ int32_t i2sControl(uint32_t control, uint32_t arg, i2sResources_t *i2s)
         case I2S_CTRL_SET_TOTAL_NUM:
         {
             i2s->info->totalNum = arg;
+            break;
         }        
 
         // Set Bus Speed in bps; arg = value

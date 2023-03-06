@@ -460,23 +460,52 @@ typedef CmiPsDefineBearerCtxReq       SetPsBearerParams;
 typedef  CmiPsGetDefinedBearerCtxCnf  GetPsBearerParams;
 
 /******************************************************************************
+ *Act/Deactivate Eps Bearer struct
+******************************************************************************/
+typedef  CmiPsSetBearerActStateReq   SetEpsBearerStateParams;
+
+/******************************************************************************
+ *Set Auth params struct
+******************************************************************************/
+typedef CmiPsSetDefineAuthCtxReq    SetPsAuthCtxParams;
+
+/******************************************************************************
+ *Get Auth params struct
+******************************************************************************/
+typedef CmiPsGetDefineAuthCtxCnf    GetPsAuthCtxParams;
+
+
+/******************************************************************************
+
+
  *Set WifiScan execute params struct
 ******************************************************************************/
 /* WIFISCAN Params Range */
-#define WIFISCAN_0_TIME_VAL_MIN            4000
-#define WIFISCAN_0_TIME_VAL_MAX            255000
+#define WIFISCAN_0_TIME_VAL_MIN             4000
+#define WIFISCAN_0_TIME_VAL_MAX             255000
 
-#define WIFISCAN_1_ROUND_VAL_MIN           1
-#define WIFISCAN_1_ROUND_VAL_MAX           3
+#define WIFISCAN_1_ROUND_VAL_MIN            1
+#define WIFISCAN_1_ROUND_VAL_MAX            3
 
-#define WIFISCAN_2_MAXBSSIDNUM_VAL_MIN     4
-#define WIFISCAN_2_MAXBSSIDNUM_VAL_MAX     10
+#define WIFISCAN_2_MAXBSSIDNUM_VAL_MIN      4
+#define WIFISCAN_2_MAXBSSIDNUM_VAL_MAX      40
 
-#define WIFISCAN_3_SCANTIMEOUT_VAL_MIN     1
-#define WIFISCAN_3_SCANTIMEOUT_VAL_MAX     255
+#define WIFISCAN_3_SCANTIMEOUT_VAL_MIN      1
+#define WIFISCAN_3_SCANTIMEOUT_VAL_MAX      255
 
-#define WIFISCAN_4_PRIORITY_VAL_MIN        0   //data preferred
-#define WIFISCAN_4_PRIORITY_VAL_MAX        1   //wifiscan preferred
+#define WIFISCAN_4_PRIORITY_VAL_MIN         0   //data preferred
+#define WIFISCAN_4_PRIORITY_VAL_MAX         1   //wifiscan preferred
+
+#define WIFISCAN_5_CHANNELTIMEOUT_VAL_MIN   100
+#define WIFISCAN_5_CHANNELTIMEOUT_VAL_MAX   280
+
+#define WIFISCAN_6_CHANNELCOUNT_VAL_MIN     1
+#define WIFISCAN_6_CHANNELCOUNT_VAL_MAX     14
+
+#define WIFISCAN_7_CHANNELID_VAL_MIN        1
+#define WIFISCAN_7_CHANNELID_VAL_MAX        14
+
+#define WIFISCAN_MAX_CHANNELID_NUM          14
 
 typedef  CmiDevSetWifiSacnReq  SetWifiScanParams;
 
@@ -588,6 +617,11 @@ typedef struct GetCurrentOperatorInfo_Tag
 typedef CmiPsSetTrafficIdleMonitorReq   EcSclkExSetParamsReq;
 
 typedef CmiPsGetTrafficIdleMonitorCnf   EcSclkExGetParamsReq;
+
+typedef CmiSimImsAuthReq    EcSimAuthReqParams;
+
+typedef CmiSimImsAuthCnf    EcSimAuthRspParams;
+
 
 /******************************************************************************
  *****************************************************************************
@@ -823,6 +857,20 @@ CmsRetId appSetECSCLKEXSync(EcSclkExSetParamsReq *pEcSclkExSetParamsInfo);
 */
 CmsRetId appGetECSCLKEXSync(EcSclkExGetParamsReq *pEcSclkExGetParamsInfo);
 
+
+/**
+  \fn          appSetEpsBeaerStateSync
+  \brief       activate or deactivate eps bearer, such as  AT command AT+CGACT
+  \param[in]   pSetEpsStateParams:
+                            cid   : which cid to be activate or deactivate
+                            state : 1--activate; 0 - deactivate
+
+  \returns     CmsRetId
+  \NOTE:       1.this api  can activate/deactivate the eps bearer  as the same effect with AT +CGACT
+               2.this is block api and max guard time is 42 seconds,the app layer task should estimate whether can cover it
+*/
+CmsRetId appSetEpsBeaerStateSync(SetEpsBearerStateParams *pSetEpsStateParams);
+
 /**
   \fn           CmsRetId appGetSignalQualitySync(UINT8 *csq, INT8 *snr, INT8 *rsrp, UINT *rsrq)
   \brief        Get signal information
@@ -874,5 +922,42 @@ CmsRetId appGetECSCLKEXSync(EcSclkExGetParamsReq *pEcSclkExGetParamsInfo);
   \returns     CmsRetId
 */
 CmsRetId appGetSignalQualitySync(UINT8 *csq, INT8 *snr, INT8 *rsrp, INT8 *rsrq);
+
+/**
+  \fn          appSIMAuthSync
+  \brief       Send cmi request to execute authentication on SIM
+  \param[in]   EcSimAuthReqParams *pEcSimAuthReqParams, the pointer to EcSimAuthReqParams
+  \param[out]  EcSimAuthRspParams *pEcSimAuthRspParams, the pointer to EcSimAuthRspParams
+  \returns     CmsRetId
+  \NOTE:
+*/
+CmsRetId appSIMAuthSync(EcSimAuthReqParams *pEcSimAuthReqParams, EcSimAuthRspParams *pEcSimAuthRspParams);
+
+/**
+  \fn          appSetAuthParamSync
+  \brief       Send define auth ctx req to PS to set auth parameters
+  \param[in]   SetPsAuthCtxParams *pSetAuthCtxParams
+  \returns     CmsRetId
+  \NOTE:       this api can settting the auth parameters as the same effect with AT+CGAUTH;
+            1> this api only can get one Eps beaer information every function callback, and the cid must a valid cid
+            2>: The BR correspond with cid must be defined and not dedicated BR;
+            3>: If delAuthInfo is 1, means need to delete auth parameters;
+*/
+CmsRetId appSetAuthParamSync(SetPsAuthCtxParams *pSetAuthCtxParams);
+
+/**
+  \fn          appGetAuthParamSync
+  \brief       get authentication parameter information, such as authProtocol , user name, password
+  \param[in]   const UINT8 cid the eps bearer cid
+  \param[in\out]   GetPsAuthCtxParams *pGetAuthParams the auth parameters
+  \returns     CmsRetId
+  \NOTE:       this api  can query the eps bearer parameters as the same effect with AT +QICSGP
+  *Note:
+       1> this api only can get one Eps beaer information every function callback, and the cid must a valid cid
+       2> Only support return usename and password of NULL/PAP/CHAP/CHAP_PAP auth protocol type
+*/
+CmsRetId appGetAuthParamSync(const UINT8  cid, GetPsAuthCtxParams *pGetAuthParams);
+
+
 #endif
 

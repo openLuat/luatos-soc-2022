@@ -10,8 +10,8 @@ extern "C" {
 #include "bsp.h"
 
 // Only need to choose which LCD you use
-#define ST7789V2_ENABLE         0
-#define ST7571_ENABLE			1
+#define ST7789V2_ENABLE         1
+#define ST7571_ENABLE			0
 
 
 
@@ -96,12 +96,12 @@ void lcdWriteCmd(uint8_t cmd);
 void lcdWriteData(uint8_t data);
 void lcdInit(pTxCb txCb);
 void mDelay(uint32_t mDelay);
-//void lcdWriteData16(uint16_t data);
-//void lcdDispColor(uint16_t color);
-void lcdDispWindows(void);
+void lcdWriteData16(uint16_t data);
+void lcdDispColor(uint16_t color);
+//void lcdDispWindows(void);
 //void lcdWriteDataDma(uint16_t color);
-void lcdWriteSetup(uint8_t * dataBuf, uint16_t dataCnt);
-void lcdWriteCtrl(bool startOrStop);
+//void lcdWriteSetup(uint8_t * dataBuf, uint16_t dataCnt);
+//void lcdWriteCtrl(bool startOrStop);
 void lcdClearScreen();
 void lcdDispPic(uint8_t * pic);
 

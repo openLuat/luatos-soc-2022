@@ -66,7 +66,7 @@
 #define ATC_CGDCONT_7_PARA_VAL_MAX                  2
 #define ATC_CGDCONT_7_PARA_VAL_DEFAULT              0
 #define ATC_CGDCONT_8_PARA_VAL_MIN                  0
-#define ATC_CGDCONT_8_PARA_VAL_MAX                  0
+#define ATC_CGDCONT_8_PARA_VAL_MAX                  2
 #define ATC_CGDCONT_8_PARA_VAL_DEFAULT              0
 #define ATC_CGDCONT_9_PARA_VAL_MIN                  0
 #define ATC_CGDCONT_9_PARA_VAL_MAX                  0

@@ -136,6 +136,17 @@ void XIC_SuppressOvfIRQ(IRQn_Type IRQn);
   \param[in] xic     Pointer to XIC instance
  */
 void XIC_ClearAllPendingIRQ(XIC_TypeDef* xic);
+/**
+  \fn        void XIC_DisableAllIRQExceptUart(void)
+  \brief     disable all interrupt except PXIC0_UART0_IRQn/PXIC0_UART1_IRQn/PXIC0_UART2_IRQn/PXIC1_DMA_MP_IRQn
+ */
+void XIC_DisableAllIRQExceptUart(void);
+/**
+  \fn        void XIC_RestoreAllIRQ(void)
+  \brief     restore interrupt settings, call after XIC_DisableAllIRQExceptUart
+ */
+void XIC_RestoreAllIRQ(void);
+
 
 /** \} */
 

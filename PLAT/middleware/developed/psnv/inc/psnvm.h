@@ -47,7 +47,7 @@ typedef struct _EPAT_CesmPdpDefinition_tag
 {
     UINT32  ipv4AlloTypePresent : 1;
     UINT32  reqTypePresent      : 1;
-    UINT32  pcscfDisTypePresent : 1;    /* "pcscfDisType" only support set to 0 */
+    UINT32  pcscfDisTypePresent : 1;
     UINT32  imCnSigFlagPresent  : 1;    /* "imCnSigFlag" only support set to 0 */
     UINT32  NSLPIPresent        : 1;
     UINT32  secPcoPresent       : 1;
@@ -83,7 +83,7 @@ typedef struct _EPAT_CesmPdpDefinition_tag
     /* "d_comp" & "h_comp" is for 2/3G, don't need */
 
     UINT8   pcscfDisType;       /* 0 - Preference of P-CSCF address discovery not influenced
-                                 * 1 - Preference of P-CSCF address discovery through NAS signalling, - not support
+                                 * 1 - Preference of P-CSCF address discovery through NAS signalling
                                  * 2- Preference of P-CSCF address discovery through DHCP, - not support now
                                  */
     UINT8   imCnSigFlag;        /* 0 - UE indicates that the PDP context is not for IM CN subsystem-related signalling only

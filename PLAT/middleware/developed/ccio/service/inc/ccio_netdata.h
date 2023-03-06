@@ -52,6 +52,9 @@ int32_t netDataInput(UlPduBlock_t *ulpdu, void *extras);
 int32_t netDataOutput(DlPduBlock_t *head, DlPduBlock_t *tail);
 int32_t netDataFastOutput(void);
 
+int32_t netDataAddToInputList(UlPduBlock_t *ulpdu, void *extras);
+int32_t netDataInputIfAny(void *extras);
+
 #ifdef __cplusplus
 }
 #endif

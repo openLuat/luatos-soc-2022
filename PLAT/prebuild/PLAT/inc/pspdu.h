@@ -14,6 +14,16 @@
 #else
 #include "commontypedef.h"
 #endif
+#include "sctdef.h"
+
+/* disabled by default! */
+#define PPP_PERFORMANCE_ENABLE  0
+
+#if (PPP_PERFORMANCE_ENABLE == 1)
+#define PPP_FM_RAMCODE  PLAT_FM_RAMCODE
+#else
+#define PPP_FM_RAMCODE
+#endif
 
 /*
  * UL PDU memory type

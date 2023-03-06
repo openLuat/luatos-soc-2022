@@ -296,7 +296,7 @@ typedef UINT16 CmiSmsErrorCode;
 /******************************************************************************
  * CAM service group enum definition
 ******************************************************************************/
-typedef enum CamSgIdEnum_Tag
+typedef enum _EPAT_CamSgIdEnum_Tag
 {
     CAM_BASE = 1,//basic/common
     CAM_DEV = 2,

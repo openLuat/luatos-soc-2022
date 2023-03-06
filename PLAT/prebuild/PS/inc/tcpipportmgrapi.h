@@ -55,10 +55,11 @@ typedef enum
 }PortMgrConnType;
 
 
-UINT8 PortMgrCheckDest(UINT8 source, UINT8 destination, UINT16 sourcePort, UINT16 destPort, UINT8 ipType);
+UINT8 PortMgrCheckDest(UINT8 source, UINT8 destination, UINT16 sourcePort, UINT16 destPort, UINT8 ipType, UINT8 connType, UINT8 cid);
 
 UINT16 PortMgrUlProcess(UINT8 connType, UINT8 source, UINT16 sourcePort, UINT16 destPort, UINT8 ipType, UINT8 cid);
 
+UINT16 PortMgrUeUlProcess(UINT8 connType, UINT8 source, UINT16 sourcePort, UINT16 destPort, UINT8 ipType, UINT8 cid, BOOL lanState);
 UINT8 PortMgrDlMappingProcess(UINT8 connType, UINT16 *originalPort, UINT16 mappingPort, UINT8 ipType, UINT8 cid);
 
 UINT16 PortMgrNewUeTcpPort(void);

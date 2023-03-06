@@ -216,8 +216,11 @@ typedef enum
 typedef enum
 {
     CCIO_TASK_FLAG_NONE = 0x0,  /**< None of send and recv task is created */
-    CCIO_TASK_FLAG_TX   = 0x1,  /**< Will create/kill send task during device initialization */
-    CCIO_TASK_FLAG_RX   = 0x2,  /**< Will create/kill recv task during device initialization and start to recv after successful call */
+    CCIO_TASK_FLAG_RX   = 0x1,  /**< Will create/kill recv task during device initialization and start to recv after successful call */
+    CCIO_TASK_FLAG_TX1  = 0x2,  /**< Will create/kill send task1 during device initialization */
+    CCIO_TASK_FLAG_TX2  = 0x4,  /**< Will create/kill send task2 during device initialization */
+    CCIO_TASK_FLAG_TX3  = 0x8,  /**< Will create/kill send task3 during device initialization */
+    CCIO_TASK_FLAG_TX   = (CCIO_TASK_FLAG_TX1 | CCIO_TASK_FLAG_TX2 | CCIO_TASK_FLAG_TX3)
 }CcioTaskOperFlag_e;
 
 typedef enum
@@ -344,6 +347,7 @@ typedef enum
     CCIO_EMFREE      = -7,    /* memory free failure */
     CCIO_EMATCHED    = -8,    /* unmatched value/item */
     CCIO_EEMPTY      = -9,    /* table/list is empty */
+    CCIO_EMORE       = -10,   /* wanted more data/info */
 
     CCIO_STATUS_RSVD = 0x7FFFFFFF
 }CcioStatus_e;

@@ -96,6 +96,13 @@ typedef enum
     HTTP_DIS_SLEEP
 }HTTPSleep_e;
 
+typedef enum
+{
+    HTTP_NO_REQ,
+    HTTP_REQ_SEND,
+    HTTP_REQ_HANDLE,
+    HTTP_REQ_COMP
+}HTTPATReqStatus_e;
 typedef struct{
     uint8_t contextID;
     uint8_t requestHead;
@@ -109,7 +116,7 @@ typedef struct{
 
 typedef struct {
     HTTPAtStatus_e status;
-    bool hasRequest;
+    uint8_t reqStat;
     uint8_t method;
     char* url;
     HttpClientContext* clientContext;

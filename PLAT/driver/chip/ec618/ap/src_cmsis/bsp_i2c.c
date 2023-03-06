@@ -73,6 +73,7 @@ static I2C_TypeDef* const g_i2cBases[I2C_INSTANCE_NUM] = {I2C0, I2C1};
 #endif
 
 static ClockId_e g_i2cClocks[I2C_INSTANCE_NUM*2] = {PCLK_I2C0, FCLK_I2C0, PCLK_I2C1, FCLK_I2C1};
+static const ClockResetVector_t g_i2cResetVectors[] = {I2C0_RESET_VECTOR, I2C1_RESET_VECTOR};
 
 #ifdef PM_FEATURE_ENABLE
 /**
@@ -178,6 +179,8 @@ static void I2C_ExitLowPowerStateRestore(void* pdata, slpManLpState state)
                                             }                                                                   \
                                             while(0)
 #endif
+
+#define I2C_POLLING_TIMEOUT_CYCLES       1000000
 
 /* Driver Version */
 static const ARM_DRIVER_VERSION DriverVersion =
@@ -520,7 +523,7 @@ int32_t I2C_PowerControl(ARM_POWER_STATE state, I2C_RESOURCES *i2c)
 
             // Setup SDA setup/hold time parameter
             i2c->reg->TPR = ((0x4 << I2C_TPR_SDA_SETUP_TIME_Pos) | (0x4 << I2C_TPR_SDA_HOLD_TIME_Pos)
-                                | (0x0 << I2C_TPR_SPIKE_FILTER_CNUM_Pos));
+                                | (0x05 << I2C_TPR_SPIKE_FILTER_CNUM_Pos));
 
             // Enable I2C irq
             if(i2c->irq)
@@ -668,11 +671,10 @@ static int32_t I2C_MasterCheckStatus(I2C_RESOURCES *i2c)
 */
 int32_t I2C_MasterTransmit(uint32_t addr, const uint8_t *data, uint32_t num, bool xfer_pending, I2C_RESOURCES *i2c)
 {
-#ifdef PM_FEATURE_ENABLE
     uint32_t instance;
-#endif
+
     int32_t ret;
-    uint32_t reg_value;
+    uint32_t reg_value, timeout;
 
     //uint8_t send_data;
 
@@ -691,14 +693,12 @@ int32_t I2C_MasterTransmit(uint32_t addr, const uint8_t *data, uint32_t num, boo
         return ARM_DRIVER_ERROR;
     }
 
-    if(i2c->ctrl->status.busy)
+    if((i2c->ctrl->status.busy) || (i2c->reg->STR & I2C_STR_BUSY_Msk))
     {
         return ARM_DRIVER_ERROR_BUSY;
     }
 
-#ifdef PM_FEATURE_ENABLE
     instance = I2C_GetInstanceNumber(i2c);
-#endif
 
     // Set control variables
     i2c->ctrl->sla_rw = addr;
@@ -716,11 +716,6 @@ int32_t I2C_MasterTransmit(uint32_t addr, const uint8_t *data, uint32_t num, boo
     i2c->ctrl->status.arbitration_lost = 0;
     i2c->ctrl->status.bus_error = 0;
     i2c->ctrl->status.rx_nack = 0;
-
-    if(i2c->reg->STR & I2C_STR_BUSY_Msk)
-    {
-        return ARM_DRIVER_ERROR_BUSY;
-    }
 
     i2c->ctrl->flags |= I2C_FLAG_MASTER_TX;
     // Setup transfer config
@@ -781,12 +776,32 @@ int32_t I2C_MasterTransmit(uint32_t addr, const uint8_t *data, uint32_t num, boo
         // Send data
         while(num > i2c->ctrl->cnt)
         {
+            timeout = I2C_POLLING_TIMEOUT_CYCLES;
+
             // Wait for Tx ready
             do
             {
                 ret = I2C_MasterCheckStatus(i2c);
 
-            } while(((i2c->reg->FSR & I2C_FSR_TX_FIFO_FREE_NUM_Msk) == 0) && (ret == ARM_DRIVER_OK));
+                timeout--;
+
+            } while(((i2c->reg->FSR & I2C_FSR_TX_FIFO_FREE_NUM_Msk) == 0) && (ret == ARM_DRIVER_OK) && (timeout));
+
+            if(timeout == 0)
+            {
+                // clear status
+                i2c->ctrl->status.busy = 0;
+
+                // backup register before we can clear hardware status by performing sw reset
+                reg_value = i2c->reg->TPR;
+
+                GPR_swResetModule(&g_i2cResetVectors[instance]);
+
+                // restore
+                i2c->reg->TPR = reg_value;
+
+                return ARM_DRIVER_ERROR_TIMEOUT;
+            }
 
             if(ret != ARM_DRIVER_OK)
             {
@@ -796,26 +811,37 @@ int32_t I2C_MasterTransmit(uint32_t addr, const uint8_t *data, uint32_t num, boo
             i2c->reg->TDR = i2c->ctrl->data[i2c->ctrl->cnt++];
         }
 
+        timeout = I2C_POLLING_TIMEOUT_CYCLES;
+
         // Wait for ACK/NACK
         do
         {
             ret = I2C_MasterCheckStatus(i2c);
 
-        } while((EIGEN_FLD2VAL(I2C_FSR_TX_FIFO_FREE_NUM, i2c->reg->FSR) != 0x10) && (ret == ARM_DRIVER_OK));
+            timeout--;
+
+        } while(((i2c->reg->ISR & I2C_ISR_TRANSFER_DONE_Msk) == 0 ) && (ret == ARM_DRIVER_OK) && (timeout));
+
+        if(timeout == 0)
+        {
+            // clear status
+            i2c->ctrl->status.busy = 0;
+
+            // backup register before we can clear hardware status by performing sw reset
+            reg_value = i2c->reg->TPR;
+
+            GPR_swResetModule(&g_i2cResetVectors[instance]);
+
+            // restore
+            i2c->reg->TPR = reg_value;
+
+            return ARM_DRIVER_ERROR_TIMEOUT;
+        }
 
         if(ret != ARM_DRIVER_OK)
         {
             i2c->ctrl->status.busy = 0;
             return ret;
-        }
-
-        if(xfer_pending == false)
-        {
-            i2c->reg->SCR |= I2C_SCR_STOP_Msk;
-
-            // Wait for stop condition has been send out
-            while((i2c->reg->ISR & I2C_ISR_DETECT_STOP_Msk) == 0);
-            i2c->reg->ISR = I2C_ISR_DETECT_STOP_Msk;
         }
 
         while(i2c->reg->STR & I2C_STR_BUSY_Msk);
@@ -844,9 +870,7 @@ int32_t I2C_MasterTransmit(uint32_t addr, const uint8_t *data, uint32_t num, boo
 */
 int32_t I2C_MasterReceive(uint32_t addr, uint8_t *data, uint32_t num, bool xfer_pending, I2C_RESOURCES *i2c)
 {
-#ifdef PM_FEATURE_ENABLE
-    uint32_t instance;
-#endif
+    uint32_t instance, timeout;
     uint32_t reg_value;
     int32_t ret;
 
@@ -867,14 +891,12 @@ int32_t I2C_MasterReceive(uint32_t addr, uint8_t *data, uint32_t num, bool xfer_
         return ARM_DRIVER_ERROR;
     }
 
-    if(i2c->ctrl->status.busy)
+    if((i2c->ctrl->status.busy) || (i2c->reg->STR & I2C_STR_BUSY_Msk))
     {
         return ARM_DRIVER_ERROR_BUSY;
     }
 
-#ifdef PM_FEATURE_ENABLE
     instance = I2C_GetInstanceNumber(i2c);
-#endif
 
     I2CDEBUG("I2C_MasterReceive\n");
 
@@ -894,11 +916,6 @@ int32_t I2C_MasterReceive(uint32_t addr, uint8_t *data, uint32_t num, bool xfer_
     i2c->ctrl->status.arbitration_lost = 0;
     i2c->ctrl->status.bus_error = 0;
     i2c->ctrl->status.rx_nack = 0;
-
-    if(i2c->reg->STR & I2C_STR_BUSY_Msk)
-    {
-        return ARM_DRIVER_ERROR_BUSY;
-    }
 
     i2c->ctrl->flags |= I2C_FLAG_MASTER_RX;
 
@@ -938,12 +955,32 @@ int32_t I2C_MasterReceive(uint32_t addr, uint8_t *data, uint32_t num, bool xfer_
 
         while(num > i2c->ctrl->cnt)
         {
+            timeout = I2C_POLLING_TIMEOUT_CYCLES;
+
             // Wait for Rx ready
             do
             {
                 ret = I2C_MasterCheckStatus(i2c);
 
-            } while(((i2c->reg->FSR & I2C_FSR_RX_FIFO_DATA_NUM_Msk) == 0) && (ret == ARM_DRIVER_OK));
+                timeout--;
+
+            } while(((i2c->reg->FSR & I2C_FSR_RX_FIFO_DATA_NUM_Msk) == 0) && (ret == ARM_DRIVER_OK) && (timeout));
+
+            if(timeout == 0)
+            {
+                // clear status
+                i2c->ctrl->status.busy = 0;
+
+                // backup register before we can clear hardware status by performing sw reset
+                reg_value = i2c->reg->TPR;
+
+                GPR_swResetModule(&g_i2cResetVectors[instance]);
+
+                // restore
+                i2c->reg->TPR = reg_value;
+
+                return ARM_DRIVER_ERROR_TIMEOUT;
+            }
 
             if(ret != ARM_DRIVER_OK)
             {
@@ -954,16 +991,8 @@ int32_t I2C_MasterReceive(uint32_t addr, uint8_t *data, uint32_t num, bool xfer_
             i2c->ctrl->data[i2c->ctrl->cnt++] = i2c->reg->RDR;
         }
 
-        if(xfer_pending == false)
-        {
-            i2c->reg->SCR |= I2C_SCR_STOP_Msk;
-
-            // Wait for stop condition has been send out
-            while((i2c->reg->ISR & I2C_ISR_DETECT_STOP_Msk) == 0);
-            i2c->reg->ISR = I2C_ISR_DETECT_STOP_Msk;
-        }
-
-        while((i2c->reg->ISR & I2C_ISR_TRANSFER_DONE_Msk) == 0);
+        // Wait for IDLE
+        while(i2c->reg->STR & I2C_STR_BUSY_Msk);
 
         i2c->reg->IER = 0;
         i2c->ctrl->status.busy = 0;
@@ -1160,7 +1189,7 @@ int32_t I2C_Control(uint32_t control, uint32_t arg, I2C_RESOURCES *i2c)
                 val = arg & 0x7F;
             }
             // Slave address
-            i2c->reg->SAR |= (val << 1);
+            i2c->reg->SAR |= val;
             // Enable slave address
             i2c->reg->SAR |= I2C_SAR_SLAVE_ADDR_EN_Msk;
             break;
@@ -1184,10 +1213,7 @@ int32_t I2C_Control(uint32_t control, uint32_t arg, I2C_RESOURCES *i2c)
                 default:
                     return ARM_DRIVER_ERROR_UNSUPPORTED;
             }
-            i2c->reg->TPR = (((clk / 2) << I2C_TPR_SCLH_Pos) | ((clk / 2 ) << I2C_TPR_SCLL_Pos)) | \
-                            EIGEN_VAL2FLD(I2C_TPR_SDA_SETUP_TIME, 0) | \
-                            EIGEN_VAL2FLD(I2C_TPR_SDA_HOLD_TIME, 1)  | \
-                            EIGEN_VAL2FLD(I2C_TPR_SPIKE_FILTER_CNUM, 0);
+            i2c->reg->TPR |= (((clk / 2) << I2C_TPR_SCLH_Pos) | ((clk / 2 ) << I2C_TPR_SCLL_Pos));
             I2CDEBUG("TPR = 0x%x\r\n", i2c->reg->TPR);
             // Speed configured
             i2c->ctrl->flags |= I2C_FLAG_SETUP;

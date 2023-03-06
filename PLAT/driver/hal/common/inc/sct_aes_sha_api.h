@@ -54,10 +54,10 @@ typedef enum
 {
     /*
      0 - No Padding, should: dataLen%16 == 0
-     1 - PKCS7, paddingLen = 16 每 dataLen%16, paddingValue = k
-     2 每 PaddingOneZeros (ISO/IEC 7816-4), paddingLen = 16 每 dataLen%16, paddingValue = 0x80,0x00,＃..0x00
-     3 - PaddingZerosLen (ANSI X.923), paddingLen = 16 每 dataLen%16, paddingValue = 0x00,0x00,＃..k
-     4 - PaddingZeros, paddingLen = 16 每 dataLen%16, paddingValue = 0x00,0x00,＃..0x00
+     1 - PKCS7, paddingLen(k) = 16-dataLen%16, paddingValue = k
+     2 - PaddingOneZeros (ISO/IEC 7816-4), paddingLen(k) = 16-dataLen%16, paddingValue = 0x80,0x00,..0x00
+     3 - PaddingZerosLen (ANSI X.923), paddingLen(k) = 16-dataLen%16, paddingValue = 0x00,0x00,..k
+     4 - PaddingZeros, paddingLen(k) = 16-dataLen%16, paddingValue=0x00,0x00,..0x00
     */
     SCT_AES_NO_PAD          = 0,
     SCT_AES_PKCS7_PAD       = 1,
@@ -135,8 +135,8 @@ typedef struct
     UINT32      ivBLEndian      : 1;        /* SctEndianType, if not certain/known, suggest big endian: DESC_BIG_ENDIAN */
     UINT32                      : 5;
 
-    UINT8       *pInput;                    /* Input */
-    UINT8       *pOutput;                   /* Output */
+    UINT8       *pInput;                    /* Input, if already 16 bytes aligned, "aesPadMode" should set to 0 */
+    UINT8       *pOutput;                   /* Output, ouput should 16 bytes aligned as SCT will add padding */
 
     UINT8       *pCkAddr;                   /* Ignore it, if key select from eFUSE. and must 4 bytes aligned */
     UINT8       *pIvAddr;                   /* initial vector,

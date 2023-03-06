@@ -56,23 +56,10 @@ typedef struct UsbIf2Ep
     uint16_t outEpNum       :4;    /* out ep number of this interface */
     uint16_t hasIntEp       :1;    /* is this interface has an interrupt ep */
     uint16_t intEpNum       :4;    /* interrupt ep number of this interface */
-    uint16_t resv           :12;    /* reserved */
-    uint16_t maxNextXferSize;         /*next usb recv size for this if, set by ccio*/
+    uint16_t resv           :12;   /* reserved */
+    uint16_t maxNextXferSize;      /* next usb recv size for this if, set by ccio*/
 
 }UsbIf2Ep_t;
-
-
-typedef struct UsbType2If
-{
-    uint32_t ethIfIdx       :4;    /* eth(rndis/ecm) If idx, get from usr define table */
-    uint32_t atIfIdx        :4;    /* at If idx, get from usr define table */
-    uint32_t logIfIdx       :4;    /* log If idx, get from usr define table */
-    uint32_t pppIfIdx       :4;    /* ppp If idx, get from usr define table */
-    uint32_t rawIfIdx       :4;    /* raw If idx, get from usr define table */
-    uint32_t resv           :12;   /* reserved */
-
-}UsbType2If_t;
-
 
 
 /**
@@ -80,8 +67,11 @@ typedef struct UsbType2If
  */
 typedef struct
 {
-    uint8_t        bmCreateFlag;    /**< refer to 'CcioTaskOperFlag_e', bitmap type */
-    uint8_t        rsvd[3];
+    uint8_t    bmCreateFlag;    /**< refer to 'CcioTaskOperFlag_e', bitmap type */
+    uint8_t    rbufFlags :4;    /**< which rbuf will be used? refer to 'CcioRbufUsage_e' */
+    uint8_t    custFlags :3;    /**< flags for customers' private purpose */
+    uint8_t    rsvdBits  :1;
+    uint8_t    rsvd[2];
 }UsbDevConf_t;
 
 
@@ -106,7 +96,8 @@ typedef struct UsbIfEpMap
 
     uint8_t ulgInepNum;
 
-    UsbType2If_t type2If;
+    uint8_t ethIfIdx :4;
+    uint8_t logIfIdx :4;
 
     uint8_t usbEnumSpeed;
 

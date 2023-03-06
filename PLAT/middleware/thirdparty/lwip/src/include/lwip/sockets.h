@@ -68,6 +68,7 @@ typedef u8_t sa_family_t;
 typedef u16_t in_port_t;
 #endif
 
+typedef void (*socket_callback)(int s, int evt, uint16_t len);
 #if LWIP_IPV4
 /* members are in network byte order */
 struct sockaddr_in {
@@ -649,6 +650,9 @@ int lwip_get_tcp_send_buffer_size(int s);
 void sockaddr_to_ipaddr_port(const struct sockaddr* sockaddr, ip_addr_t* ipaddr, u16_t* port);
 #endif
 
+#if LWIP_SOCKET_CALL_BACK_ENABLE
+int lwip_socket_with_call_back(int domain, int type, int protocol, socket_callback callback);
+#endif
 
 #if LWIP_POSIX_SOCKETS_IO_NAMES
 /** @ingroup socket */

@@ -135,7 +135,7 @@ static multidev_custom_info_st t_multidev_custom_info = {
 	    .elem_arr[1]  =
 	    {
 	        (const uint8_t*)"vcom0",
-	        multidev_tp_vcom_at,
+			multidev_tp_vcom_com,
 	        ccinst_setting_cdc_vcom_maintp,
 	        ccinst_setting_vcom_subtp0_inhrnt,
 	    },
@@ -150,7 +150,7 @@ static multidev_custom_info_st t_multidev_custom_info = {
 	    .elem_arr[3]  =
 	    {
 	        (const uint8_t*)"vcom2",
-	        multidev_tp_vcom_ppp,
+			multidev_tp_vcom_com,
 	        ccinst_setting_cdc_vcom_maintp,
 	        ccinst_setting_vcom_subtp0_inhrnt,
 	    },
@@ -212,7 +212,30 @@ static multidev_custom_info_st t_multidev_custom_info = {
         ccinst_setting_mainttp_none,
         ccinst_setting_subtp_none,        
     },    
+#ifdef __USER_CODE__
+    .elem_arr[2]  =
+    {
+        (const uint8_t*)"vcom0",
+        multidev_tp_vcom_com,
+        ccinst_setting_cdc_vcom_maintp,
+        ccinst_setting_vcom_subtp0_inhrnt,
+    },
+    .elem_arr[3]  =
+    {
+        (const uint8_t*)"vcom1",
+        multidev_tp_vcom_log,
+        ccinst_setting_cdc_vcom_maintp,
+        ccinst_setting_vcom_subtp0_inhrnt,
+    },
 
+    .elem_arr[4]  =
+    {
+        (const uint8_t*)"vcom2",
+        multidev_tp_vcom_com,
+        ccinst_setting_cdc_vcom_maintp,
+        ccinst_setting_vcom_subtp0_inhrnt,
+    },
+#else
     .elem_arr[2]  =
     {
         (const uint8_t*)"vcom0",
@@ -235,6 +258,7 @@ static multidev_custom_info_st t_multidev_custom_info = {
         ccinst_setting_cdc_vcom_maintp,
         ccinst_setting_vcom_subtp0_inhrnt,        
     },
+#endif
 };
 #endif
 

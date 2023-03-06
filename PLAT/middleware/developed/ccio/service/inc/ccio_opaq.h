@@ -31,7 +31,20 @@ extern "C" {
 /*----------------------------------------------------------------------------*
  *                    MACROS                                                  *
  *----------------------------------------------------------------------------*/
-
+typedef enum
+{
+    OPAQ_CHAN_0 = 0,
+    OPAQ_CHAN_RSVD = OPAQ_CHAN_0,    /* OPAQ_CHAN_0 is rsvd! */
+    OPAQ_CHAN_1,
+    OPAQ_CHAN_CUST1 = OPAQ_CHAN_1,   /* rename OPAQ_CHAN_1 to whatever customer wants */
+    OPAQ_CHAN_2,
+    OPAQ_CHAN_CUST2 = OPAQ_CHAN_2,   /* rename OPAQ_CHAN_2 to whatever customer wants */
+#ifdef __USER_CODE__	//需要3个串口
+    OPAQ_CHAN_3,
+    OPAQ_CHAN_CUST3 = OPAQ_CHAN_3,
+#endif
+    OPAQ_CHAN_MAXNUM
+}OpaqChanId_e;
 
 /*----------------------------------------------------------------------------*
  *                   DATA TYPE DEFINITION                                     *
@@ -52,11 +65,19 @@ int32_t opaqDataInput(UlPduBlock_t *ulpdu, void *extras);
 
 /**
   \fn     int32_t opaqDataOutput(uint8_t chanNo, DlPduBlock_t *dlpdu, void *extras)
-  \brief  to send opaq data out of serial device
+  \brief  to send opaq data out of serial device via chanNo
   \return
   \note   invoked by customer's AppTask for outputting opaq data
 */
 int32_t opaqDataOutput(uint8_t chanNo, DlPduBlock_t *dlpdu, void *extras);
+
+/**
+  \fn     int32_t opaqDataOutputEx(uint8_t opaqCid, DlPduBlock_t *dlpdu, void *extras)
+  \brief  to send opaq data out of serial device via opaqCid
+  \return
+  \note   invoked by customer's AppTask for outputting opaq data
+*/
+int32_t opaqDataOutputEx(uint8_t opaqCid, DlPduBlock_t *dlpdu, void *extras);
 
 #ifdef __cplusplus
 }

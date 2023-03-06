@@ -74,6 +74,23 @@ SECTIONS
 
   Image$$LOAD_AP_FIRAM_ASMB$$Length = SIZEOF(.load_ap_firam_asmb);
 
+  .load_apos : ALIGN(4)
+  {
+    . = ALIGN(4);
+    Load$$LOAD_APOS$$Base = LOADADDR(.load_apos);
+    Image$$LOAD_APOS$$Base = .;
+    *libfreertos.a:event_groups.o(.text*)
+    *libfreertos.a:heap_6.o(.text*)
+    *libfreertos.a:tlsf.o(.text*)
+    *libfreertos.a:list.o(.text*)
+    *libfreertos.a:queue.o(.text*)
+    *libfreertos.a:tasks.o(.text*)
+    . = ALIGN(4);
+  } >ASMB_AREA AT>FLASH_AREA
+
+  Image$$LOAD_APOS$$Length = SIZEOF(.load_apos);
+
+
   .load_ap_rwdata_asmb : ALIGN(4)
   {
    . = ALIGN(4);
@@ -142,30 +159,14 @@ SECTIONS
     *(.upRamCode)
     *(.psFMRamcode)
     *(.platFMRamcode)
-    . = ALIGN(4);
-  } >MSMB_AREA AT>FLASH_AREA
-
-  Image$$LOAD_AP_FIRAM_MSMB$$Length = SIZEOF(.load_ap_firam_msmb);
-
-  .load_apos : ALIGN(4)
-  {
-    . = ALIGN(4);
-    Load$$LOAD_APOS$$Base = LOADADDR(.load_apos);
-    Image$$LOAD_APOS$$Base = .;
-    *libfreertos.a:event_groups.o(.text*)
-    *libfreertos.a:heap_6.o(.text*)
-    *libfreertos.a:tlsf.o(.text*)
-    *libfreertos.a:list.o(.text*)
-    *libfreertos.a:queue.o(.text*)
-    *libfreertos.a:tasks.o(.text*)
-    *libfreertos.a:timers.o(.text*)
-    *libfreertos.a:port.o(.text*)
     *libfreertos.a:port_asm.o(.text*)
+    *libfreertos.a:port.o(.text*)
+    *libfreertos.a:timers.o(.text*)
     *libfreertos.a:cmsis_os2.o(.text*)
     . = ALIGN(4);
   } >MSMB_AREA AT>FLASH_AREA
 
-    Image$$LOAD_APOS$$Length = SIZEOF(.load_apos);
+  Image$$LOAD_AP_FIRAM_MSMB$$Length = SIZEOF(.load_ap_firam_msmb);
 
   .load_dram_bsp : ALIGN(4)
   {

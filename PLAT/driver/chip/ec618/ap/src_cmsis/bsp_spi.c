@@ -44,6 +44,7 @@
 #endif
 
 #define SPI_RX_FIFO_TRIG_LVL      (8)
+#define SPI_FIFO_DEPTH            (16)
 
 #define ARM_SPI_DRV_VERSION    ARM_DRIVER_VERSION_MAJOR_MINOR(2, 0) // driver version
 
@@ -310,18 +311,6 @@ static SPI_RESOURCES SPI1_Resources = {
 };
 
 #endif
-
-static DmaTransferConfig_t g_dmaTxConfig = { NULL, NULL,
-                                             DMA_FLOW_CONTROL_TARGET, DMA_ADDRESS_INCREMENT_SOURCE,
-                                             DMA_DATA_WIDTH_ONE_BYTE,
-                                             DMA_BURST_8_BYTES, 0
-                                           };
-
-static DmaTransferConfig_t g_dmaRxConfig = { NULL, NULL,
-                                            DMA_FLOW_CONTROL_SOURCE, DMA_ADDRESS_INCREMENT_TARGET,
-                                            DMA_DATA_WIDTH_ONE_BYTE,
-                                            DMA_BURST_4_BYTES, 0
-                                          };
 
 // Local Function
 
@@ -726,6 +715,8 @@ int32_t SPI_Send(const void *data, uint32_t num, SPI_RESOURCES *spi)
     // dma mode
     if(spi->dma)
     {
+        DmaTransferConfig_t dmaTxConfig, dmaRxConfig;
+
         // transfer number shall exceeds rx trigger level
         if(num < SPI_RX_FIFO_TRIG_LVL)
             return ARM_DRIVER_ERROR_UNSUPPORTED;
@@ -735,27 +726,30 @@ int32_t SPI_Send(const void *data, uint32_t num, SPI_RESOURCES *spi)
 #endif
 
         // Configure tx DMA and start it
-        g_dmaTxConfig.dataWidth = (DmaDataWidth_e)data_width;
-        g_dmaTxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_SOURCE;
-        g_dmaTxConfig.sourceAddress = (void *)data;
-        g_dmaTxConfig.targetAddress = (void *)&(spi->reg->DR);
-        g_dmaTxConfig.totalLength   = num * data_width;
+        dmaTxConfig.flowControl = DMA_FLOW_CONTROL_TARGET;
+        dmaTxConfig.burstSize = DMA_BURST_8_BYTES;
+        dmaTxConfig.dataWidth = (DmaDataWidth_e)data_width;
+        dmaTxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_SOURCE;
+        dmaTxConfig.sourceAddress = (void *)data;
+        dmaTxConfig.targetAddress = (void *)&(spi->reg->DR);
+        dmaTxConfig.totalLength   = num * data_width;
 
-        DMA_transferSetup(spi->dma->tx_instance, spi->dma->tx_ch, &g_dmaTxConfig);
+        DMA_transferSetup(spi->dma->tx_instance, spi->dma->tx_ch, &dmaTxConfig);
         DMA_enableChannelInterrupts(spi->dma->tx_instance, spi->dma->tx_ch, DMA_END_INTERRUPT_ENABLE);
 
         DMA_startChannel(spi->dma->tx_instance, spi->dma->tx_ch);
 
         // retrieve data from RX FIFO to get rid of overflow
 
+        dmaRxConfig.flowControl = DMA_FLOW_CONTROL_SOURCE;
+        dmaRxConfig.burstSize = DMA_BURST_4_BYTES;
+        dmaRxConfig.dataWidth = (DmaDataWidth_e)data_width;
+        dmaRxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_NONE;
+        dmaRxConfig.sourceAddress = (void *)&(spi->reg->DR);
+        dmaRxConfig.targetAddress = (void *)&spi->info->xfer.dump_val;
+        dmaRxConfig.totalLength   = num * data_width;
 
-        g_dmaRxConfig.dataWidth = (DmaDataWidth_e)data_width;
-        g_dmaRxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_NONE;
-        g_dmaRxConfig.sourceAddress = (void *)&(spi->reg->DR);
-        g_dmaRxConfig.targetAddress = (void *)&spi->info->xfer.dump_val;
-        g_dmaRxConfig.totalLength   = num * data_width;
-
-        DMA_transferSetup(spi->dma->rx_instance, spi->dma->rx_ch, &g_dmaRxConfig);
+        DMA_transferSetup(spi->dma->rx_instance, spi->dma->rx_ch, &dmaRxConfig);
         DMA_enableChannelInterrupts(spi->dma->rx_instance, spi->dma->rx_ch, DMA_END_INTERRUPT_ENABLE);
         DMA_startChannel(spi->dma->rx_instance, spi->dma->rx_ch);
 
@@ -769,38 +763,38 @@ int32_t SPI_Send(const void *data, uint32_t num, SPI_RESOURCES *spi)
 #ifdef PM_FEATURE_ENABLE
         LOCK_SLEEP(instance);
 #endif
-        spi->reg->IMSC = SPI_IMSC_TXIM_Msk;
+        spi->reg->IMSC = SPI_IMSC_TXIM_Msk | SPI_IMSC_RXIM_Msk | SPI_IMSC_RTIM_Msk | SPI_IMSC_RORIM_Msk;
     }
     // polling mode
     else
     {
-        while(spi->info->xfer.num > spi->info->xfer.tx_cnt)
+        SPI_INFO *info = spi->info;
+
+        while(info->xfer.num > info->xfer.rx_cnt)
         {
-            if(spi->reg->SR & SPI_SR_TNF_Msk)
+            /* tx flow, the differ between tx_cnt and rx_cnt shall be less than SPI_FIFO_DEPTH(16) to get rid of rx fifo overflow,
+               for the max number of tx chunk is 16+1(fifo_depth + shift_register)
+            */
+            if((spi->reg->SR & SPI_SR_TNF_Msk) &&
+               (info->xfer.tx_cnt < info->xfer.num) &&
+               ((info->xfer.tx_cnt - info->xfer.rx_cnt) < SPI_FIFO_DEPTH))
             {
                 if(data_width == 2U)
-                    spi->reg->DR = *((uint16_t *)(spi->info->xfer.tx_buf + (spi->info->xfer.tx_cnt << 1U)));
+                    spi->reg->DR = *((uint16_t *)(info->xfer.tx_buf + (info->xfer.tx_cnt << 1U)));
                 else
-                    spi->reg->DR = spi->info->xfer.tx_buf[spi->info->xfer.tx_cnt];
-                spi->info->xfer.tx_cnt++;
-
-                // retrieve data from RX FIFO to get rid of overflow
-                (void)spi->reg->DR;
+                    spi->reg->DR = info->xfer.tx_buf[info->xfer.tx_cnt];
+                info->xfer.tx_cnt++;
             }
 
-        }
-
-        do
-        {
-            // wait transfer done and retrieve data from RX FIFO to get rid of overflow
-            if(spi->reg->SR & SPI_SR_RNE_Msk)
+            // rx flow, retrieve data from RX FIFO to get rid of overflow
+            while(spi->reg->SR & SPI_SR_RNE_Msk)
             {
                 (void)spi->reg->DR;
+                info->xfer.rx_cnt++;
             }
+        }
 
-        }while(spi->reg->SR & SPI_SR_BSY_Msk);
-
-        spi->info->status.busy = 0;
+        info->status.busy = 0;
     }
 
     return ARM_DRIVER_OK;
@@ -852,6 +846,8 @@ int32_t SPI_Receive(void *data, uint32_t num, SPI_RESOURCES *spi)
     // dma mode
     if(spi->dma)
     {
+        DmaTransferConfig_t dmaRxConfig;
+
         // transfer number shall exceeds rx trigger level
         if(num < SPI_RX_FIFO_TRIG_LVL)
             return ARM_DRIVER_ERROR_UNSUPPORTED;
@@ -861,13 +857,15 @@ int32_t SPI_Receive(void *data, uint32_t num, SPI_RESOURCES *spi)
 #endif
 
         // Configure rx DMA and start it
-        g_dmaRxConfig.dataWidth = (DmaDataWidth_e)data_width;
-        g_dmaRxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_TARGET;
-        g_dmaRxConfig.sourceAddress = (void *)&(spi->reg->DR);
-        g_dmaRxConfig.targetAddress = (void *)data;
-        g_dmaRxConfig.totalLength   = num * data_width;
+        dmaRxConfig.flowControl = DMA_FLOW_CONTROL_SOURCE;
+        dmaRxConfig.burstSize = DMA_BURST_4_BYTES;
+        dmaRxConfig.dataWidth = (DmaDataWidth_e)data_width;
+        dmaRxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_TARGET;
+        dmaRxConfig.sourceAddress = (void *)&(spi->reg->DR);
+        dmaRxConfig.targetAddress = (void *)data;
+        dmaRxConfig.totalLength   = num * data_width;
 
-        DMA_transferSetup(spi->dma->rx_instance, spi->dma->rx_ch, &g_dmaRxConfig);
+        DMA_transferSetup(spi->dma->rx_instance, spi->dma->rx_ch, &dmaRxConfig);
         DMA_enableChannelInterrupts(spi->dma->rx_instance, spi->dma->rx_ch, DMA_END_INTERRUPT_ENABLE);
         DMA_startChannel(spi->dma->rx_instance, spi->dma->rx_ch);
 
@@ -956,6 +954,8 @@ int32_t SPI_Transfer(const void *data_out, void *data_in, uint32_t num, SPI_RESO
 
     if(spi->dma)
     {
+        DmaTransferConfig_t dmaTxConfig, dmaRxConfig;
+
         // transfer number shall exceeds rx trigger level
         if(num < SPI_RX_FIFO_TRIG_LVL)
             return ARM_DRIVER_ERROR_UNSUPPORTED;
@@ -965,24 +965,28 @@ int32_t SPI_Transfer(const void *data_out, void *data_in, uint32_t num, SPI_RESO
 #endif
 
         // Configure tx DMA and start it
-        g_dmaTxConfig.dataWidth = (DmaDataWidth_e)data_width;
-        g_dmaTxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_SOURCE;
-        g_dmaTxConfig.sourceAddress = (void *)data_out;
-        g_dmaTxConfig.targetAddress = (void *)&(spi->reg->DR);
-        g_dmaTxConfig.totalLength   = num * data_width;
+        dmaTxConfig.flowControl = DMA_FLOW_CONTROL_TARGET;
+        dmaTxConfig.burstSize = DMA_BURST_8_BYTES;
+        dmaTxConfig.dataWidth = (DmaDataWidth_e)data_width;
+        dmaTxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_SOURCE;
+        dmaTxConfig.sourceAddress = (void *)data_out;
+        dmaTxConfig.targetAddress = (void *)&(spi->reg->DR);
+        dmaTxConfig.totalLength   = num * data_width;
 
-        DMA_transferSetup(spi->dma->tx_instance, spi->dma->tx_ch, &g_dmaTxConfig);
+        DMA_transferSetup(spi->dma->tx_instance, spi->dma->tx_ch, &dmaTxConfig);
         DMA_enableChannelInterrupts(spi->dma->tx_instance, spi->dma->tx_ch, DMA_END_INTERRUPT_ENABLE);
         DMA_startChannel(spi->dma->tx_instance, spi->dma->tx_ch);
 
         // Configure rx DMA and start it
-        g_dmaRxConfig.dataWidth = (DmaDataWidth_e)data_width;
-        g_dmaRxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_TARGET;
-        g_dmaRxConfig.sourceAddress = (void *)&(spi->reg->DR);
-        g_dmaRxConfig.targetAddress = (void *)data_in;
-        g_dmaRxConfig.totalLength   = num * data_width;
+        dmaRxConfig.flowControl = DMA_FLOW_CONTROL_SOURCE;
+        dmaRxConfig.burstSize = DMA_BURST_4_BYTES;
+        dmaRxConfig.dataWidth = (DmaDataWidth_e)data_width;
+        dmaRxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_TARGET;
+        dmaRxConfig.sourceAddress = (void *)&(spi->reg->DR);
+        dmaRxConfig.targetAddress = (void *)data_in;
+        dmaRxConfig.totalLength   = num * data_width;
 
-        DMA_transferSetup(spi->dma->rx_instance, spi->dma->rx_ch, &g_dmaRxConfig);
+        DMA_transferSetup(spi->dma->rx_instance, spi->dma->rx_ch, &dmaRxConfig);
         DMA_enableChannelInterrupts(spi->dma->rx_instance, spi->dma->rx_ch, DMA_END_INTERRUPT_ENABLE);
         DMA_startChannel(spi->dma->rx_instance, spi->dma->rx_ch);
 
@@ -1002,48 +1006,37 @@ int32_t SPI_Transfer(const void *data_out, void *data_in, uint32_t num, SPI_RESO
     }
     else
     {
-        while(spi->info->xfer.num > spi->info->xfer.tx_cnt)
+        SPI_INFO *info = spi->info;
+
+        while(info->xfer.num > info->xfer.rx_cnt)
         {
-            if(spi->reg->SR & SPI_SR_TNF_Msk)
+            /* tx flow, the differ between tx_cnt and rx_cnt shall be less than SPI_FIFO_DEPTH(16) to get rid of rx fifo overflow,
+               for the max number of tx chunk is 16+1(fifo_depth + shift_register)
+            */
+            if((spi->reg->SR & SPI_SR_TNF_Msk) &&
+               (info->xfer.tx_cnt < info->xfer.num) &&
+               ((info->xfer.tx_cnt - info->xfer.rx_cnt) < SPI_FIFO_DEPTH))
             {
                 if(data_width == 2U)
-                {
-                    spi->reg->DR = *((uint16_t *)(spi->info->xfer.tx_buf + (spi->info->xfer.tx_cnt << 1U)));
-                    // RNE flag shall be checked for speed difference of cpu and peripheral working frequency
-                    // data is writen to TX FIFO doesn't mean it has been transmitted
-                    if(spi->reg->SR & SPI_SR_RNE_Msk)
-                    {
-                        *((uint16_t *)(spi->info->xfer.rx_buf + (spi->info->xfer.rx_cnt << 1U))) = spi->reg->DR;
-                        spi->info->xfer.rx_cnt++;
-                    }
-                }
+                    spi->reg->DR = *((uint16_t *)(info->xfer.tx_buf + (info->xfer.tx_cnt << 1U)));
                 else
-                {
-                    spi->reg->DR = spi->info->xfer.tx_buf[spi->info->xfer.tx_cnt];
-                    if(spi->reg->SR & SPI_SR_RNE_Msk)
-                    {
-                        spi->info->xfer.rx_buf[spi->info->xfer.rx_cnt] = (uint8_t)(spi->reg->DR);
-                        spi->info->xfer.rx_cnt++;
-                    }
-                }
-                spi->info->xfer.tx_cnt++;
+                    spi->reg->DR = info->xfer.tx_buf[info->xfer.tx_cnt];
+                info->xfer.tx_cnt++;
+            }
+
+            // rx flow
+            while(spi->reg->SR & SPI_SR_RNE_Msk)
+            {
+                if(data_width == 2U)
+                    *((uint16_t *)(info->xfer.rx_buf + (info->xfer.rx_cnt << 1U))) = spi->reg->DR;
+                else
+                    info->xfer.rx_buf[info->xfer.rx_cnt] = (uint8_t)(spi->reg->DR);
+
+                info->xfer.rx_cnt++;
             }
         }
 
-        while(spi->info->xfer.rx_cnt < spi->info->xfer.tx_cnt)
-        {
-            if(spi->reg->SR & SPI_SR_RNE_Msk)
-            {
-                if(data_width == 2U)
-                    *((uint16_t *)(spi->info->xfer.rx_buf + (spi->info->xfer.rx_cnt << 1U))) = spi->reg->DR;
-                else
-                    spi->info->xfer.rx_buf[spi->info->xfer.rx_cnt] = (uint8_t)(spi->reg->DR);
-
-                spi->info->xfer.rx_cnt++;
-            }
-        }
-
-        spi->info->status.busy = 0;
+        info->status.busy = 0;
 
     }
     return ARM_DRIVER_OK;
@@ -1094,6 +1087,7 @@ int32_t SPI_Control(uint32_t control, uint32_t arg, SPI_RESOURCES *spi)
         // Disable SPI and SPI interrupts
         spi->reg->CR1 &= ~SPI_CR1_SSE_Msk;
         spi->reg->IMSC = 0;
+        spi->reg->ICR = SPI_ICR_RTIC_Msk | SPI_ICR_RORIC_Msk;
 
         if(spi->info->status.busy)
         {
@@ -1339,7 +1333,8 @@ ARM_SPI_STATUS SPI_GetStatus(SPI_RESOURCES *spi)
 */
 void SPI_IRQHandler(SPI_RESOURCES *spi)
 {
-    uint32_t mis, data_width;
+    uint32_t mis, data_width, imsc;
+    SPI_INFO *info = spi->info;
 
 #ifdef PM_FEATURE_ENABLE
     uint32_t instance = SPI_GetInstanceNumber(spi);
@@ -1352,105 +1347,68 @@ void SPI_IRQHandler(SPI_RESOURCES *spi)
     mis = spi->reg->MIS;
     spi->reg->ICR = mis & (SPI_ICR_RTIC_Msk | SPI_ICR_RORIC_Msk);
 
-    // full duplex
-    if(spi->info->xfer.tx_buf && spi->info->xfer.rx_buf)
+    // full duplex or Send only
+    if(info->xfer.tx_buf)
     {
-        while((spi->reg->SR & SPI_SR_TNF_Msk) && (spi->info->xfer.num > spi->info->xfer.tx_cnt))
+        while((spi->reg->SR & SPI_SR_TNF_Msk) &&
+              (info->xfer.num > info->xfer.tx_cnt) &&
+              ((info->xfer.tx_cnt - info->xfer.rx_cnt) < SPI_FIFO_DEPTH))
         {
             if(data_width == 2U)
-            {
-                spi->reg->DR = *((uint16_t *)(spi->info->xfer.tx_buf + (spi->info->xfer.tx_cnt << 1U)));
-                // RNE flag shall be checked for speed difference of cpu and peripheral working frequency
-                // data is writen to TX FIFO doesn't mean it has been transmitted
-                if(spi->reg->SR & SPI_SR_RNE_Msk)
-                {
-                    *((uint16_t *)(spi->info->xfer.rx_buf + (spi->info->xfer.rx_cnt << 1U))) = spi->reg->DR;
-                    spi->info->xfer.rx_cnt++;
-                }
-            }
+                spi->reg->DR = *((uint16_t *)(info->xfer.tx_buf + (info->xfer.tx_cnt << 1U)));
             else
-            {
-                spi->reg->DR = spi->info->xfer.tx_buf[spi->info->xfer.tx_cnt];
-                if(spi->reg->SR & SPI_SR_RNE_Msk)
-                {
-                    spi->info->xfer.rx_buf[spi->info->xfer.rx_cnt] = (uint8_t)(spi->reg->DR);
-                    spi->info->xfer.rx_cnt++;
-                }
-            }
-            spi->info->xfer.tx_cnt++;
+                spi->reg->DR = info->xfer.tx_buf[info->xfer.tx_cnt];
+
+            info->xfer.tx_cnt++;
         }
 
-        // Disable TX interupt to get rid of xic overflow
-        if(spi->info->xfer.num == spi->info->xfer.tx_cnt)
+        // Disable TX interrupt to get rid of interrupt storm
+        if(info->xfer.num == info->xfer.tx_cnt)
         {
             spi->reg->IMSC &= ~SPI_IMSC_TXIM_Msk;
         }
 
         if((spi->dma) && (mis & SPI_MIS_RTMIS_Msk))
         {
-           spi->info->xfer.rx_cnt = DMA_getChannelCount(spi->dma->rx_instance, spi->dma->rx_ch);
+           info->xfer.rx_cnt = DMA_getChannelCount(spi->dma->rx_instance, spi->dma->rx_ch);
            DMA_stopChannel(spi->dma->rx_instance, spi->dma->rx_ch, true);
         }
 
-        while((spi->reg->SR & SPI_SR_RNE_Msk) && (spi->info->xfer.rx_cnt < spi->info->xfer.tx_cnt))
-        {
-            if(data_width == 2U)
-                *((uint16_t *)(spi->info->xfer.rx_buf + (spi->info->xfer.rx_cnt << 1U))) = spi->reg->DR;
-            else
-                spi->info->xfer.rx_buf[spi->info->xfer.rx_cnt] = (uint8_t)(spi->reg->DR);
-
-            spi->info->xfer.rx_cnt++;
-        }
-
-    }
-    // send only
-    else if(spi->info->xfer.tx_buf)
-    {
-        while((spi->reg->SR & SPI_SR_TNF_Msk) && (spi->info->xfer.num > spi->info->xfer.tx_cnt))
-        {
-            if(data_width == 2U)
-                spi->reg->DR = *((uint16_t *)(spi->info->xfer.tx_buf + (spi->info->xfer.tx_cnt << 1U)));
-            else
-                spi->reg->DR = spi->info->xfer.tx_buf[spi->info->xfer.tx_cnt];
-            spi->info->xfer.tx_cnt++;
-
-            // retrieve data from RX FIFO to get rid of overflow
-            if(spi->reg->SR & SPI_SR_RNE_Msk)
-            {
-                (void)spi->reg->DR;
-                spi->info->xfer.rx_cnt++;
-            }
-        }
-
-        if((spi->dma) && (mis & SPI_MIS_RTMIS_Msk))
-        {
-           spi->info->xfer.rx_cnt = DMA_getChannelCount(spi->dma->rx_instance, spi->dma->rx_ch);
-           DMA_stopChannel(spi->dma->rx_instance, spi->dma->rx_ch, true);
-        }
-
-        // retrieve data from RX FIFO to get rid of overflow
         while(spi->reg->SR & SPI_SR_RNE_Msk)
         {
-            (void)spi->reg->DR;
-            spi->info->xfer.rx_cnt++;
+            // Send only
+            if(info->xfer.rx_buf == NULL)
+            {
+                (void)spi->reg->DR;
+            }
+            else
+            {
+                if(data_width == 2U)
+                    *((uint16_t *)(info->xfer.rx_buf + (info->xfer.rx_cnt << 1U))) = spi->reg->DR;
+                else
+                    info->xfer.rx_buf[info->xfer.rx_cnt] = (uint8_t)(spi->reg->DR);
+            }
+
+            info->xfer.rx_cnt++;
         }
+
     }
     // receive only
-    else if(spi->info->xfer.rx_buf)
+    else if(info->xfer.rx_buf)
     {
         if((spi->dma) && (mis & SPI_MIS_RTMIS_Msk))
         {
-           spi->info->xfer.rx_cnt = DMA_getChannelCount(spi->dma->rx_instance, spi->dma->rx_ch);
+           info->xfer.rx_cnt = DMA_getChannelCount(spi->dma->rx_instance, spi->dma->rx_ch);
            DMA_stopChannel(spi->dma->rx_instance, spi->dma->rx_ch, true);
         }
-        while((spi->info->xfer.num > spi->info->xfer.rx_cnt) && (spi->reg->SR & SPI_SR_RNE_Msk))
+        while((info->xfer.num > info->xfer.rx_cnt) && (spi->reg->SR & SPI_SR_RNE_Msk))
         {
             if(data_width == 2U)
-                *((uint16_t *)(spi->info->xfer.rx_buf + (spi->info->xfer.rx_cnt << 1U))) = spi->reg->DR;
+                *((uint16_t *)(info->xfer.rx_buf + (info->xfer.rx_cnt << 1U))) = spi->reg->DR;
             else
-                spi->info->xfer.rx_buf[spi->info->xfer.rx_cnt] = (uint8_t)(spi->reg->DR);
+                info->xfer.rx_buf[info->xfer.rx_cnt] = (uint8_t)(spi->reg->DR);
 
-            spi->info->xfer.rx_cnt++;
+            info->xfer.rx_cnt++;
         }
     }
 
@@ -1462,14 +1420,14 @@ void SPI_IRQHandler(SPI_RESOURCES *spi)
     // tx&rx          rx_cnt = num && tx_cnt = num(first reach)          rx_cnt = num && tx_cnt = num
     //------------------------------------------------------------------------------------------------
 
-    if(spi->info->xfer.rx_cnt == spi->info->xfer.num)
+    if(info->xfer.rx_cnt == info->xfer.num)
     {
         // disable interrupts no matter what kind of trasaction is
-        spi->reg->IMSC &= ~(SPI_IMSC_TXIM_Msk | SPI_IMSC_RXIM_Msk | SPI_IMSC_RTIM_Msk | SPI_IMSC_RORIM_Msk);
-        spi->info->status.busy = 0;
-        if(spi->info->cb_event)
+        spi->reg->IMSC = 0;
+        info->status.busy = 0;
+        if(info->cb_event)
         {
-            spi->info->cb_event(ARM_SPI_EVENT_TRANSFER_COMPLETE);
+            info->cb_event(ARM_SPI_EVENT_TRANSFER_COMPLETE);
         }
 #ifdef PM_FEATURE_ENABLE
         CHECK_TO_UNLOCK_SLEEP(instance);
@@ -1480,12 +1438,15 @@ void SPI_IRQHandler(SPI_RESOURCES *spi)
     {
         // Handle errors
         // Overrun flag is set
-        spi->info->status.data_lost = 1U;
-        if(spi->info->cb_event)
-            spi->info->cb_event(ARM_SPI_EVENT_DATA_LOST);
+        info->status.data_lost = 1U;
+        if(info->cb_event)
+            info->cb_event(ARM_SPI_EVENT_DATA_LOST);
 
     }
-
+    // re-trigger ic controller in case there's pending irq
+    imsc = spi->reg->IMSC;
+    spi->reg->IMSC = 0;
+    spi->reg->IMSC =imsc;
 }
 
 /**

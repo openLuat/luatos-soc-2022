@@ -1,14 +1,25 @@
 #include "stdint.h"
 #include "bsp.h"
 
+
+
+#define  USE_DMA_7789   1
+
+
+
+
 #define SPI_INSTANCE            SPI0
 #define SPI_APB_CLOCK           PCLK_SPI0
 #define SPI_FUNC_CLOCK          FCLK_SPI0
 #define SPI_DMA_TX_REQID        DMA_REQUEST_SPI0_TX // DMA SPI Request ID
 #define LCD_DMA_DESCRIPTOR_CHAIN_NUM                    20  // 30w pixel
-#define LCD_TRANSFER_SIZE_ONCE                          480//7680 // less than 8k
+#define LCD_TRANSFER_SIZE_ONCE                          7680//480//7680 // less than 8k
 
 
+
+#define ST7789_EVENT_TRANSFER_COMPLETE     (1UL << 0)     // Data Transfer completed
+#define ST778_EVENT_DATA_LOST             (1UL << 1)     // Data lost: Receive overflow / Transmit underflow
+#define ST778_EVENT_MODE_FAULT            (1UL << 2)     // Master Mode Fault (SS deactivated when Master)
 
 
 
@@ -64,5 +75,8 @@
 #define DS_GPIO_ADDR            (31)
 #define DS_PAD_ALT_FUNC         (PAD_MUX_ALT0)
 
-void st7789v2_init(void);
+typedef void (*pTxCb)(uint32_t event);
 
+void st7789v2_init(pTxCb txCb);
+void lcdWriteSetup(uint8_t * dataBuf, uint32_t dataCnt);
+void displayPic_320x240(uint8_t* pic);

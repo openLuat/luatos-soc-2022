@@ -124,10 +124,10 @@ static const ClockResetVector_t g_usartResetVectors[] = {UART0_RESET_VECTOR, UAR
 static uint32_t g_usartInitCounter = 0;
 
 /**
-  \brief Bitmap of USART working status,
+  \brief Bitmap of USART working status, upper 16 bits act as mask
          when all USART instances are not working, we can vote to enter to low power state.
  */
-static uint32_t g_usartWorkingStatus = 0;
+static uint32_t g_usartWorkingStatus = 0xFFFF0000;
 
 
 /**
@@ -220,19 +220,22 @@ static void USART_ExitLowPowerStateRestore(void* pdata, slpManLpState state)
 
 #define  LOCK_SLEEP(instance, tx, rx)     do                                                                   \
                                           {                                                                    \
-                                              g_usartWorkingStatus |= (rx << (2 * instance));                    \
-                                              g_usartWorkingStatus |= (tx << (2 * instance + 1));                \
-                                              slpManDrvVoteSleep(SLP_VOTE_USART, SLP_ACTIVE_STATE);     \
-                                          }                                                                   \
+                                              if((g_usartWorkingStatus & (1 << (31 - instance))) == 0)         \
+                                              {                                                                \
+                                                  g_usartWorkingStatus |= (rx << (2 * instance));              \
+                                                  g_usartWorkingStatus |= (tx << (2 * instance + 1));          \
+                                                  slpManDrvVoteSleep(SLP_VOTE_USART, SLP_ACTIVE_STATE);        \
+                                              }                                                                \
+                                          }                                                                    \
                                           while(0)
 
-#define  CHECK_TO_UNLOCK_SLEEP(instance, tx, rx)      do                                                                  \
-                                                      {                                                                   \
+#define  CHECK_TO_UNLOCK_SLEEP(instance, tx, rx)      do                                                                    \
+                                                      {                                                                     \
                                                           g_usartWorkingStatus &= ~(rx << (2 * instance));                  \
                                                           g_usartWorkingStatus &= ~(tx << (2 * instance + 1));              \
-                                                          if(g_usartWorkingStatus == 0)                                   \
-                                                              slpManDrvVoteSleep(SLP_VOTE_USART, SLP_SLP1_STATE);    \
-                                                      }                                                                   \
+                                                          if((g_usartWorkingStatus & 0xFF) == 0)                            \
+                                                              slpManDrvVoteSleep(SLP_VOTE_USART, SLP_SLP1_STATE);           \
+                                                      }                                                                     \
                                                       while(0)
 #endif
 
@@ -550,12 +553,6 @@ static const USART_RESOURCES USART2_Resources = {
 };
 #endif
 
-
-static DmaTransferConfig_t dmaTxConfig = {NULL, NULL,
-                                       DMA_FLOW_CONTROL_TARGET, DMA_ADDRESS_INCREMENT_SOURCE,
-                                       DMA_DATA_WIDTH_ONE_BYTE, DMA_BURST_16_BYTES, 0
-                                      };
-
 ARM_DRIVER_VERSION ARM_USART_GetVersion(void)
 {
     return DriverVersion;
@@ -687,7 +684,7 @@ int32_t USART_Initialize(ARM_USART_SignalEvent_t cb_event, USART_RESOURCES *usar
 {
     int32_t returnCode;
 #ifdef PM_FEATURE_ENABLE
-    uint32_t instance;
+    uint32_t instance, mask;
 #endif
 
     if (usart->info->flags & USART_FLAG_INITIALIZED)
@@ -760,11 +757,18 @@ int32_t USART_Initialize(ARM_USART_SignalEvent_t cb_event, USART_RESOURCES *usar
     usart->info->flags = USART_FLAG_INITIALIZED;  // USART is initialized
 
 #ifdef PM_FEATURE_ENABLE
+
+    mask = SaveAndSetIRQMask();
+
     g_usartInitCounter++;
+
+    // Unmask so that it's able to lock sleep
+    g_usartWorkingStatus &= ~(1 << (31 - instance));
+
+    RestoreIRQMask(mask);
 
     if(g_usartInitCounter == 1)
     {
-        g_usartWorkingStatus = 0;
         slpManRegisterPredefinedBackupCb(SLP_CALLBACK_USART_MODULE, USART_EnterLowPowerStatePrepare, NULL);
         slpManRegisterPredefinedRestoreCb(SLP_CALLBACK_USART_MODULE, USART_ExitLowPowerStateRestore, NULL);
     }
@@ -775,7 +779,7 @@ int32_t USART_Initialize(ARM_USART_SignalEvent_t cb_event, USART_RESOURCES *usar
 int32_t USART_Uninitialize(USART_RESOURCES *usart)
 {
 #ifdef PM_FEATURE_ENABLE
-    uint32_t instance;
+    uint32_t instance, mask;
     instance = USART_GetInstanceNumber(usart);
 #endif
 
@@ -794,15 +798,29 @@ int32_t USART_Uninitialize(USART_RESOURCES *usart)
 
 #ifdef PM_FEATURE_ENABLE
 
+    mask = SaveAndSetIRQMask();
+
     g_usartDataBase[instance].isInited = false;
+
+    // In case of forcing to uninitlize when rx/tx is ongoing
+    CHECK_TO_UNLOCK_SLEEP(instance, 1, 1);
+
+    // Mask so that it's unable to lock sleep
+    g_usartWorkingStatus |= (1 << (31 - instance));
 
     g_usartInitCounter--;
 
     if(g_usartInitCounter == 0)
     {
-        g_usartWorkingStatus = 0;
+        g_usartWorkingStatus = 0xFFFF0000;
+        RestoreIRQMask(mask);
+
         slpManUnregisterPredefinedBackupCb(SLP_CALLBACK_USART_MODULE);
         slpManUnregisterPredefinedRestoreCb(SLP_CALLBACK_USART_MODULE);
+    }
+    else
+    {
+        RestoreIRQMask(mask);
     }
 #endif
 
@@ -941,6 +959,9 @@ int32_t USART_PowerControl(ARM_POWER_STATE state,USART_RESOURCES *usart)
 int32_t USART_Send(const void *data, uint32_t num, USART_RESOURCES *usart)
 {
     uint32_t mask;
+
+    DmaTransferConfig_t dmaTxConfig;
+
 #ifdef PM_FEATURE_ENABLE
     uint32_t instance = USART_GetInstanceNumber(usart);
 #endif
@@ -977,7 +998,6 @@ int32_t USART_Send(const void *data, uint32_t num, USART_RESOURCES *usart)
     usart->info->xfer.send_active = 1U;
     RestoreIRQMask(mask);
 
-
     // Save transmit buffer info
     usart->info->xfer.tx_buf = (uint8_t *)data;
     usart->info->xfer.tx_num = num;
@@ -1013,6 +1033,10 @@ int32_t USART_Send(const void *data, uint32_t num, USART_RESOURCES *usart)
         }
         else
         {
+            dmaTxConfig.flowControl = DMA_FLOW_CONTROL_TARGET;
+            dmaTxConfig.burstSize = DMA_BURST_16_BYTES;
+            dmaTxConfig.addressIncrement = DMA_ADDRESS_INCREMENT_SOURCE;
+            dmaTxConfig.dataWidth = DMA_DATA_WIDTH_ONE_BYTE;
             dmaTxConfig.sourceAddress = (void*)data;
             dmaTxConfig.targetAddress = (void*)&(usart->reg->THR);
             dmaTxConfig.totalLength = num-1;
@@ -1820,7 +1844,10 @@ PLAT_PA_RAMCODE void USART_IRQHandler (USART_RESOURCES *usart)
         info->cb_event (event);
 
 #ifdef PM_FEATURE_ENABLE
-        CHECK_TO_UNLOCK_SLEEP(instance, 0, 1);
+        if((event & ARM_USART_RX_EVENTS) != 0)
+        {
+            CHECK_TO_UNLOCK_SLEEP(instance, 0, 1);
+        }
 #endif
 
     }

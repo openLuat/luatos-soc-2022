@@ -30,6 +30,22 @@ extern "C" {
 /*----------------------------------------------------------------------------*
  *                    MACROS                                                  *
  *----------------------------------------------------------------------------*/
+typedef enum
+{
+    CSIO_ACF_NORM = 0,
+    CSIO_ACF_CALI,
+
+    CSIO_ACF_MAXNUM
+}CsioAtCustFlags_e;
+
+typedef enum
+{
+    CSIO_OCF_NORM = 0,
+    CSIO_OCF_GNSS,
+
+    CSIO_OCF_MAXNUM
+}CsioOpaqCustFlags_e;
+
 
 /*
  * customed device executed flags definition, which is a subset of 'CcioDevExecFlags_e'

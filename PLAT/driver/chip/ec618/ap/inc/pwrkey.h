@@ -150,14 +150,6 @@ void pwrKeyHwDeinit(bool pullUpEn);
 * @return null
 */
 bool pwrKeyGetPinLevel(void);
-/**
-* @brief pwrKeyGetPwrKeyMode
-* @details get power key mode in bootloader
-*
-* @return null
-*/
-pwrKeyWorkMode pwrKeyGetPwrKeyMode(void);
-
 
 #ifdef __cplusplus
 }

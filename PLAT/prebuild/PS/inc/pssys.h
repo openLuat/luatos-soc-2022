@@ -65,8 +65,19 @@
 #endif
 #endif
 
-
-
+#ifdef __USER_CODE__	//最佳网络性能
+#if (defined LOW_SPEED_SERVICE_ONLY)
+#define NETFAST_FM_RAMCODE  PS_FM_RAMCODE
+#else
+#define NETFAST_FM_RAMCODE  PS_FM_RAMCODE
+#endif
+#else
+#if ((defined LOW_SPEED_SERVICE_ONLY) || (defined LITE_FEATURE_MODE))
+#define NETFAST_FM_RAMCODE
+#else
+#define NETFAST_FM_RAMCODE  PS_FM_RAMCODE
+#endif
+#endif
 /*
  * Code in RAM
 */

@@ -129,7 +129,7 @@
 
 #define LWIP_CHECK_CID_VALID(cid)   ((UINT32)(cid) <= LWIP_PS_MAX_VALID_CID)
 
-
+#define LWIP_SOCKET_CALL_BACK_ENABLE 0
 /*
  * - used in EC618
 */
@@ -142,8 +142,8 @@
 #define LWIP_IP6_RA_SERVER_HOPLIMIT 255
 #define LWIP_IP6_RA_DEFAULT_PREFERENCE 1
 #define LWIP_IP6_RA_DEFAULT_PREFIX_LEN 64
-#define LWIP_IP6_RA_MAX_RTR_ADV_INTERVAL 600  //seconds
-#define LWIP_IP6_RA_MIN_RTR_ADV_INTERVAL 180 //seconds
+#define LWIP_IP6_RA_MAX_RTR_ADV_INTERVAL 30  //seconds, for host os router life timer refresh
+#define LWIP_IP6_RA_MIN_RTR_ADV_INTERVAL 10 //seconds
 #define LWIP_IP6_RA_MAX_RDNSS_NUM 2
 #endif
 
@@ -179,6 +179,8 @@
 
 
 #define LWIP_LAN_IPV6_RA_DEFAULT_ROUTER_LIFE_TIME 65535 //seconds
+#define LWIP_LAN_IPV6_RA_PREFIX_VALID_LIFE_TIME 7200 //seconds
+#define LWIP_LAN_IPV6_RA_PREFIX_PREFER_LIFE_TIME 7200 //seconds
 
 #define NM_PDN_TYPE_MAX_DNS_NUM     2
 #define NM_MAX_DNS_NUM              4
@@ -520,7 +522,7 @@
  */
 #if !defined MEMP_NUM_TCP_PCB_LISTEN || defined __DOXYGEN__
 #ifdef __USER_CODE__
-#define MEMP_NUM_TCP_PCB_LISTEN         2
+#define MEMP_NUM_TCP_PCB_LISTEN         4
 #else
 #define MEMP_NUM_TCP_PCB_LISTEN         5
 #endif

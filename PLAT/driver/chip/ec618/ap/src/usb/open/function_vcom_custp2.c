@@ -68,7 +68,7 @@ const usbd_cdc_desc_custp2_st t_usbd_cdc_desc_custp2 = {
           LOBYTE(CC_CUSTP2_CMDEP_MPS),     /* wMaxPacketSize: */
           HIBYTE(CC_CUSTP2_CMDEP_MPS),
 #ifdef USE_USBC_CTRL_HS
-          0x10,                           /* bInterval: */
+          0x9,                           /* bInterval: */
 #else
           0xFF,                           /* bInterval: */
 #endif /* USE_USBC_CTRL_HS */    

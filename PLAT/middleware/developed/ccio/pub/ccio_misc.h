@@ -35,6 +35,8 @@ extern "C" {
  *                    MACROS                                                  *
  *----------------------------------------------------------------------------*/
 //#define CCIO_ULPDU_FAST_FREE_ENABLE
+#define CCIO_NETDATA_LIST_INPUT_ENABLE
+
 
 /* ip net MTU of data */
 #define CCIO_IPNET_DATA_MTU      1500
@@ -46,18 +48,24 @@ extern "C" {
 #define CCIO_WAN_CONF_MAXSIZE    128
 
 /* max rndis packets in one transfer */
-#define CCIO_RNDIS_MAX_PKT_PER_XFER  10//RNDIS_MAX_PACK_PER_XFER
+#define CCIO_RNDIS_MAX_PKT_PER_XFER  10 //RNDIS_MAX_PACK_PER_XFER
 
 /* max size of rndis packet */
-#define CCIO_RNDIS_XFER_MAXSIZE  3584//ALIGNUP(RNDIS_RX_BUFFER_SIZE)
+#define CCIO_RNDIS_XFER_MAXSIZE  3584 //ALIGNUP(RNDIS_RX_BUFFER_SIZE)
 
-/* max size of ecm packet */
+/* max size of ecm packet
+ * --------------------------------------------------------------------
+ * ATTENTION:
+ * there will be no ZLP in some vendors' Windows driver,
+ * and the xfer maxsize should be set to 512 @cost of uplink data rate!
+ * --------------------------------------------------------------------
+ */
 #define CCIO_ECM_XFER_MAXSIZE    1536 //ALIGNUP(eth mtu 1514)
 
 /* max size of ppp packet over serial */
 #define CCIO_PPP_XFER_MAXSIZE    1536 //ALIGNUP(ppp mtu 1508)
 
-/* max size of normal packet over serial, e.g. AT, OPAQ
+/* max size of normal packet over serial, e.g. AT, OPAQ, PPP
  * [caution]: as being restricted by usb driver,
  * some data of particular size(e.g 512/1024) can't be transfered @maxsize = 1536!
  */
@@ -79,8 +87,8 @@ extern "C" {
  */
 #define CCIO_RBUF_NPT_HDR_SIZE   (sizeof(UldpHdrInfo_t) + sizeof(UlPduBlock_t))
 
-#define CCIO_ALIGN_UP(x,sz)      (((x) + ((sz) - 1)) & (~((sz) - 1)))
-#define CCIO_ALIGN_DOWN(x,sz)    ((x) & (~((sz) - 1)))
+#define CCIO_ALIGN_UP(x,sz)      (((size_t)(x) + ((sz) - 1)) & (~((sz) - 1)))
+#define CCIO_ALIGN_DOWN(x,sz)    ((size_t)(x) & (~((sz) - 1)))
 
 #define CCIO_CASE_UPPER(c)       ((((c) >= 'a') && ((c) <= 'z')) ? ((c) - ('a' - 'A')) : (c))
 #define CCIO_CASE_LOWER(c)       ((((c) >= 'A') && ((c) <= 'Z')) ? ((c) + ('a' - 'A')) : (c))
@@ -200,29 +208,6 @@ extern "C" {
  *                   DATA TYPE DEFINITION                                     *
  *----------------------------------------------------------------------------*/
 
-typedef enum
-{
-    CUST_RBUF_FOR_DIAG = 0,
-    CUST_RBUF_FOR_AT_NORM,
-    CUST_RBUF_FOR_AT_CALI,
-    CUST_RBUF_FOR_OPAQ,
-    CUST_RBUF_FOR_PPP,
-    CUST_RBUF_FOR_RNDIS,
-    CUST_RBUF_FOR_ECM
-}CcioRbufUsage_e;
-
-/**
- * extra info about customized rbuf.
- */
-typedef struct
-{
-    uint8_t   xtraSize;
-    uint8_t   isPreGet;
-    uint8_t   rsvd[2];
-    uint16_t  avlbThres;
-    uint16_t  totalSize; /* real size, including xtra size */
-}CcioRbufXtras_t;
-
 typedef UlPduBlock UlPduBlock_t;
 typedef DlPduBlock DlPduBlock_t;
 
@@ -250,6 +235,28 @@ typedef struct
     OsaDlfcMemEvtFlags_e  flags;
     OsaDlfcMemEvtArgs_t  *args;
 }CcioDlfcMemEvent_t;
+
+typedef enum
+{
+    CCIO_OXF_RAW_DATA,
+    CCIO_OXF_CMD_LINE,
+
+    CCIO_OXF_MAXNUM
+}CcioOutXferFormat_e;
+
+typedef enum
+{
+    CCIO_OXM_PEND_LIST,
+    CCIO_OXM_SEND_PDU,
+
+    CCIO_OXM_MAXNUM
+}CcioOutXferMode_e;
+
+typedef struct
+{
+    uint16_t         blockCnt[CCIO_OXF_MAXNUM];
+    DlPduBlockList_t blockList[CCIO_OXF_MAXNUM];
+}CcioDlPendListMan_t;
 
 
 /*----------------------------------------------------------------------------*

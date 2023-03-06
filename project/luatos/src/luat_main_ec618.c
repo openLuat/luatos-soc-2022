@@ -124,8 +124,8 @@ static void luatos_task(void *param)
         ResetLockupCfg(true, true);
     else
         ResetLockupCfg(false, false);
-
 	luat_heap_init();
+    ShareInfoWakeupCP4Version();
 	cmsNonBlockApiCall(self_info, 0, NULL);
 #ifdef LUAT_USE_MEDIA
 	luat_audio_global_init();

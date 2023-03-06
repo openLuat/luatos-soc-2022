@@ -32,8 +32,21 @@ extern "C" {
 /*----------------------------------------------------------------------------*
  *                    MACROS                                                  *
  *----------------------------------------------------------------------------*/
-#define OSA_ULFC_MEM_USED_THRES_ANY_ALERT_PCT    0xff
-#define OSA_ULFC_MEM_USED_THRES_ANY              0xffff
+/* alert percentage of used memory threshold, when Ulfc is enabled! */
+#define OSA_ULFC_MEM_USED_THRES_ALERT_PCT_ANY     0xff
+#define OSA_ULFC_MEM_USED_THRES_ALERT_PCT_DFT     OSA_ULFC_MEM_USED_THRES_ALERT_PCT_NORMAL
+
+#define OSA_ULFC_MEM_USED_THRES_ALERT_PCT_ABOVE   90
+#define OSA_ULFC_MEM_USED_THRES_ALERT_PCT_NORMAL  85
+#define OSA_ULFC_MEM_USED_THRES_ALERT_PCT_BELOW   80
+
+/* threshold of used memory size, when Ulfc is enabled! */
+#define OSA_ULFC_MEM_USED_THRES_ANY               0xffff
+#define OSA_ULFC_MEM_USED_THRES_DFT               OSA_ULFC_MEM_USED_THRES_8K
+
+#define OSA_ULFC_MEM_USED_THRES_16K               16384
+#define OSA_ULFC_MEM_USED_THRES_8K                8192
+#define OSA_ULFC_MEM_USED_THRES_4K                4096
 
 /* ulfc malloc buffer with/without a (pbuf+)ulpdu header in blocking/non-blocking mode?
  * usage: only for application's exchange data, mostly uplink data.

@@ -29,6 +29,7 @@ History:        - 10/13/2017, Originated by xlhu
 #define CMI_SIM_MAX_ALPHA_ID_STR_LEN     32
 #define CMI_SIM_MAX_DAIL_NUMBER_STR_LEN    24
 #define CMI_SIM_MAX_SMS_ADDRESS_LEN 40
+#define CMI_SIM_AUTH_DATA_MAX_LEN 16
 
 /*********************************************************************************
 * Type Definition
@@ -40,7 +41,7 @@ History:        - 10/13/2017, Originated by xlhu
  *****************************************************************************
 ******************************************************************************/
 
-typedef enum CMI_SIM_PRIM_ID_TAG
+typedef enum _EPAT_CMI_SIM_PRIM_ID_TAG
 {
     CMI_SIM_PRIM_BASE = 0,
     CMI_SIM_GET_SUBSCRIBER_ID_REQ,    /* at+cimi , --imsi */
@@ -105,7 +106,9 @@ typedef enum CMI_SIM_PRIM_ID_TAG
     CMI_SIM_SET_SELECT_PLMN_LIST_REQ,
     CMI_SIM_SET_SELECT_PLMN_LIST_CNF,
     CMI_SIM_GET_SELECT_PLMN_LIST_REQ,
-    CMI_SIM_GET_SELECT_PLMN_LIST_CNF,
+    CMI_SIM_GET_SELECT_PLMN_LIST_CNF = 60,
+    CMI_SIM_IMS_AUTH_REQ,
+    CMI_SIM_IMS_AUTH_CNF,
     /*.... add new command here...*/
 
     /*unsolicited indication*/
@@ -114,7 +117,6 @@ typedef enum CMI_SIM_PRIM_ID_TAG
     CMI_SIM_UICC_STATE_IND,            /* +cusats:<UICC_STATE>, 'uicc removed' was not defined, maybe need extend*/
     /*unsolicited indication for internal use, non-standard AT command */
     CMI_SIM_UICC_PIN_STATE_IND,             /* +cpin: */
-
 
     CMI_SIM_USAT_OPEN_CHANNEL_IND = 80,
     CMI_SIM_USAT_OPEN_CHANNEL_RSP,
@@ -415,6 +417,29 @@ typedef enum CmiSimSelPreferPlmnListTag
 }
 CmiSimSelPreferPlmnList;
 
+/*
+* IMS Auth type
+*/
+typedef enum CmiSimImsAuthTypeTag
+{
+    CMI_SIM_IMS_AUTH_USIM               = 0, //Auth executed under USIM app
+    CMI_SIM_IMS_AUTH_ISIM               = 1, //Auth executed under ISIM app
+    CMI_SIM_IMS_AUTH_UNDEF              = 0xFF //undefined
+}
+CmiSimImsAuthType;
+
+/*
+* IMS Auth response status
+*/
+typedef enum CmiSimImsAuthResStatusTag
+{
+    CMI_SIM_IMS_AUTH_RES_SUCC               = 0, //AUTH is successful
+    CMI_SIM_IMS_AUTH_RES_SYNC_FAILURE       = 1, //SQN is out of range
+    CMI_SIM_IMS_AUTH_RES_INVALID_MAC        = 2, //MAC parameter is invalid
+    CMI_SIM_IMS_AUTH_RES_UNDEF              = 0xFF //undefined
+}
+CmiSimImsAuthResStatus;
+
 
 /******************************************************************************
  *****************************************************************************
@@ -535,7 +560,6 @@ typedef struct CmiSimSmsAddress_Tag
     UINT8      digitAddr[CMI_SIM_MAX_SMS_ADDRESS_LEN];
 }
 CmiSimSmsAddress;
-
 
 /******************************************************************************
  * CMI_SIM_GET_SUBSCRIBER_ID_REQ
@@ -1073,7 +1097,35 @@ typedef struct CmiSimGetSelectPlmnListCnfTag
 }
 CmiSimGetSelectPlmnListCnf;
 
+/******************************************************************************
+ * CMI_SIM_IMS_AUTH_REQ
+ * IMS authentication request
+******************************************************************************/
+typedef struct CmiSimImsAuthReqTag
+{
+    UINT8                authType;//CmiSimImsAuthType
+    UINT8                rsvd1;
+    UINT16               rsvd2;
+    UINT8                rand[CMI_SIM_AUTH_DATA_MAX_LEN];//fixed 16 bytes
+    UINT8                autn[CMI_SIM_AUTH_DATA_MAX_LEN];//fixed 16 bytes
+}
+CmiSimImsAuthReq;
 
+/*
+* CMI_SIM_IMS_AUTH_CNF
+*/
+typedef struct CmiSimImsAuthCnfTag
+{
+    UINT8                resStatus;//CmiSimImsAuthResStatus, Auth response status
+    UINT8                resLen;//the length of RES
+    UINT8                autsLen;//the length of AUTS if sync failure present
+    UINT8                reserved;
+    UINT8                res[CMI_SIM_AUTH_DATA_MAX_LEN];
+    UINT8                ck[CMI_SIM_AUTH_DATA_MAX_LEN];//fixed 16 bytes
+    UINT8                ik[CMI_SIM_AUTH_DATA_MAX_LEN];//fixed 16 bytes
+    UINT8                auts[CMI_SIM_AUTH_DATA_MAX_LEN]; //auts for sync failure
+}
+CmiSimImsAuthCnf;
 
 /*
 * CMI_SIM_UICC_STATE_IND

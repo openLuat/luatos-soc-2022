@@ -265,6 +265,7 @@ void HAL_I2sSrcAdjustVolumn(int16_t* srcBuf, uint32_t srcTotalNum, uint16_t volS
 
 void HAL_normalIOVoltSet(i2sIOVolSel_t sel);
 void HAL_aonIOVoltSet(i2sIOVolSel_t sel);
+void HAL_i2sSetSampleRate(i2sRole_e i2sRole, uint32_t sampleRate);
 
 
 

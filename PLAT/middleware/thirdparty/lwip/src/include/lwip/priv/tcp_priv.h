@@ -238,6 +238,14 @@ err_t            tcp_process_refused_data(struct tcp_pcb *pcb);
       (errf)((arg),(err));                                     \
   } while (0)
 
+#if LWIP_SOCKET_CALL_BACK_ENABLE
+#define TCP_EVENT_SENTACK(pcb,len,ret)                          \
+  do {                                                         \
+    if((pcb)->sendackf != NULL)                                    \
+      (ret) = (pcb)->sendackf((pcb)->callback_arg,(pcb),(len));  \
+    else (ret) = ERR_OK;                                       \
+  } while (0)
+#endif
 #endif /* LWIP_EVENT_API */
 
 /** Enabled extra-check for TCP_OVERSIZE if LWIP_DEBUG is enabled */

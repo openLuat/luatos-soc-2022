@@ -129,6 +129,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
                                                      * 1 - default bearer/PDP is need to re-act if APN/IP type changes, when CGACT
                                                     */
     CERRC_CFG_DEFALT_STATIC_CONFIG,                 /* TV,  BOOL staticConfig */
+    CERRC_CFG_DEFALT_DISABLE_CDRX_CONFIG,           /* TV,  BOOL disableCDRX */
     /*
      * !!!!  PARAM ID !!!!
      * 1> Only allowed

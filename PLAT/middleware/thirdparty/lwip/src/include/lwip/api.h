@@ -186,6 +186,14 @@ enum netconn_evt {
   NETCONN_EVT_RCVMINUS,
   NETCONN_EVT_SENDPLUS,
   NETCONN_EVT_SENDMINUS,
+#if LWIP_SOCKET_CALL_BACK_ENABLE
+  NETCONN_EVT_CONNECTED,
+  NETCONN_EVT_ACCEPTPLUS,
+  NETCONN_EVT_SENDACKED,
+  NETCONN_EVT_ERROR_CLSD,
+  NETCONN_EVT_ERROR_RST,
+  NETCONN_EVT_ERROR_ABORT,
+#endif
   NETCONN_EVT_ERROR
 };
 
@@ -284,6 +292,9 @@ struct netconn {
 #endif /* LWIP_TCP */
   /** A callback function that is informed about events for this netconn */
   netconn_callback callback;
+#if LWIP_SOCKET_CALL_BACK_ENABLE
+  void *socket_callback;
+#endif
 #ifdef __USER_CODE__
   netconn_callback callback0;
 #endif
@@ -375,7 +386,7 @@ err_t   netconn_gethostbyname_addrtype(const char *name, ip_addr_t *addr, u8_t d
 err_t   netconn_gethostbyname_addrtype_async(const char *name, u8_t dns_addrtype, uint8_t cid, uint16_t src_handler);
 #define netconn_gethostbyname_async(name, cid, src_handler) netconn_gethostbyname_addrtype_async(name, NETCONN_DNS_DEFAULT, cid, src_handler)
 err_t   netconn_gethostbyname_addrtype_async_by_cmsSockMgr(const char *name, u8_t dns_addrtype, uint8_t cid, uint8_t source);
-#define netconn_gethostbyname_async_by_cmsSockMgr(name, cid, source) netconn_gethostbyname_async_by_cmsSockMgr(name, NETCONN_DNS_DEFAULT, cid, source)
+#define netconn_gethostbyname_async_by_cmsSockMgr(name, cid, source) netconn_gethostbyname_addrtype_async_by_cmsSockMgr(name, NETCONN_DNS_DEFAULT, cid, source)
 #else /* LWIP_IPV4 && LWIP_IPV6 */
 err_t   netconn_gethostbyname(const char *name, ip_addr_t *addr, uint8_t cid);
 #define netconn_gethostbyname_addrtype(name, addr, dns_addrtype, cid) netconn_gethostbyname(name, addr, cid)

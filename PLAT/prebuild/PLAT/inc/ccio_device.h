@@ -298,6 +298,7 @@ typedef enum
     CCIO_DSF_HWIND_BEGIN = CCIO_DSF_BASE_BUILD(CCIO_HT_HWIND),
     CCIO_DSF_DEV_ADD,
     CCIO_DSF_DEV_DEL,
+    CCIO_DSF_DEV_ALT,
     CCIO_DSF_CTS_CHG,
     CCIO_DSF_DTR_CHG,
     CCIO_DSF_RI_DONE,
@@ -333,14 +334,6 @@ typedef enum
                                      * Only used for PS DL PDU (IP), sent from L2
                                      */
 }CcioOutXferType_e;
-
-typedef enum
-{
-    CCIO_OXF_RAW_DATA,
-    CCIO_OXF_CMD_LINE,
-
-    CCIO_OXF_MAXNUM
-}CcioOutXferFormat_e;
 
 typedef struct
 {
@@ -474,6 +467,14 @@ typedef struct
 {
     struct CcioDevice *chdev;
 }CcioDsaDevDel_t;
+
+/* CCIO_DSF_DEV_ALT */
+typedef struct
+{
+    uint8_t  newType;   /* new subType of a device, refer to 'CsioDevType_e/CnioDevType_e/CuioDevType_e/...' */
+    uint8_t  rsvd[3];
+    struct CcioDevice *chdev;
+}CcioDsaDevAlt_t;
 
 /* CCIO_DSF_CTS_CHG */
 typedef struct

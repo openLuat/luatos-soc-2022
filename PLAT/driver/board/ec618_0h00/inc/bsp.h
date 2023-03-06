@@ -69,6 +69,8 @@ void BSP_CommonInit(void);
 void setOSState(uint8_t state);
 uint8_t * getDebugDVersion(void);
 void delay_us(uint32_t us);
+void setUartBaudRate(uint8_t idx, uint32_t baudRate);
+bool getCPWakeupType(void);
 
 #ifdef __cplusplus
 }

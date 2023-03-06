@@ -32,6 +32,10 @@ ARM_DRIVER_USART *UsartUnilogHandle = NULL;
 ARM_DRIVER_USART *UsartAtCmdHandle = NULL;
 
 static uint8_t OSState = 0;     // OSState = 0 os not start, OSState = 1 os started
+#ifdef __USER_CODE__	//不需要
+#else
+static uint32_t gUartBaudrate[3];	// a copy for uart baud rate
+#endif
 extern void trimAdcSetGolbalVar(void);
 
 void BSP_InitUartDriver(ARM_DRIVER_USART *drvHandler,
@@ -184,6 +188,43 @@ uint8_t* getDebugDVersion(void)
 {
     return (uint8_t*)DB_VERSION_UNIQ_ID;
 }
+#ifdef __USER_CODE__	//不需要，放在其他地方
+#else
+void setUartBaudRate(uint8_t idx, uint32_t baudRate)
+{
+    gUartBaudrate[idx] = baudRate;
+
+    ECPLAT_PRINTF(UNILOG_PMU, setUartBaudRate_1, P_WARNING, "Set BaudRate = %d, %d, %d", gUartBaudrate[0], gUartBaudrate[1], gUartBaudrate[2]);
+}
+
+/**
+  \fn           bool getCPWakeupType(void)
+  \brief        wakeup cp in polling mode or int mode
+                in polling mode interrupt mask for 700us at most which may cause uart fifo overflow @ 921600.
+				in int mode, interrupt mask for less than 200us
+  \returns      true: cp wakeup in int mode   false: cp wakeup in polling mode
+*/
+bool getCPWakeupType(void)          // true: cp wakeup in int mode   false: cp wakeup in polling mode
+{
+#if 0		// just an example for customer to enable int mode
+    if((gUartBaudrate[0] == 921600) || (gUartBaudrate[1] == 921600) || (gUartBaudrate[2] == 921600))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+#else
+    return false;
+#endif
+}
+#endif
+uint32_t getAPFlashLoadAddr(void)
+{
+    return AP_FLASH_LOAD_ADDR;
+}
+
 
 #ifdef UINILOG_FEATURE_ENABLE
 /**
@@ -266,9 +307,10 @@ void SetUnilogUartOrg(usart_port_t port, uint32_t baudrate, bool startRecv)
     uartHwConf->ctrlSetting = ctrlSetting;
     uartHwConf->baudRate    = baudrate;
 
-    uartDevConf.drvHandler  = UsartUnilogHandle;
-    uartDevConf.mainUsage   = CSIO_DT_DIAG;
-    uartDevConf.speedType   = CCIO_ST_HIGH;
+    uartDevConf.drvHandler = UsartUnilogHandle;
+    uartDevConf.mainUsage  = CSIO_DT_DIAG;
+    uartDevConf.speedType  = CCIO_ST_HIGH;
+    uartDevConf.rbufFlags  = CUST_RBUF_FOR_DIAG;
     if(startRecv)
     {
         uartDevConf.bmCreateFlag = CCIO_TASK_FLAG_RX;
