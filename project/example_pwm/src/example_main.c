@@ -24,7 +24,7 @@
 
 #include "luat_pwm.h"
 
-
+//引脚复用使用说明https://doc.openluat.com/wiki/37?wiki_page_id=4785
 luat_rtos_task_handle pwm_task_handle;
 
 static void task_test_pwm(void *param)
@@ -39,7 +39,7 @@ static void task_test_pwm(void *param)
     /*可用于whiile 循环中，int channel 参数为要修改的PWM通道，size_t pulse 参数为将要输出的目标占空比*/
     /*使用者根据自身使用需求填入相应参数数值即可*/
 
-    switch(luat_pwm_open(4,1,50,10))
+    switch(luat_pwm_open(1,1,50,10))
     {
         case -1:
             LUAT_DEBUG_PRINT("pwm channel err");

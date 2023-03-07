@@ -231,13 +231,13 @@
 //  air780E 模块 PAD:29 ->> PIN 26 | air600E 模块  PAD:29 ->> PIN 69
 //#define RTE_PWM0                         29
 //  air780E 模块 PAD:30 ->> PIN 20 | air600E 模块  PAD:30 ->> PIN 40
-//#define RTE_PWM1                         30
+#define RTE_PWM1                         44
 //  air780E 模块 PAD:31 ->> PIN 106 | air600E 模块  PAD:31 ->> PIN 53
 // #define RTE_PWM2                           31
 //  air780E 模块 PAD:32 ->> PIN 25 | air600E 模块  PAD:32 ->> PIN 54
 //#define RTE_PWM3                         32
 //  air780E 模块 PAD:33 ->> PIN 16 | air600E 模块  PAD:33 ->> PIN 52
-#define RTE_PWM4                           47
+//#define RTE_PWM4                           47
 //  air780E 模块 PAD:34 ->> PIN 78 | air600E 模块  PAD:34 ->> PIN 53
 //#define RTE_PWM5                         34
 #define RTE_PWM_FUNC              PAD_MUX_ALT5
