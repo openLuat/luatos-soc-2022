@@ -636,6 +636,11 @@ int luat_mobile_reset_stack(void)
 	soc_mobile_reset_stack();
 	return 0;
 }
+extern void soc_mobile_fatal_error_auto_reset_stack(uint8_t onoff);
+void luat_mobile_fatal_error_auto_reset_stack(uint8_t onoff)
+{
+	soc_mobile_fatal_error_auto_reset_stack(onoff);
+}
 
 int luat_mobile_set_period_work(uint32_t get_cell_period, uint32_t check_sim_period, uint8_t search_cell_time)
 {
