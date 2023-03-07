@@ -200,7 +200,7 @@ int soc_audio_fclose(void *fp)
 void luat_audio_global_init(void)
 {
 #ifdef LUAT_USE_TTS
-	audio_play_global_init_ex(audio_event_cb, audio_data_cb, audio_play_file_default_fun, audio_play_TTS_default_fun, NULL);
+	audio_play_global_init_with_task_priority(audio_event_cb, audio_data_cb, audio_play_file_default_fun, audio_play_TTS_default_fun, NULL, 90);
 #ifdef LUAT_USE_TTS_16K
 #ifdef LUAT_USE_TTS_ONCHIP
 	audio_play_tts_set_resource_ex(ivtts_16k, AISOUND_SDK_USERID_16K, tts_read_data);
@@ -215,7 +215,7 @@ void luat_audio_global_init(void)
 #endif
 #endif
 #else
-	audio_play_global_init_ex(audio_event_cb, audio_data_cb, audio_play_file_default_fun, NULL, NULL);
+	audio_play_global_init_with_task_priority(audio_event_cb, audio_data_cb, audio_play_file_default_fun, NULL, NULL, 90);
 #endif
 	g_s_audio_hardware.dac_delay_len = 6;
 	g_s_audio_hardware.dac_off_delay_time = 0;
