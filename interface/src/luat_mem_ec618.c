@@ -25,7 +25,8 @@
  */
 
 #include <stdlib.h>
-
+#include "luat_base.h"
+extern void soc_get_heap_info(uint32_t *total, uint32_t *total_free, uint32_t *min_free);
 void* luat_heap_malloc(size_t len) {
     return malloc(len);
 }
@@ -42,10 +43,10 @@ void* luat_heap_calloc(size_t count, size_t _size) {
     return calloc(count, _size);
 }
 
-size_t xPortGetTotalHeapSize( void );
 void luat_meminfo_sys(size_t *total, size_t *used, size_t *max_used) {
-    *total = xPortGetTotalHeapSize();
-	*used = *total - xPortGetFreeHeapSize();
-	*max_used = *total - xPortGetMinimumEverFreeHeapSize();
+	uint32_t total_free, min_free;
+	soc_get_heap_info(total, &total_free, &min_free);
+	*used = *total - total_free;
+	*max_used = *total - min_free;
 }
 

@@ -124,6 +124,7 @@ ivBool tts_read_data(
 
 static void demo_task(void *arg)
 {
+	size_t total, used, max_used;
 //	luat_rtos_task_sleep(3000);
 	ivCStrA sdk_id = AISOUND_SDK_USERID_16K;
 	//8K用下面的
@@ -176,9 +177,21 @@ static void demo_task(void *arg)
     	info[4].rom_data_len = sizeof(amr_yuan_data);
     	luat_audio_play_multi_files(0, info, 5);
     	luat_rtos_task_sleep(9000);
+    	luat_meminfo_sys(&total, &used, &max_used);
+    	LUAT_DEBUG_PRINT("meminfo total %d, used %d, max_used%d",total, used, max_used);
     	luat_audio_play_tts_text(0, tts_string, sizeof(tts_string));
     	luat_rtos_task_sleep(10000);
-
+    	luat_meminfo_sys(&total, &used, &max_used);
+    	LUAT_DEBUG_PRINT("meminfo total %d, used %d, max_used%d",total, used, max_used);
+    	memset(info, 0, sizeof(info));
+    	info[0].path = "test1.mp3";
+    	info[1].path = "test2.mp3";
+    	info[2].path = "test3.mp3";
+    	info[3].path = "test4.mp3";
+    	luat_audio_play_multi_files(0, info, 4);
+    	luat_rtos_task_sleep(9000);
+    	luat_meminfo_sys(&total, &used, &max_used);
+    	LUAT_DEBUG_PRINT("meminfo total %d, used %d, max_used%d",total, used, max_used);
 //    	info[0].path = NULL;
 //    	info[0].address = (uint32_t)Fqdqwer;
 //    	info[0].rom_data_len = sizeof(Fqdqwer);
