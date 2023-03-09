@@ -290,6 +290,6 @@
 
 #endif
 
-#define __LUAT_C_CODE_IN_RAM__ __attribute__((__section__(".psFMRamcode")))
+#define __LUAT_C_CODE_IN_RAM__ __attribute__((__section__(".platFMRamcode")))
 
 #endif

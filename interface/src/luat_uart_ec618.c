@@ -399,14 +399,14 @@ int luat_uart_wait_485_tx_done(int uartid)
 #endif
 #define EIGEN_TIMER(n)             ((TIMER_TypeDef *) (AP_TIMER0_BASE_ADDR + 0x1000*n))
 static CommonFun_t irq_cb[2];
-static PS_CODE_IN_RAM void luat_uart_soft_hwtimer0_callback(void)
+static __CORE_FUNC_IN_RAM__ void luat_uart_soft_hwtimer0_callback(void)
 {
 	__IO uint32_t SR = EIGEN_TIMER(0)->TSR;
 	EIGEN_TIMER(0)->TSR = SR;
 	irq_cb[0]();
 }
 
-static PS_CODE_IN_RAM void luat_uart_soft_hwtimer2_callback(void)
+static __CORE_FUNC_IN_RAM__ void luat_uart_soft_hwtimer2_callback(void)
 {
 	__IO uint32_t SR = EIGEN_TIMER(2)->TSR;
 	EIGEN_TIMER(2)->TSR = SR;
@@ -464,15 +464,15 @@ int luat_uart_soft_setup_hwtimer_callback(int hwtimer_id, CommonFun_t callback)
 	}
 	return 0;
 }
-void PS_CODE_IN_RAM luat_uart_soft_gpio_fast_output(int pin, uint8_t value)
+void __CORE_FUNC_IN_RAM__ luat_uart_soft_gpio_fast_output(int pin, uint8_t value)
 {
 	GPIO_FastOutput(pin, value);
 }
-uint8_t PS_CODE_IN_RAM luat_uart_soft_gpio_fast_input(int pin)
+uint8_t __CORE_FUNC_IN_RAM__ luat_uart_soft_gpio_fast_input(int pin)
 {
 	return GPIO_Input(pin);
 }
-void PS_CODE_IN_RAM luat_uart_soft_gpio_fast_irq_set(int pin, uint8_t on_off)
+void __CORE_FUNC_IN_RAM__ luat_uart_soft_gpio_fast_irq_set(int pin, uint8_t on_off)
 {
 	if (on_off)
 	{
@@ -487,7 +487,7 @@ uint32_t luat_uart_soft_cal_baudrate(uint32_t baudrate)
 {
 	return (26000000/baudrate);
 }
-void PS_CODE_IN_RAM luat_uart_soft_hwtimer_onoff(int hwtimer_id, uint32_t period)
+void __CORE_FUNC_IN_RAM__ luat_uart_soft_hwtimer_onoff(int hwtimer_id, uint32_t period)
 {
 	EIGEN_TIMER(hwtimer_id)->TCCR = 0;
 
@@ -499,7 +499,7 @@ void PS_CODE_IN_RAM luat_uart_soft_hwtimer_onoff(int hwtimer_id, uint32_t period
     }
 }
 
-void PS_CODE_IN_RAM luat_uart_soft_sleep_enable(uint8_t is_enable)
+void __CORE_FUNC_IN_RAM__ luat_uart_soft_sleep_enable(uint8_t is_enable)
 {
 	slpManDrvVoteSleep(SLP_VOTE_LPUSART, is_enable?SLP_HIB_STATE:SLP_ACTIVE_STATE);
 }
