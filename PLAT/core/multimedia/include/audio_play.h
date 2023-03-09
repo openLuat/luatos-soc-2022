@@ -96,6 +96,14 @@ uint8_t audio_play_is_finish(uint32_t multimedia_id);
  * @return int =0成功，其他失败
  */
 int audio_play_stop(uint32_t multimedia_id);
+
+/**
+ * @brief 强制停止播放文件，如果音频解码已经完成，会停止已经输出到底层驱动的数据播放
+ *
+ * @param multimedia_id multimedia_id 多媒体通道，目前只有0
+ * @return int =0成功，其他失败
+ */
+int audio_play_fast_stop(uint32_t multimedia_id);
 /**
  * @brief 清除强制停止播放文件的标识，可以在误操作stop时不影响下一次播放
  *
