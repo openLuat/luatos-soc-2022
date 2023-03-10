@@ -46,7 +46,7 @@ void* luat_heap_calloc(size_t count, size_t _size) {
 void luat_meminfo_sys(size_t *total, size_t *used, size_t *max_used) {
 	uint32_t total_free, min_free;
 	soc_get_heap_info(total, &total_free, &min_free);
-	*used = *total - total_free;
+	*used = *total - xPortGetFreeHeapSize();
 	*max_used = *total - min_free;
 }
 
