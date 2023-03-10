@@ -62,7 +62,7 @@ int luat_wlan_init(luat_wlan_config_t *conf){
 }
 
 int luat_wlan_scan(void){
-    if (luat_rtos_task_create(&wlan_task_handle, 2048, 20, "wlan", wlan_task, NULL, NULL)){
+    if (luat_rtos_task_create(&wlan_task_handle, 4096, 20, "wlan", wlan_task, NULL, NULL)){
     	return -1;
     }
     return 0;
