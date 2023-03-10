@@ -1,8 +1,8 @@
 DbVersion
-1641944309,100
+540507954,100
 <end>
 BuildInfo
-The current data file was built by the Application Ver. 2.2.67.183, Thu Mar  9 19:35:43 2023
+The current data file was built by the Application Ver. 2.2.67.183, Fri Mar 10 09:34:29 2023
 <end>
 EnumVals
 0,2048,0,0,PHY_ONLINE,PHY_ICS_MODULE,PhyIcsMeasMainEntrance_0,P_INFO,swLogPrintf("ICS MEAS of euArfcn %d will be started ");
@@ -2151,7 +2151,6 @@ EnumVals
 270336,554334984,0,0,PLAT_AP,CCIO,OPAQ_GET_PEND_LIST,P_INFO,swLogPrintf("opaqCid ( %d / 0x%x ) : %d %s line ( s ) in total... ");
 270336,554336256,0,0,PLAT_AP,CCIO,OPAQ_DATA_INPUT,P_INFO,swLogPrintf("opaqCid ( %d ) : opaq data input... ");
 270336,554338560,0,0,PLAT_AP,CCIO,OPAQ_DATA_OUTPUT_EX_1,P_ERROR,swLogPrintf("opaqCid ( %d ) : discard 0x%p for unregistration! ");
-270336,554340608,0,0,PLAT_AP,CCIO,OPAQ_DATA_OUTPUT_EX_2,P_INFO,swLogPrintf("opaqCid ( %d ) : opaq data ( %d ) output... ");
 272384,557845248,0,0,PLAT_AP,ATCMD,atRfTestCmdCnf_2,P_VALUE,swLogPrintf("CmdLen = %d , CmdFlag = %d , rc = %d , chaanId = %d ");
 272384,557846529,0,0,PLAT_AP,ATCMD,atRfTestCmdCnf_3,P_SIG,swLogPrintf("Regs : %s ");
 272384,557848576,0,0,PLAT_AP,ATCMD,atRfTestCmdCnf_6,P_SIG,swLogPrintf("SarAdc 1 st : 0x%x ");
@@ -2203,64 +2202,62 @@ EnumVals
 277504,568330496,0,0,PLAT_AP,PS_DIAL,psDialGetPlmnCfgByImsi_1,P_WARNING,swLogPrintf("Can ' t find DialPlmnCfg for PLMN : 0x%x , 0x%x ");
 277504,568332544,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsBearerActedInd_1,P_WARNING,swLogPrintf("PS DIAL , bearer type : %d not valid , cid : %d ");
 277504,568334336,0,0,PLAT_AP,PS_DIAL,psDialProccCmiPsBearerDeActInd_1,P_VALUE,swLogPrintf("PS DIAL , CID : %d , deactivated. ");
-277504,568338431,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsConnStatusInd_1,P_INFO,swLogPrintf("PS monitor traffic idle on DRB , trigger TAU... ");
-277504,568340479,0,0,PLAT_AP,PS_DIAL,psDialProcCmiDevSilentResetInd_1,P_WARNING,swLogPrintf("PS Silent Reset! ");
-277504,568340480,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsReadDynBearerCtxParamCnf_1,P_WARNING,swLogPrintf("CID : %d maybe a non-ip type bearer ");
-277504,568344575,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsReadDynBearerCtxParamCnf_2,P_VALUE,swLogPrintf("PS DIAL , BEARER don ' t has valid context , maybe dedicated BR , or not acted ");
-277504,568346623,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsReadDynBearerCtxParamCnf_ded_1,P_VALUE,swLogPrintf("PS DIAL , wakeup proc , CGSCONTRDP get all activated dedicated BR ");
-277504,568348671,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsReadDedBearerDynCtxParamCnf_tft_1,P_VALUE,swLogPrintf("PS DIAL , wakeup proc , CGTFTRDP get all activated TFT config ");
-277504,568350719,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsTrafficIdleMonitorInd_1,P_INFO,swLogPrintf("PS monitor traffic idle on DRB , tigger RRC local release! ");
-277504,568352767,0,0,PLAT_AP,PS_DIAL,psDialProcCmiDevSetPowerStateCnf_1,P_VALUE,swLogPrintf("PS DIAL , wakeup proc , CGCONTRDP get all activated default BR ");
-277504,568354815,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_5,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi get plmn dns fail ");
-277504,568356863,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_1,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi parse ipv4Dns0 fail ");
-277504,568358911,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_2,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi parse ipv4Dns1 fail ");
-277504,568360959,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_3,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi parse ipv6Dns0 fail ");
-277504,568363007,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_4,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi parse ipv6Dns1 fail ");
-277504,568363264,0,0,PLAT_AP,PS_DIAL,psDailGetPlmnPreferBandList_1,P_WARNING,swLogPrintf("Can ' t find DialPlmnCfg for PLMN : 0x%x , 0x%x , can ' t get prefer band ");
-277504,568365056,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndBindCid_no_net_0,P_VALUE,swLogPrintf("PS DIAL NET , usbCtrl %d , not enable RNDIS / ECM , not need bind CID ");
-277504,568367360,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndBindCid_invalid_cid_1,P_WARNING,swLogPrintf("PS DIAL NET , NETDEVCTL opt : %d , but req bind invalid CID : %d , can ' t bind ");
-277504,568369152,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndBindCid_def_1,P_VALUE,swLogPrintf("PS DIAL NET , CID : %d not activated , can ' t bind ");
-277504,568371456,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndBindCid_unbind_1,P_VALUE,swLogPrintf("PS DIAL NET , try to bind new CID : %d , but need to unbind old CID : %d ");
-277504,568373248,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_no_net_0,P_VALUE,swLogPrintf("PS DIAL NET , usbCtrl %d , not enable RNDIS / ECM , not need check / act bound PDP ");
-277504,568375552,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_invalid_cid_1,P_WARNING,swLogPrintf("PS DIAL NET , NETDEVCTL opt : %d , but bind invalid CID : %d ");
-277504,568377344,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_ded_2,P_WARNING,swLogPrintf("PS DIAL NET , bind CID : %d not default BR , can ' t act and bind to RNDIS / ECM ");
-277504,568379392,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_def_1,P_VALUE,swLogPrintf("PS DIAL NET , bind CID : %d , default BR already activated ");
-277504,568381440,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_act_1,P_VALUE,swLogPrintf("PS DIAl NET , get CGCONTRDP failed , try to act CID : %d ");
-277504,568385535,0,0,PLAT_AP,PS_DIAL,psDialNetDevCtl_none_0,P_VALUE,swLogPrintf("PS DIAL NET , NETDEVCTL no action need , return ");
-277504,568385536,0,0,PLAT_AP,PS_DIAL,psDialNetDevCtl_same_0,P_VALUE,swLogPrintf("PS DIAL NET , NETDEVCTL bind CID : %d , already bound before , return ");
-277504,568389631,0,0,PLAT_AP,PS_DIAL,psDialNetDevCtl_laninfo_w_0,P_WARNING,swLogPrintf("PS DIAL NET , Get LANStatus failed ");
-277504,568391679,0,0,PLAT_AP,PS_DIAL,psDialNetProcApplInd_unbind_1,P_VALUE,swLogPrintf("PS DIAL NET , ETH unbind , check whether need to rebind ");
-277504,568391680,0,0,PLAT_AP,PS_DIAL,psDialNetAutoDialCheck_0,P_VALUE,swLogPrintf("PS DIAL NET , cancel Auto Dial Check due to usbCtrl %d ");
-277504,568395775,0,0,PLAT_AP,PS_DIAL,psDialNetAutoDialCheck_2,P_VALUE,swLogPrintf("PS DIAl NET , getAllBearersCidsBasicInfo failed , report bind failure ");
-277504,568396544,0,0,PLAT_AP,PS_DIAL,psDialNetInit_1,P_VALUE,swLogPrintf("PS DIAL , Ethlan config , ethHostAddr : %u.%u.%u.%u ");
-277504,568398592,0,0,PLAT_AP,PS_DIAL,psDialNetInit_2,P_VALUE,swLogPrintf("PS DIAL , Ethlan config , ethLocalAddr : %u.%u.%u.%u ");
-277504,568399872,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_s_1,P_INFO,swLogPrintf("PS DIAL ISR , proc CP event : %e<CpPagingImgEventId> ");
-277504,568401920,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_w_1,P_WARNING,swLogPrintf("PS DIAL , CMS task already created , forward the CP event : %d , to task ");
-277504,568406015,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_paging_1,P_SIG,swLogPrintf("PS DIAL ISR , need wakeup AP & CP , as recv UE paging ");
-277504,568408063,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_paging_2,P_WARNING,swLogPrintf("PS DIAL ISR , only need wakeup AP , as recv UE paging ");
-277504,568410111,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_serving_1,P_SIG,swLogPrintf("PS DIAL ISR , need wakeup AP & CP , as serving cell measurement ");
-277504,568412159,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_serving_2,P_SIG,swLogPrintf("PS DIAL ISR , only need wakeup AP , as serving cell measurement ");
-277504,568414207,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_cell_reselect_1,P_SIG,swLogPrintf("PS DIAL ISR , need wakeup AP & CP , as need cell re-selection ");
-277504,568416255,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_cell_reselect_2,P_WARNING,swLogPrintf("PS DIAL ISR , only need wakeup AP , as need cell re-selection ");
-277504,568418303,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_cell_meas_1,P_SIG,swLogPrintf("PS DIAL ISR , need wakeup AP & CP , as cell measurement event ");
-277504,568420351,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_cell_meas_2,P_SIG,swLogPrintf("PS DIAL ISR , only need wakeup AP , as cell measurement event ");
-277504,568420352,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_err_1,P_ERROR,swLogPrintf("PS DIAL ISR , can ' t proc CP event : %d ");
-277504,568424447,0,0,PLAT_AP,PS_DIAL,cmsWakeupCheckPagingEvent_paging_s_1,P_SIG,swLogPrintf("PS DIAL , UE paging event to RRC ");
-277504,568426495,0,0,PLAT_AP,PS_DIAL,psDialWakeupCheckPagingEvent_meas_s_1,P_SIG,swLogPrintf("PS DIAL , UE measure event to RRC ");
-277504,568428543,0,0,PLAT_AP,PS_DIAL,psDialWakeupCheckPagingEvent_reselect_s_1,P_SIG,swLogPrintf("PS DIAL , UE re-select event to RRC ");
-277504,568428544,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_s_1,P_SIG,swLogPrintf("PS DIAL , PS is ready , forward CP event : %d , to RRC ");
-277504,568430592,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_paging_1,P_SIG,swLogPrintf("PS DIAL , need wakeup PS , as recv UE paging , ret : %d ");
-277504,568432640,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_serving_1,P_SIG,swLogPrintf("PS DIAL , need wakeup PS , as serving cell measurement , ret : %d ");
-277504,568434688,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_cell_reselect_1,P_SIG,swLogPrintf("PS DIAL , need wakeup PS , as need cell re-selection , ret : %d ");
-277504,568436736,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_cell_meas_1,P_SIG,swLogPrintf("PS DIAL , need wakeup PS , as cell measurement event , ret : %d ");
-277504,568440831,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_not_start_ps_1,P_SIG,swLogPrintf("PS DIAL , proc CP event , not need wake up PS ");
-277504,568441088,0,0,PLAT_AP,PS_DIAL,psDialWakeupPs_value_1,P_VALUE,swLogPrintf("PS DIAL recv CMI CNF , SgId : %d , PrimId : %d , netif not recovery , still need pending ");
-277504,568444927,0,0,PLAT_AP,PS_DIAL,psDialFirstPowerOn_cfun0_1,P_SIG,swLogPrintf("PS DIAL , CFUN 0 power on , don ' t power on PS... ");
-277504,568446975,0,0,PLAT_AP,PS_DIAL,psDialFirstPowerOn_cfun4_1,P_SIG,swLogPrintf("PS DIAL , CFUN 4 power on , power on PS... ");
-277504,568446976,0,0,PLAT_AP,PS_DIAL,psDialFirstPowerOn_cfun1_w_1,P_WARNING,swLogPrintf("PS DIAL , unsupported poweron cfun : %d , change to CFUN 1 , power on PS... ");
-277504,568451071,0,0,PLAT_AP,PS_DIAL,psDialFirstPowerOn_cfun1_s_1,P_SIG,swLogPrintf("PS DIAL , CFUN 1 power on , power on PS... ");
-277504,568453119,0,0,PLAT_AP,PS_DIAL,psDialStartPs_w_1,P_WARNING,swLogPrintf("PS DIAL , PS task is ready , don ' t need to restart ");
-277504,568453376,0,0,PLAT_AP,PS_DIAL,psCamCmiReq_start_1,P_SIG,swLogPrintf("PS DIAL , request PS service , sgId : %d , primId : %d , need start PS firstly ");
+277504,568338431,0,0,PLAT_AP,PS_DIAL,psDialProcCmiDevSilentResetInd_1,P_WARNING,swLogPrintf("PS Silent Reset! ");
+277504,568338432,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsReadDynBearerCtxParamCnf_1,P_WARNING,swLogPrintf("CID : %d maybe a non-ip type bearer ");
+277504,568342527,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsReadDynBearerCtxParamCnf_2,P_VALUE,swLogPrintf("PS DIAL , BEARER don ' t has valid context , maybe dedicated BR , or not acted ");
+277504,568344575,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsReadDynBearerCtxParamCnf_ded_1,P_VALUE,swLogPrintf("PS DIAL , wakeup proc , CGSCONTRDP get all activated dedicated BR ");
+277504,568346623,0,0,PLAT_AP,PS_DIAL,psDialProcCmiPsReadDedBearerDynCtxParamCnf_tft_1,P_VALUE,swLogPrintf("PS DIAL , wakeup proc , CGTFTRDP get all activated TFT config ");
+277504,568348671,0,0,PLAT_AP,PS_DIAL,psDialProcCmiDevSetPowerStateCnf_1,P_VALUE,swLogPrintf("PS DIAL , wakeup proc , CGCONTRDP get all activated default BR ");
+277504,568350719,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_5,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi get plmn dns fail ");
+277504,568352767,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_1,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi parse ipv4Dns0 fail ");
+277504,568354815,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_2,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi parse ipv4Dns1 fail ");
+277504,568356863,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_3,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi parse ipv6Dns0 fail ");
+277504,568358911,0,0,PLAT_AP,PS_DIAL,psDailGetCfgDnsByUeImsi_4,P_WARNING,swLogPrintf("psDailGetCfgDnsByUeImsi parse ipv6Dns1 fail ");
+277504,568359168,0,0,PLAT_AP,PS_DIAL,psDailGetPlmnPreferBandList_1,P_WARNING,swLogPrintf("Can ' t find DialPlmnCfg for PLMN : 0x%x , 0x%x , can ' t get prefer band ");
+277504,568360960,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndBindCid_no_net_0,P_VALUE,swLogPrintf("PS DIAL NET , usbCtrl %d , not enable RNDIS / ECM , not need bind CID ");
+277504,568363264,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndBindCid_invalid_cid_1,P_WARNING,swLogPrintf("PS DIAL NET , NETDEVCTL opt : %d , but req bind invalid CID : %d , can ' t bind ");
+277504,568365056,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndBindCid_def_1,P_VALUE,swLogPrintf("PS DIAL NET , CID : %d not activated , can ' t bind ");
+277504,568367360,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndBindCid_unbind_1,P_VALUE,swLogPrintf("PS DIAL NET , try to bind new CID : %d , but need to unbind old CID : %d ");
+277504,568369152,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_no_net_0,P_VALUE,swLogPrintf("PS DIAL NET , usbCtrl %d , not enable RNDIS / ECM , not need check / act bound PDP ");
+277504,568371456,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_invalid_cid_1,P_WARNING,swLogPrintf("PS DIAL NET , NETDEVCTL opt : %d , but bind invalid CID : %d ");
+277504,568373248,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_ded_2,P_WARNING,swLogPrintf("PS DIAL NET , bind CID : %d not default BR , can ' t act and bind to RNDIS / ECM ");
+277504,568375296,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_def_1,P_VALUE,swLogPrintf("PS DIAL NET , bind CID : %d , default BR already activated ");
+277504,568377344,0,0,PLAT_AP,PS_DIAL,psDialNetCheckAndActPdp_act_1,P_VALUE,swLogPrintf("PS DIAl NET , get CGCONTRDP failed , try to act CID : %d ");
+277504,568381439,0,0,PLAT_AP,PS_DIAL,psDialNetDevCtl_none_0,P_VALUE,swLogPrintf("PS DIAL NET , NETDEVCTL no action need , return ");
+277504,568381440,0,0,PLAT_AP,PS_DIAL,psDialNetDevCtl_same_0,P_VALUE,swLogPrintf("PS DIAL NET , NETDEVCTL bind CID : %d , already bound before , return ");
+277504,568385535,0,0,PLAT_AP,PS_DIAL,psDialNetDevCtl_laninfo_w_0,P_WARNING,swLogPrintf("PS DIAL NET , Get LANStatus failed ");
+277504,568387583,0,0,PLAT_AP,PS_DIAL,psDialNetProcApplInd_unbind_1,P_VALUE,swLogPrintf("PS DIAL NET , ETH unbind , check whether need to rebind ");
+277504,568387584,0,0,PLAT_AP,PS_DIAL,psDialNetAutoDialCheck_0,P_VALUE,swLogPrintf("PS DIAL NET , cancel Auto Dial Check due to usbCtrl %d ");
+277504,568391679,0,0,PLAT_AP,PS_DIAL,psDialNetAutoDialCheck_2,P_VALUE,swLogPrintf("PS DIAl NET , getAllBearersCidsBasicInfo failed , report bind failure ");
+277504,568392448,0,0,PLAT_AP,PS_DIAL,psDialNetInit_1,P_VALUE,swLogPrintf("PS DIAL , Ethlan config , ethHostAddr : %u.%u.%u.%u ");
+277504,568394496,0,0,PLAT_AP,PS_DIAL,psDialNetInit_2,P_VALUE,swLogPrintf("PS DIAL , Ethlan config , ethLocalAddr : %u.%u.%u.%u ");
+277504,568395776,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_s_1,P_INFO,swLogPrintf("PS DIAL ISR , proc CP event : %e<CpPagingImgEventId> ");
+277504,568397824,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_w_1,P_WARNING,swLogPrintf("PS DIAL , CMS task already created , forward the CP event : %d , to task ");
+277504,568401919,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_paging_1,P_SIG,swLogPrintf("PS DIAL ISR , need wakeup AP & CP , as recv UE paging ");
+277504,568403967,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_paging_2,P_WARNING,swLogPrintf("PS DIAL ISR , only need wakeup AP , as recv UE paging ");
+277504,568406015,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_serving_1,P_SIG,swLogPrintf("PS DIAL ISR , need wakeup AP & CP , as serving cell measurement ");
+277504,568408063,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_serving_2,P_SIG,swLogPrintf("PS DIAL ISR , only need wakeup AP , as serving cell measurement ");
+277504,568410111,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_cell_reselect_1,P_SIG,swLogPrintf("PS DIAL ISR , need wakeup AP & CP , as need cell re-selection ");
+277504,568412159,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_cell_reselect_2,P_WARNING,swLogPrintf("PS DIAL ISR , only need wakeup AP , as need cell re-selection ");
+277504,568414207,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_cell_meas_1,P_SIG,swLogPrintf("PS DIAL ISR , need wakeup AP & CP , as cell measurement event ");
+277504,568416255,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_cell_meas_2,P_SIG,swLogPrintf("PS DIAL ISR , only need wakeup AP , as cell measurement event ");
+277504,568416256,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingImgEventIsr_err_1,P_ERROR,swLogPrintf("PS DIAL ISR , can ' t proc CP event : %d ");
+277504,568420351,0,0,PLAT_AP,PS_DIAL,cmsWakeupCheckPagingEvent_paging_s_1,P_SIG,swLogPrintf("PS DIAL , UE paging event to RRC ");
+277504,568422399,0,0,PLAT_AP,PS_DIAL,psDialWakeupCheckPagingEvent_meas_s_1,P_SIG,swLogPrintf("PS DIAL , UE measure event to RRC ");
+277504,568424447,0,0,PLAT_AP,PS_DIAL,psDialWakeupCheckPagingEvent_reselect_s_1,P_SIG,swLogPrintf("PS DIAL , UE re-select event to RRC ");
+277504,568424448,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_s_1,P_SIG,swLogPrintf("PS DIAL , PS is ready , forward CP event : %d , to RRC ");
+277504,568426496,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_paging_1,P_SIG,swLogPrintf("PS DIAL , need wakeup PS , as recv UE paging , ret : %d ");
+277504,568428544,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_serving_1,P_SIG,swLogPrintf("PS DIAL , need wakeup PS , as serving cell measurement , ret : %d ");
+277504,568430592,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_cell_reselect_1,P_SIG,swLogPrintf("PS DIAL , need wakeup PS , as need cell re-selection , ret : %d ");
+277504,568432640,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_cell_meas_1,P_SIG,swLogPrintf("PS DIAL , need wakeup PS , as cell measurement event , ret : %d ");
+277504,568436735,0,0,PLAT_AP,PS_DIAL,psDialProcCpPagingEventIndIsrSig_not_start_ps_1,P_SIG,swLogPrintf("PS DIAL , proc CP event , not need wake up PS ");
+277504,568436992,0,0,PLAT_AP,PS_DIAL,psDialWakeupPs_value_1,P_VALUE,swLogPrintf("PS DIAL recv CMI CNF , SgId : %d , PrimId : %d , netif not recovery , still need pending ");
+277504,568440831,0,0,PLAT_AP,PS_DIAL,psDialFirstPowerOn_cfun0_1,P_SIG,swLogPrintf("PS DIAL , CFUN 0 power on , don ' t power on PS... ");
+277504,568442879,0,0,PLAT_AP,PS_DIAL,psDialFirstPowerOn_cfun4_1,P_SIG,swLogPrintf("PS DIAL , CFUN 4 power on , power on PS... ");
+277504,568442880,0,0,PLAT_AP,PS_DIAL,psDialFirstPowerOn_cfun1_w_1,P_WARNING,swLogPrintf("PS DIAL , unsupported poweron cfun : %d , change to CFUN 1 , power on PS... ");
+277504,568446975,0,0,PLAT_AP,PS_DIAL,psDialFirstPowerOn_cfun1_s_1,P_SIG,swLogPrintf("PS DIAL , CFUN 1 power on , power on PS... ");
+277504,568449023,0,0,PLAT_AP,PS_DIAL,psDialStartPs_w_1,P_WARNING,swLogPrintf("PS DIAL , PS task is ready , don ' t need to restart ");
+277504,568449280,0,0,PLAT_AP,PS_DIAL,psCamCmiReq_start_1,P_SIG,swLogPrintf("PS DIAL , request PS service , sgId : %d , primId : %d , need start PS firstly ");
 278528,570427392,0,0,PLAT_AP,PS_STK_BIP,SendSignaltoSimBip_1,P_INFO,swLogPrintf("Send signal ( %x ) to simbip task! ");
 278528,570431487,0,0,PLAT_AP,PS_STK_BIP,SimBipLinkUp_1,P_WARNING,swLogPrintf("SIMBIP task has already been created ");
 278528,570433535,0,0,PLAT_AP,PS_STK_BIP,psStkBipProcGetDefinedCidListCnf_2,P_WARNING,swLogPrintf("the number of defined cid list is error! ");
@@ -8815,5 +8812,5 @@ cmsSigId_Enum,cmsSigId
 plat_config,plat_config_fs_t
 <end>
 OptionalSegment
-optional_sk_01,E09E9C6D989A19334A0D2E0FCED0730D61B5B8E7E73FAC8D2A72026D52DD7C0D
+optional_sk_01,80483E7255D1558E01DE5B5CBBDB5245BD8941517C98C913921B85B8E2B86298
 <end>
