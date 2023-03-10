@@ -8,7 +8,7 @@
 
 #define WLAN_SCAN_DONE 1
 
-static CmiDevSetWifiSacnReq wifiscanreq = {
+static const CmiDevSetWifiSacnReq wifiscanreq = {
     .maxTimeOut = 10000,
     .round = 1,
     .maxBssidNum = 40,
