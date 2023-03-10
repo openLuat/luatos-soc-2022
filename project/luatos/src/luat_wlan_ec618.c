@@ -3,23 +3,22 @@
 #include "luat_rtos.h"
 
 #include "common_api.h"
-#include "ps_lib_api.h"
+#include "ps_dev_if.h"
+#include "cmidev.h"
 
 #define WLAN_SCAN_DONE 1
 
-static SetWifiScanParams wifiscanreq = {
+static CmiDevSetWifiSacnReq wifiscanreq = {
     .maxTimeOut = 10000,
     .round = 1,
     .maxBssidNum = 40,
-    .scanTimeOut = 5,
+    .scanTimeOut = 20,
     .wifiPriority = 0,
     .channelRecLen = 280,
     .channelCount = 1
 };
 
-static GetWifiScanInfo *pWifiScanInfo = NULL;
-
-static luat_rtos_task_handle wlan_task_handle;
+static CmiDevSetWifiScanCnf *pWifiScanInfo = NULL;
 
 static int l_wlan_handler(lua_State *L, void* ptr) {
     rtos_msg_t* msg = (rtos_msg_t*)lua_topointer(L, -1);
@@ -39,33 +38,33 @@ static int l_wlan_handler(lua_State *L, void* ptr) {
     return 0;
 }
 
-static void wlan_task(void *param){
-    rtos_msg_t msg = {0};
-    msg.handler = l_wlan_handler;
-    msg.arg1 = WLAN_SCAN_DONE;
-    if (pWifiScanInfo == NULL)
-        pWifiScanInfo = (GetWifiScanInfo *)malloc(sizeof(GetWifiScanInfo));
-    if (pWifiScanInfo) {
-        memset(pWifiScanInfo, 0, sizeof(GetWifiScanInfo));
-        appGetWifiScanInfo(&wifiscanreq, pWifiScanInfo);
-        luat_msgbus_put(&msg, 0);
-    }
-    else {
-        DBG("out of memory when malloc GetWifiScanInfo");
-    }
-    luat_rtos_task_delete(wlan_task_handle);
-}
-
 int luat_wlan_init(luat_wlan_config_t *conf){
     DBG("wifi support scan only");
     return 0;
 }
 
+void luat_wlan_scan_ec618(UINT16 paramSize, void *pParam)
+{
+	devSetWIFISCAN(PS_DIAL_REQ_HANDLER, pParam);
+}
+
 int luat_wlan_scan(void){
-    if (luat_rtos_task_create(&wlan_task_handle, 4096, 20, "wlan", wlan_task, NULL, NULL)){
-    	return -1;
-    }
+	cmsNonBlockApiCall(luat_wlan_scan_ec618, sizeof(wifiscanreq), &wifiscanreq);
     return 0;
+}
+
+void luat_wlan_done_callback_ec618(void *param)
+{
+    rtos_msg_t msg = {0};
+    msg.handler = l_wlan_handler;
+    msg.arg1 = WLAN_SCAN_DONE;
+    if (pWifiScanInfo == NULL)
+        pWifiScanInfo = (CmiDevSetWifiScanCnf *)malloc(sizeof(CmiDevSetWifiScanCnf));
+    if (pWifiScanInfo) {
+        memset(pWifiScanInfo, 0, sizeof(CmiDevSetWifiScanCnf));
+        memcpy(pWifiScanInfo, param, sizeof(CmiDevSetWifiScanCnf));
+        luat_msgbus_put(&msg, 0);
+    }
 }
 
 int luat_wlan_scan_get_result(luat_wlan_scan_result_t *results, int ap_limit){

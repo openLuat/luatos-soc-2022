@@ -30,6 +30,7 @@
 #include "luat_sms.h"
 #include "luat_network_adapter.h"
 #include "ps_event_callback.h"
+#include "cmidev.h"
 #include "networkmgr.h"
 #include "plat_config.h"
 #include "driver_gpio.h"
@@ -43,7 +44,7 @@
 extern int luat_main(void);
 extern void luat_heap_init(void);
 extern void luat_pm_init(void);
-
+extern void luat_wlan_done_callback_ec618(void *param);
 
 const char *soc_get_sdk_type(void)
 {
@@ -157,6 +158,23 @@ static void luatos_task(void *param)
 
 void luat_mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status);
 void luat_sms_recv_cb(uint32_t event, void *param);
+
+void soc_service_misc_callback(uint8_t *data, uint32_t len)
+{
+	uint8_t sg_id = (((len)>>12)&0x000F);
+	uint16_t prim_id = ((len)&0x0FFF);
+	switch(sg_id)
+	{
+	case CAM_DEV:
+		switch(prim_id)
+		{
+		case CMI_DEV_SET_WIFISCAN_CNF:
+			luat_wlan_done_callback_ec618(data);
+			break;
+		}
+		break;
+	}
+}
 
 static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
 {

@@ -349,7 +349,7 @@ typedef struct
 	uint8_t dns_adapter_index;
 	uint8_t netif_network_ready;
 	uint8_t common_timer_active;
-	uint8_t fast_sleep_enable;
+//	uint8_t fast_sleep_enable;
 	uint8_t next_socket_index;
 }net_lwip_ctrl_struct;
 
@@ -2031,13 +2031,13 @@ void soc_remove_netif(struct netif *netif)
 	return;
 }
 
-void net_lwip_fast_sleep(uint8_t onoff)
-{
-	prvlwip.fast_sleep_enable = onoff;
-}
-
-PS_CODE_IN_RAM uint8_t soc_network_check_free_hook(void)
-{
-	return prvlwip.fast_sleep_enable || !(prvlwip.dns_client.is_run || prvlwip.socket_busy || prvlwip.socket_connect);
-}
-
+//void net_lwip_fast_sleep(uint8_t onoff)
+//{
+//	prvlwip.fast_sleep_enable = onoff;
+//}
+//
+//PS_CODE_IN_RAM uint8_t soc_network_check_free_hook(void)
+//{
+//	return prvlwip.fast_sleep_enable || !(prvlwip.dns_client.is_run || prvlwip.socket_busy || prvlwip.socket_connect);
+//}
+//
