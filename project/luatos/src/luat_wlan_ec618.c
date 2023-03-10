@@ -7,15 +7,17 @@
 
 #define WLAN_SCAN_DONE 1
 
-static const SetWifiScanParams wifiscanreq = {
+static SetWifiScanParams wifiscanreq = {
     .maxTimeOut = 10000,
     .round = 1,
-    .maxBssidNum = CMI_DEV_MAX_WIFI_BSSID_NUM,
+    .maxBssidNum = 40,
     .scanTimeOut = 5,
-    .wifiPriority = 0
+    .wifiPriority = 0,
+    .channelRecLen = 280,
+    .channelCount = 1
 };
 
-static GetWifiScanInfo *pWifiScanInfo = PNULL;
+static GetWifiScanInfo *pWifiScanInfo = NULL;
 
 static luat_rtos_task_handle wlan_task_handle;
 
