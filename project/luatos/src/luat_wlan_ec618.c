@@ -19,8 +19,6 @@ static SetWifiScanParams wifiscanreq = {
 
 static GetWifiScanInfo *pWifiScanInfo = NULL;
 
-static luat_rtos_task_handle wlan_task_handle;
-
 static int l_wlan_handler(lua_State *L, void* ptr) {
     rtos_msg_t* msg = (rtos_msg_t*)lua_topointer(L, -1);
     int32_t event_id = msg->arg1;
@@ -53,6 +51,7 @@ static void wlan_task(void *param){
     else {
         DBG("out of memory when malloc GetWifiScanInfo");
     }
+    luat_rtos_task_handle wlan_task_handle = luat_rtos_get_current_handle();
     luat_rtos_task_delete(wlan_task_handle);
 }
 
@@ -62,6 +61,7 @@ int luat_wlan_init(luat_wlan_config_t *conf){
 }
 
 int luat_wlan_scan(void){
+    luat_rtos_task_handle wlan_task_handle;
     if (luat_rtos_task_create(&wlan_task_handle, 4096, 20, "wlan", wlan_task, NULL, NULL)){
     	return -1;
     }
