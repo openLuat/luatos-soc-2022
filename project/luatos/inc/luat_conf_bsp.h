@@ -4,28 +4,6 @@
 
 #define LUAT_BSP_VERSION "V1104"
 
-// 启用64位虚拟机
-// #define LUAT_CONF_VM_64bit
-
-//-----------------------------
-// 内存配置, 默认200k, 128 ~ 300k 可调
-// 一般无需修改. 若不需要使用SSL/TLS/TTS,可适当增加,但不应该超过300k
-//#define LUAT_HEAP_SIZE (200*1024)
-//-----------------------------
-
-#define LUAT_SCRIPT_SIZE 128
-#define LUAT_SCRIPT_OTA_SIZE 96
-//------- V1103 及之前版本的默认值, 适合云喇叭的配置, V1104开始改成默认的128+96方案
-// #define LUAT_SCRIPT_SIZE 448
-// #define LUAT_SCRIPT_OTA_SIZE 284
-
-// 适合tts_onchip的极限操作, 无需外置SPI FLASH也支持TTS.
-// 一定要看 LUAT_USE_TTS_ONCHIP的说明
-// #define LUAT_SCRIPT_SIZE 64
-// #define LUAT_SCRIPT_OTA_SIZE 48
-// #define LUAT_SCRIPT_SIZE 32
-// #define LUAT_SCRIPT_OTA_SIZE 24
-
 //------------------------------------------------------
 // 以下custom --> 到  <-- custom 之间的内容,是供用户配置的
 // 同时也是云编译可配置的部分. 提交代码时切勿删除会修改标识
@@ -195,9 +173,42 @@
 #define LUAT_USE_LVGL_TILEVIEW   //平铺视图 依赖页面PAGE
 #define LUAT_USE_LVGL_WIN   //窗口 依赖容器CONT 按钮BTN 标签LABEL 图片IMG 页面PAGE
 
+//-------------------------------------------------
+// 高级配置
+//-------------------------------------------------
+
+
+// 启用64位虚拟机
+// #define LUAT_CONF_VM_64bit
+
+// LITE模式, 数传固件的配置:
+// 1. 自动化启用/关闭相关的库设置
+// 2. 脚本区和脚本OTA区自动设置为448 + 284 布局, 与V1103相同 
+// #define LUAT_EC618_LITE_MODE
+
+//-----------------------------
+// 内存配置, 默认200k, 128 ~ 256k 可调
+// 一般无需修改. 若不需要使用SSL/TLS/TTS,可适当增加,但不应该超过256k
+//#define LUAT_HEAP_SIZE (200*1024)
+//-----------------------------
+
+#define LUAT_SCRIPT_SIZE 128
+#define LUAT_SCRIPT_OTA_SIZE 96
+//------- V1103 及之前版本的默认值, 适合云喇叭的配置, V1104开始改成默认的128+96方案
+// #define LUAT_SCRIPT_SIZE 448
+// #define LUAT_SCRIPT_OTA_SIZE 284
+
+// 适合tts_onchip的极限操作, 无需外置SPI FLASH也支持TTS.
+// 一定要看 LUAT_USE_TTS_ONCHIP的说明
+// #define LUAT_SCRIPT_SIZE 64
+// #define LUAT_SCRIPT_OTA_SIZE 48
+// #define LUAT_SCRIPT_SIZE 32
+// #define LUAT_SCRIPT_OTA_SIZE 24
+
 //-------------------------------------------------------------------------------
 //<-- custom
 //------------------------------------------------------------------------------
+
 
 // 以下选项仅开发人员可修改, 一般用户切勿自行修改
 
@@ -261,8 +272,31 @@
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_I2S
 
-#define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - (LUAT_SCRIPT_SIZE + LUAT_SCRIPT_OTA_SIZE) * 1024)
-#define LUA_SCRIPT_OTA_ADDR FLASH_FOTA_REGION_START - (LUAT_SCRIPT_OTA_SIZE * 1024)
+#ifdef LUAT_EC618_LITE_MODE
+#undef LUAT_USE_LCD
+#undef LUAT_USE_TJPGD
+#undef LUAT_USE_LORA
+#undef LUAT_USE_IR
+#undef USE_U8G2_OPPOSANSM_ENGLISH
+#undef LUAT_USE_EINK
+#undef LUAT_USE_FONTS
+#undef LUAT_USE_LVGL
+#undef LUAT_USE_DISP
+#undef LUAT_USE_GTFONT
+#undef LUAT_USE_FATFS
+#undef LUAT_USE_I2CTOOLS
+#undef LUAT_USE_SFUD
+#undef LUAT_USE_SFD
+#undef LUAT_SUPPORT_AMR
+#undef LUAT_USE_W5500
+
+#undef LUAT_SCRIPT_SIZE
+#undef LUAT_SCRIPT_OTA_SIZE
+
+#define LUAT_SCRIPT_SIZE 448
+#define LUAT_SCRIPT_OTA_SIZE 284
+
+#else
 
 #ifdef LUAT_USE_TTS
 #undef LUAT_USE_LCD
@@ -274,21 +308,27 @@
 #undef LUAT_USE_FONTS
 #undef LUAT_USE_LVGL
 #undef LUAT_USE_DISP
+#undef 
 
 #ifndef LUAT_USE_TTS_8K
 #define LUAT_USE_TTS_16K 1
-#endif
+#endif // LUAT_USE_TTS_8K
 
 #ifdef LUAT_USE_TTS_ONCHIP
 #undef LUAT_USE_SFUD
 #else
 #ifndef LUAT_USE_SFUD
 #define LUAT_USE_SFUD  1
-#endif
-#endif
+#endif // LUAT_USE_SFUD
+#endif // LUAT_USE_TTS_ONCHIP
+
+#endif // LUAT_USE_TTS
+
+#endif // LUAT_EC618_LITE_MODE
 
 
-#endif
+#define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - (LUAT_SCRIPT_SIZE + LUAT_SCRIPT_OTA_SIZE) * 1024)
+#define LUA_SCRIPT_OTA_ADDR FLASH_FOTA_REGION_START - (LUAT_SCRIPT_OTA_SIZE * 1024)
 
 #define __LUAT_C_CODE_IN_RAM__ __attribute__((__section__(".platFMRamcode")))
 
