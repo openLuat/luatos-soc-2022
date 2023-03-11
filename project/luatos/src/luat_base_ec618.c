@@ -239,6 +239,7 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_MAX30102
   {"max30102", luaopen_max30102},
 #endif
+  {"bit64", luaopen_bit64},
   {NULL, NULL}
 };
 
