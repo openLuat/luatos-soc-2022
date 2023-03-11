@@ -115,9 +115,17 @@ static int32_t luat_uart_cb(void *pData, void *pParam){
     switch (State){
         case UART_CB_TX_BUFFER_DONE:
 #ifdef __LUATOS__
-        	if (g_s_serials[uartid].rs485_param_bit.is_485used && g_s_serials[uartid].rs485_param_bit.wait_time)
+        	if (g_s_serials[uartid].rs485_param_bit.is_485used)
         	{
-        		luat_start_rtos_timer(g_s_serials[uartid].rs485_timer, g_s_serials[uartid].rs485_param_bit.wait_time, 0);
+        		if (g_s_serials[uartid].rs485_param_bit.wait_time)
+        		{
+        			luat_start_rtos_timer(g_s_serials[uartid].rs485_timer, g_s_serials[uartid].rs485_param_bit.wait_time, 0);
+        		}
+        		else
+        		{
+        			GPIO_Output(g_s_serials[uartid].rs485_pin, g_s_serials[uartid].rs485_param_bit.rx_level);
+        		}
+
         	}
         	else
 #endif
