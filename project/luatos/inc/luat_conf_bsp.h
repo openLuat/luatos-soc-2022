@@ -183,7 +183,7 @@
 
 // LITE模式, 数传固件的配置:
 // 1. 自动化启用/关闭相关的库设置
-// 2. 脚本区和脚本OTA区自动设置为448 + 284 布局, 与V1103相同 
+// 2. 脚本区和脚本OTA区自动设置为448 + 284 布局, 与V1103相同
 // #define LUAT_EC618_LITE_MODE
 
 //-----------------------------
@@ -310,7 +310,6 @@
 #undef LUAT_USE_FONTS
 #undef LUAT_USE_LVGL
 #undef LUAT_USE_DISP
-#undef 
 
 #ifndef LUAT_USE_TTS_8K
 #define LUAT_USE_TTS_16K 1
