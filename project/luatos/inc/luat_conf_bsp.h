@@ -194,8 +194,8 @@
 //#define LUAT_HEAP_SIZE (200*1024)
 //-----------------------------
 
-// #define LUAT_SCRIPT_SIZE 128
-// #define LUAT_SCRIPT_OTA_SIZE 96
+#define LUAT_SCRIPT_SIZE 128
+#define LUAT_SCRIPT_OTA_SIZE 96
 
 // 适合tts_onchip的极限操作, 无需外置SPI FLASH也支持TTS.
 // 一定要看 LUAT_USE_TTS_ONCHIP的说明
@@ -291,13 +291,7 @@
 #undef LUAT_USE_SOFT_UART
 #undef LUAT_USE_MINIZ
 
-#undef LUAT_SCRIPT_SIZE
-#undef LUAT_SCRIPT_OTA_SIZE
-
-#define LUAT_SCRIPT_SIZE 448
-#define LUAT_SCRIPT_OTA_SIZE 284
-
-#else
+#endif // LUAT_EC618_LITE_MODE
 
 #ifdef LUAT_USE_TTS
 #undef LUAT_USE_LCD
@@ -324,7 +318,6 @@
 
 #endif // LUAT_USE_TTS
 
-#endif // LUAT_EC618_LITE_MODE
 
 
 #define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - (LUAT_SCRIPT_SIZE + LUAT_SCRIPT_OTA_SIZE) * 1024)
