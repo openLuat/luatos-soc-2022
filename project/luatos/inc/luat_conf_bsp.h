@@ -293,6 +293,7 @@
 
 #endif // LUAT_EC618_LITE_MODE
 
+// TTS 相关
 #ifdef LUAT_USE_TTS
 #undef LUAT_USE_LCD
 #undef LUAT_USE_TJPGD
@@ -307,6 +308,10 @@
 #ifndef LUAT_USE_TTS_8K
 #define LUAT_USE_TTS_16K 1
 #endif // LUAT_USE_TTS_8K
+
+#ifndef LUAT_USE_MEDIA
+#define LUAT_USE_MEDIA 1
+#endif
 
 #ifdef LUAT_USE_TTS_ONCHIP
 #undef LUAT_USE_SFUD
