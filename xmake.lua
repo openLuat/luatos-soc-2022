@@ -270,6 +270,12 @@ if USER_PROJECT_NAME ~= 'luatos' then
                     SDK_TOP .. "/thirdparty/flashdb/inc",
                     {public = true})
 else
+    if os.getenv("LUAT_EC618_LITE_MODE") == "1" then
+        add_defines("LUAT_EC618_LITE_MODE")
+    end
+    if os.getenv("LUAT_USE_TTS") == "1" then
+        add_defines("LUAT_USE_TTS")
+    end
     add_defines("__LUATOS__","LWIP_NUM_SOCKETS=8")
     add_defines("MBEDTLS_CONFIG_FILE=\"mbedtls_ec618_config.h\"")
 end
