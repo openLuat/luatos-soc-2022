@@ -12,7 +12,7 @@
 #include "luat_debug.h"
 #include "luat_uart.h"
 #include "luat_gpio.h"
-
+#include "agnss.h"
 // 注意：780EG内部gnss芯片与串口2相连
 #define UART_ID 2
 
@@ -91,6 +91,7 @@ static void gnss_setup_task(void *param)
     cfg.alt_fun = 4;
     luat_gpio_open(&cfg);
     luat_rtos_task_sleep(200);
+    task_ephemeris();
     while (1)
     {
         char cmd2[] = "$AIDINFO";
@@ -269,6 +270,6 @@ static void task_gnss_init(void)
     luat_rtos_task_create(&gnss_task_handle, 1024 * 20, 20, "gnss", gnss_setup_task, NULL, NULL);
 }
 
-extern void task_ephemeris(void);
+extern void network_init(void);
 INIT_TASK_EXPORT(task_gnss_init, "1");
-INIT_TASK_EXPORT(task_ephemeris, "1");
+INIT_TASK_EXPORT(network_init, "1");
