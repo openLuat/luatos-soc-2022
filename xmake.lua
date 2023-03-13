@@ -484,7 +484,14 @@ target(USER_PROJECT_NAME..".elf")
                 os.cp("./PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h", OUT_PATH .. "/pack")
                 os.cp("$(projectdir)/project/luatos/inc/luat_conf_bsp.h", OUT_PATH.."/pack")
                 os.exec(path7z.." a -mx9 LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z "..OUT_PATH.."/pack/* -r")
-                os.mv("LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z", OUT_PATH.."/LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.soc")
+                local ver = "_FULL"
+                if os.getenv("LUAT_EC618_LITE_MODE") == "1" then
+                    ver = "_LITE"
+                end
+                if os.getenv("LUAT_USE_TTS") == "1" then
+                    ver = "_TTS"
+                end
+                os.mv("LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z", OUT_PATH.."/LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618"..ver..".soc")
                 os.rm(OUT_PATH.."/pack")
             else
                 print("7z not find")
