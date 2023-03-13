@@ -182,9 +182,11 @@
 // #define LUAT_CONF_VM_64bit
 
 // LITE模式, 数传固件的配置:
-// 1. 自动化启用/关闭相关的库设置
-// 2. 脚本区和脚本OTA区自动设置为448 + 284 布局, 与V1103相同
+// 1. 为了差分包大小,关闭部分库
+// 2. 脚本区和脚本OTA区设置为448 + 284 布局, 与V1103相同
 // #define LUAT_EC618_LITE_MODE
+// #define LUAT_SCRIPT_SIZE 448
+// #define LUAT_SCRIPT_OTA_SIZE 284
 
 //-----------------------------
 // 内存配置, 默认200k, 128 ~ 256k 可调
@@ -194,9 +196,6 @@
 
 #define LUAT_SCRIPT_SIZE 128
 #define LUAT_SCRIPT_OTA_SIZE 96
-//------- V1103 及之前版本的默认值, 适合云喇叭的配置, V1104开始改成默认的128+96方案
-// #define LUAT_SCRIPT_SIZE 448
-// #define LUAT_SCRIPT_OTA_SIZE 284
 
 // 适合tts_onchip的极限操作, 无需外置SPI FLASH也支持TTS.
 // 一定要看 LUAT_USE_TTS_ONCHIP的说明
@@ -292,14 +291,9 @@
 #undef LUAT_USE_SOFT_UART
 #undef LUAT_USE_MINIZ
 
-#undef LUAT_SCRIPT_SIZE
-#undef LUAT_SCRIPT_OTA_SIZE
+#endif // LUAT_EC618_LITE_MODE
 
-#define LUAT_SCRIPT_SIZE 448
-#define LUAT_SCRIPT_OTA_SIZE 284
-
-#else
-
+// TTS 相关
 #ifdef LUAT_USE_TTS
 #undef LUAT_USE_LCD
 #undef LUAT_USE_TJPGD
@@ -315,6 +309,10 @@
 #define LUAT_USE_TTS_16K 1
 #endif // LUAT_USE_TTS_8K
 
+#ifndef LUAT_USE_MEDIA
+#define LUAT_USE_MEDIA 1
+#endif
+
 #ifdef LUAT_USE_TTS_ONCHIP
 #undef LUAT_USE_SFUD
 #else
@@ -325,7 +323,6 @@
 
 #endif // LUAT_USE_TTS
 
-#endif // LUAT_EC618_LITE_MODE
 
 
 #define LUA_SCRIPT_ADDR (FLASH_FOTA_REGION_START - (LUAT_SCRIPT_SIZE + LUAT_SCRIPT_OTA_SIZE) * 1024)
