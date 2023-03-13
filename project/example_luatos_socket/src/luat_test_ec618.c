@@ -70,11 +70,13 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 
 static void luat_test_task(void *param)
 {
+	uint32_t all,now_free_block,min_free_block;
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
 	g_s_network_ctrl = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_init_ctrl(g_s_network_ctrl, g_s_task_handle, luat_test_socket_callback, NULL);
 	network_set_base_mode(g_s_network_ctrl, 1, 15000, 1, 300, 5, 9);
 	g_s_network_ctrl->is_debug = 1;
-	const char remote_ip[] = "2603:c023:1:5fcc:c028:8ed:49a7:6e08";
+	const char remote_ip[] = "112.125.89.8";
 	const char hello[] = "hello, luatos!";
 	uint8_t *tx_data = malloc(1024);
 	uint8_t *rx_data = malloc(1024);
@@ -85,13 +87,15 @@ static void luat_test_task(void *param)
 	cnt = 0;
 	while(1)
 	{
+		luat_meminfo_sys(&all, &now_free_block, &min_free_block);
+		LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
 		result = network_wait_link_up(g_s_network_ctrl, 60000);
 		if (result)
 		{
 			continue;
 		}
 
-		result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, 51288, 30000);
+		result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, 35228, 30000);
 		if (!result)
 		{
 			result = network_tx(g_s_network_ctrl, hello, sizeof(hello) - 1, 0, NULL, 0, &tx_len, 15000);
@@ -99,7 +103,7 @@ static void luat_test_task(void *param)
 			{
 				while(!result)
 				{
-					result = network_wait_rx(g_s_network_ctrl, 5000, &is_break, &is_timeout);
+					result = network_wait_rx(g_s_network_ctrl, 20000, &is_break, &is_timeout);
 					if (!result)
 					{
 						if (!is_timeout && !is_break)
@@ -126,10 +130,12 @@ static void luat_test_task(void *param)
 							}
 						}
 					}
+					luat_meminfo_sys(&all, &now_free_block, &min_free_block);
+					LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
 				}
 			}
 		}
-		LUAT_DEBUG_PRINT("网络断开，5秒后重试");
+		LUAT_DEBUG_PRINT("网络断开，15秒后重试");
 		network_close(g_s_network_ctrl, 5000);
 		luat_rtos_task_sleep(15000);
 	}
@@ -188,6 +194,7 @@ static void luat_test_init(void)
 	luat_rtos_task_create(&g_s_task_handle, 2 * 1024, 10, "test", luat_test_task, NULL, 16);
 	luat_rtos_task_create(&g_s_server_task_handle, 4 * 1024, 10, "server", luat_server_test_task, NULL, 16);
 	luat_mobile_set_default_pdn_ipv6(1);
+//	luat_mobile_set_rrc_auto_release_time(2);
 }
 
 INIT_TASK_EXPORT(luat_test_init, "1");
