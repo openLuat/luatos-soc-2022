@@ -290,6 +290,7 @@
 #undef LUAT_USE_W5500
 #undef LUAT_USE_SOFT_UART
 #undef LUAT_USE_MINIZ
+#undef LUAT_USE_OTP
 
 #endif // LUAT_EC618_LITE_MODE
 
