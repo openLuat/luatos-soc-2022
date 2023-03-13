@@ -486,7 +486,7 @@ target(USER_PROJECT_NAME..".elf")
                 os.exec(path7z.." a -mx9 LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z "..OUT_PATH.."/pack/* -r")
                 local ver = "_FULL"
                 if os.getenv("LUAT_EC618_LITE_MODE") == "1" then
-                    ver = "_LITE"
+                    ver = ""
                 end
                 if os.getenv("LUAT_USE_TTS") == "1" then
                     ver = "_TTS"
