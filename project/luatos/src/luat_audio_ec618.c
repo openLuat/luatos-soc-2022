@@ -230,11 +230,13 @@ int luat_audio_play_multi_files(uint8_t multimedia_id, uData_t *info, uint32_t f
 {
 	g_s_audio_hardware.raw_mode = 0;
 	uint32_t i;
+	if (files_num > 256) files_num = 256;
 	audio_play_info_t play_info[files_num];
 	for(i = 0; i < files_num; i++)
 	{
 		play_info[i].path = info[i].value.asBuffer.buffer;
 		play_info[i].address = 0;
+		play_info[0].fail_continue = !error_stop;
 	}
 	return audio_play_multi_files(multimedia_id, play_info, files_num);
 }
