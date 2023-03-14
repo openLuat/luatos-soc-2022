@@ -13,6 +13,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include "luat_fs.h"
+#include "agnss.h"
 
 #define LBSLOC_SERVER_UDP_IP "bs.openluat.com" // 基站定位网址
 #define LBSLOC_SERVER_UDP_PORT 12411           // 端口
@@ -30,7 +32,7 @@ static bool ddddtoddmm(char *location, char *test)
     char tmpstr[15] = {0};
     float tmp = 0;
     integer = strtok(location, ".");
-    if(integer)
+    if (integer)
     {
         fraction = strtok(NULL, ".");
         sprintf(tmpstr, "0.%d", atoi(fraction));
@@ -43,7 +45,6 @@ static bool ddddtoddmm(char *location, char *test)
     }
     return false;
 }
-
 
 /// @brief 把string 转换为BCD 编码
 /// @param arr 字符串输入
@@ -269,7 +270,7 @@ static void lbsloc_task(void *arg)
     {
         LUAT_DEBUG_PRINT("location_service_task send lbsLoc request success");
         ret = recv(socket_id, &locationServiceResponse, sizeof(struct am_location_service_rsp_data_t), 0);
-        if(ret > 0)
+        if (ret > 0)
         {
             LUAT_DEBUG_PRINT("location_service_task recv lbsLoc success %d", ret);
             if (sizeof(struct am_location_service_rsp_data_t) == ret)
@@ -281,7 +282,7 @@ static void lbsloc_task(void *arg)
                     char data_buf[60] = {0};
                     snprintf(data_buf, 60, "$AIDTIME,%d,%d,%d,%d,%d,%d,000\r\n", year, month, day, hour, minute, second);
                     LUAT_DEBUG_PRINT("location_service_task: AIDTIME %s", data_buf);
-                    luat_uart_write(2, data_buf, strlen(data_buf));
+                    luat_uart_write(UART_ID, data_buf, strlen(data_buf));
                     luat_rtos_task_sleep(200);
                     memset(data_buf, 0x00, 60);
                     char lat[20] = {0};
@@ -290,7 +291,7 @@ static void lbsloc_task(void *arg)
                     ddddtoddmm(longitude, lng);
                     snprintf(data_buf, 60, "$AIDPOS,%s,N,%s,E,1.0\r\n", lat, lng);
                     LUAT_DEBUG_PRINT("location_service_task: AIDPOS %s", data_buf);
-                    luat_uart_write(2, data_buf, strlen(data_buf));
+                    luat_uart_write(UART_ID, data_buf, strlen(data_buf));
                 }
                 else
                 {
@@ -330,32 +331,37 @@ void lbsloc_request(void)
         LUAT_DEBUG_PRINT("lbsloc task create fail");
 }
 
+#define HTTP_RECV_BUF_SIZE (1500)
+#define HTTP_HEAD_BUF_SIZE (800)
+#define EPH_HOST "http://download.openluat.com/9501-xingli/HXXT_GPS_BDS_AGNSS_DATA.dat"
 
-#define HTTP_RECV_BUF_SIZE      (6000)
-#define HTTP_HEAD_BUF_SIZE      (800)
-#define TEST_HOST "http://download.openluat.com/9501-xingli/HXXT_GPS_BDS_AGNSS_DATA.dat"
-
-static HttpClientContext        gHttpClient = {0};
-static luat_rtos_semaphore_t net_semaphore_handle;
+static g_s_network_status = 0;
+static HttpClientContext gHttpClient = {0};
 static luat_rtos_task_handle http_task_handle;
 
-void mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status){
-    if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_ON){
+void mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
+{
+    if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_ON)
+    {
         LUAT_DEBUG_PRINT("network ready");
-        luat_rtos_semaphore_release(net_semaphore_handle);
+        g_s_network_status = 1;
+    }
+    else if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_OFF)
+    {
+        LUAT_DEBUG_PRINT("network no ready");
+        g_s_network_status = 0;
     }
 }
 
-
-
-static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len, UINT32 *dataLen)
+static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
 {
     HTTPResult result = HTTP_INTERNAL;
-    HttpClientData    clientData = {0};
+    HttpClientData clientData = {0};
     UINT32 count = 0;
+    FILE *fp1 = NULL;
     uint16_t headerLen = 0;
 
-    LUAT_DEBUG_ASSERT(buf != NULL,0,0,0);
+    LUAT_DEBUG_ASSERT(buf != NULL, 0, 0, 0);
 
     clientData.headerBuf = malloc(HTTP_HEAD_BUF_SIZE);
     clientData.headerBufLen = HTTP_HEAD_BUF_SIZE;
@@ -366,75 +372,71 @@ static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len, UINT32 *dataLen)
     LUAT_DEBUG_PRINT("send request result=%d", result);
     if (result != HTTP_OK)
         goto exit;
-    do {
-    	LUAT_DEBUG_PRINT("recvResponse loop.");
+    do
+    {
+        LUAT_DEBUG_PRINT("recvResponse loop.");
         memset(clientData.headerBuf, 0, clientData.headerBufLen);
         memset(clientData.respBuf, 0, clientData.respBufLen);
         result = httpRecvResponse(&gHttpClient, &clientData);
-        if(result == HTTP_OK || result == HTTP_MOREDATA){
+        if (result == HTTP_OK || result == HTTP_MOREDATA)
+        {
             headerLen = strlen(clientData.headerBuf);
-            if(headerLen > 0)
+            if (headerLen > 0)
             {
-            	LUAT_DEBUG_PRINT("total content length=%d", clientData.recvContentLength);
+                fp1 = luat_fs_fopen(EPH_FILE_PATH, "w+");
+                LUAT_DEBUG_PRINT("total content length=%d", clientData.recvContentLength);
             }
 
-            if(clientData.blockContentLen > 0)
+            if (clientData.blockContentLen > 0)
             {
-            	LUAT_DEBUG_PRINT("response content:{%s}", (uint8_t*)clientData.respBuf);
+                LUAT_DEBUG_PRINT("response content:{%s}", (uint8_t *)clientData.respBuf);
+                luat_fs_fwrite((uint8_t *)clientData.respBuf, clientData.blockContentLen, 1, fp1);
             }
             count += clientData.blockContentLen;
-            *dataLen = *dataLen + count;
             LUAT_DEBUG_PRINT("has recv=%d", count);
         }
     } while (result == HTTP_MOREDATA || result == HTTP_CONN);
-
+    luat_fs_fclose(fp1);
     LUAT_DEBUG_PRINT("result=%d", result);
     if (gHttpClient.httpResponseCode < 200 || gHttpClient.httpResponseCode > 404)
     {
-    	LUAT_DEBUG_PRINT("invalid http response code=%d",gHttpClient.httpResponseCode);
-    } else if (count == 0 || count != clientData.recvContentLength) {
-    	LUAT_DEBUG_PRINT("data not receive complete");
-    } else {
-    	LUAT_DEBUG_PRINT("receive success");
+        LUAT_DEBUG_PRINT("invalid http response code=%d", gHttpClient.httpResponseCode);
+    }
+    else if (count == 0 || count != clientData.recvContentLength)
+    {
+        LUAT_DEBUG_PRINT("data not receive complete");
+    }
+    else
+    {
+        LUAT_DEBUG_PRINT("receive success");
     }
 exit:
     free(clientData.headerBuf);
     return result;
 }
 
-
-static void ephemeris_get_task(void *param)
+static bool update_eph()
 {
-    luat_rtos_semaphore_create(&net_semaphore_handle, 1);
-    luat_mobile_event_register_handler(mobile_event_callback);
-    luat_rtos_semaphore_take(net_semaphore_handle, LUAT_WAIT_FOREVER);
-
-	char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
-	HTTPResult result = HTTP_INTERNAL;
-    uint32_t dataLen = 0;
+    char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
+    HTTPResult result = HTTP_INTERNAL;
     gHttpClient.timeout_s = 2;
     gHttpClient.timeout_r = 20;
-    
-    result = httpConnect(&gHttpClient, TEST_HOST);
+    FILE *fp = NULL;
+    result = httpConnect(&gHttpClient, EPH_HOST);
     if (result == HTTP_OK)
     {
-        result = httpGetData(TEST_HOST, recvBuf, HTTP_RECV_BUF_SIZE, &dataLen);
+        result = httpGetData(EPH_HOST, recvBuf, HTTP_RECV_BUF_SIZE);
         httpClose(&gHttpClient);
-
         if (result == HTTP_OK)
         {
-            LUAT_DEBUG_PRINT("http client get data success %d", dataLen);
-
-            for (size_t i = 0; i < dataLen; i = i + 512)
-            {
-                if (i + 512 < dataLen)
-                    luat_uart_write(UART_ID, &recvBuf[i], 512);
-                else
-                    luat_uart_write(UART_ID, &recvBuf[i], dataLen - i);
-                luat_rtos_task_sleep(100);
-            }
+            time_t nowtime;
+            time(&nowtime);
+            LUAT_DEBUG_PRINT("http client get data success %d", nowtime);
         }
-        lbsloc_request();
+        else
+        {
+            luat_fs_remove(EPH_FILE_PATH);
+        }
     }
     else
     {
@@ -442,10 +444,80 @@ static void ephemeris_get_task(void *param)
     }
     memset(recvBuf, 0x00, HTTP_RECV_BUF_SIZE);
     free(recvBuf);
-	luat_rtos_task_delete(http_task_handle);
+
+    if (result != HTTP_OK)
+    {
+        return false;
+    }
+    return true;
 }
 
+static void ephemeris_get_task(void *param)
+{
+    while (1)
+    {
+        while (g_s_network_status != 1)
+        {
+            LUAT_DEBUG_PRINT("http wait network ready");
+            luat_rtos_task_sleep(1000);
+        }
+
+        if (luat_fs_fexist(EPH_FILE_PATH) != 0)
+        {
+            size_t size = luat_fs_fsize(EPH_FILE_PATH);
+            uint8_t *data = NULL;
+            data = (uint8_t *)luat_heap_malloc(size);
+            FILE *fp1 = luat_fs_fopen(EPH_FILE_PATH, "r");
+            luat_fs_fread(data, size, 1, fp1);
+            luat_fs_fclose(fp1);
+            for (size_t i = 0; i < size; i = i + 512)
+            {
+                if (i + 512 < size)
+                    luat_uart_write(UART_ID, (uint8_t *)&data[i], 512);
+                else
+                    luat_uart_write(UART_ID, (uint8_t *)&data[i], size - i);
+                luat_rtos_task_sleep(100);
+            }
+            lbsloc_request();
+            luat_rtos_task_sleep(4 * 60 * 60 * 1000);
+        }
+        else
+        {
+
+            bool result = update_eph();
+            if (result)
+            {
+                size_t size = luat_fs_fsize(EPH_FILE_PATH);
+                uint8_t *data = NULL;
+                data = (uint8_t *)luat_heap_malloc(size);
+                FILE *fp1 = luat_fs_fopen(EPH_FILE_PATH, "r");
+                luat_fs_fread(data, size, 1, fp1);
+                luat_fs_fclose(fp1);
+                for (size_t i = 0; i < size; i = i + 512)
+                {
+                    if (i + 512 < size)
+                        luat_uart_write(UART_ID, (uint8_t *)&data[i], 512);
+                    else
+                        luat_uart_write(UART_ID, (uint8_t *)&data[i], size - i);
+                    luat_rtos_task_sleep(100);
+                }
+                lbsloc_request();
+                luat_rtos_task_sleep(4 * 60 * 60 * 1000);
+            }
+            else
+            {
+                luat_rtos_task_sleep(30000);
+            }
+        }
+        luat_rtos_task_delete(http_task_handle);
+    }
+}
 void task_ephemeris(void)
 {
-	luat_rtos_task_create(&http_task_handle, 10*1024, 20, "http", ephemeris_get_task, NULL, NULL);
+    luat_rtos_task_create(&http_task_handle, 10 * 1024, 20, "http", ephemeris_get_task, NULL, NULL);
+}
+
+void network_init(void)
+{
+    luat_mobile_event_register_handler(mobile_event_callback);
 }
