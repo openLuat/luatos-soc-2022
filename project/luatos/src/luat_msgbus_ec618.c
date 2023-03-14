@@ -1,9 +1,10 @@
 
 #include "luat_msgbus.h"
 
+
+#if 0
 #include "FreeRTOS.h"
 #include "queue.h"
-
 #define QUEUE_LENGTH 0xFF
 #define ITEM_SIZE sizeof(rtos_msg_t)
 
@@ -41,3 +42,23 @@ uint32_t luat_msgbus_freesize(void) {
         return 1;
     return 1;
 }
+#else
+#include "luat_rtos.h"
+static void * prvTaskHandle;
+void luat_msgbus_init(void) {
+	prvTaskHandle = luat_rtos_get_current_handle();
+}
+
+uint32_t luat_msgbus_put(rtos_msg_t* msg, size_t timeout) {
+	return send_event_to_task(prvTaskHandle, msg, 0, 0, 0, 0, 0);
+}
+
+uint32_t luat_msgbus_get(rtos_msg_t* msg, size_t timeout) {
+    return get_event_from_task(prvTaskHandle, 0, msg, NULL, timeout);
+}
+
+uint32_t luat_msgbus_freesize(void) {
+    return 1;
+}
+
+#endif

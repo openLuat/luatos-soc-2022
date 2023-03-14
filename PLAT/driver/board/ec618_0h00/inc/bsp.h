@@ -23,15 +23,9 @@ extern "C" {
 #define EVB_VERSION     "EC618_HW_V"EVB_MAJOR_VERSION"."EVB_MINOR_VERSION
 #define VERSION_INFO    "-- SDK Version: "SDK_VERSION" -- "STRING_EOL"-- EVB Version: "EVB_VERSION" -- "STRING_EOL
 
-#ifdef __USER_CODE__
-#define BSP_HEADER       STRING_EOL"-- Board: "BOARD_NAME " -- "STRING_EOL \
-                         VERSION_INFO \
-                        "-- Compiled: Feb  1 2023 00:00:00 -- "STRING_EOL
-#else
 #define BSP_HEADER       STRING_EOL"-- Board: "BOARD_NAME " -- "STRING_EOL \
                          VERSION_INFO \
                         "-- Compiled: "__DATE__" "__TIME__" -- "STRING_EOL
-#endif
 
 #define ATI_VERSION_INFO       STRING_EOL"-- Board: "BOARD_NAME " -- "STRING_EOL \
                                "-- SDK Version: "SDK_VERSION" -- "STRING_EOL
