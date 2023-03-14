@@ -110,7 +110,7 @@ int luat_uart_write(int uart_id, void* data, size_t length);
  * @param uart_id 串口id
  * @param buffer 数据
  * @param length 数据长度
- * @return int 
+ * @return int 读取到的实际长度，如果buffer为NULL，为接收缓存里当前的数据长度
  */
 int luat_uart_read(int uart_id, void* buffer, size_t length);
 

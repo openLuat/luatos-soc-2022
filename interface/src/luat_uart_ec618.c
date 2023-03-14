@@ -285,6 +285,10 @@ int luat_uart_read(int uartid, void* buffer, size_t len) {
     if (luat_uart_exist(uartid)) {
 
         if (uartid >= MAX_DEVICE_COUNT){
+        	if (!buffer)
+        	{
+        		return g_s_vuart_rx_buffer.Pos;
+        	}
             rcount = (g_s_vuart_rx_buffer.Pos > len)?len:g_s_vuart_rx_buffer.Pos;
             memcpy(buffer, g_s_vuart_rx_buffer.Data, rcount);
             OS_BufferRemove(&g_s_vuart_rx_buffer, rcount);
