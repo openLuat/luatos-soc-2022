@@ -1,12 +1,16 @@
 #include "audio_Task.h"
 QueueHandle_t audioQueueHandle = NULL;
-
+/*
+*demo 默认的是780E开发板加音频核心小板
+*使用云喇叭开发板需要将 air780e_tm8211 的宏置1，默认关闭
+*使用软件DAC播放，需要打开soft_dac 的引脚，关闭air780e_tm8211的宏
+*/
 /*-------------------------------------------------audio define-----------------------------------------------*/
 static osEventFlagsId_t waitAudioPlayDone = NULL;
 static HANDLE g_s_delay_timer;
-
+#define soft_dac 0 //支持通过DAC引脚播放
 #define air780e_tm8211 0
-int volumn_value=10; //音量取值复位 0~~15
+int volumn_value=10; //音量取值复位0~~15
 /*-------------------------------------------------audio define-----------------------------------------------*/
 /*------------------------------------------------audio-----------------------------------------------*/
 
@@ -20,9 +24,6 @@ void app_pa_on(uint32_t arg)
 }
 void audio_event_cb(uint32_t event, void *param)
 {
-    //	PadConfig_t pad_config;
-    //	GpioPinConfig_t gpio_config;
-
     LUAT_DEBUG_PRINT("%d", event);
     switch (event)
     {
@@ -31,7 +32,7 @@ void audio_event_cb(uint32_t event, void *param)
         luat_audio_play_write_blank_raw(0, 6, 1);
         break;
     case LUAT_MULTIMEDIA_CB_AUDIO_OUTPUT_START:
-        if (1 == air780e_tm8211)
+        if ((1 == air780e_tm8211) || (1 == soft_dac))
         {
             luat_rtos_timer_start(g_s_delay_timer, 200, 0, app_pa_on, NULL);
         }
@@ -49,7 +50,7 @@ void audio_event_cb(uint32_t event, void *param)
     case LUAT_MULTIMEDIA_CB_AUDIO_DONE:
         luat_rtos_timer_stop(g_s_delay_timer);
         LUAT_DEBUG_PRINT("audio play done, result=%d!", luat_audio_play_get_last_error(0));
-        if (1 == air780e_tm8211)
+        if ((1 == air780e_tm8211) || (1 == soft_dac))
         {
             luat_gpio_set(PA_PWR_PIN, 0);
         }
@@ -63,15 +64,21 @@ void audio_task(void *param)
     luat_rtos_timer_create(&g_s_delay_timer);
     luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, luat_audio_play_tts_default_fun, NULL);
     luat_audio_play_tts_set_resource(ivtts_16k, sdk_id, NULL);
-
-    if (1 == air780e_tm8211)
+    if (1 == soft_dac)
     {
-        luat_i2s_base_setup(0, I2S_MODE_MSB, I2S_FRAME_SIZE_16_16); // 云喇叭开发板TM8211 
+        luat_audio_play_set_bus_type(LUAT_AUDIO_BUS_SOFT_DAC);
     }
     else
     {
-        // air780E +音频小板
-        luat_i2s_base_setup(0, I2S_MODE_I2S, I2S_FRAME_SIZE_16_16);
+        if (1 == air780e_tm8211)
+        {
+            luat_i2s_base_setup(0, I2S_MODE_MSB, I2S_FRAME_SIZE_16_16); // 云喇叭开发板TM8211
+        }
+        else
+        {
+            // air780E +音频小板
+            luat_i2s_base_setup(0, I2S_MODE_I2S, I2S_FRAME_SIZE_16_16);
+        }
     }
     audioQueueData audioQueueRecv = {0};
     uint32_t result = 0;
@@ -121,8 +128,7 @@ void audio_task_init(void)
     luat_gpio_cfg_t gpio_cfg;
     luat_gpio_set_default_cfg(&gpio_cfg);
     luat_rtos_task_handle audio_task_handle;
-
-    if (1 == air780e_tm8211)
+    if ((1 == air780e_tm8211) || (1 == soft_dac))//使用tm8211 soft_dac 引脚都需要打开PA的控制引脚
     {
         gpio_cfg.pin = PA_PWR_PIN;
         luat_gpio_open(&gpio_cfg);
