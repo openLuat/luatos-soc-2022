@@ -798,7 +798,7 @@ static void LFS_daemonTaskEntry(void *arg)
 
 void LFS_adjustDaemonTaskPriority(void)
 {
-    osThreadSetPriority(gLfsDaemonTaskthreadId, osPriorityNormal7);
+    osThreadSetPriority(gLfsDaemonTaskthreadId, osPriorityNormal1);
 }
 
 int lfs_ready;
