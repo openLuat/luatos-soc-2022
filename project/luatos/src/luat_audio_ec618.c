@@ -117,6 +117,7 @@ static void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t cha
 	//这里可以对音频数据进行软件音量缩放，或者直接清空来静音
 	if (g_s_audio_hardware.vol != 100)
 	{
+		int16_t val = g_s_audio_hardware.vol;
 		int16_t *i16 = (int16_t *)data;
 		uint32_t i = 0;
 		uint32_t pos = 0;
@@ -124,7 +125,7 @@ static void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t cha
 		while(pos < len)
 		{
 			temp = i16[i];
-			temp = temp * g_s_audio_hardware.vol / 100;
+			temp = temp * val / 100;
 			if (temp > 32767)
 			{
 				temp = 32767;
