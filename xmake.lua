@@ -442,8 +442,12 @@ target(USER_PROJECT_NAME..".elf")
             -- 准备自定义打包程序
             cmd = os.getenv("BINPKG_CROSS") .. cmd
         else
-            cmd = "./PLAT/tools/fcelf.exe " .. cmd
-		end
+            if is_plat("windows") then
+                cmd = "./PLAT/tools/fcelf.exe " .. cmd
+            else
+                cmd = "./fcelf " .. cmd
+            end
+        end
         cmd = cmd .. " -outfile " .. "./out/" ..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".binpkg"
         -- 如果所在平台没有fcelf, 可注释掉下面的行, 没有binpkg生成. 
         -- 仍可使用其他工具继续刷机
