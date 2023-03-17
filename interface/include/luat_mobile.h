@@ -148,7 +148,7 @@ void luat_mobile_user_ctrl_apn(void);
 
 /**
  * @brief 手动设置APN激活所需的最小信息，如果需要更详细的设置，可以自行修改本函数
- *
+ * @attention 需要在mobile_event 回调里面使用，具体用法参考example_apn demo
  * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
  * @param cid cid位置 2~6
  * @param type 激活类型 1 IPV4 2 IPV6 3 IPV4V6
@@ -161,7 +161,7 @@ int luat_mobile_set_apn_base_info(int sim_id, int cid, uint8_t type, uint8_t* ap
 
 /**
  * @brief 手动设置APN激活所需的加密信息，如果需要更详细的设置，可以自行修改本函数。大部分情况下不需要加密信息，定向卡可能需要
- *
+ * @attention 需要在mobile_event 回调里面使用，具体用法参考example_apn demo
  * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
  * @param cid cid位置 2~6
  * @param protocol 加密协议 0~2，0xff表示不需要
@@ -176,7 +176,7 @@ int luat_mobile_set_apn_auth_info(int sim_id, int cid, uint8_t protocol, uint8_t
 
 /**
  * @brief 手动激活/去激活APN
- *
+ * @attention 需要在mobile_event 回调里面使用，具体用法参考example_apn demo
  * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
  * @param cid cid位置 2~6
  * @param state 1激活 0去激活
@@ -186,7 +186,7 @@ int luat_mobile_active_apn(int sim_id, int cid, uint8_t state);
 
 /**
  * @brief 手动激活网卡
- *
+ * @attention 需要在mobile_event 回调里面使用，具体用法参考example_apn demo
  * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
  * @param cid cid位置 2~6
  * @return int <= 0错误 >0实际传出的大小
