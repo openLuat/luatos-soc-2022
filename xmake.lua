@@ -77,8 +77,9 @@ end
 if os.getenv("ROOT_PATH") then
 	SDK_TOP = os.getenv("ROOT_PATH")
 else
-	SDK_TOP = os.curdir().."/"
+	SDK_TOP = os.curdir()
 end
+SDK_TOP = SDK_TOP .. "/"
 SDK_PATH = SDK_TOP
 
 if os.getenv("PROJECT_DIR") then

@@ -42,9 +42,9 @@ echo "RNDIS     : $EC618_RNDIS"
 echo "=============================="
 
 if test "$3" = "-v"; then
-	xmake -v
+	xmake --root -v
 else
-	xmake -w
+	xmake --root -w
 fi
 
 echo "-------------------------"
