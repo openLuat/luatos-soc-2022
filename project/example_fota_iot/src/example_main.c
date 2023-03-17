@@ -53,7 +53,7 @@ FOTA应用开发可以参考：https://doc.openluat.com/wiki/37?wiki_page_id=472
 */
 
 char g_test_server_name[200] = {0};
-#define TEST_HOST "http://iot.openluat.com"
+#define IOT_FOTA_URL "http://iot.openluat.com"
 #define HTTP_RECV_BUF_SIZE      (1501)
 #define HTTP_HEAD_BUF_SIZE      (800)
 
@@ -62,6 +62,8 @@ char g_test_server_name[200] = {0};
 static HttpClientContext        gHttpClient = {0};
 luat_fota_img_proc_ctx_ptr test_luat_fota_handle = NULL;
 
+static int stepLen = 0;
+static int totalLen = 0;
 
 const char *soc_get_sdk_type(void) //用户可以重新实现这个函数，自定义版本名称
 {
@@ -87,7 +89,12 @@ static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
     clientData.headerBufLen = HTTP_HEAD_BUF_SIZE;
     clientData.respBuf = buf;
     clientData.respBufLen = len;
-    
+    if(stepLen != 0)
+    {
+        clientData.isRange = true;
+        clientData.rangeHead = stepLen;
+        clientData.rangeTail = -1;
+    }
     result = httpSendRequest(&gHttpClient, getUrl, HTTP_GET, &clientData);
     LUAT_DEBUG_PRINT("send request result=%d", result);
     if (result != HTTP_OK)
@@ -101,10 +108,12 @@ static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
             headerLen = strlen(clientData.headerBuf);
             if(headerLen > 0)
             {
-            	LUAT_DEBUG_PRINT("total content length=%d", clientData.recvContentLength);
-                test_luat_fota_handle = luat_fota_init();
+                if(stepLen == 0)
+                {
+                    totalLen = clientData.recvContentLength;
+            	    LUAT_DEBUG_PRINT("total content length=%d", clientData.recvContentLength);
+                }
             }
-
             if(clientData.blockContentLen > 0)
             {
             	LUAT_DEBUG_PRINT("response content:{%s}", (uint8_t*)clientData.respBuf);
@@ -117,9 +126,8 @@ static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
                     LUAT_DEBUG_PRINT("fota update error");
                 }
             }
+            stepLen += clientData.blockContentLen;
             count += clientData.blockContentLen;
-
-            
             LUAT_DEBUG_PRINT("has recv=%d", count);
         }
     } while (result == HTTP_MOREDATA || result == HTTP_CONN);
@@ -138,66 +146,83 @@ exit:
     return result;
 }
 
-luat_rtos_semaphore_t net_semaphore_handle;
-luat_rtos_task_handle https_task_handle;
+luat_rtos_task_handle fota_task_handle;
+
+static uint8_t g_s_network_status = 0;
 
 void mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status){
-    if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_ON){
-        LUAT_DEBUG_PRINT("network ready");
-        luat_rtos_semaphore_release(net_semaphore_handle);
+    if (event == LUAT_MOBILE_EVENT_NETIF)
+    {
+        if(status == LUAT_MOBILE_NETIF_LINK_ON)
+        {
+            g_s_network_status = 1;
+            LUAT_DEBUG_PRINT("network ready");
+        }
+        else if(status == LUAT_MOBILE_NETIF_LINK_OFF)
+        {
+            g_s_network_status = 0;
+            LUAT_DEBUG_PRINT("network off");
+        }
     }
 }
 
 static void task_test_fota(void *param)
 {
-    luat_rtos_semaphore_create(&net_semaphore_handle, 1);
-
+    luat_mobile_event_register_handler(mobile_event_callback);
+    uint8_t retryTimes = 0;
 	char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
 	HTTPResult result = HTTP_INTERNAL;
-
-    luat_mobile_event_register_handler(mobile_event_callback);
-
-    luat_rtos_task_sleep(3000);
     LUAT_DEBUG_PRINT("version = %s", PROJECT_VERSION);
-
     gHttpClient.timeout_s = 2;
     gHttpClient.timeout_r = 20;
-    gHttpClient.seclevel = 1;
-    gHttpClient.ciphersuite[0] = 0xFFFF;
     gHttpClient.ignore = 1;
     char imei[16] = {0};
     luat_mobile_get_imei(0, imei, 15);
-    snprintf(g_test_server_name, 200, "%s/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_%s_%s_%s&version=%s", TEST_HOST, PROJECT_KEY, imei, PROJECT_VERSION, PROJECT_NAME, soc_get_sdk_type(), "EC618", PROJECT_VERSION);
+    snprintf(g_test_server_name, 200, "%s/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_%s_%s_%s&version=%s", IOT_FOTA_URL, PROJECT_KEY, imei, PROJECT_VERSION, PROJECT_NAME, soc_get_sdk_type(), "EC618", PROJECT_VERSION);
     LUAT_DEBUG_PRINT("test print url %s", g_test_server_name);
-    luat_rtos_semaphore_take(net_semaphore_handle, LUAT_WAIT_FOREVER);
-
-    result = httpConnect(&gHttpClient, TEST_HOST);
-    if (result == HTTP_OK)
+    test_luat_fota_handle = luat_fota_init();
+    while(retryTimes < 30)
     {
-        httpGetData(g_test_server_name, recvBuf, HTTP_RECV_BUF_SIZE);
-        httpClose(&gHttpClient);
-        LUAT_DEBUG_PRINT("verify start");
-        int verify = luat_fota_done(test_luat_fota_handle);
-        if(verify != 0)
+        while(g_s_network_status != 1)
         {
-            LUAT_DEBUG_PRINT("image_verify error");
-            goto exit;
+            LUAT_DEBUG_PRINT("fota task wait network ready");
+            luat_rtos_task_sleep(1000);
         }
-	    LUAT_DEBUG_PRINT("image_verify ok");
-        ResetStartPorReset(RESET_REASON_FOTA);
-    }
-    else
-    {
-        LUAT_DEBUG_PRINT("http client connect error");
+        result = httpConnect(&gHttpClient, IOT_FOTA_URL);
+        if (result == HTTP_OK)
+        {
+            httpGetData(g_test_server_name, recvBuf, HTTP_RECV_BUF_SIZE);
+            httpClose(&gHttpClient);
+            LUAT_DEBUG_PRINT("verify start");
+            if (stepLen == totalLen)
+            {
+                int verify = luat_fota_done(test_luat_fota_handle);
+                if(verify != 0)
+                {
+                    LUAT_DEBUG_PRINT("image_verify error");
+                    goto exit;
+                }
+	            LUAT_DEBUG_PRINT("image_verify ok");
+                ResetStartPorReset(RESET_REASON_FOTA);
+            }
+        }
+        else
+        {
+            LUAT_DEBUG_PRINT("http client connect error");
+        }
+        retryTimes++;
+        luat_rtos_task_sleep(5000);
     }
     exit:
+    stepLen = 0;
+    totalLen = 0;
     free(recvBuf);
-    luat_rtos_task_delete(https_task_handle);
+    luat_rtos_task_delete(fota_task_handle);
 }
 
 static void task_demo_fota(void)
 {
-	luat_rtos_task_create(&https_task_handle, 32*1024, 20, "https", task_test_fota, NULL, NULL);
+	luat_rtos_task_create(&fota_task_handle, 32*1024, 20, "task_test_fota", task_test_fota, NULL, NULL);
 }
 //启动task_demoF_init，启动位置任务2级
 INIT_TASK_EXPORT(task_demo_fota, "1");
