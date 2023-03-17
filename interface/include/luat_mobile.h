@@ -179,7 +179,7 @@ int luat_mobile_set_apn_auth_info(int sim_id, int cid, uint8_t protocol, uint8_t
  *
  * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
  * @param cid cid位置 2~6
- * @param state 1激活 0去激活
+ * @param state 1激活 0去激活，去激活只能在用户自己的任务
  * @return int <= 0错误 >0实际传出的大小
  */
 int luat_mobile_active_apn(int sim_id, int cid, uint8_t state);

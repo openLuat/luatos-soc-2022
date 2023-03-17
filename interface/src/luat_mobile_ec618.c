@@ -274,11 +274,24 @@ int luat_mobile_set_apn_auth_info(int sim_id, int cid, uint8_t protocol, uint8_t
 	return psSetCGAUTH(PS_DIAL_REQ_HANDLER, &req);
 }
 
+static void luat_mobile_deactive_apn_ec618(UINT16 paramSize, void *pParam)
+{
+	int cid;
+	memcpy(&cid, pParam, 4);
+	psSetCGACT(PS_DIAL_REQ_HANDLER, cid, 0);
+}
 
 int luat_mobile_active_apn(int sim_id, int cid, uint8_t state)
 {
 	soc_mobile_active_cid(cid);
-	return psSetCGACT(PS_DIAL_REQ_HANDLER, cid, state);
+	if (state)
+	{
+		return psSetCGACT(PS_DIAL_REQ_HANDLER, cid, state);
+	}
+	else
+	{
+		return cmsNonBlockApiCall(luat_mobile_deactive_apn_ec618, 4, &cid);
+	}
 }
 
 int luat_mobile_active_netif(int sim_id, int cid)
