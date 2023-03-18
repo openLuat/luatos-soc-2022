@@ -121,7 +121,7 @@ void luat_audio_play_set_bus_type(uint8_t bus_type)
 }
 
 
-#include "mp3_decode/minimp3.h"
+#include "minimp3.h"
 void *mp3_decoder_create(void)
 {
 	return luat_heap_malloc(sizeof(mp3dec_t));
