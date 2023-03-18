@@ -7,7 +7,7 @@ target("audio_decoder")
     --加入代码和头文件
     add_includedirs("./mp3/include",{public = true})
     add_files("./mp3/**.c",{public = true})
-    
+    add_files("./*.c",{public = true})
     add_includedirs("./amr/amr_common/dec/include",{public = true})
     add_includedirs("./amr/amr_nb/common/include",{public = true})
     add_includedirs("./amr/amr_nb/dec/include",{public = true})
