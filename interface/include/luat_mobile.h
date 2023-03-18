@@ -176,7 +176,7 @@ int luat_mobile_set_apn_auth_info(int sim_id, int cid, uint8_t protocol, uint8_t
 
 /**
  * @brief 手动激活/去激活APN
- * @attention 需要在mobile_event 回调里面使用，具体用法参考example_apn demo
+ * @attention 需要在mobile_event 回调里面使用，去激活不需要在mobile_event 里面使用,具体用法参考example_apn demo
  * @param sim_id sim位置，对于双卡双待的设备，选0或者1，其他设备随意
  * @param cid cid位置 2~6
  * @param state 1激活 0去激活，去激活只能在用户自己的任务

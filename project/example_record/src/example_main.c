@@ -116,6 +116,53 @@ static const i2c_reg_t es8218_reg_table[] =
 		{0x12, 0x1C}, // ALC OFF
 		{0x11, 0},	  // ADC_Volume
 };
+static const i2c_reg_t es7243e_reg_table[] =
+	{
+		{0x01, 0x3A},
+		{0x00, 0x80},
+		{0xF9, 0x00},
+		{0x04, 0x02},
+		{0x04, 0x01},
+		{0xF9, 0x01},
+		{0x00, 0x1E},
+		{0x01, 0x00},
+
+		// radio 256
+		{0x03, 0x20},
+		{0x04, 0x01},
+		{0x0D, 0},
+		{0x05, 0x00},
+		{0x06, 4 - 1},
+		{0x07, 0x00},
+		{0x08, 0xFF},
+		
+
+		{0x02, (0x00 << 7) + 0},
+		{0x09, 0xCA},
+		{0x0A, 0x85},
+		{0x0B, 0xC0 + 0x00 + (0x03 << 2)},
+		{0x0E, 191},
+		{0x10, 0x38},
+		{0x11, 0x16},
+		{0x14, 0x0C},
+		{0x15, 0x0C},
+		{0x17, 0x02},
+		{0x18, 0x26},
+		{0x0F, 0x80},
+		{0x19, 0x77},
+		{0x1F, 0x08 + (0 << 5) - 0x00},
+		{0x1A, 0xF4},
+		{0x1B, 0x66},
+		{0x1C, 0x44},
+		{0x1E, 0x00},
+		{0x20, 0x10 + 14},
+		{0x21, 0x10 + 14},
+		{0x00, 0x80 + (0 << 6)},
+		{0x01, 0x3A},
+		{0x16, 0x3F},
+		{0x16, 0x00},
+		{0x0B, 0x00 + (0x03 << 2)},
+};
 
 void app_pa_on(uint32_t arg)
 {
@@ -324,12 +371,75 @@ static void es8218_demo_task(void *arg)
 	luat_i2c_transfer(I2C_ID0, i2c_address, NULL, 0, tx_buf, 2);
 
 	luat_uart_t uart = {
-		.baud_rate = 115200, 
-		.id = UART_ID1, 
-		.stop_bits = 1, 
-		.data_bits = 8, 
-		.parity = 0
-	};
+		.baud_rate = 115200,
+		.id = UART_ID1,
+		.stop_bits = 1,
+		.data_bits = 8,
+		.parity = 0};
+
+	luat_uart_setup(&uart);
+	luat_uart_write(UART_ID1, g_s_amr_rom_file.Data, g_s_amr_rom_file.Pos);
+	while (1)
+	{
+		soc_get_heap_info(&total, &total_free, &min_free);
+		LUAT_DEBUG_PRINT("free heap %d", total_free);
+		luat_rtos_task_sleep(5000);
+	}
+}
+
+static void es7243_demo_task(void *arg)
+{
+	uint32_t total, total_free, min_free;
+	uint32_t i;
+	uint16_t i2c_address = 0x10;
+	uint8_t tx_buf[2];
+	uint8_t rx_buf[2];
+	luat_audio_play_info_t info[1] = {0};
+	luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, NULL, NULL);
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	luat_i2c_setup(I2C_ID0, 400000);
+
+	luat_rtos_timer_create(&g_s_delay_timer);
+	luat_i2s_base_setup(I2S_ID0, I2S_MODE_I2S, I2S_FRAME_SIZE_16_16);
+	g_s_amr_encoder_handler = Encoder_Interface_init(0);
+	OS_InitBuffer(&g_s_amr_rom_file, RECORD_TIME * 1604 + 6); // 1秒最高音质的AMRNB编码是1600
+	OS_BufferWrite(&g_s_amr_rom_file, "#!AMR\n", 6);
+	// 如果有休眠操作，且控制codec的电源的IO不是AONGPIO，又没有外部上拉保持IO电平，则在唤醒时必须重新初始化codec
+	for (i = 0; i < sizeof(es7243e_reg_table) / sizeof(i2c_reg_t); i++)
+	{
+		luat_i2c_transfer(I2C_ID0, i2c_address, NULL, 0, (uint8_t *)&es7243e_reg_table[i], 2);
+		rx_buf[0] = ~es7243e_reg_table[i].value;
+		luat_i2c_transfer(I2C_ID0, i2c_address, (uint8_t *)&es7243e_reg_table[i].reg, 1, rx_buf, 1);
+		if (rx_buf[0] != es7243e_reg_table[i].value)
+		{
+			LUAT_DEBUG_PRINT("write reg %x %x %x", es7243e_reg_table[i].reg, es7243e_reg_table[i].value, rx_buf[0]);
+		}
+	}
+	luat_i2s_start(I2S_ID0, 0, 8000, 1);
+	luat_i2s_no_block_rx(I2S_ID0, 320 * 10, record_cb, NULL); // 单声道8K的amr编码一次320字节，这里每200ms回调一次
+	tx_buf[0] = 0x00;
+	tx_buf[1] = (0x80) + (1 << 6);
+	luat_i2c_transfer(I2C_ID0, i2c_address, NULL, 0, tx_buf, 2);
+
+
+	for (i = 0; i < 0xff; i++)
+	{
+		luat_i2c_transfer(I2C_ID0, i2c_address, (uint8_t *)&i, 1, rx_buf, 1);
+		LUAT_DEBUG_PRINT("write reg 0x%02x , value 0x%02x", i, rx_buf[0]);
+		
+	}
+
+	luat_rtos_task_sleep((RECORD_TIME + 1) * 1000);
+	tx_buf[0] = 0x00;
+	tx_buf[1] = (0x80) + (0 << 6);
+	luat_i2c_transfer(I2C_ID0, i2c_address, NULL, 0, tx_buf, 2);
+
+	luat_uart_t uart = {
+		.baud_rate = 115200,
+		.id = UART_ID1,
+		.stop_bits = 1,
+		.data_bits = 8,
+		.parity = 0};
 
 	luat_uart_setup(&uart);
 	luat_uart_write(UART_ID1, g_s_amr_rom_file.Data, g_s_amr_rom_file.Pos);
@@ -367,6 +477,8 @@ static void test_record_demo_init(void)
 	luat_rtos_task_create(&task_handle, 4096, 20, "es8311", es8311_demo_task, NULL, 0);
 	//demo用于AIR780e + es8218e录音,串口输出录音数据功能
 	// luat_rtos_task_create(&task_handle, 4096, 20, "es8218", es8218_demo_task, NULL, 0);
+	// demo用于AIR780e + es7243e录音,串口输出录音数据功能
+	// luat_rtos_task_create(&task_handle, 4096, 20, "es7243", es7243_demo_task, NULL, 0);
 }
 
 INIT_TASK_EXPORT(test_record_demo_init, "1");
