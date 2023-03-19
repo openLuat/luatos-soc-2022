@@ -294,6 +294,10 @@ LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libtcpipmgr.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libyrcompress.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/libmiddleware_ec.a "
 LIB_BASE = LIB_BASE .. SDK_TOP .. "/PLAT/libs/liblwip.a "
+if os.getenv("LUAT_FAST_ADD_USER_LIB") == "1" then
+    LIB_BASE = LIB_BASE .. SDK_TOP .. os.getenv("USER_LIB") .. " "
+end
+
 if is_rndis then
     LIB_PS_PRE = SDK_TOP .. "/PLAT/prebuild/PS/lib/gcc"
     LIB_PLAT_PRE = SDK_TOP .. "/PLAT/prebuild/PLAT/lib/gcc"
