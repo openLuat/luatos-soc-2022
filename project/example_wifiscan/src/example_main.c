@@ -48,6 +48,7 @@ static void Wifiscan_Task(void *param)
     {
         luat_rtos_task_sleep(2000);
         ret = luat_get_wifiscan_cell_info(&wifiscan_info, &wifiscan_getinfo);
+        LUAT_DEBUG_PRINT("wifiscan bssidNum%d",wifiscan_getinfo.bssidNum);
         if (ret == 0)
         {
             for (size_t i = 0; i < wifiscan_getinfo.bssidNum; i++)
@@ -83,7 +84,6 @@ static void mobile_event_callback_t(LUAT_MOBILE_EVENT_E event, uint8_t index, ui
         case LUAT_MOBILE_SIM_READY:
             LUAT_DEBUG_PRINT("SIM卡已插入");
             break;
-        case LUAT_MOBILE_NO_SIM:
         default:
             break;
         }
@@ -98,7 +98,7 @@ void Mobile_event_Task(void)
 
 static void Wifiscan_demo_Init(void)
 {
-	luat_rtos_task_create(&Wifiscan_Task_Handle, 4*1024, 60, "Wifiscan_Task", Wifiscan_Task, NULL, NULL);
+	luat_rtos_task_create(&Wifiscan_Task_Handle, 10*1024, 60, "Wifiscan_Task", Wifiscan_Task, NULL, NULL);
 }
 INIT_HW_EXPORT(Mobile_event_Task, "1");
 INIT_TASK_EXPORT(Wifiscan_demo_Init, "2");
