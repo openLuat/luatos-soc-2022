@@ -30,3 +30,4 @@ tools/
 /PLAT/libs/liblfs.a
 /PLAT/libs/libmbedtls.a
 /PLAT/libs/liblfs.a
+/user_lib
