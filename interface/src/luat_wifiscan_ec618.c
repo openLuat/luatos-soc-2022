@@ -30,7 +30,7 @@ int32_t luat_get_wifiscan_cell_info(luat_wifiscan_set_info_t * set_info,luat_wif
     int32_t ret;
     if (set_info == NULL || get_info ==NULL)
     {
-        return -1;
+       return -1;
     }
     SetWifiScanParams wifiscanreq;
     GetWifiScanInfo pWifiScanInfo;
@@ -40,6 +40,9 @@ int32_t luat_get_wifiscan_cell_info(luat_wifiscan_set_info_t * set_info,luat_wif
     wifiscanreq.maxBssidNum=set_info->maxBssidNum;
     wifiscanreq.scanTimeOut=set_info->scanTimeOut;
     wifiscanreq.wifiPriority=set_info->wifiPriority;
+    wifiscanreq.channelRecLen=280;
+    wifiscanreq.channelCount=1;
+    wifiscanreq.channelId[0]=0;
     ret=appGetWifiScanInfo(&wifiscanreq, &pWifiScanInfo);
     if (ret == 0)
     {
