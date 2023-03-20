@@ -41,12 +41,15 @@ static void Wifiscan_Task(void *param)
     luat_wifisacn_get_info_t wifiscan_getinfo;
     wifiscan_info.maxTimeOut = 10000;
     wifiscan_info.round = 1;
-    wifiscan_info.maxBssidNum = LUAT_MAX_WIFI_BSSID_NUM;
+    wifiscan_info.maxBssidNum = 10;
     wifiscan_info.scanTimeOut = 3;
     wifiscan_info.wifiPriority = LUAT_WIFISCAN_DATA_PERFERRD;
+    wifiscan_info.channelCount=1;
+    wifiscan_info.channelRecLen=280;
+    wifiscan_info.channelId[0]=0;
     while (1)
     {
-        luat_rtos_task_sleep(2000);
+        luat_rtos_task_sleep(5000);
         ret = luat_get_wifiscan_cell_info(&wifiscan_info, &wifiscan_getinfo);
         LUAT_DEBUG_PRINT("wifiscan bssidNum%d",wifiscan_getinfo.bssidNum);
         if (ret == 0)
