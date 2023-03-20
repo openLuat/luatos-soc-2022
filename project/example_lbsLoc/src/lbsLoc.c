@@ -16,7 +16,7 @@
 
 #define WIFI_LOC 0 // 是否开启wifi 定位
 /// @brief 合宙IOT 项目productkey ，必须加上，否则定位失败
-static uint8_t *productKey = "Rxw9b8iG96P1W2CnSXa15IwmYDFifNt1";
+static uint8_t *productKey = "XXXXXX";
 
 static uint8_t imeiToBcd(uint8_t *arr, uint8_t len, uint8_t *outPut)
 {
@@ -228,9 +228,12 @@ static void lbsloc_Init_Task(void *param)
     luat_wifisacn_get_info_t wifiscan_get_info;
     wifiscan_set_info.maxTimeOut = 10000;
     wifiscan_set_info.round = 1;
-    wifiscan_set_info.maxBssidNum = LUAT_MAX_WIFI_BSSID_NUM;
+    wifiscan_set_info.maxBssidNum = 10;
     wifiscan_set_info.scanTimeOut = 5;
     wifiscan_set_info.wifiPriority = LUAT_WIFISCAN_DATA_PERFERRD;
+    wifiscan_set_info.channelCount=1;
+    wifiscan_set_info.channelRecLen=280;
+    wifiscan_set_info.channelId[0]=0;
     ret = luat_get_wifiscan_cell_info(&wifiscan_set_info, &wifiscan_get_info);
     if (ret != 0)
     {
@@ -294,7 +297,8 @@ static void lbsloc_Init_Task(void *param)
                 {
                     if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == TRUE)
                     {
-                        LUAT_DEBUG_PRINT("latitude:%s,longitude:%s,year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n", latitude, longitude, year, month, day, hour, minute, second);
+                    if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == TRUE)
+                        LUAT_DEBUG_PRINT("LbsLoc_result %d,latitude:%s,longitude:%s,year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n", locationServiceResponse.result,latitude,longitude, year, month, day, hour, minute, second);
                     }
                     else
                     {
