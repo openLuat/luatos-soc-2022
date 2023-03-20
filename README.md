@@ -105,9 +105,22 @@ set GCC_PATH=D:\gcc-arm-none-eabi-10.3-2021.10
 
 5. 测试ok后, 可以考虑将上述环境变量GCC_PATH放入系统的环境变量设置中, 然后还原`build.bat`
 
+## Linux下编译的额外的说明
+
+当前仅测试了 Ubuntu 16.04 和 Ubuntu 20.04 amd64版本
+
+需要安装额外的32位支持, 否则执行fcelf时报文件不存. 后续可能会有64bit fcelf提供
+
+```shell
+dpkg --add-architecture i386 && apt update
+apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386 libstdc++6:i386
+```
+
 ## 应用文档
 
 1. 添加自定义数据到指定区域并[合成binpkg](project/example_flash), 用于量产刷机
+
+
 
 ## 授权协议
 
