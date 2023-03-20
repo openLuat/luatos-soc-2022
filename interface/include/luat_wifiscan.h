@@ -1,7 +1,7 @@
 #ifndef _LUAT_WIFISCAN_H_
 #define _LUAT_WIFISCAN_H_
 
-
+#define Luat_MAX_CHANNEL_NUM     14
 
 #include "luat_base.h"
 /**
@@ -19,15 +19,19 @@ typedef enum luat_wifiscan_set_priority
 /// @brief wifiscan 控制参数结构体
 typedef struct luat_wifiscan_set_info
 {
-    int   maxTimeOut;             //ms, AT max execution time
-    uint8_t   round;              //wifiscan total round
-    uint8_t   maxBssidNum;        //wifiscan max report num
-    uint8_t   scanTimeOut;        //s, max time of each round executed by RRC
+    int   maxTimeOut;         //ms, 最大执行时间 取值范围4000~255000
+    uint8_t   round;              //wifiscan total round 取值范围1~3
+    uint8_t   maxBssidNum;        //wifiscan max report num 取值范围4~40
+    uint8_t   scanTimeOut;        //s, max time of each round executed by RRC 取值范围1~255
     uint8_t   wifiPriority;       //CmiWifiScanPriority
+    uint8_t   channelCount;       //channel count; if count is 1 and all channelId are 0, UE will scan all frequecny channel
+    uint8_t   rsvd[3];
+    uint16_t  channelRecLen;      //ms, max scantime of each channel
+    uint8_t   channelId[Luat_MAX_CHANNEL_NUM];          //channel id 1-14: scan a specific channel
 }luat_wifiscan_set_info_t;
 
 
-#define LUAT_MAX_WIFI_BSSID_NUM      10 ///< bssid 的最大数量
+#define LUAT_MAX_WIFI_BSSID_NUM      40 ///< bssid 的最大数量
 #define LUAT_MAX_SSID_HEX_LENGTH     32 ///< SSID 的最大长度
 
 /// @brief wifiscan 扫描结果
