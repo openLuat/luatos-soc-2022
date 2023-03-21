@@ -82,10 +82,10 @@ void audio_event_cb(uint32_t event, void *param)
 	{
 	case LUAT_MULTIMEDIA_CB_AUDIO_DECODE_START:
 		luat_gpio_set(CODEC_PWR_PIN, 1);
-		luat_audio_play_write_blank_raw(0, 6, 1);
+		luat_audio_play_write_blank_raw(0, 3, 1);
 		break;
 	case LUAT_MULTIMEDIA_CB_AUDIO_OUTPUT_START:
-		luat_rtos_timer_start(g_s_delay_timer, 200, 0, app_pa_on, NULL);
+		luat_rtos_timer_start(g_s_delay_timer, 180, 0, app_pa_on, NULL);
 		break;
 	case LUAT_MULTIMEDIA_CB_TTS_INIT:
 		break;
