@@ -28,6 +28,7 @@
 #include "luat_sms.h"
 
 luat_rtos_task_handle task_handle;
+luat_rtos_task_handle sms_proc_task_handle;
 
 extern void luat_sms_proc(uint32_t event, void *param);
 
@@ -35,16 +36,16 @@ extern void luat_sms_proc(uint32_t event, void *param);
 static void sms_recv_cb(uint8_t event,void *param)
 {
 	LUAT_DEBUG_PRINT("event:[%d]", event);
-	LUAT_DEBUG_PRINT("Dcs:[%d]", ((LUAT_SMS_RECV_MSG_T*)param)->dcs_info.alpha_bet);
-	LUAT_DEBUG_PRINT("Time:[\"%02d/%02d/%02d,%02d:%02d:%02d %c%02d\"]",
-                ((LUAT_SMS_RECV_MSG_T*)param)->time.year, ((LUAT_SMS_RECV_MSG_T*)param)->time.month,
-                ((LUAT_SMS_RECV_MSG_T*)param)->time.day, ((LUAT_SMS_RECV_MSG_T*)param)->time.hour,
-                ((LUAT_SMS_RECV_MSG_T*)param)->time.minute, ((LUAT_SMS_RECV_MSG_T*)param)->time.second,
-                ((LUAT_SMS_RECV_MSG_T*)param)->time.tz_sign, ((LUAT_SMS_RECV_MSG_T*)param)->time.tz);
-	LUAT_DEBUG_PRINT("Phone:[%s]", ((LUAT_SMS_RECV_MSG_T*)param)->phone_address);
-	LUAT_DEBUG_PRINT("ScAddr:[%s]", ((LUAT_SMS_RECV_MSG_T*)param)->sc_address);
-	LUAT_DEBUG_PRINT("PDU len:[%d]", ((LUAT_SMS_RECV_MSG_T*)param)->sms_length);
-	LUAT_DEBUG_PRINT("PDU: [%s]", ((LUAT_SMS_RECV_MSG_T*)param)->sms_buffer);
+	LUAT_SMS_RECV_MSG_T *sms_data = NULL;
+    sms_data = (LUAT_SMS_RECV_MSG_T *)malloc(sizeof(LUAT_SMS_RECV_MSG_T));
+    memset(sms_data, 0x00, sizeof(LUAT_SMS_RECV_MSG_T));
+    memcpy(sms_data, (LUAT_SMS_RECV_MSG_T *)param, sizeof(LUAT_SMS_RECV_MSG_T));
+    int ret = luat_rtos_message_send(sms_proc_task_handle, 0, sms_data);
+	if(ret != 0)
+	{
+		LUAT_MEM_FREE(sms_data);
+		sms_data = NULL;
+	}
 }
 
 static void sms_send_cb(int ret)
@@ -84,10 +85,31 @@ static void task(void *param)
 	}
 }
 
+static void demo_sms_proc_task(void *param)
+{
+	uint32_t message_id = 0;
+	LUAT_SMS_RECV_MSG_T *data = NULL;
+	while(1)
+	{
+		if(luat_rtos_message_recv(sms_proc_task_handle, &message_id, (void **)&data, LUAT_WAIT_FOREVER) == 0)
+		{
+	        LUAT_DEBUG_PRINT("Dcs:[%d]", data->dcs_info.alpha_bet);
+	        LUAT_DEBUG_PRINT("Time:[\"%02d/%02d/%02d,%02d:%02d:%02d %c%02d\"]", data->time.year, data->time.month, data->time.day, data->time.hour, data->time.minute, data->time.second,data->time.tz_sign, data->time.tz);
+	        LUAT_DEBUG_PRINT("Phone:[%s]", data->phone_address);
+	        LUAT_DEBUG_PRINT("ScAddr:[%s]", data->sc_address);
+	        LUAT_DEBUG_PRINT("PDU len:[%d]", data->sms_length);
+	        LUAT_DEBUG_PRINT("PDU: [%s]", data->sms_buffer);
+			LUAT_MEM_FREE(data);
+			data = NULL;
+        }
+	}
+}
+
 
 static void task_demoE_init(void)
 {
 	luat_rtos_task_create(&task_handle, 5*1024, 50, "task", task, NULL, 0);
+	luat_rtos_task_create(&sms_proc_task_handle, 5*1024, 50, "demo_sms_proc_task", demo_sms_proc_task, NULL, 50);
 }
 
 //启动task_demoE_init，启动位置任务1级
