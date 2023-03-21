@@ -10,13 +10,23 @@ static osEventFlagsId_t waitAudioPlayDone = NULL;
 static HANDLE g_s_delay_timer;
 #define soft_dac 0 //支持通过DAC引脚播放
 #define air780e_tm8211 0
-int volumn_value=10; //音量取值复位0~~15
+
 /*-------------------------------------------------audio define-----------------------------------------------*/
 /*------------------------------------------------audio-----------------------------------------------*/
 
 void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
 {
-    HAL_I2sSrcAdjustVolumn(data, len, volumn_value);
+    int value = 15;
+    int ret = luat_kv_get("volume", &value, sizeof(int));
+    if(ret > 0)
+    {
+        HAL_I2sSrcAdjustVolumn(data, len, value);
+    }
+    else
+    {
+        HAL_I2sSrcAdjustVolumn(data, len, 15);
+    }
+    LUAT_DEBUG_PRINT("cloud_speaker_audio_task %x,%d,%d,%d,%d", data, len, bits, channels);
 }
 void app_pa_on(uint32_t arg)
 {
@@ -118,8 +128,6 @@ void audio_task(void *param)
                 LUAT_DEBUG_PRINT("FREE MY AUDIO FILE");
             }
         }
-        //  luat_audio_play_tts_text(0, str, sizeof(str));
-        // luat_rtos_task_sleep(1000);
     }
 }
 
