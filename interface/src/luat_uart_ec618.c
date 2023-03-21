@@ -124,8 +124,8 @@ static int32_t luat_uart_cb(void *pData, void *pParam){
         		else
         		{
         			GPIO_Output(g_s_serials[uartid].rs485_pin, g_s_serials[uartid].rs485_param_bit.rx_level);
+        			uart_cb[uartid].sent_callback_fun(uartid, NULL);
         		}
-
         	}
         	else
 #endif
@@ -234,7 +234,12 @@ int luat_uart_setup(luat_uart_t* uart) {
          g_s_serials[uart->id].rs485_param_bit.is_485used = (uart->pin485 < HAL_GPIO_NONE)?1:0;
          g_s_serials[uart->id].rs485_pin = uart->pin485;
          g_s_serials[uart->id].rs485_param_bit.rx_level = uart->rx_level;
+
          g_s_serials[uart->id].rs485_param_bit.wait_time = uart->delay/1000;
+         if (!g_s_serials[uart->id].rs485_param_bit.wait_time)
+         {
+        	 g_s_serials[uart->id].rs485_param_bit.wait_time = 1;
+         }
          if (!g_s_serials[uart->id].rs485_timer) {
          	g_s_serials[uart->id].rs485_timer = luat_create_rtos_timer(luat_uart_wait_timer_cb, uart->id, NULL);
          }
