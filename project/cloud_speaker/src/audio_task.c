@@ -145,6 +145,7 @@ void audio_task_init(void)
     luat_audio_play_tts_set_resource(ivtts_16k, sdk_id, NULL);
     // luat_i2s_base_setup(0, I2S_MODE_I2S, I2S_FRAME_SIZE_16_16);   //如果是780E+音频扩展小板，打开这行注释代码，这个配置对应ES7148/ES7149
     luat_i2s_base_setup(0, I2S_MODE_MSB, I2S_FRAME_SIZE_16_16);      //此处配置对应TM8211
+	//luat_audio_play_set_bus_type(LUAT_AUDIO_BUS_SOFT_DAC);        //通过DAC引脚播放
     luat_rtos_semaphore_create(&audio_semaphore_handle, 1);
 
     luat_rtos_queue_create(&audio_queue_handle, AUDIO_QUEUE_SIZE, sizeof(audioQueueData));
