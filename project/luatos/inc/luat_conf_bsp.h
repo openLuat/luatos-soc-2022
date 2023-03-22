@@ -56,6 +56,7 @@
 #define LUAT_USE_MINIZ 1
 #define LUAT_USE_SNTP 1
 #define LUAT_USE_FTP 1
+// #define LUAT_USE_HTTPSRV 1
 
 #define LUAT_USE_WLAN 1
 #define LUAT_USE_WLAN_SCANONLY 1

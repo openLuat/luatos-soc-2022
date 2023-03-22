@@ -188,6 +188,10 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/network/errdump")
     add_files(LUATOS_ROOT.."components/network/errdump/*.c")
 
+    -- httpsrv
+    add_includedirs(LUATOS_ROOT.."components/network/httpsrv/inc")
+    add_files(LUATOS_ROOT.."components/network/httpsrv/src/*.c")
+
     -- iotauth
     add_files(LUATOS_ROOT.."components/iotauth/luat_lib_iotauth.c")
 

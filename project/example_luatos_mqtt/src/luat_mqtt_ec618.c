@@ -21,7 +21,7 @@
 #else
 #define MQTT_HOST    	"lbsmqtt.airm2m.com"   				// MQTT服务器的地址和端口号
 #define MQTT_PORT		1884
-#define CLIENT_ID    	"123456789"          
+#define CLIENT_ID    	"123456789"         //替换自己的CLIENT_ID ,请看一下本.c代码的 183~190行,本demo 的CLIENT_ID 使用的是设备的imei号
 #define USERNAME    	"username"                 
 #define PASSWORD    	"password"   
 #endif 
