@@ -51,7 +51,7 @@ const char *soc_get_chip_name(void)
 	return "EC618";
 #endif
 #ifdef LUAT_USE_TTS
-	return "EC618_TTS"
+	return "EC618_TTS";
 #endif
 	return "EC618_FULL";
 }
