@@ -116,8 +116,10 @@ static void NET_LED_FUN(void *param)
         }
         else
         {
+            luat_gpio_set(NET_LED_PIN, 1);
+            luat_rtos_task_sleep(5000);
             luat_gpio_set(NET_LED_PIN, 0);
-            luat_rtos_task_sleep(500);
+            luat_rtos_task_sleep(1000);
         }
     }
 }

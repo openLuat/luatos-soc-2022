@@ -8,11 +8,14 @@
 #include "libemqtt.h"
 #include "luat_mqtt.h"
 #include "luat_rtos.h"
-
+#include "charge_task.h"
 luat_rtos_queue_t MQTT_payload_queue;
 
 extern QueueHandle_t audioQueueHandle;
 extern uint8_t link_UP;
+extern void fdb_init(void);
+extern void key_task_init(void);
+extern void loop_Playback_task_init(void);
 char mqtt_subTopic[40];
 static char subTopic[] = "test20220929/";
 
@@ -338,7 +341,11 @@ static void mqttclient_task_init(void)
 /*------------------------------------------------------MQTT event-----------------------------------------------------------------*/
 
 INIT_HW_EXPORT(Task_netinfo_call, "0");
+INIT_HW_EXPORT(fdb_init, "1");
 INIT_TASK_EXPORT(mqttclient_task_init, "1");
 INIT_TASK_EXPORT(Mqtt_payload_task_Init, "1");
 INIT_TASK_EXPORT(audio_task_init, "2");
-INIT_TASK_EXPORT(NET_LED_Task, "3");
+INIT_TASK_EXPORT(key_task_init, "3");
+INIT_TASK_EXPORT(charge_task_init, "4");
+INIT_TASK_EXPORT(NET_LED_Task, "5");
+INIT_TASK_EXPORT(loop_Playback_task_init, "6");
