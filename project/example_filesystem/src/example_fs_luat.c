@@ -70,12 +70,9 @@ static int recur_fs(const char* dir_path)
                 snprintf(path, sizeof(path)-1, "%s%s", dir_path, (fs_dirent+i)->d_name);             
                 LUAT_DEBUG_PRINT("\tfile=%s, size=%d", path, luat_fs_fsize(path));
                 break;
-            
-            // 文件夹类型
             case 1:
-                // 移芯618平台不支持文件夹创建操作，以下注释掉的两行代码未经测试
-                // snprintf(path, sizeof(path)-1, "%s/%s/", dir_path, (fs_dirent+i)->d_name);
-                // recur_fs(path);
+                snprintf(path, sizeof(path)-1, "%s/%s/", dir_path, (fs_dirent+i)->d_name);
+                recur_fs(path);
                 break;
 
             default:
@@ -218,12 +215,34 @@ void exmaple_fs_luat_file(void) {
         LUAT_DEBUG_PRINT("file example exited");
         return;
 }
-
+// 演示文件夹操作
+void exmaple_fs_lfs_dir(void)
+{
+    int ret=-1;
+    ret=luat_fs_mkdir("luatos");
+    LUAT_DEBUG_PRINT("mkdir result%d",ret);
+    if (0==ret)
+    {
+       LUAT_DEBUG_PRINT("mkdir succeed");
+    }
+    FILE* fp = NULL;
+    uint8_t *buff = NULL;
+    const char* filepath = "luatos/luatos_test.txt";
+    fp = luat_fs_fopen(filepath, "wb+");
+    if (!fp)
+    {
+       LUAT_DEBUG_PRINT("file open failed %s", filepath);
+       return;
+    }
+    luat_fs_fclose(fp);
+}
 
 void exmaple_fs_luat_main(void) {
     luat_fs_init(); // 必须先初始化    
     print_fs_info();
-    recur_fs("/");
+    exmaple_fs_lfs_dir();
     exmaple_fs_luat_file();
+    recur_fs("/");
+    recur_fs("luatos");
     luat_rtos_task_sleep(1000);
 }
