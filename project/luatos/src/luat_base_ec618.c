@@ -242,6 +242,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_BIT64
   {"bit64", luaopen_bit64},
 #endif
+#ifdef LUAT_USE_HTTPSRV
+  {"httpsrv", luaopen_httpsrv},
+#endif
   {NULL, NULL}
 };
 
