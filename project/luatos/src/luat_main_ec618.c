@@ -45,6 +45,16 @@ extern int luat_main(void);
 extern void luat_heap_init(void);
 extern void luat_pm_init(void);
 extern void luat_wlan_done_callback_ec618(void *param);
+const char *soc_get_chip_name(void)
+{
+#ifdef LUAT_EC618_LITE_MODE
+	return "EC618";
+#endif
+#ifdef LUAT_USE_TTS
+	return "EC618_TTS"
+#endif
+	return "EC618_FULL";
+}
 
 const char *soc_get_sdk_type(void)
 {

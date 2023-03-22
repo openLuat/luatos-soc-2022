@@ -278,8 +278,13 @@ void luat_os_reboot(int code){
     ResetECSystemReset();
 }
 
+extern const char *soc_get_chip_name(void);
 const char* luat_os_bsp(void) {
+#if 0
+    return soc_get_chip_name();
+#else
     return "EC618";
+#endif
 }
 
 /** 设备进入待机模式 */
