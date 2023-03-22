@@ -184,13 +184,13 @@ int luat_fs_truncate(const char* filename, size_t len);
 
 typedef struct luat_fs_dirent
 {
-    unsigned char d_type; //0:文件；1：文件夹(EC618不支持创建目录操作，所以理论上不会出现为1的情况)
+    unsigned char d_type; //0:文件；1：文件夹
     char d_name[255];
 }luat_fs_dirent_t;
 
 
 /**
- * @brief 创建文件夹,当前EC618不支持
+ * @brief 创建文件夹
  * @param dir[IN] 文件夹路径
  * @return int =0成功,否则失败
  */
