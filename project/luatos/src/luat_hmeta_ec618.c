@@ -3,15 +3,15 @@
 #include "luat_mcu.h"
 #include "luat_rtos.h"
 
-extern int soc_get_model_name(char *model);
+extern int soc_get_model_name(char *model, uint8_t is_full);
 
 int luat_hmeta_model_name(char* buff) {
-    int ret = soc_get_model_name(buff);
+    int ret = soc_get_model_name(buff, 0);
     if (ret == 0)
         return 0;
     uint64_t ticks = luat_mcu_tick64_ms();
     if (ticks < 250) {
         luat_rtos_task_sleep(250 - ticks);
     }
-    return soc_get_model_name(buff);
+    return soc_get_model_name(buff, 0);
 }

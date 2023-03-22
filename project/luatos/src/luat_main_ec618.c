@@ -109,14 +109,14 @@ void luat_lvgl_tick_sleep(uint8_t OnOff)
 #endif
 extern int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
 
-extern int soc_get_model_name(char *model);
+extern int soc_get_model_name(char *model, uint8_t is_full);
 
 static void self_info(uint16_t param_size, void* p_param)
 {
 	char temp[40] = {0};
 	char imei[22] = {0};
 	luat_mobile_get_imei(0, imei, 22);
-	if (soc_get_model_name(temp))
+	if (soc_get_model_name(temp, 1))
 	{
 		DBG("model maybe %s imei %s", temp, imei);
 	}
