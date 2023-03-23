@@ -20,7 +20,7 @@
 #define LBSLOC_SERVER_UDP_PORT 12411           // 端口
 #define UART_ID 2
 /// @brief 合宙IOT 项目productkey ，必须加上，否则定位失败
-static char *productKey = "vQfJesoQdXDK8X1sXkYg0KTU42UBhdjh";
+static char *productKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 static luat_rtos_task_handle lbsloc_task_handle = NULL;
 
 static uint8_t lbsloc_task_tatus = 0;
