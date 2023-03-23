@@ -465,7 +465,7 @@ static bool check_eph_time()
     time_t now_time;
     time(&now_time);
     LUAT_DEBUG_PRINT("this is interval time %d", now_time - history_time);
-    if((now_time - history_time) > 4 * 60 * 1000)
+    if((now_time - history_time) > 4 * 60 * 60)
     {
         return false;
     }
