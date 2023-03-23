@@ -452,6 +452,26 @@ static bool update_eph()
     return true;
 }
 
+
+static bool check_eph_time()
+{
+    if(luat_fs_fexist(EPH_TIME_FILE) == 0)
+        return false;
+    FILE *fp = luat_fs_fopen(EPH_TIME_FILE, "r");
+    time_t history_time;
+    luat_fs_fread((void *)&history_time, sizeof(time_t), 1, fp);
+    luat_fs_fclose(fp);
+
+    time_t now_time;
+    time(&now_time);
+    LUAT_DEBUG_PRINT("this is interval time %d", now_time - history_time);
+    if((now_time - history_time) > 4 * 60 * 1000)
+    {
+        return false;
+    }
+    return true;
+}
+
 static void ephemeris_get_task(void *param)
 {
     while (1)
@@ -461,8 +481,7 @@ static void ephemeris_get_task(void *param)
             LUAT_DEBUG_PRINT("http wait network ready");
             luat_rtos_task_sleep(1000);
         }
-
-        if (luat_fs_fexist(EPH_FILE_PATH) != 0)
+        if (luat_fs_fexist(EPH_FILE_PATH) != 0 && check_eph_time() == true)
         {
             size_t size = luat_fs_fsize(EPH_FILE_PATH);
             uint8_t *data = NULL;
@@ -483,10 +502,15 @@ static void ephemeris_get_task(void *param)
         }
         else
         {
-
             bool result = update_eph();
             if (result)
             {
+                FILE *fp = luat_fs_fopen(EPH_TIME_FILE, "w+");
+                time_t now_time;
+                time(&now_time);
+                luat_fs_fwrite((void *)&now_time, sizeof(time_t), 1, fp);
+                luat_fs_fclose(fp);
+
                 size_t size = luat_fs_fsize(EPH_FILE_PATH);
                 uint8_t *data = NULL;
                 data = (uint8_t *)luat_heap_malloc(size);
