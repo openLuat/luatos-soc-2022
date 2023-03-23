@@ -107,7 +107,7 @@ int luat_pm_force(int mode) {
         LLOGW("bad mode=%ld", mode);
         return -2;
     }
-    LLOGI("request mode=%ld, prev mode=%ld", mode, lastRequestMode);
+    LLOGI("force request mode=%ld, prev mode=%ld", mode, lastRequestMode);
 	lastRequestMode = mode;
 	soc_set_usb_sleep(1);
     return 0;
