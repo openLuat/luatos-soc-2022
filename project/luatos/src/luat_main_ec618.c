@@ -159,10 +159,6 @@ static void luatos_task(void *param)
 	DBG("RNDIS feature enabled");
 	#endif
 
-	// by wendal, V1106之前的固件, I2C1的复用关系是错的
-	extern int luat_i2c_set_iomux(int id, uint8_t value);
-	luat_i2c_set_iomux(1, 1);
-
 	luat_main();
 	while (1) {
 		DBG("LuatOS exit");
