@@ -181,6 +181,7 @@ int luat_i2c_set_iomux(int id, uint8_t value)
 }
 
 int luat_i2c_setup(int id, int speed) {
+    char model[40] = {0};
     if (speed == 0) {
         speed = 100 * 1000; // SLOW
     }
@@ -191,17 +192,32 @@ int luat_i2c_setup(int id, int speed) {
         speed = 400 * 1000; // SuperFast
     }
     if (!luat_i2c_exist(id)) return -1;
+#ifdef __LUATOS__
+		luat_hmeta_model_name(model);
+#else
+		soc_get_model_name(model, 0);
+#endif
     if (id)
     {
     	switch(luat_i2c_iomux[id])
     	{
     	case 1:
-        	GPIO_IomuxEC618(23, 2, 1, 0);
-        	GPIO_IomuxEC618(24, 2, 1, 0);
+            if (!strcmp("Air700", model)){
+                GPIO_IomuxEC618(23, 2, 1, 0);
+                GPIO_IomuxEC618(24, 2, 1, 0);
+            }else{
+                GPIO_IomuxEC618(19, 2, 1, 0);
+                GPIO_IomuxEC618(20, 2, 1, 0);
+            }
     		break;
     	default:
-        	GPIO_IomuxEC618(19, 2, 1, 0);
-        	GPIO_IomuxEC618(20, 2, 1, 0);
+            if (!strcmp("Air700", model)){
+                GPIO_IomuxEC618(19, 2, 1, 0);
+                GPIO_IomuxEC618(20, 2, 1, 0);
+            }else{
+                GPIO_IomuxEC618(23, 2, 1, 0);
+                GPIO_IomuxEC618(24, 2, 1, 0);
+            }
         	break;
     	}
 
