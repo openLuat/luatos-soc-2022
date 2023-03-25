@@ -236,12 +236,12 @@ int luat_i2c_close(int id) {
     	switch(luat_i2c_iomux[id])
     	{
     	case 1:
-        	GPIO_IomuxEC618(23, 0, 1, 0);
-        	GPIO_IomuxEC618(24, 0, 1, 0);
-    		break;
-    	default:
         	GPIO_IomuxEC618(19, 0, 1, 0);
         	GPIO_IomuxEC618(20, 0, 1, 0);
+    		break;
+    	default:
+        	GPIO_IomuxEC618(23, 0, 1, 0);
+        	GPIO_IomuxEC618(24, 0, 1, 0);
         	break;
     	}
 
