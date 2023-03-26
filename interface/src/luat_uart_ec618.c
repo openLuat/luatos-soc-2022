@@ -285,6 +285,19 @@ int luat_uart_write(int uartid, void* data, size_t length) {
     return 0;
 }
 
+void luat_uart_clear_rx_cache(int uartid)
+{
+	if (luat_uart_exist(uartid)) {
+		if (uartid >= MAX_DEVICE_COUNT){
+			g_s_vuart_rx_buffer.Pos = 0;
+		}
+		else
+		{
+			Uart_RxBufferClear(uartid);
+		}
+	}
+}
+
 int luat_uart_read(int uartid, void* buffer, size_t len) {
     int rcount = 0;
     if (luat_uart_exist(uartid)) {
