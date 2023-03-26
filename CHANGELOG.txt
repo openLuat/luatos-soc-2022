@@ -1,0 +1,6 @@
+date: 2023-03-25
+commit: https://gitee.com/openLuat/luatos-soc-2022/commit/549c4eb73b27bf7746c3c250a7025efe8c7bc299
+fix：修复i2c1默认引脚错误
+在此之前i2c1的默认引脚是错误的，次修改涉及luatos与csdk用户，如有使用请及时修改代码！！！
+
+
