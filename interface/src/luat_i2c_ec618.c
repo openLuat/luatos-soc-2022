@@ -169,7 +169,9 @@ int luat_i2c_transfer(int id, int addr, uint8_t *reg, size_t reg_len, uint8_t *b
 #include "common_api.h"
 #include "soc_i2c.h"
 #include "driver_gpio.h"
+#include "gpr_common.h"
 static uint8_t luat_i2c_iomux[I2C_MAX];
+static const ClockResetVector_t g_i2cResetVectors[] = {I2C0_RESET_VECTOR, I2C1_RESET_VECTOR};
 int luat_i2c_exist(int id) {
     return (id < I2C_MAX);
 }
@@ -270,25 +272,37 @@ int luat_i2c_close(int id) {
 
 int luat_i2c_send(int id, int addr, void* buff, size_t len, uint8_t stop) {
 	if (!luat_i2c_exist(id)) return -1;
-	return I2C_BlockWrite(id, addr, (const uint8_t *)buff, len, 25, NULL, NULL);
-    // I2C_Prepare(id, addr, 1, NULL, NULL);
-    // I2C_MasterXfer(id, I2C_OP_WRITE, 0, buff, len, 20);
+	int result = I2C_BlockWrite(id, addr, (const uint8_t *)buff, len, 25, NULL, NULL);
+	if (result)
+	{
+		GPR_swResetModule(&g_i2cResetVectors[id]);
+	}
+	return result;
 }
 
 int luat_i2c_recv(int id, int addr, void* buff, size_t len) {
 	if (!luat_i2c_exist(id)) return -1;
-	return I2C_BlockRead(id, addr, 0, 0, (uint8_t *)buff, len, 25, NULL, NULL);
-    // I2C_Prepare(id, addr, 1, NULL, NULL);
-    // I2C_MasterXfer(id, I2C_OP_READ, 0, buff, len, 20);
+	int result = I2C_BlockRead(id, addr, 0, 0, (uint8_t *)buff, len, 25, NULL, NULL);
+	if (result)
+	{
+		GPR_swResetModule(&g_i2cResetVectors[id]);
+	}
+	return result;
 }
 
 int luat_i2c_transfer(int id, int addr, uint8_t *reg, size_t reg_len, uint8_t *buff, size_t len) {
 	if (!luat_i2c_exist(id)) return -1;
+	int result;
 	if (reg && reg_len) {
-		return I2C_BlockRead(id, addr, reg, reg_len, (uint8_t *)buff, len, 25, NULL, NULL);
+		result = I2C_BlockRead(id, addr, reg, reg_len, (uint8_t *)buff, len, 25, NULL, NULL);
 	} else {
-		return I2C_BlockWrite(id, addr, (const uint8_t *)buff, len, 25, NULL, NULL);
+		result = I2C_BlockWrite(id, addr, (const uint8_t *)buff, len, 25, NULL, NULL);
 	}
+	if (result)
+	{
+		GPR_swResetModule(&g_i2cResetVectors[id]);
+	}
+	return result;
 }
 extern void I2C_SetNoBlock(uint8_t I2CID);
 int luat_i2c_no_block_transfer(int id, int addr, uint8_t is_read, uint8_t *reg, size_t reg_len, uint8_t *buff, size_t len, uint16_t Toms, void *CB, void *pParam) {
@@ -296,6 +310,10 @@ int luat_i2c_no_block_transfer(int id, int addr, uint8_t is_read, uint8_t *reg, 
 	int32_t Result;
 	if (!I2C_WaitResult(id, &Result)) {
 		return -1;
+	}
+	if (Result)
+	{
+		GPR_swResetModule(&g_i2cResetVectors[id]);
 	}
 	I2C_Prepare(id, addr, 2, CB, pParam);
 	I2C_SetNoBlock(id);
