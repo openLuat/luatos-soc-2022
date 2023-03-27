@@ -44,7 +44,7 @@
 static luat_uart_ctrl_param_t uart_cb[MAX_DEVICE_COUNT]={0};
 static Buffer_Struct g_s_vuart_rx_buffer;
 static uint32_t g_s_vuart_rx_base_len;
-
+static uint8_t g_s_vuart_tx_lock;
 typedef struct
 {
 	timer_t *rs485_timer;
@@ -253,12 +253,13 @@ int luat_uart_setup(luat_uart_t* uart) {
 int luat_uart_write(int uartid, void* data, size_t length) {
     if (luat_uart_exist(uartid)) {
         if (uartid >= MAX_DEVICE_COUNT){
-
+        	g_s_vuart_tx_lock = 1;
 			unsigned i = 0;
 			while(i < length)
 			{
-				if ((length - i) < 512)
+				if ((length - i) <= 512)
 				{
+					g_s_vuart_tx_lock = 0;
 					usb_serial_output(CMS_CHAN_4, data + i, length - i);
 					i = length;
 				}
@@ -268,6 +269,7 @@ int luat_uart_write(int uartid, void* data, size_t length) {
 					i += 512;
 				}
 			}
+
             return length;
         }else{
 #ifdef __LUATOS__
@@ -344,6 +346,17 @@ int luat_uart_exist(int uartid) {
     if (uartid >= LUAT_VUART_ID_0) uartid = MAX_DEVICE_COUNT - 1;
     return (uartid >= MAX_DEVICE_COUNT)?0:1;
 }
+
+#ifdef __LUATOS__
+void soc_usb_serial_output_done(uint8_t channel)
+{
+	if (!g_s_vuart_tx_lock)
+	{
+		luat_uart_sent_cb(LUAT_VUART_ID_0, NULL);
+	}
+
+}
+#endif
 
 static void luat_usb_recv_cb(uint8_t channel, uint8_t *input, uint32_t len){
 	if (input){

@@ -59,4 +59,5 @@ int32_t I2C_BlockRead(uint8_t I2CID, uint16_t ChipAddress, uint8_t *Reg, uint32_
 
 void I2C_ChangeBR(uint8_t I2CID, uint32_t Baudrate);
 
+void I2C_Reset(uint8_t I2CID);
 #endif
