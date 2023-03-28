@@ -204,6 +204,27 @@ int luat_mobile_get_default_apn(int sim_id, char* buff, size_t buf_len)
 	return luat_mobile_get_apn(sim_id, -1, buff, buf_len);
 }
 
+static void luat_mobile_del_apn_ec618(UINT16 paramSize, void *pParam)
+{
+	uint8_t *temp = (uint8_t *)pParam;
+	if (temp[1])
+	{
+		psDeleteCGDedDCONTContext(PS_DIAL_REQ_HANDLER, temp[0]);
+	}
+	else
+	{
+		psDeleteCGDCONTContext(PS_DIAL_REQ_HANDLER, temp[0]);
+	}
+}
+
+int luat_mobile_del_apn(int sim_id, uint8_t cid, uint8_t is_dedicated)
+{
+	uint8_t temp[4];
+	temp[0] = cid;
+	temp[1] = is_dedicated;
+	return cmsNonBlockApiCall(luat_mobile_del_apn_ec618, 4, temp);
+}
+
 static uint8_t s_disable_default_pdp;
 static uint8_t s_default_pdn_ip_type = 1;
 uint8_t soc_disable_tcpip_use_default_pdp(void)
