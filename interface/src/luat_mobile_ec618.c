@@ -407,6 +407,7 @@ static void ec618_cell_to_luat_cell(BasicCellListInfo *bcListInfo, luat_mobile_c
 	}
 	else
 	{
+		info->lte_info_valid = 1;
 		info->lte_service_info.cid = bcListInfo->sCellInfo.cellId;
 		info->lte_service_info.band = bcListInfo->sCellInfo.band;
 		info->lte_service_info.dlbandwidth = bcListInfo->sCellInfo.dlBandWidth;
