@@ -259,10 +259,13 @@ static int luat_mqtt_msg_cb(luat_mqtt_ctrl_t *mqtt_ctrl) {
 			const uint8_t* ptr;
 			qos = MQTTParseMessageQos(mqtt_ctrl->mqtt_packet_buffer);
 			l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_PUBLISH, 0);
+			msg_id = mqtt_parse_msg_id(mqtt_ctrl->mqtt_packet_buffer);
 			// 还要回复puback
 			if (qos == 1) {
-				msg_id = mqtt_parse_msg_id(mqtt_ctrl->mqtt_packet_buffer);
 				mqtt_puback(&(mqtt_ctrl->broker), msg_id);
+			}
+			else if (qos == 2) {
+				mqtt_pubrec(&(mqtt_ctrl->broker), msg_id);
 			}
             break;
         }
@@ -280,6 +283,12 @@ static int luat_mqtt_msg_cb(luat_mqtt_ctrl_t *mqtt_ctrl) {
 		case MQTT_MSG_PUBCOMP : {
 			// DBG("MQTT_MSG_PUBCOMP");
             l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_PUBCOMP, mqtt_parse_msg_id(mqtt_ctrl->mqtt_packet_buffer));
+			break;
+		}
+		case MQTT_MSG_PUBREL : {
+			msg_id = mqtt_parse_msg_id(&(mqtt_ctrl->mqtt_packet_buffer));
+			// LLOGD("MQTT_MSG_PUBREL %d", msg_id);
+            mqtt_pubcomp(&(mqtt_ctrl->broker), msg_id);
 			break;
 		}
         case MQTT_MSG_SUBACK : {
