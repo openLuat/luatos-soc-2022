@@ -272,7 +272,7 @@ static int luat_mqtt_msg_cb(luat_mqtt_ctrl_t *mqtt_ctrl) {
 			break;
 		}
 		case MQTT_MSG_PUBREC : {
-			msg_id = mqtt_parse_msg_id(&(mqtt_ctrl->broker));
+			msg_id = mqtt_parse_msg_id(&(mqtt_ctrl->mqtt_packet_buffer));
 			mqtt_pubrel(&(mqtt_ctrl->broker), msg_id);
 			// DBG("MQTT_MSG_PUBREC");
 			break;

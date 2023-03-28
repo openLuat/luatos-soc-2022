@@ -1,0 +1,119 @@
+{
+    "version": 1,
+    "builder": {
+        "chip": {
+            "name": "air101",
+            "io": 18,
+            "memory": {
+                "min": 176,
+                "max": 176,
+                "dft": 176
+            },
+            "layout": {
+                "total": 1900,
+                "fs": {
+                    "min": 112,
+                    "max": 112,
+                    "dft": 112
+                },
+                "rom": {
+                    "min": 1830912,
+                    "max": 1830912,
+                    "dft": 1830912,
+                    "rsize": 271352
+                }
+            },
+            "script": {
+                "min": 64,
+                "max": 256,
+                "dft": 64,
+                "unit": 64
+            }
+        },
+        "sdk": {
+            "presets": [
+                {
+                    "name": "dev",
+                    "value": {
+                        "luatos": "head",
+                        "air101": "head"
+                    }
+                }
+            ]
+        },
+        "component": [
+            {
+                "icon": "zmdi-input-composite",
+                "name": "@CNF",
+                "content": "配置项",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "@comment",
+                        "content": "本构建功能需要超过5分钟时间,若超时或失败,请稍后重试.若持续失败请联系技术支持",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    },
+                    {
+                        "name": "rndis",
+                        "content": "带RNDIS功能的CSDK,不支持低速模式",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    }
+                ]
+            },
+            {
+                "icon": "zmdi-input-composite",
+                "name": "@PGCNF",
+                "content": "分区方案,只能选一种,或者全部不选. 总可分配空间 3744k",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "PG_APP_2944_FOTA_512_FS_288",
+                        "content": "默认配置,APP分区2944k,fota区512k,文件系统288k",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    },
+                    {
+                        "name": "PG_APP_2432_FOTA_512_FS_400",
+                        "content": "方案2 APP分区2432k,fota区512k,文件系统400k",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    },
+                    {
+                        "name": "PG_APP_2816_FOTA_512_FS_480",
+                        "content": "方案3 APP分区2816k,fota区512k,文件系统480k",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    },
+                    {
+                        "name": "PG_APP_2048_FOTA_1568_FS_128",
+                        "content": "方案4 APP分区2048k,fota区1568k,文件系统128k",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    },
+                    {
+                        "name": "PG_APP_3488_FOTA_128_FS_128",
+                        "content": "方案5 APP分区3488k,fota区128k,文件系统128k",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    },
+                    {
+                        "name": "@pgcommet",
+                        "content": "如需更多方案,请联系销售定制",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    }
+                ]
+            }
+        ]
+    }
+}

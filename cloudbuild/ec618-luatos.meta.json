@@ -1,0 +1,754 @@
+{
+    "version": 1,
+    "builder": {
+        "chip": {
+            "name": "ec618-luatos",
+            "io": 44,
+            "memory": {
+                "min": 256,
+                "max": 256,
+                "dft": 256
+            },
+            "layout": {
+                "total": 4096,
+                "fs": {
+                    "min": 512,
+                    "max": 512,
+                    "dft": 512
+                },
+                "rom": {
+                    "min": 1677721,
+                    "max": 2918400,
+                    "dft": 2918400,
+                    "rsize": 1800000
+                },
+                "bl": {
+                    "min": 512,
+                    "max": 512,
+                    "dft": 512
+                }
+            },
+            "script": {
+                "min": 128,
+                "max": 448,
+                "dft": 128,
+                "unit": 32
+            }
+        },
+        "sdk": {
+            "presets": [
+                {
+                    "name": "dev",
+                    "value": {
+                        "luatos": "head",
+                        "air101": "head"
+                    }
+                }
+            ]
+        },
+        "component": [
+            {
+                "icon": "zmdi-input-composite",
+                "name": "@DEV2",
+                "content": "编译提醒,本子项均为提示,非配置项",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "@comment_1",
+                        "content": "若需要兼容V1103的flash布局,脚本区大小设置到448k",
+                        "rsize": 0,
+                        "fsize": 0,
+                        "dft": false
+                    },
+                    {
+                        "name": "@comment_2",
+                        "content": "若配置TTS资源存放在模块内,脚本区将强制设置到64k",
+                        "rsize": 0,
+                        "fsize": 0,
+                        "dft": false
+                    },
+                    {
+                        "name": "@comment_3",
+                        "content": "正常编译不超过2分钟,若有疑问请到 https://gitee.com/openLuat/LuatOS/issues 反馈,或向FAE求助",
+                        "rsize": 0,
+                        "fsize": 0,
+                        "dft": false
+                    }
+                ]
+            },
+            {
+                "icon": "zmdi-input-composite",
+                "name": "@DEV",
+                "content": "基础外设",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "gpio",
+                        "content": "通用输入输出,输入/输出/中断",
+                        "rsize": 1432,
+                        "fsize": 288852,
+                        "dft": false
+                    },
+                    {
+                        "name": "uart",
+                        "content": "串口",
+                        "rsize": 3520,
+                        "fsize": 290940,
+                        "dft": false,
+                        "children": [
+                            {
+                                "name": "soft_uart",
+                                "content": "软串口支持,波特率9600或以下,任意2个GPIO,仅支持一个通道",
+                                "rsize": 2432,
+                                "fsize": 288852,
+                                "dft": false
+                            }
+                        ]
+                    },
+                    {
+                        "name": "i2c",
+                        "content": "IIC协议",
+                        "rsize": 4976,
+                        "fsize": 292396,
+                        "dft": false
+                    },
+                    {
+                        "name": "spi",
+                        "content": "SPI协议",
+                        "rsize": 5424,
+                        "fsize": 292844,
+                        "dft": false
+                    },
+                    {
+                        "name": "adc",
+                        "content": "模数转换",
+                        "rsize": 576,
+                        "fsize": 287996,
+                        "dft": false
+                    },
+                    {
+                        "name": "pwm",
+                        "content": "频率可控方波",
+                        "rsize": 1192,
+                        "fsize": 288612,
+                        "dft": false
+                    },
+                    {
+                        "name": "wdt",
+                        "content": "硬狗",
+                        "rsize": 240,
+                        "fsize": 287660,
+                        "dft": false
+                    },
+                    {
+                        "name": "crypto",
+                        "content": "加解密算法,md5/sha家族/aes/des/crc系列",
+                        "rsize": 45568,
+                        "fsize": 332988,
+                        "dft": false
+                    },
+                    {
+                        "name": "mcu",
+                        "content": "MCU专有API,可获取唯一id,滴答时钟计数",
+                        "rsize": 2952,
+                        "fsize": 290372,
+                        "dft": false
+                    },
+                    {
+                        "name": "rtc",
+                        "content": "RTC时钟",
+                        "rsize": 1944,
+                        "fsize": 289364,
+                        "dft": false
+                    },
+                    {
+                        "name": "pm",
+                        "content": "电源功耗管理,休眠模式控制,定时唤醒",
+                        "rsize": 1944,
+                        "fsize": 289364,
+                        "dft": false
+                    },
+                    {
+                        "name": "otp",
+                        "content": "一次性写入存储,一旦加锁就无法修改无法擦除,把Flash全清了也改不了",
+                        "rsize": 632,
+                        "fsize": 288052,
+                        "dft": false
+                    },
+                    {
+                        "name": "media",
+                        "content": "多媒体,当前仅音频,支持播放wav/mp3",
+                        "rsize": 60240,
+                        "fsize": 288052,
+                        "dft": false
+                    },
+                    {
+                        "name": "@tts",
+                        "content": "TTS=离线文本转语音,需开启media,占用200k",
+                        "rsize": 0,
+                        "fsize": 288052,
+                        "dft": false,
+                        "children" : [
+                            {
+                                "name": "tts",
+                                "content": "启用TTS主功能,功能本身占200k. 默认是外挂SPI Flash存放TTS资源",
+                                "rsize": 190240,
+                                "fsize": 288052,
+                                "dft": false
+                            },
+                            {
+                                "name" : "@tts_comment",
+                                "content": "TTS资源很大,区分外挂SPI Flash和直接放模块内,两种配置.默认前者.",
+                                "rsize" : 0,
+                                "fsize" : 288052,
+                                "dft"   : false
+                            },
+                            {
+                                "name" : "tts_onchip",
+                                "content": "将TTS资源直接放在模块里,需要750k的Flash,注意其他库的取舍,否则放不下",
+                                "rsize" : 800000,
+                                "fsize" : 288052,
+                                "dft"   : false
+                            },
+                            {
+                                "name" : "tts_8k",
+                                "content": "选用8k的TTS资源, 音质比16k稍差, 但节省100k空间,仅推荐与tts_onchip搭配",
+                                "rsize" : 1024,
+                                "fsize" : 288052,
+                                "dft"   : false
+                            },
+                            {
+                                "name" : "@tts_16k",
+                                "content": "选用16k的TTS资源,默认也是16k,音质稍好一些",
+                                "rsize" : 0,
+                                "fsize" : 288052,
+                                "dft"   : false
+                            }
+                        ]
+                    },
+                    {
+                        "name": "sms",
+                        "content": "短信收发,不支持电信卡!!!",
+                        "rsize": 60240,
+                        "fsize": 288052,
+                        "dft": false
+                    }
+                ],
+                "fsize": 287420,
+                "dft": false
+            },
+            {
+                "icon": "zmdi-card-sd",
+                "name": "@LIB",
+                "content": "工具库",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "LUAT_CONF_VM_64bit",
+                        "content": "64bit虚拟机(测试阶段,内存占用会增加,需要LuaTools 2.1.77)",
+                        "rsize": 193240,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "cjson",
+                        "content": "JSON序列化与反序列化",
+                        "rsize": 5800,
+                        "fsize": 293220,
+                        "dft": false
+                    },
+                    {
+                       "name":"iotauth",
+                       "content":"云服务鉴权密钥生成,阿里云/腾讯云/百度云/华为云/涂鸦等",
+                       "rsize":14928,
+                       "fsize":418304,
+                       "dft":false
+                    },
+                    {
+                        "name": "fs",
+                        "content": "文件系统状态",
+                        "rsize": 744,
+                        "fsize": 288164,
+                        "dft": false
+                    },
+                    {
+                        "name": "pack",
+                        "content": "数据打包与解包",
+                        "rsize": 1960,
+                        "fsize": 289380,
+                        "dft": false
+                    },
+                    {
+                        "name": "zbuff",
+                        "content": "C风格的内存数组操作库",
+                        "rsize": 15632,
+                        "fsize": 303052,
+                        "dft": false
+                    },
+                    {
+                        "name": "libgnss",
+                        "content": "NMEA解析,解析GNSS/GPS的数据",
+                        "rsize": 6232,
+                        "fsize": 293652,
+                        "dft": false
+                    },
+                    {
+                        "name": "fdb",
+                        "content": "kv数据库,掉电不丢,推荐改用fskv库",
+                        "rsize": 10832,
+                        "fsize": 298252,
+                        "dft": false
+                    },
+                    {
+                        "name": "fskv",
+                        "content": "kv数据库,替代fdb,建议使用",
+                        "rsize": 10832,
+                        "fsize": 298252,
+                        "dft": false
+                    },
+                    {
+                        "name": "miniz",
+                        "content": "压缩和解压库,兼容zlib格式",
+                        "rsize": 12768,
+                        "fsize": 317120,
+                        "dft": false
+                    },
+                    {
+                        "name": "sfud",
+                        "content": "通用spi flash驱动库,市面上常见的spi flash都支持",
+                        "rsize": 11968,
+                        "fsize": 299388,
+                        "dft": false
+                    },
+                    {
+                        "name": "lora",
+                        "content": "lora驱动",
+                        "rsize": 13196,
+                        "fsize": 284548,
+                        "dft": false
+                    },
+                    {
+                        "name": "mlx90640",
+                        "content": "红外成像mlx90640",
+                        "rsize": 13196,
+                        "fsize": 284548,
+                        "dft": false
+                    },
+                    {
+                        "name": "max30102",
+                        "content": "心率血氧传感器",
+                        "rsize": 13196,
+                        "fsize": 284548,
+                        "dft": false
+                    },
+                    {
+                        "name": "protobuf",
+                        "content": "protobuf编解码",
+                        "rsize": 12008,
+                        "fsize": 274360,
+                        "dft": false
+                    },
+                    {
+                        "name": "rsa",
+                        "content": "RSA 加密解密,签名验签,不依赖crypto库",
+                        "rsize": 6008,
+                        "fsize": 274360,
+                        "dft": false
+                    },
+                    {
+                        "name": "ftp",
+                        "content": "FTP客户端",
+                        "rsize": 6008,
+                        "fsize": 274360,
+                        "dft": false
+                    },
+                    {
+                        "name": "w5500",
+                        "content": "以太网支持库,支持W5500",
+                        "rsize": 6008,
+                        "fsize": 274360,
+                        "dft": false
+                    },
+                    {
+                        "name": "fatfs",
+                        "content": "通过SPI挂载SD卡",
+                        "rsize": 90856,
+                        "fsize": 481276,
+                        "dft": false,
+                        "children" : [
+                            {
+                                "name": "LUAT_USE_FATFS_CHINESE",
+                                "content": "支持中文路径",
+                                "rsize": 122400,
+                                "fsize": 481276
+                            }
+                        ]
+                    },
+                    {
+                        "name": "gmssl",
+                        "content": "国密算法SM2/SM3/SM4",
+                        "rsize": 20008,
+                        "fsize": 274360,
+                        "dft": false
+                    },
+                    {
+                        "name": "iconv",
+                        "content": "编码转换GB2312/UTF8/UNCIODE",
+                        "rsize": 40008,
+                        "fsize": 274360,
+                        "dft": false
+                    }
+                ],
+                "fsize": 287420,
+                "dft": false
+            },
+            {
+                "icon": "zmdi-puzzle-piece",
+                "name": "@EXT",
+                "content": "扩展",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "sensor",
+                        "content": "传感器(例如ds18b20/ws2812)",
+                        "rsize": 2248,
+                        "fsize": 289668,
+                        "dft": false
+                    },
+                    {
+                        "name": "fonts",
+                        "content": "通用字体,适用于u8g2/disp/eink/lcd库",
+                        "rsize": 0,
+                        "children": [
+                            {
+                                "name": "USE_U8G2_OPPOSANSM_ENGLISH",
+                                "content": "英文字体和特殊符号",
+                                "rsize": 48176,
+                                "fsize": 304416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM8_CHINESE",
+                                "content": "8pix中文字体",
+                                "rsize": 105176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM10_CHINESE",
+                                "content": "10pix中文字体",
+                                "rsize": 205176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM12_CHINESE",
+                                "content": "12pix中文字体",
+                                "rsize": 305176,
+                                "fsize": 287420,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 287420,
+                        "dft": false
+                    },
+                    {
+                        "name": "gtfont",
+                        "content": "高通矢量字体(需要配合高通字体芯片)",
+                        "rsize": 240,
+                        "children": [
+                            {
+                                "name": "gtfont_utf8",
+                                "content": "高通矢量字体支持UTF-8编码(180k的转码表)",
+                                "rsize": 0,
+                                "fsize": 287660,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 287660,
+                        "dft": false
+                    },
+                    {
+                        "name": "u8g2",
+                        "content": "单色屏驱动",
+                        "rsize": 56072,
+                        "fsize": 343492,
+                        "dft": false
+                    },
+                    {
+                        "name": "lcd",
+                        "content": "彩屏lcd驱动",
+                        "rsize": 55720,
+                        "children": [
+                            {
+                                "name": "tjpgd",
+                                "content": "支持JPG图片,解码需要与图片尺寸相同的内存",
+                                "rsize": 5712,
+                                "fsize": 348852,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 343140,
+                        "dft": false
+                    },
+                    {
+                        "name": "eink",
+                        "content": "墨水屏驱动",
+                        "rsize": 70200,
+                        "fsize": 357620,
+                        "dft": false
+                    },
+                    {
+                        "name": "lvgl",
+                        "content": "轻量级图形化库,依赖lcd库. 虽然支持但SPI慢,效果不好",
+                        "rsize": 360536,
+                        "children": [
+                            {
+                                "name": "lvgl_anim",
+                                "content": "自定义动画",
+                                "rsize": 0,
+                                "fsize": 631888,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_indev",
+                                "content": "输入设备",
+                                "rsize": 2048,
+                                "fsize": 654400,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_arc",
+                                "content": "圆弧",
+                                "rsize": 8412,
+                                "fsize": 640300,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_bar",
+                                "content": "进度条",
+                                "rsize": 1556,
+                                "fsize": 633444,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_btn",
+                                "content": "按钮",
+                                "rsize": 2156,
+                                "fsize": 634044,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_btnmatrix",
+                                "content": "按钮矩阵",
+                                "rsize": 8348,
+                                "fsize": 640236,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_calendar",
+                                "content": "日历",
+                                "rsize": 6852,
+                                "fsize": 638740,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_canvas",
+                                "content": "画布",
+                                "rsize": 9732,
+                                "fsize": 641620,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_checkbox",
+                                "content": "复选框",
+                                "rsize": 4756,
+                                "fsize": 636644,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_chart",
+                                "content": "图表",
+                                "rsize": 12772,
+                                "fsize": 644660,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_cont",
+                                "content": "容器",
+                                "rsize": 1316,
+                                "fsize": 633204,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_cpicker",
+                                "content": "颜色选择器",
+                                "rsize": 7232,
+                                "fsize": 639120,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_dropdown",
+                                "content": "下拉列表",
+                                "rsize": 17760,
+                                "fsize": 649648,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_gauge",
+                                "content": "仪表",
+                                "rsize": 7524,
+                                "fsize": 639412,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_img",
+                                "content": "图片",
+                                "rsize": 6420,
+                                "fsize": 638308,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_imgbtn",
+                                "content": "图片按钮",
+                                "rsize": 3456,
+                                "fsize": 635344,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_keyboard",
+                                "content": "键盘",
+                                "rsize": 6428,
+                                "fsize": 638316,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_label",
+                                "content": "标签",
+                                "rsize": 5876,
+                                "fsize": 637764,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_led",
+                                "content": "LED灯",
+                                "rsize": 1636,
+                                "fsize": 633524,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_line",
+                                "content": "线段",
+                                "rsize": 2156,
+                                "fsize": 634044,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_list",
+                                "content": "列表",
+                                "rsize": 20936,
+                                "fsize": 652824,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_linemeter",
+                                "content": "仪表(弧形刻度)",
+                                "rsize": 3524,
+                                "fsize": 635412,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_msgbox",
+                                "content": "消息框",
+                                "rsize": 11620,
+                                "fsize": 643508,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_page",
+                                "content": "页面",
+                                "rsize": 11880,
+                                "fsize": 643768,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_spinner",
+                                "content": "旋转器",
+                                "rsize": 6656,
+                                "fsize": 638544,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_roller",
+                                "content": "滚筒",
+                                "rsize": 16304,
+                                "fsize": 648192,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_slider",
+                                "content": "滑杆",
+                                "rsize": 4368,
+                                "fsize": 636256,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_spinbox",
+                                "content": "数字调整框",
+                                "rsize": 18752,
+                                "fsize": 650640,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_switch",
+                                "content": "开关",
+                                "rsize": 864,
+                                "fsize": 632752,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_textarea",
+                                "content": "文本框",
+                                "rsize": 19296,
+                                "fsize": 651184,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_table",
+                                "content": "表格",
+                                "rsize": 8272,
+                                "fsize": 640160,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_tabview",
+                                "content": "页签",
+                                "rsize": 21708,
+                                "fsize": 653596,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_tileview",
+                                "content": "平铺视图",
+                                "rsize": 10436,
+                                "fsize": 642324,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_win",
+                                "content": "窗口",
+                                "rsize": 12948,
+                                "fsize": 644836,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 631888,
+                        "dft": false
+                    }
+                ],
+                "fsize": 287420,
+                "dft": false
+            }
+        ]
+    }
+}
