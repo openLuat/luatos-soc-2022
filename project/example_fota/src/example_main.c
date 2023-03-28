@@ -44,6 +44,9 @@ FOTA应用开发可以参考：https://doc.openluat.com/wiki/37?wiki_page_id=456
 static HttpClientContext        gHttpClient = {0};
 luat_fota_img_proc_ctx_ptr test_luat_fota_handle = NULL;
 
+static int stepLen = 0;
+static int totalLen = 0;
+
 /**
   \fn      INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
   \brief
@@ -63,7 +66,12 @@ static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
     clientData.headerBufLen = HTTP_HEAD_BUF_SIZE;
     clientData.respBuf = buf;
     clientData.respBufLen = len;
-    
+    if(stepLen != 0)
+    {
+        clientData.isRange = true;
+        clientData.rangeHead = stepLen;
+        clientData.rangeTail = -1;
+    }
     result = httpSendRequest(&gHttpClient, getUrl, HTTP_GET, &clientData);
     LUAT_DEBUG_PRINT("send request result=%d", result);
     if (result != HTTP_OK)
@@ -77,8 +85,12 @@ static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
             headerLen = strlen(clientData.headerBuf);
             if(headerLen > 0)
             {
+                if(stepLen == 0)
+                {
+                    totalLen = clientData.recvContentLength;
+            	    LUAT_DEBUG_PRINT("total content length=%d", clientData.recvContentLength);
+                }
             	LUAT_DEBUG_PRINT("total content length=%d", clientData.recvContentLength);
-                test_luat_fota_handle = luat_fota_init();
             }
 
             if(clientData.blockContentLen > 0)
@@ -91,8 +103,10 @@ static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
                 }
                 else{
                     LUAT_DEBUG_PRINT("fota update error");
+                    break;
                 }
             }
+            stepLen += clientData.blockContentLen;
             count += clientData.blockContentLen;
 
             
@@ -114,26 +128,33 @@ exit:
     return result;
 }
 
-luat_rtos_semaphore_t net_semaphore_handle;
-luat_rtos_task_handle https_task_handle;
+luat_rtos_task_handle fota_task_handle;
+static uint8_t g_s_network_status = 0;
 
 void mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status){
-    if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_ON){
-        LUAT_DEBUG_PRINT("network ready");
-        luat_rtos_semaphore_release(net_semaphore_handle);
+    if (event == LUAT_MOBILE_EVENT_NETIF)
+    {
+        if(status == LUAT_MOBILE_NETIF_LINK_ON)
+        {
+            g_s_network_status = 1;
+            LUAT_DEBUG_PRINT("network ready");
+        }
+        else if(status == LUAT_MOBILE_NETIF_LINK_OFF)
+        {
+            g_s_network_status = 0;
+            LUAT_DEBUG_PRINT("network off");
+        }
     }
 }
 
 static void task_test_fota(void *param)
 {
-    luat_rtos_semaphore_create(&net_semaphore_handle, 1);
-
+    uint8_t retryTimes = 0;
 	char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
 	HTTPResult result = HTTP_INTERNAL;
 
     luat_mobile_event_register_handler(mobile_event_callback);
 
-    luat_rtos_task_sleep(3000);
     LUAT_DEBUG_PRINT("version = %s", PROJECT_VERSION);
 
     gHttpClient.timeout_s = 2;
@@ -142,35 +163,49 @@ static void task_test_fota(void *param)
     gHttpClient.ciphersuite[0] = 0xFFFF;
     gHttpClient.ignore = 1;
 
-    luat_rtos_semaphore_take(net_semaphore_handle, LUAT_WAIT_FOREVER);
-
-    result = httpConnect(&gHttpClient, TEST_HOST);
-    if (result == HTTP_OK)
+    test_luat_fota_handle = luat_fota_init();
+    while(retryTimes < 30)
     {
-        httpGetData(TEST_SERVER_NAME, recvBuf, HTTP_RECV_BUF_SIZE);
-        httpClose(&gHttpClient);
-        LUAT_DEBUG_PRINT("verify start");
-        int verify = luat_fota_done(test_luat_fota_handle);
-        if(verify != 0)
+        while(g_s_network_status != 1)
         {
-            LUAT_DEBUG_PRINT("image_verify error");
-            goto exit;
+            LUAT_DEBUG_PRINT("fota task wait network ready");
+            luat_rtos_task_sleep(1000);
         }
-	    LUAT_DEBUG_PRINT("image_verify ok");
-        ResetStartPorReset(RESET_REASON_FOTA);
-    }
-    else
-    {
-        LUAT_DEBUG_PRINT("http client connect error");
+        result = httpConnect(&gHttpClient, TEST_HOST);
+        if (result == HTTP_OK)
+        {
+            httpGetData(TEST_SERVER_NAME, recvBuf, HTTP_RECV_BUF_SIZE);
+            httpClose(&gHttpClient);
+            LUAT_DEBUG_PRINT("verify start");
+            if (stepLen == totalLen)
+            {
+                int verify = luat_fota_done(test_luat_fota_handle);
+                if(verify != 0)
+                {
+                    LUAT_DEBUG_PRINT("image_verify error");
+                    goto exit;
+                }
+                LUAT_DEBUG_PRINT("image_verify ok");
+                ResetStartPorReset(RESET_REASON_FOTA);
+            }
+        }
+        else
+        {
+            LUAT_DEBUG_PRINT("http client connect error");
+        }
+        retryTimes++;
+        luat_rtos_task_sleep(5000);
     }
     exit:
+    stepLen = 0;
+    totalLen = 0;
     free(recvBuf);
-    luat_rtos_task_delete(https_task_handle);
+    luat_rtos_task_delete(fota_task_handle);
 }
 
 static void task_demo_fota(void)
 {
-	luat_rtos_task_create(&https_task_handle, 32*1024, 20, "https", task_test_fota, NULL, NULL);
+	luat_rtos_task_create(&fota_task_handle, 32*1024, 20, "task_test_fota", task_test_fota, NULL, NULL);
 }
 //启动task_demoF_init，启动位置任务2级
 INIT_TASK_EXPORT(task_demo_fota, "1");
