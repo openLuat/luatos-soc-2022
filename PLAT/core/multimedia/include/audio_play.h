@@ -49,6 +49,8 @@ extern const unsigned char ivtts_8k_tz_data[];
 extern const unsigned char ivtts_8k_tz_frags[];
 extern const unsigned char ivtts_16k_tz_data[];
 extern const unsigned char ivtts_16k_tz_frags[];
+extern const unsigned char ivtts_8k_eng[];
+extern const unsigned char ivtts_16k_eng[];
 /**
  * @brief 播放时event回调，见MULTIMEDIA_CB_XXX，user_param就是初始化时传入的user_param
  * 

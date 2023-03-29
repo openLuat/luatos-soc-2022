@@ -111,16 +111,16 @@ void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
 	//LUAT_DEBUG_PRINT("%x,%d,%d,%d", data, len, bits, channels);
 }
 
-ivBool tts_read_data(
-								  ivPointer		pParameter,			/* [in] user callback parameter */
-								  ivPointer		pBuffer,			/* [out] read resource buffer */
-								  ivResAddress	iPos,				/* [in] read start position */
-	ivResSize		nSize )			/* [in] read size */
-{
-	LUAT_DEBUG_PRINT("%x,%d,%d", pParameter, iPos, nSize);
-    memcpy((uint8_t *)pBuffer, (uint8_t *)pParameter + iPos, nSize);
-    return ivTrue;
-}
+//ivBool tts_read_data(
+//								  ivPointer		pParameter,			/* [in] user callback parameter */
+//								  ivPointer		pBuffer,			/* [out] read resource buffer */
+//								  ivResAddress	iPos,				/* [in] read start position */
+//	ivResSize		nSize )			/* [in] read size */
+//{
+//	LUAT_DEBUG_PRINT("%x,%d,%d", pParameter, iPos, nSize);
+//    memcpy((uint8_t *)pBuffer, (uint8_t *)pParameter + iPos, nSize);
+//    return ivTrue;
+//}
 
 static void demo_task(void *arg)
 {
@@ -129,10 +129,16 @@ static void demo_task(void *arg)
 	ivCStrA sdk_id = AISOUND_SDK_USERID_16K;
 	//8K用下面的
 //	ivCStrA sdk_id = AISOUND_SDK_USERID_8K;
+	//8K英文用下面的
+//	ivCStrA sdk_id = AISOUND_SDK_USERID_8K_ENG;
+	//16K英文用下面的
+//	ivCStrA sdk_id = AISOUND_SDK_USERID_16K_ENG;
+	//中文测试用下面的
 	char tts_string[] = "支付宝到账123.45元,微信收款9876.12元ABC";
+	//英文测试用下面的
+//	char tts_string[] = "hello world, now test once";
 	luat_audio_play_info_t info[5];
-//	slpManRegisterUsrdefinedBackupCb(before_sleep, NULL);
-//	slpManRegisterUsrdefinedRestoreCb(after_sleep, NULL);
+
 	download_file();
 	luat_rtos_timer_create(&g_s_delay_timer);
     luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, luat_audio_play_tts_default_fun, NULL);
@@ -142,8 +148,10 @@ static void demo_task(void *arg)
     luat_audio_play_tts_set_resource(ivtts_16k, sdk_id, NULL);
     //8K用下面的
 //	luat_audio_play_tts_set_resource(ivtts_8k, sdk_id, NULL);
-	// 透明解压版本
-	//luat_audio_play_tts_set_resource(&ivtts_16k_tz, sdk_id, luat_transz_read);
+    //8K英文用下面的
+//	luat_audio_play_tts_set_resource(ivtts_8k_eng, sdk_id, NULL);
+    //16K英文用下面的
+//	luat_audio_play_tts_set_resource(ivtts_16k_eng, sdk_id, NULL);
     //使用ES7149/ES7148，用如下配置，如果不是，请根据实际情况配置，bus_id直接写0
  //   luat_i2s_base_setup(0, I2S_MODE_I2S, I2S_FRAME_SIZE_16_16);
 //	如下配置可使用TM8211
