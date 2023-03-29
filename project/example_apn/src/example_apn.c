@@ -177,7 +177,18 @@ static void task_run(void *param)
 	int i;
 	luat_mobile_cell_info_t  cell_info;
 	luat_mobile_user_ctrl_apn();
-//	luat_mobile_user_apn_auto_active(0, g_s_test_cid, 3,0xff, "cmnet", 0, NULL, 0, NULL, 0);
+	/*
+		设置专网卡APN信息时，如需要设置在第一路承载（CID 1），则必须使用自动模式去激活
+
+		如果是其他路承载，自动模式还是手动模式都可以
+
+		如果设置过APN信息的模块需要换回普通卡用，需要把apn清空
+
+		如果APN需要设置密码，根据APN信息和加密协议设置
+
+		apn信息需要在开机注网前配置好
+	*/
+	// luat_mobile_user_apn_auto_active(0, g_s_test_cid, 3,0xff, "cmnet", 0, NULL, 0, NULL, 0);
 	char imei[20] = {0};
 	luat_mobile_get_imei(0, imei, sizeof(imei));
 	LUAT_DEBUG_PRINT("IMEI %s", imei);
