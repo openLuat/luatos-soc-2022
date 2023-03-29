@@ -51,12 +51,13 @@ static slpManSlpState_t luat_user_slp_state(void)
 }
 
 int luat_pm_request(int mode) {
-
-    LLOGI("request mode=%ld, prev mode=%ld", mode, lastRequestMode);
     if (mode < 0 || mode > LUAT_PM_SLEEP_MODE_STANDBY) {
         LLOGW("bad mode=%ld", mode);
         return -2;
     }
+    if (lastRequestMode < 0 || lastRequestMode > LUAT_PM_SLEEP_MODE_STANDBY)
+        lastRequestMode = 0;
+    LLOGI("request mode=%s, prev=%s", slpStateText[mode], slpStateText[lastRequestMode]);
     lastRequestMode = mode;
     soc_set_usb_sleep(0);
     return 0;
