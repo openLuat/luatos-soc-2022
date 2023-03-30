@@ -454,6 +454,20 @@
                                 "rsize": 305176,
                                 "fsize": 287420,
                                 "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM14_CHINESE",
+                                "content": "14pix中文字体",
+                                "rsize": 405176,
+                                "fsize": 287420,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM16_CHINESE",
+                                "content": "16pix中文字体",
+                                "rsize": 450000,
+                                "fsize": 287420,
+                                "dft": false
                             }
                         ],
                         "fsize": 287420,
