@@ -407,27 +407,36 @@ static void ec618_cell_to_luat_cell(BasicCellListInfo *bcListInfo, luat_mobile_c
 	}
 	else
 	{
-		info->lte_info_valid = 1;
-		info->lte_service_info.cid = bcListInfo->sCellInfo.cellId;
-		info->lte_service_info.band = bcListInfo->sCellInfo.band;
-		info->lte_service_info.dlbandwidth = bcListInfo->sCellInfo.dlBandWidth;
-		info->lte_service_info.ulbandwidth = bcListInfo->sCellInfo.ulBandWidth;
-		info->lte_service_info.is_tdd = bcListInfo->sCellInfo.isTdd;
-		info->lte_service_info.earfcn = bcListInfo->sCellInfo.earfcn;
-		info->lte_service_info.pci = bcListInfo->sCellInfo.phyCellId;
-		info->lte_service_info.tac = bcListInfo->sCellInfo.tac;
-		info->lte_service_info.snr = bcListInfo->sCellInfo.snr;
-		info->lte_service_info.rsrp = bcListInfo->sCellInfo.rsrp;
-		info->lte_service_info.rsrq = bcListInfo->sCellInfo.rsrq;
-		info->lte_service_info.rssi = bcListInfo->sCellInfo.rsrp - bcListInfo->sCellInfo.rsrq + (bcListInfo->sCellInfo.rssiCompensation/100);
-		info->lte_service_info.mcc = bcListInfo->sCellInfo.plmn.mcc;
-		if (0xf000 == (bcListInfo->sCellInfo.plmn.mncWithAddInfo & 0xf000))
+		if (bcListInfo->sCellInfo.rsrp < 0)
 		{
-			info->lte_service_info.mnc = bcListInfo->sCellInfo.plmn.mncWithAddInfo & 0x0fff;
+			info->lte_info_valid = 1;
+			info->lte_service_info.cid = bcListInfo->sCellInfo.cellId;
+			info->lte_service_info.band = bcListInfo->sCellInfo.band;
+			info->lte_service_info.dlbandwidth = bcListInfo->sCellInfo.dlBandWidth;
+			info->lte_service_info.ulbandwidth = bcListInfo->sCellInfo.ulBandWidth;
+			info->lte_service_info.is_tdd = bcListInfo->sCellInfo.isTdd;
+			info->lte_service_info.earfcn = bcListInfo->sCellInfo.earfcn;
+			info->lte_service_info.pci = bcListInfo->sCellInfo.phyCellId;
+			info->lte_service_info.tac = bcListInfo->sCellInfo.tac;
+			info->lte_service_info.snr = bcListInfo->sCellInfo.snr;
+			info->lte_service_info.rsrp = bcListInfo->sCellInfo.rsrp;
+			info->lte_service_info.rsrq = bcListInfo->sCellInfo.rsrq;
+			info->lte_service_info.rssi = bcListInfo->sCellInfo.rsrp - bcListInfo->sCellInfo.rsrq + (bcListInfo->sCellInfo.rssiCompensation/100);
+			info->lte_service_info.mcc = bcListInfo->sCellInfo.plmn.mcc;
+			if (0xf000 == (bcListInfo->sCellInfo.plmn.mncWithAddInfo & 0xf000))
+			{
+				info->lte_service_info.mnc = bcListInfo->sCellInfo.plmn.mncWithAddInfo & 0x0fff;
+			}
+			else
+			{
+				info->lte_service_info.mnc = bcListInfo->sCellInfo.plmn.mncWithAddInfo;
+			}
 		}
 		else
 		{
-			info->lte_service_info.mnc = bcListInfo->sCellInfo.plmn.mncWithAddInfo;
+			DBG("service signal info error!");
+			info->lte_info_valid = 0;
+			return;
 		}
 
 	}
@@ -468,11 +477,11 @@ static void ec618_cell_to_luat_cell(BasicCellListInfo *bcListInfo, luat_mobile_c
 			info->lte_info[j].snr = bcListInfo->nCellList[i].snr;
 			info->lte_info[j].rsrp = bcListInfo->nCellList[i].rsrp;
 			info->lte_info[j].rsrq = bcListInfo->nCellList[i].rsrq;
-			if ((info->lte_info[j].mcc == 0x0460) && (info->lte_info[j].mnc != 0x0015))
-			{
-				j++;
-
-			}
+//			if ((info->lte_info[j].mcc == 0x0460) && (info->lte_info[j].mnc != 0x0015))
+//			{
+//				j++;
+//
+//			}
 		}
 		info->lte_neighbor_info_num = j;
 	}
