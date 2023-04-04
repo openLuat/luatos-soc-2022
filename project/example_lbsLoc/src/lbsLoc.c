@@ -297,7 +297,6 @@ static void lbsloc_Init_Task(void *param)
                 {
                     if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == TRUE)
                     {
-                    if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == TRUE)
                         LUAT_DEBUG_PRINT("LbsLoc_result %d,latitude:%s,longitude:%s,year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n", locationServiceResponse.result,latitude,longitude, year, month, day, hour, minute, second);
                     }
                     else
