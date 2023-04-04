@@ -34,7 +34,12 @@ luat_rtos_task_handle i2c_task_handle;
 #define AHT10_SOFT_RESET        0xBA
 #define AHT10_STATE             0x71 //状态字.
 
-
+/*
+    1.I2C的复用，最新的合宙标准CSDK已经不需要通过RTE_Device.h来控制了，原厂驱动还需要
+    2.I2C的复用 可以通过 int luat_i2c_set_iomux(int id, uint8_t value) 函数实现
+    如果 id 为1 value 为 1，复用到GPIO4，GPIO5；value为其他,复用到 GPIO8,GPIO9（默认接口）;
+    如果 id 为0 value 为 1，复用到GPIO12,GPIO13;value 2,复用到GPIO16，GPIO17；value为其他,复用到模块pin67，pin66
+*/
 static void task_test_i2c(void *param)
 {
     char soft_reset[] = {AHT10_SOFT_RESET}; 

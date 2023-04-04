@@ -24,7 +24,11 @@
 
 #include "luat_pwm.h"
 
-//引脚复用使用说明https://doc.openluat.com/wiki/37?wiki_page_id=4785
+/*
+    1.PWM的复用，最新的合宙标准CSDK仍需需要通过RTE_Device.h来控制了
+    2.PWM的3、5通道不能使用
+    3.PWM引脚复用使用说明https://doc.openluat.com/wiki/37?wiki_page_id=4785
+*/
 luat_rtos_task_handle pwm_task_handle;
 
 static void task_test_pwm(void *param)
