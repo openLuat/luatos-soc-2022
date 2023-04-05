@@ -423,73 +423,6 @@
                         "dft": false
                     },
                     {
-                        "name": "fonts",
-                        "content": "通用字体,适用于u8g2/disp/eink/lcd库",
-                        "rsize": 0,
-                        "children": [
-                            {
-                                "name": "USE_U8G2_OPPOSANSM_ENGLISH",
-                                "content": "英文字体和特殊符号",
-                                "rsize": 48176,
-                                "fsize": 304416,
-                                "dft": false
-                            },
-                            {
-                                "name": "USE_U8G2_OPPOSANSM8_CHINESE",
-                                "content": "8pix中文字体",
-                                "rsize": 105176,
-                                "fsize": 604416,
-                                "dft": false
-                            },
-                            {
-                                "name": "USE_U8G2_OPPOSANSM10_CHINESE",
-                                "content": "10pix中文字体",
-                                "rsize": 205176,
-                                "fsize": 604416,
-                                "dft": false
-                            },
-                            {
-                                "name": "USE_U8G2_OPPOSANSM12_CHINESE",
-                                "content": "12pix中文字体",
-                                "rsize": 305176,
-                                "fsize": 287420,
-                                "dft": false
-                            },
-                            {
-                                "name": "USE_U8G2_OPPOSANSM14_CHINESE",
-                                "content": "14pix中文字体",
-                                "rsize": 405176,
-                                "fsize": 287420,
-                                "dft": false
-                            },
-                            {
-                                "name": "USE_U8G2_OPPOSANSM16_CHINESE",
-                                "content": "16pix中文字体",
-                                "rsize": 450000,
-                                "fsize": 287420,
-                                "dft": false
-                            }
-                        ],
-                        "fsize": 287420,
-                        "dft": false
-                    },
-                    {
-                        "name": "gtfont",
-                        "content": "高通矢量字体(需要配合高通字体芯片)",
-                        "rsize": 240,
-                        "children": [
-                            {
-                                "name": "gtfont_utf8",
-                                "content": "高通矢量字体支持UTF-8编码(180k的转码表)",
-                                "rsize": 0,
-                                "fsize": 287660,
-                                "dft": false
-                            }
-                        ],
-                        "fsize": 287660,
-                        "dft": false
-                    },
-                    {
                         "name": "u8g2",
                         "content": "单色屏驱动",
                         "rsize": 56072,
@@ -768,6 +701,125 @@
                     }
                 ],
                 "fsize": 287420,
+                "dft": false
+            },
+            {
+                "icon": "zmdi-puzzle-piece",
+                "name": "@FOTNS",
+                "content": "字体/字库配置",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "fonts",
+                        "content": "通用字体库",
+                        "rsize": 27888
+                    },
+                    {
+                        "name": "@u8g2_fonts",
+                        "content": "通用字体,适用于u8g2/disp/eink/lcd库",
+                        "rsize": 27888,
+                        "children": [
+                            {
+                                "name": "USE_U8G2_OPPOSANSM_ENGLISH",
+                                "content": "英文字体和特殊符号",
+                                "rsize": 48176,
+                                "fsize": 304416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM8_CHINESE",
+                                "content": "8pix中文字体,调用时使用 lcd.font_opposansm8_chinese",
+                                "rsize": 105176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM10_CHINESE",
+                                "content": "10pix中文字体 lcd.font_opposansm10_chinese",
+                                "rsize": 205176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM12_CHINESE",
+                                "content": "12pix中文字体,同理,u8g2.font_opposansm12_chinese 也可以的",
+                                "rsize": 305176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM14_CHINESE",
+                                "content": "14pix中文字体",
+                                "rsize": 405176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM16_CHINESE",
+                                "content": "16pix中文字体",
+                                "rsize": 450132,
+                                "fsize": 749372,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 299240,
+                        "dft": false
+                    },
+                    {
+                        "name": "gtfont",
+                        "content": "高通矢量字体(需要配合高通字体芯片)",
+                        "rsize": 400,
+                        "children": [
+                            {
+                                "name": "gtfont_utf8",
+                                "content": "高通矢量字体支持UTF-8编码(180k的转码表)",
+                                "rsize": 0,
+                                "fsize": 271752,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 271752,
+                        "dft": false
+                    },
+                    {
+                        "name": "@lvgl_font",
+                        "content": "lvgl专用字体库",
+                        "rsize": 360536,
+                        "children": [
+                            {
+                                "name": "LV_FONT_OPPOSANS_M_8",
+                                "content": "OPPO宋体8pix ",
+                                "rsize": 391044,
+                                "fsize": 1022932,
+                                "dft": false
+                            },
+                            {
+                                "name": "LV_FONT_OPPOSANS_M_10",
+                                "content": "OPPO宋体10pix ",
+                                "rsize": 531232,
+                                "fsize": 1163120,
+                                "dft": false
+                            },
+                            {
+                                "name": "LV_FONT_OPPOSANS_M_12",
+                                "content": "OPPO宋体12pix ",
+                                "rsize": 665500,
+                                "fsize": 1297388,
+                                "dft": false
+                            },
+                            {
+                                "name": "LV_FONT_OPPOSANS_M_14",
+                                "content": "OPPO宋体14pix",
+                                "rsize": 849828,
+                                "fsize": 1481716,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 631888,
+                        "dft": false
+                    }
+                ],
+                "fsize": 271352,
                 "dft": false
             }
         ]
