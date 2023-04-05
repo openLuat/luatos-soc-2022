@@ -5,5 +5,5 @@
 int luat_wdt_setup(size_t timeout);
 
 int luat_wdt_init(size_t timeout) {
-    return luat_wdt_setup(timeout / 1000);
+    return luat_wdt_set_timeout(timeout / 1000);
 }
