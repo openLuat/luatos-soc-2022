@@ -24,6 +24,7 @@
 #include "common_api.h"
 #include "cmimm.h"
 #include "cmidev.h"
+#include "cmips.h"
 #include "cms_api.h"
 
 extern void soc_mobile_event_deregister_handler(void);
@@ -35,6 +36,7 @@ extern void soc_mobile_set_period(uint32_t get_cell_period, uint32_t check_sim_p
 extern void soc_mobile_reset_stack(void);
 extern void soc_mobile_get_signal(CmiMmCesqInd *info);
 extern void soc_mobile_get_cell_info(CmiDevGetBasicCellListInfoInd *info);
+extern void soc_mobile_get_lte_service_info(CmiPsCeregInd *info);
 extern void soc_mobile_get_sim_id(uint8_t *sim_id, uint8_t *is_auto);
 extern void soc_mobile_set_sim_id(uint8_t sim_id);
 extern void soc_mobile_sim_detect_sim0_first(void);
@@ -599,6 +601,21 @@ int luat_mobile_get_last_notify_signal_strength(uint8_t *csq)
 {
 	*csq = soc_mobile_get_csq();
 	return 0;
+}
+
+int luat_mobile_get_service_cellid(uint32_t *cell_id)
+{
+	CmiPsCeregInd cereg;
+	soc_mobile_get_lte_service_info(&cereg);
+	if (cereg.celId)
+	{
+		*cell_id = cereg.celId;
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
 }
 /* --------------------------------------------------- cell info end --------------------------------------------------- */
 
