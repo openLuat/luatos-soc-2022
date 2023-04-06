@@ -194,6 +194,8 @@
 //#define LUAT_HEAP_SIZE (200*1024)
 //-----------------------------
 
+#ifndef LUAT_SCRIPT_SIZE
+
 #define LUAT_SCRIPT_SIZE 128
 #define LUAT_SCRIPT_OTA_SIZE 96
 
@@ -203,6 +205,8 @@
 // #define LUAT_SCRIPT_OTA_SIZE 48
 // #define LUAT_SCRIPT_SIZE 32
 // #define LUAT_SCRIPT_OTA_SIZE 24
+
+#endif
 
 //-------------------------------------------------------------------------------
 //<-- custom
