@@ -55,7 +55,7 @@
                 "children": [
                     {
                         "name": "@comment_1",
-                        "content": "若需要兼容V1103的flash布局,脚本区大小设置到448k",
+                        "content": "若需要兼容V1103的flash布局,请设置脚本区大小为448k",
                         "rsize": 0,
                         "fsize": 0,
                         "dft": false
@@ -70,6 +70,13 @@
                     {
                         "name": "@comment_3",
                         "content": "正常编译不超过2分钟,若有疑问请到 https://gitee.com/openLuat/LuatOS/issues 反馈,或向FAE求助",
+                        "rsize": 0,
+                        "fsize": 0,
+                        "dft": false
+                    },
+                    {
+                        "name": "@comment_4",
+                        "content": "脚本区大小一致的固件才可以进行底层OTA的,务必注意",
                         "rsize": 0,
                         "fsize": 0,
                         "dft": false
@@ -244,13 +251,6 @@
                 "rsize": 0,
                 "children": [
                     {
-                        "name": "LUAT_CONF_VM_64bit",
-                        "content": "64bit虚拟机(测试阶段,内存占用会增加,需要LuaTools 2.1.77)",
-                        "rsize": 193240,
-                        "fsize": 1024,
-                        "dft": false
-                    },
-                    {
                         "name": "cjson",
                         "content": "JSON序列化与反序列化",
                         "rsize": 5800,
@@ -408,6 +408,42 @@
                 ],
                 "fsize": 287420,
                 "dft": false
+            },
+            {
+                "icon": "zmdi-puzzle-piece",
+                "name": "@MASTERS",
+                "content": "高级配置",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "@master123",
+                        "content": "本小节的配置均有一定的风险,请慎重选择",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_CONF_VM_64bit",
+                        "content": "64bit虚拟机(测试阶段,内存占用会增加,需要LuaTools 2.1.77)",
+                        "rsize": 193240,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_UART0_FORCE_USER",
+                        "content": "释放UART0供用户使用.不能从UART0读取底层日志了,只能通过USB读取日志",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_UART0_FORCE_ALT1",
+                        "content": "切换UART0到另一复用, paddr 31/32",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    }
+                ]
             },
             {
                 "icon": "zmdi-puzzle-piece",
