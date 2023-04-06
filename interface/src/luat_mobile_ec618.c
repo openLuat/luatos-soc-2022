@@ -718,3 +718,27 @@ void luat_mobile_clear_ip_data_traffic(uint8_t clear_uplink, uint8_t clear_downl
 {
 	soc_mobile_clear_ip_data_traffic(clear_uplink, clear_downlink);
 }
+
+int luat_mobile_set_cell_resel(uint8_t resel)
+{
+	EcCfgSetParamsReq req = {0};
+	req.reselToWeakNcellOpt = resel;
+	req.reselToWeakNcellOptPresent = 1;
+	if (appSetEcCfgSettingSync(&req) != CMS_RET_SUCC)
+	{
+		return -1;
+	}
+	return 0;
+}
+
+#ifdef __LUATOS__
+int luat_mobile_config(item, value)
+{
+	switch(item)
+	{
+	case MOBILE_CONF_RESELTOWEAKNCELL:
+		return luat_mobile_set_cell_resel(value);
+	}
+	return -1;
+}
+#endif
