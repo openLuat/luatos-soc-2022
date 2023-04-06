@@ -399,6 +399,13 @@
                         "dft": false
                     },
                     {
+                        "name": "sensor",
+                        "content": "传感器(例如ds18b20/ws2812)",
+                        "rsize": 2248,
+                        "fsize": 289668,
+                        "dft": false
+                    },
+                    {
                         "name": "bit64",
                         "content": "64位数据处理库",
                         "rsize": 10008,
@@ -448,16 +455,9 @@
             {
                 "icon": "zmdi-puzzle-piece",
                 "name": "@EXT",
-                "content": "扩展",
+                "content": "UI,显示类驱动",
                 "rsize": 0,
                 "children": [
-                    {
-                        "name": "sensor",
-                        "content": "传感器(例如ds18b20/ws2812)",
-                        "rsize": 2248,
-                        "fsize": 289668,
-                        "dft": false
-                    },
                     {
                         "name": "u8g2",
                         "content": "单色屏驱动",
