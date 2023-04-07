@@ -247,7 +247,7 @@ static void luatos_task_init(void)
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
 	luat_rtos_task_handle task_handle;
-	luat_rtos_task_create(&task_handle, 17 * 1024, 80, "luatos", luatos_task, NULL, 32);
+	luat_rtos_task_create(&task_handle, 16 * 1024, 80, "luatos", luatos_task, NULL, 32);
 
 }
 extern void luat_pm_preinit(void);
