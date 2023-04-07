@@ -732,13 +732,26 @@ int luat_mobile_set_cell_resel(uint8_t resel)
 }
 
 #ifdef __LUATOS__
-int luat_mobile_config(item, value)
+int luat_mobile_config(uint8_t item, uint32_t value)
 {
+	EcCfgSetParamsReq req = {0};
 	switch(item)
 	{
 	case MOBILE_CONF_RESELTOWEAKNCELL:
-		return luat_mobile_set_cell_resel(value);
+		req.reselToWeakNcellOpt = value;
+		req.reselToWeakNcellOptPresent = 1;
+		break;
+	case MOBILE_CONF_STATICCONFIG:
+		req.staticConfig = value;
+		req.staticConfigPresent = 1;
+		break;
+	default:
+		return -1;
 	}
-	return -1;
+	if (appSetEcCfgSettingSync(&req) != CMS_RET_SUCC)
+	{
+		return -1;
+	}
+	return 0;
 }
 #endif
