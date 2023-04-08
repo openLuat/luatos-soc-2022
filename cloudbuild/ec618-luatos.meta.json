@@ -857,6 +857,42 @@
                 ],
                 "fsize": 271352,
                 "dft": false
+            },
+            {
+                "icon": "zmdi-puzzle-piece",
+                "name": "@ADD123",
+                "content": "非常用库,一般用不到",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "mqttcore",
+                        "content": "MQTT协议解析库,不含链接,也不依赖mqtt库",
+                        "rsize": 5200,
+                        "fsize": 357620,
+                        "dft": false
+                    },
+                    {
+                        "name": "coremark",
+                        "content": "跑分,性能测试",
+                        "rsize": 5200,
+                        "fsize": 357620,
+                        "dft": false
+                    },
+                    {
+                        "name": "ymodem",
+                        "content": "YModem通信协议",
+                        "rsize": 5200,
+                        "fsize": 357620,
+                        "dft": false
+                    },
+                    {
+                        "name": "httpsrv",
+                        "content": "IPV6下的Http服务",
+                        "rsize": 5200,
+                        "fsize": 357620,
+                        "dft": false
+                    }
+                ]
             }
         ]
     }
