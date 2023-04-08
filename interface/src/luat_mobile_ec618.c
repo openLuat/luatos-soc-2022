@@ -480,10 +480,10 @@ static void ec618_cell_to_luat_cell(BasicCellListInfo *bcListInfo, luat_mobile_c
 			info->lte_info[j].rsrp = bcListInfo->nCellList[i].rsrp;
 			info->lte_info[j].rsrq = bcListInfo->nCellList[i].rsrq;
 //			if ((info->lte_info[j].mcc == 0x0460) && (info->lte_info[j].mnc != 0x0015))
-//			{
-//				j++;
-//
-//			}
+			{
+				j++;
+
+			}
 		}
 		info->lte_neighbor_info_num = j;
 	}
