@@ -205,6 +205,8 @@ static void task_run(void *param)
 		apn信息需要在开机注网前配置好
 	*/
 #ifdef AUTO_APN_TEST
+	//如果之前用过特殊APN的卡，现在要转回普通卡，建议删除原先设置的APN信息，调用下面的del接口即可
+//	luat_mobile_del_apn(0,1,0);
 	luat_mobile_user_apn_auto_active(0, 1, 3,3, "CMIOTTQJ",8,"ceshi",5,"tqj123456",9);
 #endif
 	char imei[20] = {0};
