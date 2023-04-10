@@ -180,6 +180,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_VMX
   {"vmx",       luaopen_vmx},
 #endif
+#ifdef LUAT_USE_NES   
+  {"nes", luaopen_nes}, 
+#endif
 #ifdef LUAT_USE_COREMARK
   {"coremark", luaopen_coremark},
 #endif
