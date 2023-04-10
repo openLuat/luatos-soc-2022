@@ -54,7 +54,6 @@
 // #define LUAT_USE_MLX90640 1
 // zlib压缩,更快更小的实现
 #define LUAT_USE_MINIZ 1
-#define LUAT_USE_SNTP 1
 #define LUAT_USE_FTP 1
 // #define LUAT_USE_HTTPSRV 1
 
@@ -279,6 +278,7 @@
 #define LUAT_SUPPORT_AMR 1
 #define LUAT_USE_MOBILE 1
 #define LUAT_USE_WLAN_SCANONLY 1
+#define LUAT_USE_SNTP 1
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_I2S
 
