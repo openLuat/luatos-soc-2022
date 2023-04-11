@@ -436,7 +436,6 @@ static void ec618_cell_to_luat_cell(BasicCellListInfo *bcListInfo, luat_mobile_c
 		}
 		else
 		{
-			DBG("service signal info error!");
 			info->lte_info_valid = 0;
 			return;
 		}
