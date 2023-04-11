@@ -393,7 +393,7 @@
                     },
                     {
                         "name": "iconv",
-                        "content": "编码转换GB2312/UTF8/UNCIODE",
+                        "content": "编码转换GB2312/UTF8/UNICODE",
                         "rsize": 40008,
                         "fsize": 274360,
                         "dft": false
@@ -431,7 +431,7 @@
                     },
                     {
                         "name": "LUAT_CONF_VM_64bit",
-                        "content": "64bit虚拟机(测试阶段,内存占用会增加,需要LuaTools 2.1.77)",
+                        "content": "64bit虚拟机(测试阶段)",
                         "rsize": 193240,
                         "fsize": 1024,
                         "dft": false
