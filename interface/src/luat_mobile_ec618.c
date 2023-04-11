@@ -744,6 +744,10 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 		req.staticConfig = value;
 		req.staticConfigPresent = 1;
 		break;
+	case MOBILE_CONF_QUALITYFIRST:
+		req.qualityFirst = value;
+		req.qualityFirstPresent = 1;
+		break;
 	default:
 		return -1;
 	}
