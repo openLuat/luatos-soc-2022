@@ -73,8 +73,11 @@
 //  <i> Stack for timer task in words.
 //  <i> Default: 80
 //increase timer task stack size, since we will call many func in timer callback
+#ifdef __USER_CODE__
+#define configTIMER_TASK_STACK_DEPTH            512
+#else
 #define configTIMER_TASK_STACK_DEPTH            256//from 2k--1k
-
+#endif
 //  <o>Timer task priority <0-56>
 //  <i> Timer task priority.
 //  <i> Default: 40 (High)
