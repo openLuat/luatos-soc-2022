@@ -449,6 +449,13 @@
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
+                    },
+                    {
+                        "name": "LUAT_HEAP_SIZE_256K",
+                        "content": "Lua内存设置到256k字节, 默认是200k",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
                     }
                 ]
             },

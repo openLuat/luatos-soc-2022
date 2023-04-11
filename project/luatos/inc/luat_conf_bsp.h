@@ -54,7 +54,6 @@
 // #define LUAT_USE_MLX90640 1
 // zlib压缩,更快更小的实现
 #define LUAT_USE_MINIZ 1
-#define LUAT_USE_SNTP 1
 #define LUAT_USE_FTP 1
 // #define LUAT_USE_HTTPSRV 1
 
@@ -189,11 +188,6 @@
 // #define LUAT_SCRIPT_SIZE 448
 // #define LUAT_SCRIPT_OTA_SIZE 284
 
-//-----------------------------
-// 内存配置, 默认200k, 128 ~ 256k 可调
-// 一般无需修改. 若不需要使用SSL/TLS/TTS,可适当增加,但不应该超过256k
-//#define LUAT_HEAP_SIZE (200*1024)
-//-----------------------------
 
 #ifndef LUAT_SCRIPT_SIZE
 
@@ -215,6 +209,16 @@
 
 
 // 以下选项仅开发人员可修改, 一般用户切勿自行修改
+//-----------------------------
+// 内存配置, 默认200k, 128 ~ 256k 可调
+#ifdef LUAT_HEAP_SIZE_256K
+#define LUAT_HEAP_SIZE (256*1024)
+#endif
+// 一般无需修改. 若不需要使用SSL/TLS/TTS,可适当增加,但不应该超过256k
+#ifndef LUAT_HEAP_SIZE
+#define LUAT_HEAP_SIZE (200*1024)
+#endif
+//-----------------------------
 
 // 将UART0切换到用户模式, 默认是UNILOG模式
 // 使用UART0, 日志将完全依赖USB输出, 若USB未引出或失效, 将无法获取底层日志
@@ -274,6 +278,7 @@
 #define LUAT_SUPPORT_AMR 1
 #define LUAT_USE_MOBILE 1
 #define LUAT_USE_WLAN_SCANONLY 1
+#define LUAT_USE_SNTP 1
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_I2S
 
