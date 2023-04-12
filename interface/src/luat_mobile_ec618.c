@@ -602,13 +602,13 @@ int luat_mobile_get_last_notify_signal_strength(uint8_t *csq)
 	return 0;
 }
 
-int luat_mobile_get_service_cei(uint32_t *cei)
+int luat_mobile_get_service_cell_identifier(uint32_t *eci)
 {
 	CmiPsCeregInd cereg;
 	soc_mobile_get_lte_service_info(&cereg);
 	if (cereg.celId)
 	{
-		*cei = cereg.celId;
+		*eci = cereg.celId;
 		return 0;
 	}
 	else
