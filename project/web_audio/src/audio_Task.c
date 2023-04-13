@@ -1,14 +1,14 @@
 #include "audio_Task.h"
 QueueHandle_t audioQueueHandle = NULL;
 /*
-*demo Ä¬ï¿½Ïµï¿½ï¿½ï¿½780Eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½
-*Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ air780e_tm8211 ï¿½Äºï¿½ï¿½ï¿½1ï¿½ï¿½Ä¬ï¿½Ï¹Ø±ï¿½
-*Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½DACï¿½ï¿½ï¿½Å£ï¿½ï¿½ï¿½Òªï¿½ï¿½soft_dac ï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½ï¿½Ø±ï¿½air780e_tm8211ï¿½Äºï¿½
+*demo Ä¬ÈÏµÄÊÇ780E¿ª·¢°å¼ÓÒôÆµºËÐÄÐ¡°å
+*Ê¹ÓÃÔÆÀ®°È¿ª·¢°åÐèÒª½« air780e_tm8211 µÄºêÖÃ1£¬Ä¬ÈÏ¹Ø±Õ
+*Ê¹ÓÃÈí¼þDAC²¥·Å£¬ÐèÒª´ò¿ªsoft_dac µÄÒý½Å£¬¹Ø±Õair780e_tm8211µÄºê
 */
 /*-------------------------------------------------audio define-----------------------------------------------*/
 static osEventFlagsId_t waitAudioPlayDone = NULL;
 static HANDLE g_s_delay_timer;
-#define soft_dac 0 //Ö§ï¿½ï¿½Í¨ï¿½ï¿½DACï¿½ï¿½ï¿½Å²ï¿½ï¿½ï¿½
+#define soft_dac 0 //Ö§³ÖÍ¨¹ýDACÒý½Å²¥·Å
 #define air780e_tm8211 0
 
 /*-------------------------------------------------audio define-----------------------------------------------*/
@@ -82,11 +82,11 @@ void audio_task(void *param)
     {
         if (1 == air780e_tm8211)
         {
-            luat_i2s_base_setup(0, I2S_MODE_MSB, I2S_FRAME_SIZE_16_16); // ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½ï¿½ï¿½ï¿½TM8211
+            luat_i2s_base_setup(0, I2S_MODE_MSB, I2S_FRAME_SIZE_16_16); // ÔÆÀ®°È¿ª·¢°åTM8211
         }
         else
         {
-            // air780E +ï¿½ï¿½ÆµÐ¡ï¿½ï¿½
+             // air780E +ÒôÆµÐ¡°å
             luat_i2s_base_setup(0, I2S_MODE_I2S, I2S_FRAME_SIZE_16_16);
         }
     }
@@ -96,7 +96,6 @@ void audio_task(void *param)
     {
         if (xQueueReceive(audioQueueHandle, &audioQueueRecv, portMAX_DELAY))
         {
-            // audio_play_tts_text(0, audioQueueRecv.data, sizeof(audioQueueRecv.data));
             LUAT_DEBUG_PRINT("this is play priority %d", audioQueueRecv.priority);
             LUAT_DEBUG_PRINT("this is play playType %d", audioQueueRecv.playType);
             if (audioQueueRecv.priority == MONEY_PLAY)
@@ -104,7 +103,6 @@ void audio_task(void *param)
 
                 if (audioQueueRecv.playType == TTS_PLAY)
                 {
-                    // DBG("TEST data address %d", sizeof(audioQueueRecv.message.data));
                     luat_audio_play_tts_text(0, audioQueueRecv.message.tts.data, audioQueueRecv.message.tts.len);
                 }
                 else if (audioQueueRecv.playType == FILE_PLAY)
@@ -136,7 +134,7 @@ void audio_task_init(void)
     luat_gpio_cfg_t gpio_cfg;
     luat_gpio_set_default_cfg(&gpio_cfg);
     luat_rtos_task_handle audio_task_handle;
-    if ((1 == air780e_tm8211) || (1 == soft_dac))//Ê¹ï¿½ï¿½tm8211 soft_dac ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ï¿½Òªï¿½ï¿½PAï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    if ((1 == air780e_tm8211) || (1 == soft_dac))//Ê¹ÓÃtm8211 soft_dac Òý½Å¶¼ÐèÒª´ò¿ªPAµÄ¿ØÖÆÒý½Å
     {
         gpio_cfg.pin = PA_PWR_PIN;
         luat_gpio_open(&gpio_cfg);
@@ -150,7 +148,7 @@ void audio_task_init(void)
     audioQueueData powerOn = {0};
     powerOn.playType = TTS_PLAY;
     powerOn.priority = MONEY_PLAY;
-    char str[] = "ï¿½ï¿½Ó­Ê¹ï¿½Ãºï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½è±¸";
+    char str[] = "»¶Ó­Ê¹ÓÃºÏÖæÔÆ¶ËÒôÆµ²¥·ÅÉè±¸";
     powerOn.message.tts.data = malloc(sizeof(str));
     memcpy(powerOn.message.tts.data, str, sizeof(str));
     powerOn.message.tts.len = sizeof(str);

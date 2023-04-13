@@ -37,7 +37,7 @@ static luat_rtos_timer_callback_t pwrkey_long_press_callback(void *param)
         audioQueueData powerOff = {0};
         powerOff.playType = TTS_PLAY;
         powerOff.priority = MONEY_PLAY;
-        char str[] = "ï¿½ï¿½ï¿½Ú¹Ø»ï¿½";
+        char str[] = "ÕýÔÚ¹Ø»ú";
         powerOff.message.tts.data = malloc(sizeof(str));
         memcpy(powerOff.message.tts.data, str, sizeof(str));
         powerOff.message.tts.len = sizeof(str);
@@ -98,14 +98,14 @@ static void key_task(void *param)
                     }
                     if (volume == 3)
                     {
-                        char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡";
+                        char str[] = "ÒôÁ¿×îÐ¡";
                         volMinus.message.tts.data = malloc(sizeof(str));
                         memcpy(volMinus.message.tts.data, str, sizeof(str));
                         volMinus.message.tts.len = sizeof(str);
                     }
                     else
                     {
-                        char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                        char str[] = "ÒôÁ¿¼õ";
                         volMinus.message.tts.data = malloc(sizeof(str));
                         memcpy(volMinus.message.tts.data, str, sizeof(str));
                         volMinus.message.tts.len = sizeof(str);
@@ -113,7 +113,7 @@ static void key_task(void *param)
                 }
                 else
                 {
-                    char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                    char str[] = "ÒôÁ¿¼õ";
                     volMinus.message.tts.data = malloc(sizeof(str));
                     memcpy(volMinus.message.tts.data, str, sizeof(str));
                     volMinus.message.tts.len = sizeof(str);
@@ -145,14 +145,14 @@ static void key_task(void *param)
                     }
                     if (volume == 21)
                     {
-                        char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                        char str[] = "ÒôÁ¿×î´ó";
                         volPlus.message.tts.data = malloc(sizeof(str));
                         memcpy(volPlus.message.tts.data, str, sizeof(str));
                         volPlus.message.tts.len = sizeof(str);
                     }
                     else
                     {
-                        char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                        char str[] = "ÒôÁ¿¼Ó";
                         volPlus.message.tts.data = malloc(sizeof(str));
                         memcpy(volPlus.message.tts.data, str, sizeof(str));
                         volPlus.message.tts.len = sizeof(str);
@@ -160,7 +160,7 @@ static void key_task(void *param)
                 }
                 else
                 {
-                    char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                    char str[] = "ÒôÁ¿¼Ó";
                     volPlus.message.tts.data = malloc(sizeof(str));
                     memcpy(volPlus.message.tts.data, str, sizeof(str));
                     volPlus.message.tts.len = sizeof(str);
@@ -174,19 +174,18 @@ static void key_task(void *param)
             }
             case KEY3_MESSAGE:
             {
-                LUAT_DEBUG_PRINT("ceshhii111111111");
                 audioQueueData func = {0};
                 func.playType = TTS_PLAY;
                 func.priority = MONEY_PLAY;
                 if (fun == 1)
                 {
-                    char str[] = "Í£Ö¹Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                    char str[] = "Í£Ö¹Ñ­»·²¥·Å";
                     luat_audio_play_tts_text(0, str, strlen(str));
                     fun=0;
                 }
                 else
                 {
-                    char str[] = "ï¿½ï¿½Ê¼Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                    char str[] = "¿ªÊ¼Ñ­»·²¥·Å";
                     func.message.tts.data = malloc(sizeof(str));
                     memcpy(func.message.tts.data, str, sizeof(str));
                     func.message.tts.len = sizeof(str);
@@ -210,21 +209,21 @@ static void key_task(void *param)
                     currentElec.priority = MONEY_PLAY;
                     if (vbat > 4000)
                     {
-                        char str[] = "ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                        char str[] = "µ±Ç°µçÁ¿¸ß";
                         currentElec.message.tts.data = malloc(sizeof(str));
                         memcpy(currentElec.message.tts.data, str, sizeof(str));
                         currentElec.message.tts.len = sizeof(str);
                     }
                     else if (vbat > 3700 && vbat < 4000)
                     {
-                        char str[] = "ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                        char str[] = "µ±Ç°µçÁ¿ÖÐ";
                         currentElec.message.tts.data = malloc(sizeof(str));
                         memcpy(currentElec.message.tts.data, str, sizeof(str));
                         currentElec.message.tts.len = sizeof(str);
                     }
                     else
                     {
-                        char str[] = "ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                        char str[] = "µ±Ç°µçÁ¿µÍ";
                         currentElec.message.tts.data = malloc(sizeof(str));
                         memcpy(currentElec.message.tts.data, str, sizeof(str));
                         currentElec.message.tts.len = sizeof(str);
@@ -242,7 +241,7 @@ static void key_task(void *param)
                 audioQueueData chargeIn = {0};
                 chargeIn.playType = TTS_PLAY;
                 chargeIn.priority = MONEY_PLAY;
-                char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½";
+                char str[] = "³äµçÖÐ";
                 chargeIn.message.tts.data = malloc(sizeof(str));
                 memcpy(chargeIn.message.tts.data, str, sizeof(str));
                 chargeIn.message.tts.len = sizeof(str);
@@ -258,7 +257,7 @@ static void key_task(void *param)
                 audioQueueData chargeOut = {0};
                 chargeOut.playType = TTS_PLAY;
                 chargeOut.priority = MONEY_PLAY;
-                char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+                char str[] = "³äµç½áÊø";
                 chargeOut.message.tts.data = malloc(sizeof(str));
                 memcpy(chargeOut.message.tts.data, str, sizeof(str));
                 chargeOut.message.tts.len = sizeof(str);
