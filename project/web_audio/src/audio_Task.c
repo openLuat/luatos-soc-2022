@@ -157,6 +157,7 @@ void audio_task_init(void)
     if (pdTRUE != xQueueSend(audioQueueHandle, &powerOn, 0))
     {
         LUAT_DEBUG_PRINT("start send audio fail");
+        free(powerOn.message.tts.data);
     }
     luat_rtos_task_create(&audio_task_handle, 5 * 1024, 60, "audio", audio_task, NULL, NULL);
 }
