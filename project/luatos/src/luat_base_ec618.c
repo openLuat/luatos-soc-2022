@@ -161,9 +161,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_LCD
   {"lcd",    luaopen_lcd},
 #endif
-#ifdef LUAT_USE_STATEM
-  {"statem",    luaopen_statem},
-#endif
+//#ifdef LUAT_USE_STATEM
+//  {"statem",    luaopen_statem},
+//#endif
 #ifdef LUAT_USE_GTFONT
   {"gtfont",    luaopen_gtfont},
 #endif
