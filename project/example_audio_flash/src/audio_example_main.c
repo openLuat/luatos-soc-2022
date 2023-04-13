@@ -44,6 +44,8 @@
 #define CHARGE_EN_PIN	HAL_GPIO_2
 #define CHARGE_EN_PIN_ALT_FUN	0
 
+#define SPI_FLASH_VCC_PIN (HAL_GPIO_26)
+
 //AIR600EAC开发板配置
 //#define CODEC_PWR_PIN HAL_GPIO_12
 //#define CODEC_PWR_PIN_ALT_FUN	4
@@ -61,6 +63,7 @@
 //#define LED4_PIN_ALT_FUN	0
 //#define CHARGE_EN_PIN	HAL_GPIO_NONE
 //#define CHARGE_EN_PIN_ALT_FUN	0
+//#define SPI_FLASH_VCC_PIN (HAL_GPIO_26)
 
 int luat_sfud_read(const sfud_flash* flash, uint8_t* buff, size_t offset, size_t len) {
 	// return sfud_read(flash, offset, len, buff)==0?true:false;
@@ -277,6 +280,13 @@ static void test_audio_demo_init(void)
 	luat_gpio_open(&gpio_cfg);
 	gpio_cfg.alt_fun = CODEC_PWR_PIN_ALT_FUN;
 	luat_gpio_open(&gpio_cfg);
+
+	// 云喇叭的Flash供电
+	gpio_cfg.pin = SPI_FLASH_VCC_PIN;
+	gpio_cfg.alt_fun = 0;
+	luat_gpio_open(&gpio_cfg);
+
+
 	luat_rtos_task_create(&task_handle, 2048, 20, "test", demo_task, NULL, 0);
 }
 
