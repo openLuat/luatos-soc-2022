@@ -730,6 +730,22 @@ int luat_mobile_set_cell_resel(uint8_t resel)
 	return 0;
 }
 
+int luat_mobile_get_support_band(uint8_t *band,  uint8_t *total_num)
+{
+	return (appGetSupportedBandModeSync(total_num, band) == 0)?0:-1;
+}
+
+int luat_mobile_get_band(uint8_t *band,  uint8_t *total_num)
+{
+	return (appGetBandModeSync(total_num, band) == 0)?0:-1;
+}
+
+int luat_mobile_set_band(uint8_t *band,  uint8_t total_num)
+{
+	return (appSetBandModeSync(total_num, band) == 0)?0:-1;
+}
+
+
 #ifdef __LUATOS__
 int luat_mobile_config(uint8_t item, uint32_t value)
 {
