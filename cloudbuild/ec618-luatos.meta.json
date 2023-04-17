@@ -239,6 +239,13 @@
                         "rsize": 60240,
                         "fsize": 288052,
                         "dft": false
+                    },
+                    {
+                        "name": "wlan",
+                        "content": "wlan扫描功能.仅支持扫描，不支持wifi通信",
+                        "rsize": 10240,
+                        "fsize": 288052,
+                        "dft": false
                     }
                 ],
                 "fsize": 287420,
