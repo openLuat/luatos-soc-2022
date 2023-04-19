@@ -864,6 +864,15 @@ static void net_lwip_close_tcp(int socket_id)
 	prvlwip.socket[socket_id].pcb.tcp->recv = tcp_recv_null;
 	prvlwip.socket[socket_id].pcb.tcp->callback_arg = 0;
 	prvlwip.socket[socket_id].pcb.tcp->pollinterval = 2;
+	struct tcp_pcb *pcb = prvlwip.socket[socket_id].pcb.tcp;
+    if (ip_get_option(pcb, SOF_KEEPALIVE))
+    {
+		if(tcp_get_timer_active_state(pcb, LWIP_SYS_TIMER_TYPE_TCP_KEEPALIVE_TIMEOUT))
+		{
+			sys_untimeout(lwip_sys_timeout_handler_list[LWIP_SYS_TIMER_TYPE_TCP_KEEPALIVE_TIMEOUT], (void *)pcb);
+			tcp_disable_timer_active_mask(pcb, LWIP_SYS_TIMER_TYPE_TCP_KEEPALIVE_TIMEOUT);
+		}
+    }
 	if (tcp_close(prvlwip.socket[socket_id].pcb.tcp))
 	{
 		tcp_abort(prvlwip.socket[socket_id].pcb.tcp);
