@@ -200,7 +200,21 @@ static void luat_server_test_task(void *param)
 static int32_t luat_async_test_socket_callback(void *pdata, void *param)
 {
 	OS_EVENT *event = (OS_EVENT *)pdata;
-	LUAT_DEBUG_PRINT("%x", event->ID);
+	LUAT_DEBUG_PRINT("%x,%d", event->ID, event->Param1);
+	if (event->Param1)
+	{
+		luat_rtos_event_send(param, UPLOAD_TEST_ERROR, 0, 0, 0, 0);
+		return 0;
+	}
+	switch(event->ID)
+	{
+	case EV_NW_RESULT_CONNECT:
+		luat_rtos_event_send(param, UPLOAD_TEST_CONNECT, 0, 0, 0, 0);
+		break;
+	case EV_NW_RESULT_TX:
+		luat_rtos_event_send(param, UPLOAD_TEST_TX_OK, 0, 0, 0, 0);
+		break;
+	}
 	return 0;
 }
 
@@ -209,17 +223,19 @@ static int32_t luat_async_test_socket_callback(void *pdata, void *param)
  */
 static void luat_async_test_task(void *param)
 {
+	uint32_t all,now_free_block,min_free_block;
+
 	luat_event_t event;
 	network_ctrl_t *netc = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
-	network_init_ctrl(netc, NULL, luat_server_test_socket_callback, g_s_upload_test_task_handle);
+	network_init_ctrl(netc, NULL, luat_async_test_socket_callback, g_s_upload_test_task_handle);
 	network_set_base_mode(netc, 1, 15000, 1, 600, 5, 9);
 	const char remote_ip[] = "112.125.89.8";
-	uint8_t *upload_buff = malloc(16 * 1024);
+	uint8_t *upload_buff = malloc(32 * 1024);
 	uint32_t tx_len;
 	uint64_t start_ms, stop_ms;
 	uint8_t cnt;
 	int result = network_connect(netc, remote_ip, sizeof(remote_ip) - 1, NULL, 36746, 0);
-	if (result)
+	if (result < 0)
 	{
 		LUAT_DEBUG_PRINT("test fail %d", result);
 	}
@@ -232,10 +248,12 @@ static void luat_async_test_task(void *param)
 		}
 		else
 		{
-			network_tx(netc, upload_buff, 16 * 1024, 0, 0, 0, &tx_len, 0);
+			luat_meminfo_sys(&all, &now_free_block, &min_free_block);
+			LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
+			network_tx(netc, upload_buff, 32 * 1024, 0, 0, 0, &tx_len, 0);
 			cnt = 1;
 			start_ms = luat_mcu_tick64_ms();
-			while(cnt < 16)
+			while(cnt < 8)
 			{
 				result = luat_rtos_event_recv(g_s_upload_test_task_handle, UPLOAD_TEST_ERROR, &event, NULL, 10);
 				if (!result)
@@ -243,9 +261,9 @@ static void luat_async_test_task(void *param)
 					LUAT_DEBUG_PRINT("test fail %d", result);
 					break;
 				}
-				if ((netc->tx_size - netc->ack_size) < 8 * 1024)
+				if ((netc->tx_size - netc->ack_size) < 16 * 1024)
 				{
-					network_tx(netc, upload_buff, 16 * 1024, 0, 0, 0, &tx_len, 0);
+					network_tx(netc, upload_buff, 32 * 1024, 0, 0, 0, &tx_len, 0);
 					cnt++;
 				}
 			}
@@ -258,6 +276,7 @@ static void luat_async_test_task(void *param)
 					{
 						 stop_ms = luat_mcu_tick64_ms();
 						 LUAT_DEBUG_PRINT("tx %llubyte in %llums", netc->tx_size, stop_ms-start_ms);
+						 break;
 					}
 				}
 				else
@@ -269,9 +288,12 @@ static void luat_async_test_task(void *param)
 
 		}
 	}
+	luat_meminfo_sys(&all, &now_free_block, &min_free_block);
+	LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
 	network_force_close_socket(netc);
 	network_release_ctrl(netc);
 	luat_rtos_task_delete(g_s_upload_test_task_handle);
+
 }
 
 static void luat_test_init(void)

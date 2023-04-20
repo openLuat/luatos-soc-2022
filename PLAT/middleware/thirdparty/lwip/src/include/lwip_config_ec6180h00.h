@@ -533,7 +533,11 @@
  * (requires the LWIP_TCP option)
  */
 #if !defined MEMP_NUM_TCP_SEG || defined __DOXYGEN__
+#ifdef __USER_CODE__
+#define MEMP_NUM_TCP_SEG                40
+#else
 #define MEMP_NUM_TCP_SEG                13
+#endif
 #endif
 
 /**
@@ -638,7 +642,11 @@
  * PBUF_POOL_SIZE: the number of buffers in the pbuf pool.
  */
 #if !defined PBUF_POOL_SIZE || defined __DOXYGEN__
+#ifdef __USER_CODE__
 #define PBUF_POOL_SIZE                  8
+#else
+#define PBUF_POOL_SIZE                  8
+#endif
 #endif
 
 /** MEMP_NUM_API_MSG: the number of concurrently active calls to various
@@ -1460,7 +1468,7 @@
  * To achieve good performance, this should be at least 2 * TCP_MSS.
  */
 #if !defined TCP_SND_BUF || defined __DOXYGEN__
-#define TCP_SND_BUF                     (6 * TCP_MSS)
+#define TCP_SND_BUF                     (20 * TCP_MSS)
 #endif
 
 /**
