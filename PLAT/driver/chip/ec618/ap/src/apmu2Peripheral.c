@@ -30,9 +30,11 @@ void usblpw_retwkup_sleep1_pre_recovery(void);
 #define CP_STARTTIME_INSTANCE                   (5)
 #define CP_STARTTIME_IRQ                        (PXIC0_TIMER5_IRQn)
 #define CP_STARTTIME_MAXIMUM                    (4294967)     // 0xffffffff/1000 ms
-
+#ifdef __USER_CODE__	//不需要的
+#else
 static uint32_t cpPowerOnMask = 0;
 static bool cpPowerOnUartMaskMode = false;
+#endif
 
 void apmuPeriUsbEnterStartProc(bool forceCfgPwrDown)
 {
@@ -248,7 +250,8 @@ void apmuPeriStartCPTimer(uint32_t cpStartTime, void* expFunc)
 
 }
 
-
+#ifdef __USER_CODE__	//放在其他地方了
+#else
 void apmuPeriCPPowerOnSetIrqMask(void)
 {
     if(getCPWakeupType())
@@ -278,6 +281,6 @@ void apmuPeriCPPowerOnSetIrqRestore(void)
         RestoreIRQMask(cpPowerOnMask);
     }
 }
-
+#endif
 
 
