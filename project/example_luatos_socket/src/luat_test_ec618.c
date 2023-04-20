@@ -4,12 +4,21 @@
 #include "luat_rtos.h"
 #include "luat_mobile.h"
 #include "networkmgr.h"
+
+enum
+{
+	UPLOAD_TEST_CONNECT = 1,
+	UPLOAD_TEST_TX_OK = 2,
+	UPLOAD_TEST_ERROR,
+};
+
 static luat_rtos_task_handle g_s_task_handle;
 static network_ctrl_t *g_s_network_ctrl;
 static luat_rtos_task_handle g_s_server_task_handle;
 static network_ctrl_t *g_s_server_network_ctrl;
 static ip_addr_t g_s_server_ip;
 static uint16_t server_port = 15000;
+static luat_rtos_task_handle g_s_upload_test_task_handle;
 static int32_t luat_test_socket_callback(void *pdata, void *param)
 {
 	OS_EVENT *event = (OS_EVENT *)pdata;
@@ -85,6 +94,10 @@ static void luat_test_task(void *param)
 	int result;
 	uint8_t is_break,is_timeout;
 	cnt = 0;
+	if (g_s_upload_test_task_handle) //上行测试时，需要延迟一段时间
+	{
+		luat_rtos_task_sleep(300000);
+	}
 	while(1)
 	{
 		luat_meminfo_sys(&all, &now_free_block, &min_free_block);
@@ -184,6 +197,82 @@ static void luat_server_test_task(void *param)
 	}
 }
 
+static int32_t luat_async_test_socket_callback(void *pdata, void *param)
+{
+	OS_EVENT *event = (OS_EVENT *)pdata;
+	LUAT_DEBUG_PRINT("%x", event->ID);
+	return 0;
+}
+
+/*
+ * 异步回调方式，同时做上传速度测试
+ */
+static void luat_async_test_task(void *param)
+{
+	luat_event_t event;
+	network_ctrl_t *netc = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
+	network_init_ctrl(netc, NULL, luat_server_test_socket_callback, g_s_upload_test_task_handle);
+	network_set_base_mode(netc, 1, 15000, 1, 600, 5, 9);
+	const char remote_ip[] = "112.125.89.8";
+	uint8_t *upload_buff = malloc(16 * 1024);
+	uint32_t tx_len;
+	uint64_t start_ms, stop_ms;
+	uint8_t cnt;
+	int result = network_connect(netc, remote_ip, sizeof(remote_ip) - 1, NULL, 36746, 0);
+	if (result)
+	{
+		LUAT_DEBUG_PRINT("test fail %d", result);
+	}
+	else
+	{
+		result = luat_rtos_event_recv(g_s_upload_test_task_handle, UPLOAD_TEST_CONNECT, &event, NULL, 180000);
+		if (result)
+		{
+			LUAT_DEBUG_PRINT("connect fail %d", result);
+		}
+		else
+		{
+			network_tx(netc, upload_buff, 16 * 1024, 0, 0, 0, &tx_len, 0);
+			cnt = 1;
+			start_ms = luat_mcu_tick64_ms();
+			while(cnt < 16)
+			{
+				result = luat_rtos_event_recv(g_s_upload_test_task_handle, UPLOAD_TEST_ERROR, &event, NULL, 10);
+				if (!result)
+				{
+					LUAT_DEBUG_PRINT("test fail %d", result);
+					break;
+				}
+				if ((netc->tx_size - netc->ack_size) < 8 * 1024)
+				{
+					network_tx(netc, upload_buff, 16 * 1024, 0, 0, 0, &tx_len, 0);
+					cnt++;
+				}
+			}
+			while(netc->tx_size > netc->ack_size)
+			{
+				result = luat_rtos_event_recv(g_s_upload_test_task_handle, UPLOAD_TEST_TX_OK, &event, NULL, 1000);
+				if (!result)
+				{
+					if (netc->tx_size <= netc->ack_size)
+					{
+						 stop_ms = luat_mcu_tick64_ms();
+						 LUAT_DEBUG_PRINT("tx %llubyte in %llums", netc->tx_size, stop_ms-start_ms);
+					}
+				}
+				else
+				{
+					LUAT_DEBUG_PRINT("test fail %d", result);
+					break;
+				}
+			}
+
+		}
+	}
+	network_force_close_socket(netc);
+	network_release_ctrl(netc);
+	luat_rtos_task_delete(g_s_upload_test_task_handle);
+}
 
 static void luat_test_init(void)
 {
@@ -192,7 +281,9 @@ static void luat_test_init(void)
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
 	luat_rtos_task_create(&g_s_task_handle, 2 * 1024, 10, "test", luat_test_task, NULL, 16);
-	luat_rtos_task_create(&g_s_server_task_handle, 4 * 1024, 10, "server", luat_server_test_task, NULL, 16);
+//	luat_rtos_task_create(&g_s_server_task_handle, 4 * 1024, 10, "server", luat_server_test_task, NULL, 16);
+//	上行测试
+	luat_rtos_task_create(&g_s_upload_test_task_handle, 2 * 1024, 10, "test2", luat_async_test_task, NULL,0);
 	luat_mobile_set_default_pdn_ipv6(1);
 //	luat_mobile_set_rrc_auto_release_time(2);
 }
