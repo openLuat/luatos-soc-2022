@@ -90,6 +90,10 @@
 
 #define  SUPPORT_REF_UL_SEND_BUFFER_MAX     (SUPPORT_REF_MAX_SOCKET_RAW_DATA_LENGTH * 5)
 
+/*define use CMSSOCK Syn request MAX timeout*/
+#define  AT_SOCK_SYN_WAIT_TIMEOUT_MAX    (1)
+
+
 /******************************************************************************
  *****************************************************************************
  * ENUM
@@ -119,6 +123,8 @@ typedef enum {
     ATECQIREQ_STATUS,
     ATECQIREQ_SETDATAACCMODE,
     ATECQIREQ_GETDATAACCMODE,
+
+    ATECQIREQ_CONNIDSTATUS,
     ATECQIREQ_MAX= 50,
 
 /**********AT EC SOC**********************************/
@@ -731,7 +737,7 @@ typedef enum AtRefSockSendViewMode_Tag{
 typedef struct AtRefSocketDlConfig_Tag{
     UINT32 dLTotaLUsage;   /*dynamic statistic the total used size*/
     UINT32 dlTotalSize;    /*defined the max size*/
-}AtEcSocketDlConfig;
+}AtRefSocketDlConfig;
 
 
 
@@ -957,10 +963,11 @@ typedef struct AtRefSocPriMgrContext_Tag
     UINT8                  sockstate:3;
     UINT8                  resv0:1;
 
-    UINT16                 reqHandle;        /*source AT request handle */
+    UINT16                 reqHandle;       /*source AT request handle */
+    UINT16                 resv1;
 
     AtRefSocServiceType    serviceType;  /*serviceType,0~5*/
-    UINT8                  resv1;
+    UINT8                  resv2;
     UINT16                 remotePort;
 
     INT32                  errorCode ;    /*record the sockerrno when erroc occured*/
@@ -989,6 +996,21 @@ typedef struct AtRefSocHibPriMgrContext_Tag
 }AtRefSocHibPriMgrContext;
 
 
+typedef struct AtRefSocNMInd_Tag{
+    UINT8  connectId;
+    UINT8  modeNMI;
+    UINT16 length;
+
+    UINT8  serviceType;
+    UINT8  resv0;
+    UINT16 remotePort;
+
+    INT32  socketId;
+
+    ip_addr_t remoteAddr;
+    CHAR      data[];
+}AtRefSocNMInd;
+
 
 typedef struct AtRefSocketCnf_Tag
 {
@@ -1016,6 +1038,21 @@ typedef struct AtRefSocketCnf_Tag
     }body;
 
 }AtRefSocketCnf;
+
+typedef struct AtRefSocGetCurConIdReq_Tag
+{
+    UINT8  connectId;
+    UINT8  resv0;
+    UINT16 resv1;
+}AtRefSocGetCurConIdReq;
+
+typedef struct AtRefSocGetCurConIdResp_Tag
+{
+    UINT8 result;
+    UINT8 connectId;
+    UINT8 status;
+    UINT8 resv0 ;
+}AtRefSocGetCurConIdResp;
 
 
 /******************************SDKAPI related**********************************/
@@ -1230,23 +1267,22 @@ typedef struct AtsktConnHibPriContext_Tag{
  *****************************************************************************
 ******************************************************************************/
 
-void atecSktProessReq(CmsSockMgrRequest *atecSktReq, ip_addr_t *sourceAddr, UINT16 sourcePort, INT32 rcvRequestFd);
-void atecEcsocProessReq(CmsSockMgrRequest *atecSktReq, ip_addr_t *sourceAddr, UINT16 sourcePort, INT32 rcvRequestFd);
-void atecEcSrvSocProessReq(CmsSockMgrRequest *atecEcSrvSocReq, ip_addr_t *sourceAddr, UINT16 sourcePort, INT32 rcvRequestFd);
+void atecSktProcessReq(CmsSockMgrRequest *atecSktReq, ip_addr_t *sourceAddr, UINT16 sourcePort, INT32 rcvRequestFd);
+void atecEcsocProcessReq(CmsSockMgrRequest *atecSktReq, ip_addr_t *sourceAddr, UINT16 sourcePort, INT32 rcvRequestFd);
+void atecEcSrvSocProcessReq(CmsSockMgrRequest *atecEcSrvSocReq, ip_addr_t *sourceAddr, UINT16 sourcePort, INT32 rcvRequestFd);
 void atSktEventCallback(CmsSockMgrContext *mgrContext, CmsSockMgrEventType eventType, void *eventArg);
 void atEcsocEventCallback(CmsSockMgrContext *mgrContext, CmsSockMgrEventType eventType, void *eventArg);
 void atEcSrvSocEventCallback(CmsSockMgrContext *mgrContext, CmsSockMgrEventType eventType, void *eventArg);
 void atSktStoreConnHibContext(CmsSockMgrContext *sockMgrContext, CmsSockMgrConnHibContext *hibContext);
 void atEcsocStoreConnHibContext(CmsSockMgrContext *sockMgrContext, CmsSockMgrConnHibContext *hibContext);
 void atSktRecoverConnContext(CmsSockMgrConnHibContext *hibContext);
-void atecPubSocReduceDlBufferUsage(UINT16 len );
+void atecRefSocPubReduceDlBufferUsage(UINT16 len );
 
 
 void     atSocketInit(void);
 BOOL     atSockQueryCidIsActivated(UINT8 connectId);
 
 void     atRefSocEventCallback(CmsSockMgrContext *mgrContext, CmsSockMgrEventType eventType, void *eventArg);
-UINT32   atRefSocQuerySocketByConnectId(UINT8 cid);
 
 CmsRetId atRefSockPsthSockResume(UINT16 reqHandle);
 AtRefSocPriMgrContext    *atRefSocFindPSTHConnectId(UINT8 channelId);

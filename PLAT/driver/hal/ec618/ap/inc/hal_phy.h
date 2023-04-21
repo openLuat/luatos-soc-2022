@@ -79,5 +79,13 @@ INT32 halPhySetDebugCfgInfo(UINT16 atHandle, UINT32 phyModId, INT32 *pCfgParams,
 */
 void halPhyGetDebugAtStringInfo(CHAR *pAtRspBuf, UINT16 bufLen);
 
+
+/**
+  \fn           void halPhyFlashFreqChg(UINT32 freqValue);
+  \brief        change AP/CP flash frequncy
+  \returns      void
+*/
+void halPhyFlashFreqChg(UINT32 freqValue);
+
 #endif /* _HAL_PHY_H */
 

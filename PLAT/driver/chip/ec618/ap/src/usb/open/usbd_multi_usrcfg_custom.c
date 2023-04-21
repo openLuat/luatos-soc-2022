@@ -104,6 +104,49 @@ usr cfg:
 */
 
 
+#ifdef CUST_DEF_TEST_TYPE_CCID
+
+const uint8_t epin_remap_custom_tbl[EP_REMAP_CUSTOM_CNT] = {
+    0, 1,2,3,4,5,6,7,8,9,10,11,12
+};
+
+
+const uint8_t epout_remap_custom_tbl[EP_REMAP_CUSTOM_CNT] = {
+    0, 1,2,3,4,5,6,7,8,9,10,11,12
+};
+
+
+static multidev_custom_info_st t_multidev_custom_info = {
+    .elem_cnt = 3,
+    #if 1
+    .elem_arr[0]  =
+    {
+        (const uint8_t*)"ccid",
+        multidev_tp_ccid,
+        ccinst_setting_mainttp_none,
+        ccinst_setting_subtp_none,
+    },
+    #endif
+    .elem_arr[1]  =
+    {
+        (const uint8_t*)"vcom0",
+        multidev_tp_vcom_at,
+        ccinst_setting_cdc_vcom_maintp,
+        ccinst_setting_vcom_subtp0_inhrnt,
+    },
+    .elem_arr[2]  =
+    {
+        (const uint8_t*)"vcom1",
+        multidev_tp_vcom_log,
+        ccinst_setting_cdc_vcom_maintp,
+        ccinst_setting_vcom_subtp0_inhrnt,
+    },
+
+};
+
+
+#endif
+
 
 
 #ifdef CUST_DEF_TEST_TYPE1
@@ -875,7 +918,10 @@ uint8_t *usbcustom_multidev_strdesc(usbcust_mdcd_strdesc_st *p_mdcd_strdesc)
             break;            
         case multidev_tp_vcom_com:
             p_intf_str_desc = (uint8_t*)"com";
-            break;         
+            break;
+        case multidev_tp_ccid:
+            p_intf_str_desc = (uint8_t*)"ccid";
+            break;
         default:
             break;
     }
@@ -943,6 +989,25 @@ uint8_t usbcustom_multidev_cmndesc(usbcust_mdcd_cmndesc_st *p_mdcd_cmndesc)
 
 #ifndef USB_DRV_SMALL_IMAGE
                 
+                ECPLAT_PRINTF(UNILOG_PLA_DRIVER, usbcustom_multidev_cmndesc_1, P_DEBUG,             \
+                                        "name %s, cls = 0x%x, subcls 0x%x, protocol 0x%x",   \
+                                        p_mdcd_cmndesc->p_func_name,                         \
+                                        p_cmndesc_data->intf_ctrl_desc.bInterfaceClass,  \
+                                        p_cmndesc_data->intf_ctrl_desc.bInterfaceSubClass,     \
+                                        p_cmndesc_data->intf_ctrl_desc.bInterfaceProtocol);    
+#endif
+
+            break;
+
+        case multidev_tp_ccid:
+
+                p_cmndesc_data->intf_ctrl_desc.bInterfaceClass = 0x0B;
+                p_cmndesc_data->intf_ctrl_desc.bInterfaceSubClass = 0x00;
+                p_cmndesc_data->intf_ctrl_desc.bInterfaceProtocol = 0x00;
+                p_cmndesc_data->b_intf_ctrl_desc_upd  = 1;
+
+#ifndef USB_DRV_SMALL_IMAGE
+
                 ECPLAT_PRINTF(UNILOG_PLA_DRIVER, usbcustom_multidev_cmndesc_1, P_DEBUG,             \
                                         "name %s, cls = 0x%x, subcls 0x%x, protocol 0x%x",   \
                                         p_mdcd_cmndesc->p_func_name,                         \

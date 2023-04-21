@@ -64,17 +64,21 @@
 #define MID_WARE_DM_PRODUCT_KEY_LEN         (20)    /*for cucc dm mqtt product key*/
 #define MID_WARE_DM_PRODUCT_SECRET_LEN      (36)    /*for cucc dm mqtt product secret*/
 #define MID_WARE_DM_DEVICE_KEY_LEN          (36)    /*for cucc dm mqtt device key*/
-#define MID_WARE_DM_DEVICE_SECRET_LEN       (100)   /*for cucc dm mqtt device secret*/
+#define MID_WARE_DM_DEVICE_SECRET_LEN       (36)   /*for cucc dm mqtt device secret*/
+
+#define MID_WARE_DM_TOKEN_LEN               (128)    /*for cucc dm mqtt token*/
 
 #define MID_WARE_DM_MANUFACTURE_LEN         (16)    /*for cucc dm mqtt product key*/
 #define MID_WARE_DM_MODULE_TYPE_LEN         (24)    /*for cucc dm mqtt product key*/
+#define MID_WARE_DM_CHIP_MANUFACTURE_LEN    (16)    /*for cucc dm mqtt product key*/
+#define MID_WARE_DM_CHIP_TYPE_LEN           (16)    /*for cucc dm mqtt product key*/
 #define MID_WARE_DM_MODULE_SW_LEN           (32)    /*for cucc dm mqtt product key*/
 #define MID_WARE_DM_MODULE_HW_LEN           (32)    /*for cucc dm mqtt product key*/
 
 #define MID_WARE_SMS_SCA_LEN                40      /*for SMS service centre address length*/
 #define MID_WARE_SMS_VP_MAX_LEN             7       /*for SMS Validity-Period length*/
 
-#define MID_WARE_CSCS_MAX_LEN               10      /*for CSCS character set*/
+#define MID_WARE_CSCS_MAX_LEN               8       /*for CSCS character set*/
 
 #define MID_WARE_CTW_SOFTVERSION_LEN        24      /*for ctwing materkey*/
 #define MID_WARE_CTW_MODULE_LEN             24      /*for ctwing deviceid*/
@@ -88,6 +92,11 @@
 #define MID_WARE_CTW_MQTT_CLIENT_ID_LEN     64      /*for ctwing mqtt client id*/
 #define MID_WARE_CTW_MQTT_USER_NAME_LEN     72      /*for ctwing mqtt user name*/
 #define MID_WARE_CTW_MQTT_PASSWD_LEN        72      /*for ctwing mqtt password*/
+
+#define MID_WARE_CTW_MQTT_FOTA_TASK_ID        72      /*for ctwing mqtt task id*/
+#define MID_WARE_CTW_MQTT_FOTA_VER_LEN        48      /*for ctwing mqtt ver*/
+#define MID_WARE_CTW_MQTT_FOTA_MODULE_LEN     72      /*for ctwing mqtt module*/
+#define MID_WARE_CTW_MQTT_FOTA_TOKEN_LEN      72      /*for ctwing mqtt token*/
 
 
 typedef enum MidWareATChanCfgEnum_Tag
@@ -114,7 +123,7 @@ typedef enum MidWareATChanCfgEnum_Tag
     MID_WARE_AT_CHAN_ECLED_MODE_CFG,        //ECLEDMODE
     MID_WARE_AT_CHAN_ECPURC_HIB_RPT_CFG,    //ECPURC HIB report
     MID_WARE_AT_CHAN_SMS_SERVICE_CFG,       //SMS select message service, for +CSMS
-    MID_WARE_AT_CHAN_SMS_TEXT_SHOW_CFG,     //SMS whether header info in show in text mode result ode =-, for +CSMS
+    MID_WARE_AT_CHAN_SMS_TEXT_SHOW_CFG,     //whether detailed header information is shown in text mode, for +CSDH
     MID_WARE_AT_CHAN_ECPURC_SLP2_RPT_CFG,   //ECPURC SLP2 report
     MID_WARE_AT_CHAN_ECPURC_SLP1_RPT_CFG,   //ECPURC SLP1 report
     MID_WARE_AT_CHAN_SMS_MEM_CAP_CFG,       //SMS Memory Capacity Exceeded flag

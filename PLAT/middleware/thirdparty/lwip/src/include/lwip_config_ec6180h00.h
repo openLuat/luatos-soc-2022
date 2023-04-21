@@ -545,7 +545,7 @@
  * reassembly (whole packets, not fragments!)
  */
 #if !defined MEMP_NUM_REASSDATA || defined __DOXYGEN__
-#define MEMP_NUM_REASSDATA              25
+#define MEMP_NUM_REASSDATA              15
 #endif
 
 /**
@@ -862,7 +862,7 @@
  * in this time, the whole packet is discarded.
  */
 #if !defined IP_REASS_MAXAGE || defined __DOXYGEN__
-#define IP_REASS_MAXAGE                 5
+#define IP_REASS_MAXAGE                 3
 #endif
 
 /**
@@ -872,7 +872,7 @@
  * packets even if the maximum amount of fragments is enqueued for reassembly!
  */
 #if !defined IP_REASS_MAX_PBUFS || defined __DOXYGEN__
-#define IP_REASS_MAX_PBUFS              50
+#define IP_REASS_MAX_PBUFS              30
 #endif
 
 /**

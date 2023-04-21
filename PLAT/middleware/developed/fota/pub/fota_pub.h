@@ -74,6 +74,9 @@ typedef enum
     FOTA_FA_APP,
     FOTA_FA_APP2,
     FOTA_FA_APP3,
+    FOTA_FA_SYSH,
+    FOTA_FA_RSVD,
+    FOTA_FA_RSVD2,
 
     FOTA_FA_MAXNUM
 }FotaFwAttr_e;
@@ -89,6 +92,9 @@ typedef enum
     FOTA_NVM_ZONE_APP,
     FOTA_NVM_ZONE_APP2,
     FOTA_NVM_ZONE_APP3,
+    FOTA_NVM_ZONE_SYSH,
+    FOTA_NVM_ZONE_RSVD,
+    FOTA_NVM_ZONE_RSVD2,
 
     FOTA_NVM_ZONE_MAXNUM,
     FOTA_NVM_ZONE_UNDEF = 0xff
@@ -103,6 +109,9 @@ typedef uint32_t FotaNvmZoneId_bm;
 #define FOTA_NVM_BM_ZONE_APP       (1 << FOTA_NVM_ZONE_APP)
 #define FOTA_NVM_BM_ZONE_APP2      (1 << FOTA_NVM_ZONE_APP2)
 #define FOTA_NVM_BM_ZONE_APP3      (1 << FOTA_NVM_ZONE_APP3)
+#define FOTA_NVM_BM_ZONE_SYSH      (1 << FOTA_NVM_ZONE_SYSH)
+#define FOTA_NVM_BM_ZONE_RSVD      (1 << FOTA_NVM_ZONE_RSVD)
+#define FOTA_NVM_BM_ZONE_RSVD2     (1 << FOTA_NVM_ZONE_RSVD2)
 
 
 typedef enum

@@ -10,9 +10,11 @@ typedef enum
     usb_func_vcom_mod = 0x100,
     usb_func_ecm_mod ,
     usb_func_rndis_mod ,
+    usb_func_ccid_mod,
     usb_dev_vcom_mod,
     usb_dev_ecm_mod ,
     usb_dev_rndis_mod ,
+    usb_dev_ccid_mod,
     usb_mdev_lib_mod,
 
     usb_user_base_mod = 0x1000,

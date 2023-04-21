@@ -2547,7 +2547,7 @@ typedef struct {
 #define USART_LSR_RX_FIFO_ERROR_Msk              (0x1UL << USART_LSR_RX_FIFO_ERROR_Pos)
 
 #define USART_LSR_RX_BUSY_Pos                    (10)
-#define USART_LSR_RX_BUSY_Msk                    (0x1UL << USART_LSR_RX_FIFO_ERROR_Pos)
+#define USART_LSR_RX_BUSY_Msk                    (0x1UL << USART_LSR_RX_BUSY_Pos)
 
 /** @} */
 

@@ -54,6 +54,16 @@
  *****************************************************************************
 ******************************************************************************/
 
+
+typedef struct _SIG_EPAT_MW_INFO_PHY_EDRX_PARAM
+{
+    BOOL enableFlag;   // 0:disable; 1:enable
+    UINT8 eDRXPrdIdx;  // eDRX period. 0:81.92s, 1:655.36s, 2:1310.72s
+    UINT8 eDRXPtwIdx;  // eDRX PTW. 0:20.48s, 1:40.96s
+    UINT8 rsvd;
+}midWareNvmInfoPhyEdrxParam;
+
+
 /*
  * Useless, if struct size is changed, or NVM version changed
 */
@@ -64,7 +74,7 @@ typedef struct _NVM_EPAT_mwinfo
      */
     UINT8           phyDebugAtCont[MID_WARE_PHY_DEBUG_AT_CONT_SIZE];
 
-
+    midWareNvmInfoPhyEdrxParam    phyEdrxParamInfo;
 
 }MidWareNvmInfo;
 
@@ -105,6 +115,8 @@ void mwNvmInfoGetPhyDebugAtCmdInfo(void *pPhyAtOutBuf, UINT16 bufSize);
 void mwNvmInfoSetPhyDebugAtCmdInfo(void *pPhyAtInfo, UINT16 infoSize);
 
 
+void mwNvmInfoGetSimEdrxValue(midWareNvmInfoPhyEdrxParam *atCmdPhyEdrxPara);
+void mwNvmInfoSetSimEdrxValue(midWareNvmInfoPhyEdrxParam *atCmdPhyEdrxPara);
 
 #endif
 

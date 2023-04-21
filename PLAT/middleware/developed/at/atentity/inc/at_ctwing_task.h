@@ -49,6 +49,7 @@ enum CTW_CMD_TYPE
     CTW_MQTT_REG_COMMAND,
     CTW_MQTT_SEND_COMMAND,
     CTW_MQTT_DEREG_COMMAND,
+    CTW_MQTT_FOTA_UPDATA_COMMAND,
 
 };
     
@@ -86,7 +87,7 @@ bool ctwTcpGetRecvTaskOut(void);
 CmsRetId ctwMqttRegReq(uint16_t athandle);
 CmsRetId ctwMqttSendReq(uint16_t athandle, uint8_t Qos, char* topic, char* data, uint16_t len);
 CmsRetId ctwMqttDeregReq(uint16_t athandle);
-CmsRetId ctwMqttFotaReq(uint16_t athandle, char* uri, uint32_t port);
+CmsRetId ctwMqttFotaReq(uint16_t athandle);
 
 #endif
 

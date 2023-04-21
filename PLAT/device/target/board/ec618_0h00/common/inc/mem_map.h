@@ -119,6 +119,7 @@ flash xip address(from ap view): 0x08800000---0x08900000
 
 
 //hib bakcup addr and size
+#define FLASH_HIB_BACKUP_EXIST          (1)
 #define FLASH_MEM_BACKUP_ADDR           (AP_FLASH_XIP_ADDR+0x3e4000)
 #define FLASH_MEM_BACKUP_NONXIP_ADDR    (FLASH_MEM_BACKUP_ADDR-AP_FLASH_XIP_ADDR)
 #define FLASH_MEM_BLOCK_SIZE            (0x6000)
@@ -174,7 +175,16 @@ flash xip address(from ap view): 0x08800000---0x08900000
 #define SYS_FLASH_LOAD_SIZE             (0x2000)
 
 
+/* external storage device */
+//e.g. external flash data addr and size
+#define EF_FLASH_XIP_ADDR               (0x80000000)
+#define EF_DATA_LOAD_ADDR               (0x00000000)
+#define EF_DATA_LOAD_SIZE               (0x100000)//1MB
 
+//e.g. external SD card data addr and size
+#define SD_CARD_XIP_ADDR                (0x40000000)
+#define SD_DATA_LOAD_ADDR               (0x00000000)
+#define SD_DATA_LOAD_SIZE               (0x100000)//1MB
 
 /* -----------ram address define, TODO: need modify according to ram lauout-------------*/
 
@@ -198,18 +208,18 @@ flash xip address(from ap view): 0x08800000---0x08900000
                     |      UNLOAD_SLPMEM              |
                     |---------------------------------|
                     |      LOAD_DRAM_SHARED           |
-0x00500000          |---------------------------------|   <---MSMB_APMEM_END_ADDR   
+0x00500000          |---------------------------------|   <---MSMB_APMEM_END_ADDR
                     |      LOAD_CP_FIRAM_MSMB         |
                     |---------------------------------|
                     |      LOAD_CPOS_IRAM             |
                     |---------------------------------|
                     |      UNLOAD_SLPMEM              |
                     |---------------------------------|
+                    |      LOAD_CPDRAM_BSP            |
+                    |---------------------------------|
                     |      LOAD_CPDRAM_SHARED         |
                     |---------------------------------|
-                    |      LOAD_CPDRAM_BSP            |
-0x0053D000          |---------------------------------|   <---CP_AONMEMBACKUP_START_ADDR
-                    |      UNLOAD_CPAON               |
+                    |      RESERVED                   |
 0x0053E000          |---------------------------------|   <---XP_SHAREINFO_BASE_ADDR
                     |      LOAD_XP_SHAREDINFO         |
 0x0053F000          |---------------------------------|   <---IPC_SHAREDMEM_START_ADDR
@@ -223,7 +233,8 @@ flash xip address(from ap view): 0x08800000---0x08900000
 #define MSMB_APMEM_END_ADDR             (0x00500000)
 #define MSMB_CPMEM_START_ADDR           (0x00500000)
 #define MSMB_CPDATA_START_ADDR          (0x0052C000)
-#define CP_AONMEMBACKUP_START_ADDR      (0x0053D000)
+#define CP_AONMEMBACKUP_START_ADDR      (0x0000A800)
+#define CP_AONMEMBACKUP_AREA_SIZE       (0x00000800)
 #define XP_SHAREINFO_BASE_ADDR          (0x0053E000)
 #define XP_DBGRESERVED_BASE_ADDR        (0x0053EF00)
 #define IPC_SHAREDMEM_START_ADDR        (0x0053F000)
@@ -240,9 +251,11 @@ flash xip address(from ap view): 0x08800000---0x08900000
                     |      LOAD_AP_PIRAM_ASMB         |
                     |---------------------------------|
                     |      LOAD_AP_FIRAM_ASMB         |
-0x0000C000          |---------------------------------|
+0x0000A800          |---------------------------------|   <---CP_AONMEMBACKUP_START_ADDR
+                    |      UNLOAD_CPAON               |
+0x0000B000          |---------------------------------|
                     |      LOAD_RRCMEM                |
-0x0000D000          |---------------------------------|
+0x0000C000          |---------------------------------|
                     |      LOAD_FLASHMEM              |
 0x00010000          |---------------------------------|
 */

@@ -35,6 +35,7 @@
 #define UNILOG_DMA_REQ_MODE_UART              (0x0)
 
 #define UNILOG_ID_CONSTRUCT(ownerId, moduleId, subId)    ((ownerId << 28) | (moduleId << 21) | (subId << 11))
+#define UNILOG_GET_OWNERID(id)                ((id) >> 28)
 
 /*----------------------------------------------------------------------------*
  *                   DATA TYPE DEFINITION                                     *
@@ -57,7 +58,7 @@ void uniLogModuleAllowTraces(uint16_t moduleID);
 void uniLogModuleDisableTraces(uint16_t moduleID);
 void uniLogModuleAllowAllTraces(void);
 void uniLogModuleDisableAllTraces(void);
-bool uniLogTraceAllowCheck(uint8_t debugLevel);
+bool uniLogTraceAllowCheck(uint32_t swLogID, uint8_t debugLevel);
 void uniLogFlushOut(void);
 void uniLogForceOut(bool waitFifoOut);
 void uniLogStop(void);

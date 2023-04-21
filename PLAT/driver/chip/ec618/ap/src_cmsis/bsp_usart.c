@@ -48,13 +48,15 @@ enum _USART_TX_FIFO_TRIG_LVL
     TX_FIFO_TRIG_LVL_16BYTE
 };
 
-#define UART_DMA_BURST_SIZE      8
+#define UART_DMA_BURST_SIZE      4
+
+#define HW_RXFIFO_BUFFER_LEN   (32)
 
 // Trigger level definitions
 #ifndef USART0_RX_TRIG_LVL
 
 #if (RTE_UART0_RX_IO_MODE == DMA_MODE)
-#define USART0_RX_TRIG_LVL   RX_FIFO_TRIG_LVL_16BYTE
+#define USART0_RX_TRIG_LVL   RX_FIFO_TRIG_LVL_8BYTE
 #else
 #define USART0_RX_TRIG_LVL   RX_FIFO_TRIG_LVL_30BYTE
 #endif
@@ -64,7 +66,7 @@ enum _USART_TX_FIFO_TRIG_LVL
 #ifndef USART1_RX_TRIG_LVL
 
 #if (RTE_UART1_RX_IO_MODE == DMA_MODE)
-#define USART1_RX_TRIG_LVL   RX_FIFO_TRIG_LVL_16BYTE
+#define USART1_RX_TRIG_LVL   RX_FIFO_TRIG_LVL_8BYTE
 #else
 #define USART1_RX_TRIG_LVL   RX_FIFO_TRIG_LVL_30BYTE
 #endif
@@ -74,7 +76,7 @@ enum _USART_TX_FIFO_TRIG_LVL
 #ifndef USART2_RX_TRIG_LVL
 
 #if (RTE_UART2_RX_IO_MODE == DMA_MODE)
-#define USART2_RX_TRIG_LVL   RX_FIFO_TRIG_LVL_16BYTE
+#define USART2_RX_TRIG_LVL   RX_FIFO_TRIG_LVL_8BYTE
 #else
 #define USART2_RX_TRIG_LVL   RX_FIFO_TRIG_LVL_30BYTE
 #endif
@@ -240,10 +242,11 @@ static void USART_ExitLowPowerStateRestore(void* pdata, slpManLpState state)
 #endif
 
 // declearation for DMA API
-extern void DMA_stopChannelNoWait(DmaInstance_e instance, uint32_t channel);
+extern void DMA_suspendChannel(DmaInstance_e instance, uint32_t channel, DmaRequestSource_e request);
+extern void DMA_resumeChannel(DmaInstance_e instance, uint32_t channel, DmaRequestSource_e request);
 extern uint32_t DMA_setDescriptorTransferLen(uint32_t dcmd, uint32_t len);
 extern void DMA_loadChannelDescriptorAndRun(DmaInstance_e instance, uint32_t channel, void* descriptorAddress);
-extern uint32_t DMA_getChannelCurrentTargetAddress(DmaInstance_e instance, uint32_t channel, bool sync);
+extern uint32_t DMA_getChannelCurrentTargetAddress(DmaInstance_e instance, uint32_t channel);
 extern void DMA_buildDescriptor(DmaDescriptor_t* descriptor, const DmaTransferConfig_t* config, const DmaExtraConfig_t* extraConfig);
 
 // Driver Version
@@ -305,10 +308,16 @@ static USART_TX_DMA USART0_DMA_Tx = {
 #endif
 
 #if (RTE_UART0_RX_IO_MODE == DMA_MODE)
+uint8_t USART0_Rxfifo_Buffer[HW_RXFIFO_BUFFER_LEN];
+#else
+uint8_t USART0_Rxfifo_Buffer[1];
+#endif
+
+#if (RTE_UART0_RX_IO_MODE == DMA_MODE)
 
 void USART0_DmaRxEvent(uint32_t event);
 
-static DmaDescriptor_t __ALIGNED(16) USART0_DMA_Rx_Descriptor[2];
+static DmaDescriptor_t __ALIGNED(16) USART0_DMA_Rx_Descriptor[3];
 
 static USART_RX_DMA USART0_DMA_Rx = {
                                     DMA_INSTANCE_MP,
@@ -363,12 +372,13 @@ static const USART_RESOURCES USART0_Resources = {
 #endif
     USART0_TX_TRIG_LVL,
     USART0_RX_TRIG_LVL,
-    &USART0_Info,
 #if (RTE_UART0_TX_IO_MODE == UNILOG_MODE)
     1,
 #else
-    0
+    0,
 #endif
+    &USART0_Info,
+    USART0_Rxfifo_Buffer
 };
 
 #endif
@@ -397,10 +407,16 @@ static USART_TX_DMA USART1_DMA_Tx = {
 #endif
 
 #if (RTE_UART1_RX_IO_MODE == DMA_MODE)
+uint8_t USART1_Rxfifo_Buffer[HW_RXFIFO_BUFFER_LEN];
+#else
+uint8_t USART1_Rxfifo_Buffer[1];
+#endif
+
+#if (RTE_UART1_RX_IO_MODE == DMA_MODE)
 
 void USART1_DmaRxEvent(uint32_t event);
 
-static DmaDescriptor_t __ALIGNED(16) USART1_DMA_Rx_Descriptor[2];
+static DmaDescriptor_t __ALIGNED(16) USART1_DMA_Rx_Descriptor[3];
 
 static USART_RX_DMA USART1_DMA_Rx = {
                                     DMA_INSTANCE_MP,
@@ -454,12 +470,13 @@ static const USART_RESOURCES USART1_Resources = {
 #endif
     USART1_TX_TRIG_LVL,
     USART1_RX_TRIG_LVL,
-    &USART1_Info,
 #if (RTE_UART1_TX_IO_MODE == UNILOG_MODE)
     1,
 #else
-    0
+    0,
 #endif
+    &USART1_Info,
+    USART1_Rxfifo_Buffer
 };
 #endif
 
@@ -487,10 +504,17 @@ static USART_TX_DMA USART2_DMA_Tx = {
 #endif
 
 #if (RTE_UART2_RX_IO_MODE == DMA_MODE)
+uint8_t USART2_Rxfifo_Buffer[HW_RXFIFO_BUFFER_LEN];
+#else
+uint8_t USART2_Rxfifo_Buffer[1];
+#endif
+
+
+#if (RTE_UART2_RX_IO_MODE == DMA_MODE)
 
 void USART2_DmaRxEvent(uint32_t event);
 
-static DmaDescriptor_t __ALIGNED(16) USART2_DMA_Rx_Descriptor[2];
+static DmaDescriptor_t __ALIGNED(16) USART2_DMA_Rx_Descriptor[3];
 
 static USART_RX_DMA USART2_DMA_Rx = {
                                     DMA_INSTANCE_MP,
@@ -544,12 +568,13 @@ static const USART_RESOURCES USART2_Resources = {
 #endif
     USART2_TX_TRIG_LVL,
     USART2_RX_TRIG_LVL,
-    &USART2_Info,
 #if (RTE_UART2_TX_IO_MODE == UNILOG_MODE)
     1,
 #else
-    0
+    0,
 #endif
+    &USART2_Info,
+    USART2_Rxfifo_Buffer
 };
 #endif
 
@@ -648,7 +673,7 @@ static void USART_DmaRxConfig(USART_RESOURCES *usart)
     DmaExtraConfig_t extraConfig;
 
     dmaConfig.addressIncrement              = DMA_ADDRESS_INCREMENT_TARGET;
-    dmaConfig.burstSize                     = DMA_BURST_8_BYTES;
+    dmaConfig.burstSize                     = DMA_BURST_4_BYTES;
     dmaConfig.dataWidth                     = DMA_DATA_WIDTH_ONE_BYTE;
     dmaConfig.flowControl                   = DMA_FLOW_CONTROL_SOURCE;
     dmaConfig.sourceAddress                 = (void*)&(usart->reg->RBR);
@@ -662,9 +687,16 @@ static void USART_DmaRxConfig(USART_RESOURCES *usart)
 
     DMA_buildDescriptor(&usart->dma_rx->descriptor[0], &dmaConfig, &extraConfig);
 
-    extraConfig.stopDecriptorFetch          = true;
-    extraConfig.nextDesriptorAddress        = &usart->dma_rx->descriptor[0];
+    extraConfig.nextDesriptorAddress        = &usart->dma_rx->descriptor[2];
     DMA_buildDescriptor(&usart->dma_rx->descriptor[1], &dmaConfig, &extraConfig);
+
+    dmaConfig.totalLength                   = HW_RXFIFO_BUFFER_LEN;
+    dmaConfig.targetAddress                 = usart->hw_rxfifo_buf;
+    extraConfig.stopDecriptorFetch          = true;
+    extraConfig.enableEndInterrupt          = false;
+    extraConfig.nextDesriptorAddress        = &usart->dma_rx->descriptor[0];
+    DMA_buildDescriptor(&usart->dma_rx->descriptor[2], &dmaConfig, &extraConfig);
+
     DMA_resetChannel(usart->dma_rx->instance, usart->dma_rx->channel);
 
 }
@@ -845,7 +877,10 @@ int32_t USART_PowerControl(ARM_POWER_STATE state,USART_RESOURCES *usart)
             if(usart->dma_tx)
                 DMA_stopChannel(usart->dma_tx->instance, usart->dma_tx->channel, false);
             if(usart->dma_rx)
+            {
                 DMA_stopChannel(usart->dma_rx->instance, usart->dma_rx->channel, false);
+                DMA_resetChannel(usart->dma_rx->instance, usart->dma_rx->channel);
+            }
 
 
             // Disable power to usart clock
@@ -1122,7 +1157,9 @@ int32_t USART_SendPolling(const void *data, uint32_t num, USART_RESOURCES *usart
 
 PLAT_PA_RAMCODE int32_t USART_Receive(void *data, uint32_t num, USART_RESOURCES *usart)
 {
-    uint32_t bytes_in_fifo, i;
+    uint32_t bytes_in_fifo = 0, i, address;
+
+    USART_INFO *info = usart->info;
 
     volatile uint32_t left_to_recv = num;
 
@@ -1131,80 +1168,124 @@ PLAT_PA_RAMCODE int32_t USART_Receive(void *data, uint32_t num, USART_RESOURCES 
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 
-    if ((usart->info->flags & USART_FLAG_CONFIGURED) == 0U)
+    if ((info->flags & USART_FLAG_CONFIGURED) == 0U)
     {
         return ARM_DRIVER_ERROR;
     }
 
     // check if receiver is busy
-    if (usart->info->rx_status.rx_busy == 1U)
+    if (info->rx_status.rx_busy == 1U)
     {
         return ARM_DRIVER_ERROR_BUSY;
     }
 
+    info->rx_status.rx_busy = 1U;
+
     // save num of data to be received
-    usart->info->xfer.rx_num = num;
-    usart->info->xfer.rx_buf = (uint8_t *)data;
-    usart->info->xfer.rx_cnt = 0U;
+    info->xfer.rx_num = num;
+    info->xfer.rx_buf = (uint8_t *)data;
+    info->xfer.rx_cnt = 0U;
 
-    usart->reg->IER |= USART_IER_RX_LINE_STATUS_Msk;
 
-    // prepare in advance for dma recv
     if(usart->dma_rx)
     {
-        usart->info->rx_status.rx_dma_triggered = 0;
 
         USART_DmaUpdateRxConfig(usart, (uint32_t)data, num);
+
+        DMA_suspendChannel(usart->dma_rx->instance, usart->dma_rx->channel, usart->dma_rx->request);
+        address = DMA_getChannelCurrentTargetAddress(usart->dma_rx->instance, usart->dma_rx->channel);
+
+        if((address > (uint32_t)usart->hw_rxfifo_buf) && (address <= ((uint32_t)usart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
+        {
+            bytes_in_fifo = address - (uint32_t)usart->hw_rxfifo_buf;
+        }
+
+#if USART_DEBUG
+        ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_recv_0, P_DEBUG, "uart recv, rxfifo buffer water level: %d, rx_cnt: %d", bytes_in_fifo, info->xfer.rx_cnt);
+#endif
+
+        if(bytes_in_fifo >= num)
+        {
+            memcpy(info->xfer.rx_buf, usart->hw_rxfifo_buf, num);
+            info->xfer.rx_cnt = num;
+
+#if USART_DEBUG
+            if(bytes_in_fifo > num)
+            {
+                ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_recv_1, P_WARNING, "number of rxfifo buffer exceeds user buffer, data is discarded");
+            }
+#endif
+            goto RECV_COMPLETE;
+        }
+        else if(bytes_in_fifo > 0)
+        {
+            memcpy(info->xfer.rx_buf, usart->hw_rxfifo_buf, bytes_in_fifo);
+            info->xfer.rx_cnt = bytes_in_fifo;
+            USART_DmaUpdateRxConfig(usart, (uint32_t)&info->xfer.rx_buf[info->xfer.rx_cnt], num - bytes_in_fifo);
+        }
+
     }
 
-    usart->info->rx_status.rx_busy = 1U;
+    usart->reg->IER |= USART_IER_RX_LINE_STATUS_Msk;
 
     // Lucky :), we have bytes waiting, try our best to receive all of them, however, let normal recv process handle the case if new data keeps arriving
     while((bytes_in_fifo = EIGEN_FLD2VAL(USART_FCNR_RX_FIFO_NUM, usart->reg->FCNR)) > 0)
     {
+        volatile uint32_t lsr = usart->reg->LSR;
+        // some flags in LSR are ROC, need to backup
+        usart->reg->SCR = lsr;
 
-        if(usart->reg->LSR & USART_LSR_RX_BUSY_Msk)
+        if(lsr & USART_LSR_RX_BUSY_Msk)
         {
             break;
         }
 
-        left_to_recv = num - usart->info->xfer.rx_cnt;
+        left_to_recv = num - info->xfer.rx_cnt;
+
+#if USART_DEBUG
+        ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_recv_2, P_DEBUG, "fetching data, bytes_in_fifo: %d, rx_cnt: %d, lsr: 0x%x", bytes_in_fifo, info->xfer.rx_cnt, lsr);
+#endif
 
         i = MIN(bytes_in_fifo, left_to_recv);
 
         while(i--)
         {
-            usart->info->xfer.rx_buf[usart->info->xfer.rx_cnt++] = usart->reg->RBR;
+            info->xfer.rx_buf[info->xfer.rx_cnt++] = usart->reg->RBR;
         }
 
-        left_to_recv = num - usart->info->xfer.rx_cnt;
+RECV_COMPLETE:
+
+        left_to_recv = num - info->xfer.rx_cnt;
 
         // prepare in advance for dma recv
         if(usart->dma_rx)
         {
-            USART_DmaUpdateRxConfig(usart, (uint32_t)&usart->info->xfer.rx_buf[usart->info->xfer.rx_cnt], left_to_recv);
+            USART_DmaUpdateRxConfig(usart, (uint32_t)&info->xfer.rx_buf[info->xfer.rx_cnt], left_to_recv);
         }
 
         if(left_to_recv == 0)
         {
             // Full
-            usart->info->rx_status.rx_busy = 0;
+            info->rx_status.rx_busy = 0;
 
             usart->reg->IER &= ~USART_IER_RX_LINE_STATUS_Msk;
 
-            if(usart->info->cb_event != NULL)
+            if(usart->dma_rx)
             {
-                usart->info->cb_event(ARM_USART_EVENT_RECEIVE_COMPLETE);
+                DMA_loadChannelFirstDescriptor(usart->dma_rx->instance, usart->dma_rx->channel, &usart->dma_rx->descriptor[0]);
+                DMA_resumeChannel(usart->dma_rx->instance, usart->dma_rx->channel, usart->dma_rx->request);
+            }
+
+            if(info->cb_event != NULL)
+            {
+#if USART_DEBUG
+                ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_recv_3, P_DEBUG, "uart recv complete");
+#endif
+                info->cb_event(ARM_USART_EVENT_RECEIVE_COMPLETE);
             }
 
             return ARM_DRIVER_OK;
 
-        }
-
-        // check again whether there's ongoing data stream
-        if(usart->reg->LSR & USART_LSR_RX_BUSY_Msk)
-        {
-            break;
         }
 
     }
@@ -1215,24 +1296,32 @@ PLAT_PA_RAMCODE int32_t USART_Receive(void *data, uint32_t num, USART_RESOURCES 
     {
         usart->reg->IER |= USART_IER_RX_TIMEOUT_Msk;
 
-        DMA_loadChannelDescriptorAndRun(usart->dma_rx->instance, usart->dma_rx->channel, &usart->dma_rx->descriptor[0]);
+        DMA_loadChannelFirstDescriptor(usart->dma_rx->instance, usart->dma_rx->channel, &usart->dma_rx->descriptor[0]);
+        DMA_resumeChannel(usart->dma_rx->instance, usart->dma_rx->channel, usart->dma_rx->request);
 
-        if(usart->info->xfer.rx_cnt != 0)
+        if(info->xfer.rx_cnt != 0)
         {
-            if(usart->reg->LSR & USART_LSR_RX_BUSY_Msk)
+            volatile uint32_t lsr = usart->reg->LSR;
+            // some flags in LSR are ROC, need to backup
+            usart->reg->SCR = lsr;
+
+            if(lsr & USART_LSR_RX_BUSY_Msk)
             {
                 // do nothing if there's still data coming since we can let isr report later
             }
             else
             {
                 // report to upper layer that we've received some data
-                usart->info->rx_status.rx_busy = 0;
+                info->rx_status.rx_busy = 0;
 
                 // rx_busy is not reliable flag since it'll change to 0 on stop bit
                 // so it's possible here to break the continuous rx data steam into two parts
-                if(usart->info->cb_event != NULL)
+                if(info->cb_event != NULL)
                 {
-                    usart->info->cb_event(ARM_USART_EVENT_RX_TIMEOUT);
+#if USART_DEBUG
+                    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_recv_4, P_DEBUG, "uart recv timeout report, rx_cnt: %d", info->xfer.rx_cnt);
+#endif
+                    info->cb_event(ARM_USART_EVENT_RX_TIMEOUT);
                 }
             }
 
@@ -1243,7 +1332,7 @@ PLAT_PA_RAMCODE int32_t USART_Receive(void *data, uint32_t num, USART_RESOURCES 
         usart->reg->IER |= USART_IER_RX_TIMEOUT_Msk   | \
                            USART_IER_RX_DATA_REQ_Msk ;
 
-        if(usart->info->xfer.rx_cnt != 0)
+        if(info->xfer.rx_cnt != 0)
         {
             if(usart->reg->LSR & USART_LSR_RX_BUSY_Msk)
             {
@@ -1252,13 +1341,13 @@ PLAT_PA_RAMCODE int32_t USART_Receive(void *data, uint32_t num, USART_RESOURCES 
             else
             {
                 // report to upper layer that we've received some data
-                usart->info->rx_status.rx_busy = 0;
+                info->rx_status.rx_busy = 0;
 
                 // rx_busy is not reliable flag since it'll change to 0 on stop bit
                 // so it's possible here to break the continuous rx data steam into two parts
-                if(usart->info->cb_event != NULL)
+                if(info->cb_event != NULL)
                 {
-                    usart->info->cb_event(ARM_USART_EVENT_RX_TIMEOUT);
+                    info->cb_event(ARM_USART_EVENT_RX_TIMEOUT);
                 }
             }
 
@@ -1266,14 +1355,14 @@ PLAT_PA_RAMCODE int32_t USART_Receive(void *data, uint32_t num, USART_RESOURCES 
     }
     else
     {
-        while(usart->info->xfer.rx_cnt < usart->info->xfer.rx_num)
+        while(info->xfer.rx_cnt < info->xfer.rx_num)
         {
             //wait unitl receive data is ready
             while((usart->reg->LSR & USART_LSR_RX_DATA_READY_Msk) == 0);
             //read data
-            usart->info->xfer.rx_buf[usart->info->xfer.rx_cnt++] = usart->reg->RBR;
+            info->xfer.rx_buf[info->xfer.rx_cnt++] = usart->reg->RBR;
         }
-        usart->info->rx_status.rx_busy = 0U;
+        info->rx_status.rx_busy = 0U;
     }
     return ARM_DRIVER_OK;
 }
@@ -1330,10 +1419,8 @@ int32_t USART_Control(uint32_t control, uint32_t arg, USART_RESOURCES *usart)
 
                 if(usart->dma_rx)
                 {
-
                     usart->reg->IER &= ~(USART_IER_RX_TIMEOUT_Msk | USART_IER_RX_LINE_STATUS_Msk);
-                    usart->info->rx_status.rx_dma_triggered = 0;
-                    DMA_stopChannelNoWait(usart->dma_rx->instance, usart->dma_rx->channel);
+                    DMA_suspendChannel(usart->dma_rx->instance, usart->dma_rx->channel, usart->dma_rx->channel);
                 }
                 else if(usart->usart_irq)
                 {
@@ -1605,7 +1692,7 @@ PLAT_PA_RAMCODE void USART_IRQHandler (USART_RESOURCES *usart)
     uint32_t i;
     uint32_t event = 0;
     uint32_t lsr_reg, isr_reg;
-    uint32_t current_cnt, total_cnt, left_to_recv, bytes_in_fifo;
+    uint32_t current_cnt, total_cnt, left_to_recv, bytes_in_fifo, dmaCurrentTargetAddress;
 
     USART_INFO *info = usart->info;
 
@@ -1617,17 +1704,15 @@ PLAT_PA_RAMCODE void USART_IRQHandler (USART_RESOURCES *usart)
     usart->reg->ICR = isr_reg;
     usart->reg->ICR = 0;
 
-#ifdef PM_FEATURE_ENABLE
-#if USART_DEBUG
-    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_IRQHandler_0, P_DEBUG, "isr:0x%x, fcnr_reg:0x%x, rx_cnt:%d",isr_reg, usart->reg->FCNR, info->xfer.rx_cnt);
-#endif
+    // Fetch backuped LSR in receive routine
+    lsr_reg = usart->reg->LSR | usart->reg->SCR;
 
+#if USART_DEBUG
+    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_IRQHandler_0, P_DEBUG, "isr:0x%x, lsr: 0x%x-%x, fcnr_reg:0x%x, rx_cnt:%d", isr_reg, lsr_reg, usart->reg->SCR, usart->reg->FCNR, info->xfer.rx_cnt);
 #endif
 
     if((isr_reg & USART_ISR_RX_LINE_STATUS_Msk) == USART_ISR_RX_LINE_STATUS_Msk)
     {
-        lsr_reg = usart->reg->LSR;
-
         if (lsr_reg & USART_LSR_RX_OVERRUN_ERROR_Msk)
         {
             info->rx_status.rx_overflow = 1U;
@@ -1697,8 +1782,9 @@ PLAT_PA_RAMCODE void USART_IRQHandler (USART_RESOURCES *usart)
         else
 #endif
         {
-            // refer to receive API for this check
-            if(usart->reg->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos)
+            // refer to receive API for the rxfifo water level check
+            // the timeout interrupt may be blocked for a while and then new data is coming, in this case we just defer this round of handling
+            if((usart->reg->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos) && !(lsr_reg & USART_LSR_RX_BUSY_Msk))
             {
 #ifdef PM_FEATURE_ENABLE
                 LOCK_SLEEP(instance, 0, 1);
@@ -1709,25 +1795,27 @@ PLAT_PA_RAMCODE void USART_IRQHandler (USART_RESOURCES *usart)
 
                 if(usart->dma_rx)
                 {
-                    if(usart->info->rx_status.rx_dma_triggered)
-                    {
-                        // Sync with undergoing DMA transfer, wait until DMA burst transfer(8 bytes) done and update current_cnt
-                        do
-                        {
-                            current_cnt = DMA_getChannelCurrentTargetAddress(usart->dma_rx->instance, usart->dma_rx->channel, true) - (uint32_t)info->xfer.rx_buf;
+                    // suspend dma channel so that we can get the correct dma transfer size
+                    DMA_suspendChannel(usart->dma_rx->instance, usart->dma_rx->channel, usart->dma_rx->request);
+                    dmaCurrentTargetAddress = DMA_getChannelCurrentTargetAddress(usart->dma_rx->instance, usart->dma_rx->channel);
+
 #if USART_DEBUG
-                            ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_IRQHandler_1, P_INFO, "dma transfer done, cnt:%d", current_cnt);
+                    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_IRQHandler_1, P_DEBUG, "uart recv timeout, dma address: 0x%x", dmaCurrentTargetAddress);
 #endif
-                        } while(((current_cnt - info->xfer.rx_cnt) & (UART_DMA_BURST_SIZE - 1)) != 0);
-
-                        usart->info->rx_status.rx_dma_triggered = 0;
-
+                    if((dmaCurrentTargetAddress >= (uint32_t)usart->hw_rxfifo_buf) && (dmaCurrentTargetAddress <= ((uint32_t)usart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
+                    {
+                        // user buffer is full and rxfifo buffer isn't, resume dma transfer
+                        if(dmaCurrentTargetAddress != ((uint32_t)usart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN))
+                        {
+                            DMA_resumeChannel(usart->dma_rx->instance, usart->dma_rx->channel, usart->dma_rx->request);
+                        }
+                        current_cnt = info->xfer.rx_num;
+                        goto RECV_COMPLETE;
                     }
-                    /*
-                       No matter DMA transfer is started or not(left recv buffer space is not enough),
-                       now we can stop DMA saftely for next transfer and handle tailing bytes in FIFO
-                    */
-                    DMA_stopChannelNoWait(usart->dma_rx->instance, usart->dma_rx->channel);
+                    else
+                    {
+                        current_cnt = dmaCurrentTargetAddress - (uint32_t)info->xfer.rx_buf;
+                    }
                 }
 
                 total_cnt = info->xfer.rx_num;
@@ -1752,6 +1840,18 @@ PLAT_PA_RAMCODE void USART_IRQHandler (USART_RESOURCES *usart)
                 // Check if required amount of data is received
                 if (current_cnt == total_cnt)
                 {
+                    if(usart->dma_rx)
+                    {
+#if USART_DEBUG
+                        ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_IRQHandler_2, P_DEBUG, "cpu recv complete in timeout event");
+#endif
+                        // load descriptor and start DMA transfer
+                        DMA_loadChannelFirstDescriptor(usart->dma_rx->instance, usart->dma_rx->channel, &usart->dma_rx->descriptor[2]);
+                        DMA_resumeChannel(usart->dma_rx->instance, usart->dma_rx->channel, usart->dma_rx->request);
+                    }
+
+ RECV_COMPLETE:
+
                     // Clear RX busy flag and set receive transfer complete event
                     event |= ARM_USART_EVENT_RECEIVE_COMPLETE;
 
@@ -1770,7 +1870,11 @@ PLAT_PA_RAMCODE void USART_IRQHandler (USART_RESOURCES *usart)
                         USART_DmaUpdateRxConfig(usart, (uint32_t)info->xfer.rx_buf + info->xfer.rx_cnt, left_to_recv);
 
                         // load descriptor and start DMA transfer
-                        DMA_loadChannelDescriptorAndRun(usart->dma_rx->instance, usart->dma_rx->channel, &usart->dma_rx->descriptor[0]);
+                        DMA_loadChannelFirstDescriptor(usart->dma_rx->instance, usart->dma_rx->channel, &usart->dma_rx->descriptor[0]);
+                        DMA_resumeChannel(usart->dma_rx->instance, usart->dma_rx->channel, usart->dma_rx->request);
+#if LPUSART_DRIVER_DEBUG
+                        ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_IRQHandler_3, P_DEBUG, "restart dma recv in timeout event, rx_cnt:%d, start address: 0x%x", info->xfer.rx_cnt, (uint32_t)info->xfer.rx_buf + info->xfer.rx_cnt);
+#endif
 
                     }
 
@@ -1881,33 +1985,31 @@ void USART_DmaRxEvent(uint32_t event, USART_RESOURCES *usart)
     uint32_t instance = USART_GetInstanceNumber(usart);
 #endif
 
-    uint32_t dmaCurrentTargetAddress = DMA_getChannelCurrentTargetAddress(usart->dma_rx->instance, usart->dma_rx->channel, false);
+    uint32_t dmaCurrentTargetAddress = DMA_getChannelCurrentTargetAddress(usart->dma_rx->instance, usart->dma_rx->channel);
 
     switch (event)
     {
         case DMA_EVENT_END:
 
 #if USART_DEBUG
-            ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_DmaRxEvent_0, P_INFO, "uart dma rx event, fcnr:%x, cnt:%d", usart->reg->FCNR, dmaCurrentTargetAddress - (uint32_t)usart->info->xfer.rx_buf);
+            ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_DmaRxEvent_0, P_DEBUG, "uart dma rx event, fcnr:%x, rxfifo buffer address: %x, dma current address: %x", usart->reg->FCNR, usart->hw_rxfifo_buf, dmaCurrentTargetAddress);
 #endif
 
 #ifdef PM_FEATURE_ENABLE
             LOCK_SLEEP(instance, 0, 1);
 #endif
             usart->info->rx_status.rx_busy = 1U;
-            usart->info->rx_status.rx_dma_triggered = 1;
 
-            if(dmaCurrentTargetAddress == ( (uint32_t)usart->info->xfer.rx_buf + usart->info->xfer.rx_num))
+            if((dmaCurrentTargetAddress >= (uint32_t)usart->hw_rxfifo_buf) && (dmaCurrentTargetAddress <= ((uint32_t)usart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
             {
 #if USART_DEBUG
-                ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_DmaRxEvent_1, P_INFO,"uart dma rx complete");
+                ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_DmaRxEvent_1, P_DEBUG,"uart dma rx complete");
 #endif
                 usart->info->xfer.rx_cnt = usart->info->xfer.rx_num;
 
                 //Disable all recv interrupt
                 usart->reg->IER &= ~(USART_IER_RX_DATA_REQ_Msk | USART_IER_RX_TIMEOUT_Msk | USART_IER_RX_LINE_STATUS_Msk);
                 usart->info->rx_status.rx_busy = 0;
-                usart->info->rx_status.rx_dma_triggered = 0;
 
                 if(usart->info->cb_event)
                 {

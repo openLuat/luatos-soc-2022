@@ -45,6 +45,7 @@ extern "C" {
 #define ATOSC_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_8)  /* atos for rf calibration */
 #define PPPOS_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_8)
 #define OPAQOS_RBUF_REAL_SIZE     CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_2K)  /* opaque or raw data */
+#define CCID_RBUF_REAL_SIZE       CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_8)  /* ccid data */
 #define ETHER_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_16K)
 #else
 #define DIAG_RBUF_REAL_SIZE       CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_128)
@@ -52,6 +53,9 @@ extern "C" {
 #define ATOSC_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_8K)  /* atos for rf calibration */
 #define PPPOS_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_8K)
 #define OPAQOS_RBUF_REAL_SIZE     CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_4K)  /* opaque or raw data */
+
+#define CCID_RBUF_REAL_SIZE       CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_4K)  /* ccid data */
+
 #define ETHER_RBUF_REAL_SIZE      CCIO_RBUF_REAL_SIZE(CCIO_BUF_SIZE_16K)
 #endif
 #define RNDIS_RBUF_REAL_SIZE      ETHER_RBUF_REAL_SIZE
@@ -63,6 +67,7 @@ extern "C" {
 #define OPAQOS_RBUF_AVLB_THRES    1600
 #define RNDIS_RBUF_AVLB_THRES    (CCIO_RNDIS_XFER_MAXSIZE + CCIO_RBUF_NPT_HDR_SIZE * (CCIO_RNDIS_MAX_PKT_PER_XFER + 1))
 #define ECM_RBUF_AVLB_THRES       1600
+#define CCID_RBUF_AVLB_THRES      1600
 
 /**
  * cycle ctrl tail size of rbuf,
@@ -220,6 +225,23 @@ uint16_t ccioGetRbufCctSize(uint8_t hwType, CcioDevHwAcm_e bmHwAcm, CcioRbufUsag
   \return uint8_t
 */
 uint8_t ccioIsMultiLanDevEnabled(void);
+
+
+/**
+  \fn     void ccioInitCcidServProvider(CcioDevice_t *chdev)
+  \brief  init ccid service provider
+  \return
+*/
+void ccioInitCcidServProvider(CcioDevice_t *chdev);
+
+/**
+  \fn     void ccioDeinitCcidServProvider(CcioEntity_t *chent)
+  \brief  deinit ccid service provider
+  \return
+*/
+void ccioDeinitCcidServProvider(CcioEntity_t *chent);
+
+
 
 
 #ifdef __cplusplus

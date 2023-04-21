@@ -76,7 +76,7 @@ typedef struct
 
 
 
-// max support 5 interfaces
+// max support 6 interfaces, add one for ccid
 typedef enum
 {
     USB_INTERACE_0 = 0,
@@ -84,6 +84,7 @@ typedef enum
     USB_INTERACE_2,
     USB_INTERACE_3,
     USB_INTERACE_4,
+    USB_INTERACE_5,
     USB_INTERACE_MAXCNT
 } UsbIfIdx_e;
 

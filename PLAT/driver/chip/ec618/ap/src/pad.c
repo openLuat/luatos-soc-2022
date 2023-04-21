@@ -115,6 +115,17 @@ void PAD_setPinConfig(uint32_t paddr, const PadConfig_t *config)
     CLOCK_clockDisable(PCLK_PAD);
 }
 
+void PAD_setPinConfigWhenInit(uint32_t paddr, const PadConfig_t *config)
+{
+    volatile uint32_t *PCLK_PAD =  (volatile uint32_t *)(0x4D000030);
+    ASSERT(config);
+    ASSERT(paddr < PAD_ADDR_MAX_NUM);
+    *PCLK_PAD = (*PCLK_PAD) | (1<<6);
+    PAD->PCR[paddr] = *((const uint32_t *)config);
+    *PCLK_PAD = (*PCLK_PAD) & (~(1<<6));
+}
+
+
 void PAD_setPinMux(uint32_t paddr, PadMux_e mux)
 {
     ASSERT(paddr < PAD_ADDR_MAX_NUM);

@@ -233,6 +233,25 @@
 #define ATC_ECCFG_1_IGNORE_EMM_CAUSE_VAL_MAX     (1)
 #define ATC_ECCFG_1_IGNORE_EMM_CAUSE_VAL_DEF     (1)
 
+/* 0 - Not extend/reduce DrxCycle value configured from NW
+ * 1 - DrxCycle length = DrxCyle(NW) * 1/8
+ * 2 - DrxCycle length = DrxCyle(NW) * 1/4
+ * 3 - DrxCycle length = DrxCyle(NW) * 1/2
+ * 4 - DrxCycle length = DrxCyle(NW) * 2
+ * 5 - DrxCycle length = DrxCyle(NW) * 4
+ * 6 - DrxCycle length = DrxCyle(NW) * 8
+ * 7 - DrxCycle length = DrxCyle(NW) * 16
+ *
+ * [8-12] configure a fixed DrxCycle length, UE will apply the fixed value only when the fixed value larger than DrxCycle(NW)
+ * 8 - DrxCycle (320ms)
+ * 9 - DrxCycle (640ms)
+ * 10- DrxCycle (1280ms)
+ * 11- DrxCycle (2560ms)
+ * 12- DrxCycle (5120ms)
+*/
+#define ATC_ECCFG_1_USER_DRXCYCLE_VAL_MIN    (0)
+#define ATC_ECCFG_1_USER_DRXCYCLE_VAL_MAX    (12)
+#define ATC_ECCFG_1_USER_DRXCYCLE_VAL_DEF    (0)
 
 #define ATEC_ECCFG_GET_RSP_STR_LEN   512
 

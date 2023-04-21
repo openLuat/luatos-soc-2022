@@ -316,7 +316,7 @@ void      nmQISocDisableUlfc(UINT8 chanId);
 CmsRetId  nmQNETDEVCTL(const AtCmdInputContext *pAtCmdReq);
 
 AtRefSocketSendInfo *nmQISocGetSendMsgHander(void);
-
+BOOL      nmQISocQueryConnStateReq(UINT8 connectId);
 
 
 

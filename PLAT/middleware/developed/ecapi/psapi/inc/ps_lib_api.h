@@ -624,6 +624,20 @@ typedef CmiSimImsAuthCnf    EcSimAuthRspParams;
 
 
 /******************************************************************************
+ *Current Tx Power setting struct
+******************************************************************************/
+#define TXPOWER_MAX_POWER_VAL_MIN           -45
+#define TXPOWER_MAX_POWER_VAL_MAX           23
+
+#define TXPOWER_MIN_POWER_VAL_MIN           -45
+#define TXPOWER_MIN_POWER_VAL_MAX           23
+
+#define TXPOWER_FIXED_POWER_VAL_MIN         -45
+#define TXPOWER_FIXED_POWER_VAL_MAX         23
+
+typedef CmiDevSetTxPowerReq   TxPowerSettingReq;
+
+/******************************************************************************
  *****************************************************************************
  * API
  *****************************************************************************
@@ -645,6 +659,7 @@ CmsRetId appGetEcCfgSettingSync(EcCfgGetParamsReq *pEcCfgGetParams);
 CmsRetId appGetAPNSettingSync(UINT8 cid, UINT8 *pApn);
 CmsRetId appCheckSystemTimeSync(void);
 CmsRetId appGetSystemTimeSecsSync(time_t *time);
+CmsRetId appGetSystemTimeNitzSecsSync(time_t *time);
 CmsRetId appGetSystemTimeUtcSync(utc_timer_value_t *time);
 CmsRetId appSetSystemTimeUtcSync(UINT32 time1, UINT32 time2, UINT32 time3);
 //CmsRetId appGetActedCidSync(UINT8 *cid, UINT8 *num);
@@ -958,6 +973,15 @@ CmsRetId appSetAuthParamSync(SetPsAuthCtxParams *pSetAuthCtxParams);
 */
 CmsRetId appGetAuthParamSync(const UINT8  cid, GetPsAuthCtxParams *pGetAuthParams);
 
+
+/**
+  \fn          CmsRetId appSetTxPowerSetting
+  \brief       Send cmi request to set Tx Power while UE in connnection state
+  \param[in]   TxPowerSettingReq *pTxPowerSettingReq
+  \param[out]  
+  \returns     CmsRetId
+*/
+CmsRetId appSetTxPowerSetting(TxPowerSettingReq *pTxPowerSettingReq);
 
 #endif
 

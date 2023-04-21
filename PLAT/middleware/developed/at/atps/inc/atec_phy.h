@@ -39,8 +39,19 @@
 #define ATC_PHYDBG_VAL_MAX                   255
 #define ATC_PHYDBG_VAL_DEFAULT               0x7f
 
+/* AT+ECEDRXSIMU */
+#define ATC_ECEDRXSIMU_0_VAL_MIN                   0
+#define ATC_ECEDRXSIMU_0_VAL_MAX                   1
+#define ATC_ECEDRXSIMU_0_VAL_DEFAULT               0
+#define ATC_ECEDRXSIMU_1_VAL_MIN                 0
+#define ATC_ECEDRXSIMU_1_VAL_MAX                 2
+#define ATC_ECEDRXSIMU_1_VAL_DEFAULT             0
+#define ATC_ECEDRXSIMU_2_VAL_MIN                   0
+#define ATC_ECEDRXSIMU_2_VAL_MAX                   3
+#define ATC_ECEDRXSIMU_2_VAL_DEFAULT               0
 
 CmsRetId phyECPHYCFG(const AtCmdInputContext *pAtCmdReq);
+CmsRetId phyECEDRXSIMU(const AtCmdInputContext *pAtCmdReq);
 
 #endif
 

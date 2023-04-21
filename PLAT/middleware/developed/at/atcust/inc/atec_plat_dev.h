@@ -75,6 +75,14 @@
 #define ATC_ECPCFG_UNI_LEVEL_VAL_MAX                5
 #define ATC_ECPCFG_UNI_LEVEL_VAL_DEFAULT            0  /* full functionality */
 
+#define ATC_ECPCFG_LOG_OWNER_VAL_MIN                0
+#define ATC_ECPCFG_LOG_OWNER_VAL_MAX                7
+#define ATC_ECPCFG_LOG_OWNER_VAL_DEFAULT            0  /* full functionality */
+
+#define ATC_ECPCFG_LOG_OWNER_LEVEL_VAL_MIN                0
+#define ATC_ECPCFG_LOG_OWNER_LEVEL_VAL_MAX                5
+#define ATC_ECPCFG_LOG_OWNER_LEVEL_VAL_DEFAULT            0  /* full functionality */
+
 #define ATC_ECPCFG_LOG_BAUDRATE_VAL_MIN                921600
 #define ATC_ECPCFG_LOG_BAUDRATE_VAL_MAX                6000001
 #define ATC_ECPCFG_LOG_BAUDRATE_VAL_DEFAULT            6000000  /* full functionality */

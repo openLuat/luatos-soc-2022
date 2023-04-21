@@ -105,13 +105,13 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CERRC_CFG_UE_CATEGORY_TYPE,                     /* TV,  UeCategoryType_t */
 
     CERRC_CFG_DISABLE_NCELL_MEAS,                   /* TV,  BOOL bDisableNCellMeas */
-    CERRC_CFG_DEFALT_RELAX_MONITOR_DELTA_P,         /* TV,  UINT8 sSearchDeltaP */
-    CERRC_CFG_DEFALT_DATA_INACT_TIMER,              /* TV,  UINT8 dataInactivityTimer */
-    CERRC_CFG_DEFALT_ENABLE_AB_CHECK,               /* TV,  BOOL enableABCheck */
-    CERRC_CFG_DEFALT_WEAK_CELL_OPT = 56,            /* TV,  BOOL weakCellOpt */
-    CERRC_CFG_DEFALT_Q_RX_LEV_MIN = 57,             /* TV,  INT16 qRxLevMin */
-    CERRC_CFG_DEFALT_RESEL_TO_WEAK_NCELL_OPT = 58,  /* TV,  UINT8 reselToWeakNcellOpt */
-    CERRC_CFG_DEFALT_QUALITY_FIRST = 59,            /* TV,  BOOL qualityFirst */
+    CERRC_CFG_RELAX_MONITOR_DELTA_P,                /* TV,  UINT8 sSearchDeltaP */
+    CERRC_CFG_DATA_INACT_TIMER,                     /* TV,  UINT8 dataInactivityTimer */
+    CERRC_CFG_ENABLE_AB_CHECK,                      /* TV,  BOOL enableABCheck */
+    CERRC_CFG_WEAK_CELL_OPT = 56,                   /* TV,  BOOL weakCellOpt */
+    CERRC_CFG_Q_RX_LEV_MIN = 57,                    /* TV,  INT16 qRxLevMin */
+    CERRC_CFG_RESEL_TO_WEAK_NCELL_OPT = 58,         /* TV,  UINT8 reselToWeakNcellOpt */
+    CERRC_CFG_QUALITY_FIRST = 59,                   /* TV,  BOOL qualityFirst */
 
     CCM_CFG_DATA_COUNTER_CTRL = 60,                 /* TV,  BOOL bEnableDataCounter */
     L2_CFG_DATA_COUNTER_INFO,                       /* TLV, PsCfgL2DataCounterInfo */
@@ -128,8 +128,10 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CESM_CFG_PDP_REACT,                             /* TV,  UINT8 bPdpReact, 0/1,
                                                      * 1 - default bearer/PDP is need to re-act if APN/IP type changes, when CGACT
                                                     */
-    CERRC_CFG_DEFALT_STATIC_CONFIG,                 /* TV,  BOOL staticConfig */
-    CERRC_CFG_DEFALT_DISABLE_CDRX_CONFIG,           /* TV,  BOOL disableCDRX */
+    CERRC_CFG_STATIC_CONFIG,                        /* TV,  BOOL staticConfig */
+    CERRC_CFG_DISABLE_CDRX_CONFIG,                  /* TV,  BOOL disableCDRX */
+    CERRC_CFG_USER_DRX_CYCLE,                       /* TV,  UINT8 userDrxCycle */
+
     /*
      * !!!!  PARAM ID !!!!
      * 1> Only allowed

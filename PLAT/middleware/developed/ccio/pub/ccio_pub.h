@@ -105,7 +105,8 @@ typedef enum
     CUST_RBUF_FOR_OPAQ,
     CUST_RBUF_FOR_PPP,
     CUST_RBUF_FOR_RNDIS,
-    CUST_RBUF_FOR_ECM
+    CUST_RBUF_FOR_ECM,
+    CUST_RBUF_FOR_CCID
 }CcioRbufUsage_e;
 
 /**

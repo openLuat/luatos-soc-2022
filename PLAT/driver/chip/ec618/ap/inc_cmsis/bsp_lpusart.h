@@ -61,20 +61,20 @@ typedef struct _LPUSART_TRANSFER_INFO {
   uint8_t              *tx_buf;         // Pointer to out data buffer
   uint32_t              rx_cnt;         // Number of data received
   uint32_t              tx_cnt;         // Number of data sent
-  uint16_t              tx_def_val;     // Default transmit value
-  uint16_t              rx_dump_val;    // Receive dump value
+  uint8_t               tx_def_val;     // Default transmit value
+  uint8_t               rx_dump_val;    // Receive dump value
   uint8_t               send_active;    // Send active flag
-  uint32_t              sync_mode;      // Synchronous mode flag
+  uint8_t               sync_mode;      // Synchronous mode flag
 } LPUSART_TRANSFER_INFO;
 
 typedef struct _LPUSART_STATUS {
-  uint8_t rx_busy;                      // Receiver busy flag
-  uint8_t rx_dma_triggered;             // Receive DMA transfer triggered (cleared on start of next receive operation)
-  uint8_t rx_overflow;                  // Receive data overflow detected (cleared on start of next receive operation)
-  uint8_t aon_rx_overflow;              // AON FIFO receive data overflow detected (cleared on start of next receive operation)
-  uint8_t rx_break;                     // Break detected on receive (cleared on start of next receive operation)
-  uint8_t rx_framing_error;             // Framing error detected on receive (cleared on start of next receive operation)
-  uint8_t rx_parity_error;              // Parity error detected on receive (cleared on start of next receive operation)
+  uint32_t rx_busy               :1;         // Receiver busy flag
+  uint32_t rx_overflow           :1;         // Receive data overflow detected (cleared on start of next receive operation)
+  uint32_t aon_rx_overflow       :1;         // AON FIFO receive data overflow detected (cleared on start of next receive operation)
+  uint32_t rx_break              :1;         // Break detected on receive (cleared on start of next receive operation)
+  uint32_t rx_framing_error      :1;         // Framing error detected on receive (cleared on start of next receive operation)
+  uint32_t rx_parity_error       :1;         // Parity error detected on receive (cleared on start of next receive operation)
+  uint32_t reserved              :26;        //
 } LPUSART_STATUS;
 
 typedef struct _LPUSART_INFO {
@@ -98,6 +98,7 @@ typedef const struct {
   LPUSART_IRQ               *irq;                   // LPUSART IRQ
   LPUSART_IRQ               *co_usart_irq;          // LPUSART cooperating uart IRQ
   LPUSART_INFO              *info;                  // Run-Time Information
+  uint8_t                   *hw_rxfifo_buf;         // Pointer to extra buffer for rx data after hw rxfifo is full
 } LPUSART_RESOURCES;
 
 

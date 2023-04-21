@@ -102,6 +102,7 @@ typedef enum _EPAT_OsaHibTimerId_enum
     PS_HIB_MAX_TIMER    = 0x40,     /* 64 HIB timer resversed for PS */
 
     CMS_HIB_POWER_ON_DELAY_TIMER = 0x41,    /* Now, power on random delay handled in CMS task */
+    CMS_CP_FAKS_EDRX_TIMER       = 0x42,
 
 
     OSA_HIB_MAX_TIMER = 0xFF
@@ -116,6 +117,22 @@ typedef UINT32  OsaHibSecond;
 #define EC_TIME_RANG_MAX               (10)   /* 10s */
 #define EC_TIME_FLASH_VERSION          ((0x11) & 0xFFFFU)
 
+typedef enum {
+    SYNC_NITZ_LOCAL_TIME,
+    SET_LOCAL_TIME = 1,
+}AtTimeOptVal;
+
+typedef enum {
+    NITZ_TIME_SRC,
+    SNTP_TIME_SRC = 1,
+    APP_TIME_SRC = 2,
+    OTHER_TIME_SRC,
+}AtTimeSrcVal;
+
+typedef enum {
+    AT_FLASH_TIME = 1,
+    AT_FLASH_MAX,
+}AtGetFlashVal;
 
 typedef __PACKED_STRUCT _timer_value
 {
@@ -140,23 +157,6 @@ typedef __PACKED_STRUCT _utc_timer_value
     unsigned int UTCms;     /*current ms */
     int timeZone;
 } utc_timer_value_t;
-
-typedef enum {
-    SYNC_NITZ_LOCAL_TIME,
-    SET_LOCAL_TIME = 1,
-}AtTimeOptVal;
-
-typedef enum {
-    NITZ_TIME_SRC,
-    SNTP_TIME_SRC = 1,
-    APP_TIME_SRC = 2,
-    OTHER_TIME_SRC,
-}AtTimeSrcVal;
-
-typedef enum {
-    AT_FLASH_TIME = 1,
-    AT_FLASH_MAX,
-}AtGetFlashVal;
 
 /******************************************************************************
  * OsaHibTimerStart
@@ -446,9 +446,15 @@ typedef unsigned int time_t;
 CHAR *strdup(const CHAR *string);
 BOOL OsaGetImeiNumSync(CHAR* imei);
 INT32 OsaTimerSync(UINT32 srcType, UINT32 cmd, UINT32 Timer1, UINT32 Timer2, UINT32 Timer3);
+INT32 OsaTimerNitzSync(UINT32 cmd, UINT32 Timer1, UINT32 Timer2, UINT32 Timer3);
+
 time_t OsaSystemTimeReadSecs(void);
+time_t OsaSystemTimeNitzReadSecs(void);
+
 utc_timer_value_t *OsaSystemTimeReadUtc(void);
 utc_timer_value_t *OsaSystemTimeReadRamUtc(void);
+
+INT32 OsaTimerUtcToLocalTime(UINT32 Timer1, UINT32 Timer2, INT32 timeZone, INT32 dst, utc_timer_value_t *localTime);
 
 /*
  * From LSB(right/low) to MSB (left/high), to find the first postion of bit 0

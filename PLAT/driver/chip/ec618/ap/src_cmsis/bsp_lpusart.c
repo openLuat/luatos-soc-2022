@@ -26,8 +26,13 @@
 
 #endif
 
-//#pragma push
-//#pragma O0
+#define HW_RXFIFO_BUFFER_LEN   (128)
+
+#if 0
+#pragma GCC push_options
+#pragma GCC optimize("O0")
+#endif
+
 
 #define ARM_LPUSART_DRV_VERSION    ARM_DRIVER_VERSION_MAJOR_MINOR(2, 0)  /* driver version */
 
@@ -35,7 +40,7 @@
 #error "Cooperating UART not enabled in RTE_Device.h!"
 #endif
 
-#define CO_USART_DMA_BURST_SIZE  (8)
+#define CO_USART_DMA_BURST_SIZE  (4)
 #define LPUSART_RX_TRIG_LVL      (8)
 
 #ifdef PM_FEATURE_ENABLE
@@ -193,10 +198,11 @@ static void LPUSART_ExitLowPowerStateRestore(void* pdata, slpManLpState state)
 #define LPUSART_AON_CR1_ENABLE                            (LPUSARTAON_CR1_ENABLE_Msk | LPUSARTAON_CR1_ACG_EN_Msk)
 
 // declearation for DMA API
-extern void DMA_stopChannelNoWait(DmaInstance_e instance, uint32_t channel);
+extern void DMA_suspendChannel(DmaInstance_e instance, uint32_t channel, DmaRequestSource_e request);
+extern void DMA_resumeChannel(DmaInstance_e instance, uint32_t channel, DmaRequestSource_e request);
 extern uint32_t DMA_setDescriptorTransferLen(uint32_t dcmd, uint32_t len);
 extern void DMA_loadChannelDescriptorAndRun(DmaInstance_e instance, uint32_t channel, void* descriptorAddress);
-extern uint32_t DMA_getChannelCurrentTargetAddress(DmaInstance_e instance, uint32_t channel, bool sync);
+extern uint32_t DMA_getChannelCurrentTargetAddress(DmaInstance_e instance, uint32_t channel);
 extern void DMA_buildDescriptor(DmaDescriptor_t* descriptor, const DmaTransferConfig_t* config, const DmaExtraConfig_t* extraConfig);
 
 // Driver Version
@@ -257,9 +263,16 @@ static LPUSART_TX_DMA LPUSART1_DMA_Tx = {
 #endif
 
 #if (RTE_UART1_RX_IO_MODE == DMA_MODE)
+uint8_t CO_USART1_Rxfifo_Buffer[HW_RXFIFO_BUFFER_LEN];
+#else
+uint8_t CO_USART1_Rxfifo_Buffer[1];
+#endif
+
+#if (RTE_UART1_RX_IO_MODE == DMA_MODE)
 
 void CO_USART1_DmaRxEvent(uint32_t event);
-static DmaDescriptor_t __ALIGNED(16) CO_USART1_DMA_Rx_Descriptor[2];
+
+static DmaDescriptor_t __ALIGNED(16) CO_USART1_DMA_Rx_Descriptor[3];
 
 static LPUSART_RX_DMA CO_USART1_DMA_Rx = {
                                     DMA_INSTANCE_MP,
@@ -337,7 +350,8 @@ static const LPUSART_RESOURCES LPUSART1_Resources = {
     NULL,
     NULL,
 #endif
-    &LPUSART1_Info
+    &LPUSART1_Info,
+    CO_USART1_Rxfifo_Buffer
 };
 #endif
 
@@ -529,7 +543,7 @@ static void LPUSART_DMARxConfig(LPUSART_RESOURCES *lpusart, bool isLpuart)
     }
     else
     {
-        dmaConfig.burstSize                     = DMA_BURST_8_BYTES;
+        dmaConfig.burstSize                     = DMA_BURST_4_BYTES;
         dmaConfig.sourceAddress                 = (void*)&(lpusart->co_usart_regs->RBR);
         dmaConfig.totalLength                   = CO_USART_DMA_BURST_SIZE;
 
@@ -540,13 +554,18 @@ static void LPUSART_DMARxConfig(LPUSART_RESOURCES *lpusart, bool isLpuart)
 
         DMA_buildDescriptor(&lpusart->co_usart_dma_rx->descriptor[0], &dmaConfig, &extraConfig);
 
-        extraConfig.stopDecriptorFetch          = true;
-        extraConfig.nextDesriptorAddress        = &lpusart->co_usart_dma_rx->descriptor[0];
-
+        extraConfig.nextDesriptorAddress        = &lpusart->co_usart_dma_rx->descriptor[2];
         DMA_buildDescriptor(&lpusart->co_usart_dma_rx->descriptor[1], &dmaConfig, &extraConfig);
 
-        DMA_resetChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
+        dmaConfig.totalLength                   = HW_RXFIFO_BUFFER_LEN;
+        dmaConfig.targetAddress                 = lpusart->hw_rxfifo_buf;
+        extraConfig.stopDecriptorFetch          = true;
+        extraConfig.enableEndInterrupt          = false;
+        extraConfig.nextDesriptorAddress        = &lpusart->co_usart_dma_rx->descriptor[0];
 
+        DMA_buildDescriptor(&lpusart->co_usart_dma_rx->descriptor[2], &dmaConfig, &extraConfig);
+
+        DMA_resetChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
     }
 }
 
@@ -715,7 +734,10 @@ int32_t LPUSART_PowerControl(ARM_POWER_STATE state,LPUSART_RESOURCES *lpusart)
                 DMA_stopChannel(lpusart->co_usart_dma_tx->instance, lpusart->co_usart_dma_tx->channel, false);
 
             if(lpusart->co_usart_dma_rx)
+            {
                 DMA_stopChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, false);
+                DMA_resetChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
+            }
 
             if(lpusart->dma_rx)
                 DMA_stopChannel(lpusart->dma_rx->instance, lpusart->dma_rx->channel, false);
@@ -838,8 +860,8 @@ int32_t LPUSART_PowerControl(ARM_POWER_STATE state,LPUSART_RESOURCES *lpusart)
             // Configure FIFO Control register
             val = USART_FCR_FIFO_EN_Msk | USART_FCR_RESET_RX_FIFO_Msk | USART_FCR_RESET_TX_FIFO_Msk;
 
-            // rxfifo trigger level set as 16 bytes
-            val |= (2U << USART_FCR_RX_FIFO_AVAIL_TRIG_LEVEL_Pos);
+            // rxfifo trigger level set as 8 bytes
+            val |= (1U << USART_FCR_RX_FIFO_AVAIL_TRIG_LEVEL_Pos);
 
             lpusart->co_usart_regs->FCR = val;
 
@@ -1005,7 +1027,9 @@ int32_t LPUSART_SendPolling(const void *data, uint32_t num, LPUSART_RESOURCES *l
 
 PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOURCES *lpusart)
 {
-    uint32_t mask, bytes_in_fifo, i;
+    uint32_t mask, bytes_in_fifo = 0, i, address;
+
+    LPUSART_INFO *info = lpusart->info;
 
     volatile uint32_t left_to_recv = num;
 
@@ -1014,86 +1038,124 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 
-    if ((lpusart->info->flags & LPUSART_FLAG_CONFIGURED) == 0)
+    if ((info->flags & LPUSART_FLAG_CONFIGURED) == 0)
     {
         return ARM_DRIVER_ERROR;
     }
 
     // check if receiver is busy
-    if (lpusart->info->rx_status.rx_busy == 1U)
+    if (info->rx_status.rx_busy == 1U)
     {
         return ARM_DRIVER_ERROR_BUSY;
     }
 
-    lpusart->info->rx_status.rx_busy = 1U;
+    info->rx_status.rx_busy = 1U;
 
     // save num of data to be received
-    lpusart->info->xfer.rx_num = num;
-    lpusart->info->xfer.rx_buf = (uint8_t *)data;
-    lpusart->info->xfer.rx_cnt = 0;
+    info->xfer.rx_num = num;
+    info->xfer.rx_buf = (uint8_t *)data;
+    info->xfer.rx_cnt = 0;
 
-    if(lpusart->dma_rx || lpusart->co_usart_dma_rx)
+    if(info->flags & LPUSART_FLAG_POWER_FULL)
     {
-       lpusart->info->rx_status.rx_dma_triggered = 0;
+        if(lpusart->co_usart_dma_rx)
+        {
+            CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)data, num);
 
-       if(lpusart->co_usart_dma_rx)
-       {
-           CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)data, num);
-       }
-    }
+            DMA_suspendChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+            address = DMA_getChannelCurrentTargetAddress(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
 
-    if(lpusart->info->flags & LPUSART_FLAG_POWER_FULL)
-    {
+            if((address > (uint32_t)lpusart->hw_rxfifo_buf) && (address <= ((uint32_t)lpusart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
+            {
+                bytes_in_fifo = address - (uint32_t)lpusart->hw_rxfifo_buf;
+            }
+
+#if LPUSART_DRIVER_DEBUG
+            ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_recv_0, P_DEBUG, "uart recv, rxfifo buffer water level: %d, rx_cnt: %d", bytes_in_fifo, info->xfer.rx_cnt);
+#endif
+
+            if(bytes_in_fifo >= num)
+            {
+                memcpy(info->xfer.rx_buf, lpusart->hw_rxfifo_buf, num);
+                info->xfer.rx_cnt = num;
+
+#if LPUSART_DRIVER_DEBUG
+                if(bytes_in_fifo > num)
+                {
+                    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_recv_1, P_WARNING, "number of rxfifo buffer exceeds user buffer, data is discarded");
+                }
+#endif
+                goto RECV_COMPLETE;
+            }
+            else if(bytes_in_fifo > 0)
+            {
+                memcpy(info->xfer.rx_buf, lpusart->hw_rxfifo_buf, bytes_in_fifo);
+                info->xfer.rx_cnt = bytes_in_fifo;
+                CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)&info->xfer.rx_buf[info->xfer.rx_cnt], num - bytes_in_fifo);
+            }
+
+        }
+
         lpusart->co_usart_regs->IER |= USART_IER_RX_LINE_STATUS_Msk;
-
-        lpusart->info->rx_status.rx_busy = 1U;
 
         // Lucky :), we have bytes waiting, try our best to receive all of them, however, let normal recv process handle the case if new data keeps arriving
         while((bytes_in_fifo = EIGEN_FLD2VAL(USART_FCNR_RX_FIFO_NUM, lpusart->co_usart_regs->FCNR)) > 0)
         {
+            volatile uint32_t lsr = lpusart->co_usart_regs->LSR;
+            // some flags in LSR are ROC, need to backup
+            lpusart->co_usart_regs->SCR = lsr;
 
-            if(lpusart->co_usart_regs->LSR & USART_LSR_RX_BUSY_Msk)
+            if(lsr & USART_LSR_RX_BUSY_Msk)
             {
                 break;
             }
 
-            left_to_recv = num - lpusart->info->xfer.rx_cnt;
+            left_to_recv = num - info->xfer.rx_cnt;
+
+#if LPUSART_DRIVER_DEBUG
+            ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_recv_2, P_DEBUG, "fetching data, bytes_in_fifo: %d, rx_cnt: %d, lsr: 0x%x", bytes_in_fifo, info->xfer.rx_cnt, lsr);
+#endif
 
             i = MIN(bytes_in_fifo, left_to_recv);
 
             while(i--)
             {
-                lpusart->info->xfer.rx_buf[lpusart->info->xfer.rx_cnt++] = lpusart->co_usart_regs->RBR;
+                info->xfer.rx_buf[info->xfer.rx_cnt++] = lpusart->co_usart_regs->RBR;
             }
 
-            left_to_recv = num - lpusart->info->xfer.rx_cnt;
+RECV_COMPLETE:
+
+            left_to_recv = num - info->xfer.rx_cnt;
 
             // prepare in advance for dma recv
             if(lpusart->co_usart_dma_rx)
             {
-                CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)&lpusart->info->xfer.rx_buf[lpusart->info->xfer.rx_cnt], left_to_recv);
+                CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)&info->xfer.rx_buf[info->xfer.rx_cnt], left_to_recv);
             }
 
             if(left_to_recv == 0)
             {
                 // Full
-                lpusart->info->rx_status.rx_busy = 0;
+                info->rx_status.rx_busy = 0;
 
                 lpusart->co_usart_regs->IER &= ~USART_IER_RX_LINE_STATUS_Msk;
 
-                if(lpusart->info->cb_event != NULL)
+                if(lpusart->co_usart_dma_rx)
                 {
-                    lpusart->info->cb_event(ARM_USART_EVENT_RECEIVE_COMPLETE);
+                    DMA_loadChannelFirstDescriptor(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[0]);
+                    DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+                }
+
+                if(info->cb_event != NULL)
+                {
+#if LPUSART_DRIVER_DEBUG
+                    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_recv_3, P_DEBUG, "uart recv complete");
+#endif
+                    info->cb_event(ARM_USART_EVENT_RECEIVE_COMPLETE);
                 }
 
                 return ARM_DRIVER_OK;
 
-            }
-
-            // check again whether there's ongoing data stream
-            if(lpusart->co_usart_regs->LSR & USART_LSR_RX_BUSY_Msk)
-            {
-                break;
             }
 
         }
@@ -1104,24 +1166,32 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
         {
             lpusart->co_usart_regs->IER |= USART_IER_RX_TIMEOUT_Msk;
 
-            DMA_loadChannelDescriptorAndRun(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[0]);
+            DMA_loadChannelFirstDescriptor(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[0]);
+            DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
 
-            if(lpusart->info->xfer.rx_cnt != 0)
+            if(info->xfer.rx_cnt != 0)
             {
-                if(lpusart->co_usart_regs->LSR & USART_LSR_RX_BUSY_Msk)
+                volatile uint32_t lsr = lpusart->co_usart_regs->LSR;
+                // some flags in LSR are ROC, need to backup
+                lpusart->co_usart_regs->SCR = lsr;
+
+                if(lsr & USART_LSR_RX_BUSY_Msk)
                 {
                     // do nothing if there's still data coming since we can let isr report later
                 }
                 else
                 {
                     // report to upper layer that we've received some data
-                    lpusart->info->rx_status.rx_busy = 0;
+                    info->rx_status.rx_busy = 0;
 
                     // rx_busy is not reliable flag since it'll change to 0 on stop bit
                     // so it's possible here to break the continuous rx data steam into two parts
-                    if(lpusart->info->cb_event != NULL)
+                    if(info->cb_event != NULL)
                     {
-                        lpusart->info->cb_event(ARM_USART_EVENT_RX_TIMEOUT);
+#if LPUSART_DRIVER_DEBUG
+                        ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_recv_4, P_DEBUG, "uart recv timeout report, rx_cnt: %d", info->xfer.rx_cnt);
+#endif
+                        info->cb_event(ARM_USART_EVENT_RX_TIMEOUT);
                     }
                 }
 
@@ -1133,7 +1203,7 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
             lpusart->co_usart_regs->IER |= USART_IER_RX_TIMEOUT_Msk   | \
                                            USART_IER_RX_DATA_REQ_Msk;
 
-            if(lpusart->info->xfer.rx_cnt != 0)
+            if(info->xfer.rx_cnt != 0)
             {
                 if(lpusart->co_usart_regs->LSR & USART_LSR_RX_BUSY_Msk)
                 {
@@ -1142,13 +1212,13 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
                 else
                 {
                     // report to upper layer that we've received some data
-                    lpusart->info->rx_status.rx_busy = 0;
+                    info->rx_status.rx_busy = 0;
 
                     // rx_busy is not reliable flag since it'll change to 0 on stop bit
                     // so it's possible here to break the continuous rx data steam into two parts
-                    if(lpusart->info->cb_event != NULL)
+                    if(info->cb_event != NULL)
                     {
-                        lpusart->info->cb_event(ARM_USART_EVENT_RX_TIMEOUT);
+                        info->cb_event(ARM_USART_EVENT_RX_TIMEOUT);
                     }
                 }
 
@@ -1156,18 +1226,18 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
         }
         else
         {
-            while(lpusart->info->xfer.rx_cnt < lpusart->info->xfer.rx_num)
+            while(info->xfer.rx_cnt < info->xfer.rx_num)
             {
                 //wait unitl receive data is ready
                 while((lpusart->co_usart_regs->LSR & USART_LSR_RX_DATA_READY_Msk) == 0);
                 //read data
-                lpusart->info->xfer.rx_buf[lpusart->info->xfer.rx_cnt++] = lpusart->co_usart_regs->RBR;
+                info->xfer.rx_buf[info->xfer.rx_cnt++] = lpusart->co_usart_regs->RBR;
             }
-            lpusart->info->rx_status.rx_busy = 0;
+            info->rx_status.rx_busy = 0;
         }
     }
 
-    if(lpusart->info->flags & LPUSART_FLAG_POWER_LOW)
+    if(info->flags & LPUSART_FLAG_POWER_LOW)
     {
         if(lpusart->irq)
         {
@@ -1194,14 +1264,14 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
         }
         else
         {
-            while(lpusart->info->xfer.rx_cnt < lpusart->info->xfer.rx_num)
+            while(info->xfer.rx_cnt < info->xfer.rx_num)
             {
                 //wait unitl receive data is ready
                 while(lpusart->core_regs->FCSR & LPUSARTCORE_FCSR_RXFIFO_EMPTY_Msk);
                 //read data
-                lpusart->info->xfer.rx_buf[lpusart->info->xfer.rx_cnt++] = lpusart->core_regs->RBR;
+                info->xfer.rx_buf[info->xfer.rx_cnt++] = lpusart->core_regs->RBR;
             }
-            lpusart->info->rx_status.rx_busy = 0;
+            info->rx_status.rx_busy = 0;
         }
     }
 
@@ -1263,16 +1333,16 @@ int32_t LPUSART_Control(uint32_t control, uint32_t arg, LPUSART_RESOURCES *lpusa
 
             if(lpusart->info->flags & LPUSART_FLAG_POWER_FULL)
             {
+#if LPUSART_DRIVER_DEBUG
+                ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_control_0, P_DEBUG, "uart rx control, fcnr: 0x%x, rx_cnt:%d, arg:%d", lpusart->co_usart_regs->FCNR, lpusart->info->xfer.rx_cnt, arg);
+#endif
                 if(arg == 0)
                 {
                     if(lpusart->co_usart_dma_rx)
                     {
                         lpusart->co_usart_regs->IER &= ~(USART_IER_RX_TIMEOUT_Msk   | \
                                                          USART_IER_RX_LINE_STATUS_Msk);
-
-                        lpusart->info->rx_status.rx_dma_triggered = 0;
-
-                        DMA_stopChannelNoWait(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
+                        DMA_suspendChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->channel);
                     }
                     else if(lpusart->co_usart_irq)
                     {
@@ -1348,8 +1418,8 @@ int32_t LPUSART_Control(uint32_t control, uint32_t arg, LPUSART_RESOURCES *lpusa
                 // reconfigure FIFO Control register
                 val = USART_FCR_FIFO_EN_Msk | USART_FCR_RESET_RX_FIFO_Msk | USART_FCR_RESET_TX_FIFO_Msk;
 
-                // rxfifo trigger level set as 16 bytes
-                val |= (2U << USART_FCR_RX_FIFO_AVAIL_TRIG_LEVEL_Pos);
+                // rxfifo trigger level set as 8 bytes
+                val |= (1U << USART_FCR_RX_FIFO_AVAIL_TRIG_LEVEL_Pos);
 
                 lpusart->co_usart_regs->FCR = val;
                 lpusart->co_usart_regs->MFCR = mfcr;
@@ -1580,7 +1650,7 @@ PLAT_PA_RAMCODE void LPUSART_IRQHandler(LPUSART_RESOURCES *lpusart)
 
     // Check interrupt source
 #if LPUSART_DRIVER_DEBUG
-    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, lpuart_irq_0, P_DEBUG, "Enter lpuart irq, iir: 0x%x, fcsr: 0x%x, tcr: 0x%x, tsr: 0x%x, rx_cnt:%d, ", lpusart->core_regs->IIR, lpusart->core_regs->FCSR, lpusart->core_regs->TCR, lpusart->core_regs->TSR, info->xfer.rx_cnt);
+    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, lpuart_irq_0, P_DEBUG, "Enter lpuart irq, iir: 0x%x, fcsr: 0x%x, tcr: 0x%x, tsr: 0x%x, rx_cnt:%d", lpusart->core_regs->IIR, lpusart->core_regs->FCSR, lpusart->core_regs->TCR, lpusart->core_regs->TSR, info->xfer.rx_cnt);
 #endif
 
     iir_reg = lpusart->core_regs->IIR;
@@ -1688,7 +1758,6 @@ PLAT_PA_RAMCODE void LPUSART_IRQHandler(LPUSART_RESOURCES *lpusart)
                         DMA_loadChannelDescriptorAndRun(lpusart->dma_rx->instance, dma_rx_channel, lpusart->dma_rx->descriptor);
 
                         current_cnt += i;
-                        info->rx_status.rx_dma_triggered = 1;
                     }
 
                 }
@@ -1728,8 +1797,6 @@ PLAT_PA_RAMCODE void LPUSART_IRQHandler(LPUSART_RESOURCES *lpusart)
                     LOCK_SLEEP(0, 1);
 #endif
                     info->rx_status.rx_busy = 1U;
-
-                    info->rx_status.rx_dma_triggered = 0;
 
                     current_cnt = info->xfer.rx_cnt;
 
@@ -1789,7 +1856,7 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
     uint32_t i;
     uint32_t event = 0;
     uint32_t lsr_reg, isr_reg;
-    uint32_t current_cnt, total_cnt, left_to_recv, bytes_in_fifo;
+    uint32_t current_cnt, total_cnt, left_to_recv, bytes_in_fifo, dmaCurrentTargetAddress;
 
     LPUSART_INFO *info = lpusart->info;
 
@@ -1798,15 +1865,16 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
     lpusart->co_usart_regs->ICR = isr_reg;
     lpusart->co_usart_regs->ICR = 0;
 
+    // Fetch backuped LSR in receive routine
+    lsr_reg = lpusart->co_usart_regs->LSR | lpusart->co_usart_regs->SCR;
+
 #if LPUSART_DRIVER_DEBUG
-    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_0, P_DEBUG, "Enter co_uart irq, isr: 0x%x, fcnr: 0x%x, rx_cnt:%d", isr_reg, lpusart->co_usart_regs->FCNR, info->xfer.rx_cnt);
+    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_0, P_DEBUG, "Enter co_uart irq, isr: 0x%x, lsr: 0x%x-%x, fcnr: 0x%x, rx_cnt:%d", isr_reg, lsr_reg, lpusart->co_usart_regs->SCR, lpusart->co_usart_regs->FCNR, info->xfer.rx_cnt);
 #endif
 
 
     if((isr_reg & USART_ISR_RX_LINE_STATUS_Msk) == USART_ISR_RX_LINE_STATUS_Msk)
     {
-        lsr_reg = lpusart->co_usart_regs->LSR;
-
         if (lsr_reg & USART_LSR_RX_OVERRUN_ERROR_Msk)
         {
             info->rx_status.rx_overflow = 1U;
@@ -1841,8 +1909,9 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
     else if((isr_reg & USART_ISR_RX_TIMEOUT_Msk) == USART_ISR_RX_TIMEOUT_Msk)
     {
         {
-            // refer to receive API for this check
-            if(lpusart->co_usart_regs->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos)
+            // refer to receive API for the rxfifo water level check
+            // the timeout interrupt may be blocked for a while and then new data is coming, in this case we just defer this round of handling
+            if((lpusart->co_usart_regs->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos) && !(lsr_reg & USART_LSR_RX_BUSY_Msk))
             {
 #ifdef PM_FEATURE_ENABLE
                 LOCK_SLEEP(0, 1);
@@ -1853,25 +1922,27 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
 
                 if(lpusart->co_usart_dma_rx)
                 {
-                    if(info->rx_status.rx_dma_triggered)
-                    {
-                        // Sync with undergoing DMA transfer, wait until DMA burst transfer(8 bytes) done and update current_cnt
-                        do
-                        {
-                            current_cnt = DMA_getChannelCurrentTargetAddress(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, true) - (uint32_t)info->xfer.rx_buf;
+                    // suspend dma channel so that we can get the correct dma transfer size
+                    DMA_suspendChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+                    dmaCurrentTargetAddress = DMA_getChannelCurrentTargetAddress(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
+
 #if LPUSART_DRIVER_DEBUG
-                            ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_1, P_DEBUG, "dma transfer done, cnt:%d", current_cnt);
+                    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_1, P_DEBUG, "uart recv timeout, dma address: 0x%x", dmaCurrentTargetAddress);
 #endif
-                        } while(((current_cnt - info->xfer.rx_cnt) & (CO_USART_DMA_BURST_SIZE - 1)) != 0);
-
-                        info->rx_status.rx_dma_triggered = 0;
-
+                    if((dmaCurrentTargetAddress >= (uint32_t)lpusart->hw_rxfifo_buf) && (dmaCurrentTargetAddress <= ((uint32_t)lpusart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
+                    {
+                        // user buffer is full and rxfifo buffer isn't, resume dma transfer
+                        if(dmaCurrentTargetAddress != ((uint32_t)lpusart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN))
+                        {
+                            DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+                        }
+                        current_cnt = info->xfer.rx_num;
+                        goto RECV_COMPLETE;
                     }
-                    /*
-                       No matter DMA transfer is started or not(left recv buffer space is not enough),
-                       now we can stop DMA saftely for next transfer and handle tailing bytes in FIFO
-                    */
-                    DMA_stopChannelNoWait(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
+                    else
+                    {
+                        current_cnt = dmaCurrentTargetAddress - (uint32_t)info->xfer.rx_buf;
+                    }
                 }
 
                 total_cnt = info->xfer.rx_num;
@@ -1896,6 +1967,18 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
                 // Check if required amount of data is received
                 if (current_cnt == total_cnt)
                 {
+                    if(lpusart->co_usart_dma_rx)
+                    {
+#if LPUSART_DRIVER_DEBUG
+                        ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_2, P_DEBUG, "cpu recv complete in timeout event");
+#endif
+                        // load descriptor and start DMA transfer
+                        DMA_loadChannelFirstDescriptor(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[2]);
+                        DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+                    }
+
+ RECV_COMPLETE:
+
                     // Clear RX busy flag and set receive transfer complete event
                     event |= ARM_USART_EVENT_RECEIVE_COMPLETE;
 
@@ -1915,7 +1998,11 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
                         CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)info->xfer.rx_buf + info->xfer.rx_cnt, left_to_recv);
 
                         // load descriptor and start DMA transfer
-                        DMA_loadChannelDescriptorAndRun(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[0]);
+                        DMA_loadChannelFirstDescriptor(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[0]);
+                        DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+#if LPUSART_DRIVER_DEBUG
+                        ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_3, P_DEBUG, "restart dma recv in timeout event, rx_cnt:%d, start address: 0x%x", info->xfer.rx_cnt, (uint32_t)info->xfer.rx_buf + info->xfer.rx_cnt);
+#endif
 
                     }
 
@@ -2018,23 +2105,22 @@ void LPUSART_DmaTxEvent(uint32_t event, LPUSART_RESOURCES *lpusart)
 void CO_USART_DmaRxEvent(uint32_t event, LPUSART_RESOURCES *lpusart)
 {
 
-    uint32_t dmaCurrentTargetAddress = DMA_getChannelCurrentTargetAddress(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, false);
+    uint32_t dmaCurrentTargetAddress = DMA_getChannelCurrentTargetAddress(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
 
     switch (event)
     {
         case DMA_EVENT_END:
 
 #if LPUSART_DRIVER_DEBUG
-            ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_DmaRxEvent_0, P_DEBUG, "uart dma rx event, fcnr:%x, cnt:%d", lpusart->co_usart_regs->FCNR, dmaCurrentTargetAddress - (uint32_t)lpusart->info->xfer.rx_buf);
+            ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_DmaRxEvent_0, P_DEBUG, "uart dma rx event, fcnr:%x, rxfifo buffer address: %x, dma current address: %x", lpusart->co_usart_regs->FCNR, lpusart->hw_rxfifo_buf, dmaCurrentTargetAddress);
 #endif
 
 #ifdef PM_FEATURE_ENABLE
             LOCK_SLEEP(0, 1);
 #endif
             lpusart->info->rx_status.rx_busy = 1U;
-            lpusart->info->rx_status.rx_dma_triggered = 1;
 
-            if(dmaCurrentTargetAddress == ( (uint32_t)lpusart->info->xfer.rx_buf + lpusart->info->xfer.rx_num))
+            if((dmaCurrentTargetAddress >= (uint32_t)lpusart->hw_rxfifo_buf) && (dmaCurrentTargetAddress <= ((uint32_t)lpusart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
             {
 #if LPUSART_DRIVER_DEBUG
                 ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_DmaRxEvent_1, P_DEBUG, "uart dma rx complete");
@@ -2044,7 +2130,6 @@ void CO_USART_DmaRxEvent(uint32_t event, LPUSART_RESOURCES *lpusart)
                 //Disable all recv interrupt
                 lpusart->co_usart_regs->IER &= ~(USART_IER_RX_DATA_REQ_Msk | USART_IER_RX_TIMEOUT_Msk | USART_IER_RX_LINE_STATUS_Msk);
                 lpusart->info->rx_status.rx_busy = 0;
-                lpusart->info->rx_status.rx_dma_triggered = 0;
 
                 if(lpusart->info->cb_event)
                 {
@@ -2107,5 +2192,7 @@ ARM_DRIVER_USART Driver_LPUSART1 = {
 
 #endif
 
-//#pragma pop
+#if 0
+#pragma GCC pop_options
+#endif
 

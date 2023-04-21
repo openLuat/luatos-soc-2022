@@ -48,7 +48,7 @@ SECTIONS
 
     Image$$LOAD_BOOTCODE$$Length = SIZEOF(.load_bootcode);
 
-  .load_ap_piram_asmb 0x1400 :
+  .load_ap_piram_asmb :ALIGN(4)
   {
    . = ALIGN(4);
    Load$$LOAD_AP_PIRAM_ASMB$$Base = LOADADDR(.load_ap_piram_asmb);
@@ -124,6 +124,11 @@ SECTIONS
    Image$$LOAD_PS_FDATA_ASMB$$ZI$$Limit = .;
    
    *(.exceptCheck)
+  } >ASMB_AREA
+
+  .unload_cpaon CP_AONMEMBACKUP_START_ADDR (NOLOAD):
+  {
+
   } >ASMB_AREA
 
   .load_rrcmem 0xB000 (NOLOAD):
@@ -331,11 +336,6 @@ SECTIONS
   } > FLASH_AREA
 
   PROVIDE(totalFlashLimit = .);
-
-  .unload_cpaon CP_AONMEMBACKUP_START_ADDR (NOLOAD):
-  {
-
-  } >MSMB_AREA
 
   .load_xp_sharedinfo XP_SHAREINFO_BASE_ADDR (NOLOAD):
   {

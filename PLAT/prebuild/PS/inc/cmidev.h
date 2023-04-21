@@ -142,6 +142,8 @@ typedef enum _EPAT_CMI_DEV_PRIM_ID_TAG
     CMI_DEV_SET_NAS_TIMER_PARA_REQ,         /* CmiDevSetNasTimerParaReq, AT+ECNASTCFG = <timer_id>,[<timer_val>,[<try_count>]] */
     CMI_DEV_SET_NAS_TIMER_PARA_CNF,
 
+    CMI_DEV_SET_TX_POWER_REQ,              //appSetTxPowerSetting
+    CMI_DEV_SET_TX_POWER_CNF,
 
     CMI_DEV_PRIM_END = 0x0fff
 }CMI_DEV_PRIM_ID;
@@ -416,6 +418,22 @@ typedef struct CmiDevGetNasTimerParaCnf_Tag
     CmiDevNasCfgTimerPara       esm3492Timer;
 }CmiDevGetNasTimerParaCnf;  /* 24 bytes */
 
+typedef enum CmiUserDrxCycleTag
+{
+    CMI_USER_DRXCYCLE_NOT_CHANGED  = 0,    // default value, Not extend/reduce DrxCycle configured from NW
+    CMI_USER_DRXCYCLE_1_8 = 1,             // 1/8
+    CMI_USER_DRXCYCLE_1_4 = 2,             // 1/4
+    CMI_USER_DRXCYCLE_1_2 = 3,             // 1/2
+    CMI_USER_DRXCYCLE_2   = 4,             // 2
+    CMI_USER_DRXCYCLE_4   = 5,             // 4
+    CMI_USER_DRXCYCLE_8   = 6,             // 8
+    CMI_USER_DRXCYCLE_16  = 7,             // 16
+    CMI_USER_DRXCYCLE_320MS  = 8,          // 320ms
+    CMI_USER_DRXCYCLE_640MS  = 9,          // 640ms
+    CMI_USER_DRXCYCLE_1280MS = 10,         // 1280ms
+    CMI_USER_DRXCYCLE_2560MS = 11,         // 2560ms
+    CMI_USER_DRXCYCLE_5120MS = 12,         // 5120ms
+}CmiUserDrxCycle;
 
 /******************************************************************************
  * CMI_DEV_SET_EXT_CFG_REQ
@@ -525,6 +543,11 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    staticConfig;
     BOOL    disableCDRXPresent;
     BOOL    disableCDRX;
+
+    //If enabled, UE will monitor paging with the drxCycle * drxCycleMultiple, there will be lots of risk such as missing paging, neighbour cell measurement, etc.
+    BOOL    userDrxCyclePresent;
+    UINT8   userDrxCycle;   //CmiUserDrxCycle
+    UINT16  rsvd5;
 }CmiDevSetExtCfgReq;    // 64 bytes
 
 typedef CamCmiEmptySig CmiDevSetExtCfgCnf;
@@ -590,6 +613,9 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     BOOL    bQualityFirst;
     BOOL    bStaticConfig;
     BOOL    bDisableCDRX;
+
+    UINT8   userDrxCycle;          //CmiUserDrxCycle
+    UINT8   rsvd2[3];
 }CmiDevGetExtCfgCnf;    // 36 bytes
 
 /******************************************************************************
@@ -1884,6 +1910,18 @@ typedef struct CmiDevPhyStatusInfo_Tag
     //Total ACK/NACK messages received
     UINT32      retransRxBlocks;
 
+    //Downlink path loss(dbm)
+    //real value range: -16.0 ~ 207.0, real value = this value >> 2
+    INT16       downlinkPathLoss;
+    //Last Tx power used on PUSCH channel(dbm)
+    //real value range: -80.0 ~ 30.0, real value = this value >> 3
+    // The value will be -128dbm when UE not in Connection state
+    INT16       puschTxPower;
+    //Last Tx power used on PUCCH channel(dbm)
+    //real value range: -80.0 ~ 30.0, real value = this value >> 3
+    // The value will be -128dbm when UE not in Connection state
+    INT16       pucchTxPower;
+    UINT16      rsvd1;
 }CmiDevPhyStatusInfo;   //68 bytes
 
 /*
@@ -1933,9 +1971,9 @@ typedef struct CmiDevIntraCellInfo_Tag
     INT16           rsrq;               //value in units of dB, value range: -34 ~ 25
     INT16           srxlev;             // range -140 ~ 140
     UINT8           cellPrority;        // range 0 - 7
-    UINT8           s_IntraSearch;      // range 0 - 31
-    UINT8           s_NonIntraSearch;   // range 0 - 31
-    UINT8           threshServingLow;   // range 0 - 31
+    UINT8           s_IntraSearch;      // range 0 - 62
+    UINT8           s_NonIntraSearch;   // range 0 - 62
+    UINT8           threshServingLow;   // range 0 - 62
 }CmiDevIntraCellInfo;  //16 bytes
 
 typedef struct CmiDevInterCellInfo_Tag
@@ -1946,8 +1984,8 @@ typedef struct CmiDevInterCellInfo_Tag
     INT16           rsrq;               //value in units of dB, value range: -34 ~ 25
     INT16           srxlev;             // range -140 ~ 140
     UINT8           cellPrority;        // range 0 - 7
-    UINT8           threshXHigh;        // range 0 - 31
-    UINT8           threshXLow;         // range 0 - 31
+    UINT8           threshXHigh;        // range 0 - 62
+    UINT8           threshXLow;         // range 0 - 62
     UINT8           rsvd0;
 }CmiDevInterCellInfo;  //16 bytes
 
@@ -2160,11 +2198,16 @@ typedef struct CmiDevNCellBasicInfo_Tag
 
     //Physical Cell ID, range 0 - 503
     UINT16          phyCellId;
-    UINT16          revd0;
+    //Srxlev, refer to TS36.304 section 5.2.3.2
+    INT16           srxlev;
     //value in units of dBm, value range: -156 ~ -44
     INT16           rsrp;
     //value in units of dB, value range: -34 ~ 25
     INT16           rsrq;
+
+    //BandWidth
+    UINT8           dlBandWidth;
+    UINT8           reserved[3];
 
     //value in dB, value range: -30 ~ 30(NB) or -20 ~ 40(CAT1bis)
     INT8            snr;
@@ -2600,7 +2643,28 @@ typedef struct CmiDevSetWifiScanCnf_Tag
 }CmiDevSetWifiScanCnf;
 
 
+typedef struct CmiDevSetTxPowerReq_Tag
+{
+    // Tx Power should be set in CONNECTED mode
+    // PHY will release this value when leave CONNECT mode
+    // Attention: Should not configured both fixedPower and maxPower/minPower
 
+    // set max txpower, PHY should not transmit with power higher than maxPower;
+    // Range: -45~23 stands for -45~23dBm; other values are invalid
+    BOOL            maxPowerPresent;
+    INT8            maxPower;
+    // set min txpower, PHY should not transmit with power lower than minPower;
+    // Range: -45~23 stands for -45~23dBm; other values are invalid
+    BOOL            minPowerPresent;
+    INT8            minPower;
+    // set fixed txpower, PHY will transmit only with the fixedPower;
+    // Range: -45~23 stands for -45~23dBm; other values are invalid
+    BOOL            fixedPowerPresent;
+    INT8            fixedPower;
+    UINT16          rsvd;
+}CmiDevSetTxPowerReq;
+
+typedef CamCmiEmptySig CmiDevSetTxPowerCnf;
 
 #endif
 

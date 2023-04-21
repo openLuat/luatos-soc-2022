@@ -100,12 +100,23 @@ int32_t fotaNvmWrite(uint32_t zid, uint32_t offset, uint8_t *buf, uint32_t bufLe
 int32_t fotaNvmRead(uint32_t zid, uint32_t offset, uint8_t *buf, uint32_t bufLen);
 
 /**
+ * @brief fotaNvmGetZoneId(uint32_t addr, uint32_t *size, uint32_t *offset)
+ * @details get the nvm zid according starting address and size of the zone
+ *
+ * @param addr   the starting addr of the zone
+ * @param size   the size of the zone
+ * @param offset the offset to starting addr of the zone
+ * @return the zone ID.
+ */
+uint32_t fotaNvmGetZoneId(uint32_t addr, uint32_t *size, uint32_t *offset);
+
+/**
  * @brief fotaNvmGetSize(uint32_t zid, uint8_t isOvhdExcl)
  * @details get the nvm size of specific fota zone
  *
- * @param zid     zone Id of fota nvm
+ * @param zid         zone Id of fota nvm
  * @param isOvhdExcl  overhead size of the zone is excluded or not
- * @return !0 succ; 0 failure.
+ * @return the size of zone.
  */
 uint32_t fotaNvmGetSize(uint32_t zid, uint8_t isOvhdExcl);
 
@@ -128,6 +139,24 @@ int32_t fotaNvmGetHandle(uint32_t zid);
 int32_t fotaNvmGetExtras(uint32_t zid);
 
 /**
+ * @brief fotaNvmVerifyDelta(uint32_t zid, uint8_t *hash, uint32_t pkgSize, uint32_t *deltaState)
+ * @details validate the delta pkg
+ *
+ * @param deltaState  the last state of delta file
+ * @return 0 succ; < 0 failure with errno.
+ */
+int32_t fotaNvmVerifyDelta(uint32_t zid, uint8_t *hash, uint32_t pkgSize, uint32_t *deltaState);
+
+/**
+ * @brief fotaNvmGetOtaResult(uint32_t *deltaState)
+ * @details get the ota result
+ *
+ * @param deltaState  the last state of delta file
+ * @return 0 succ; < 0 failure with errno.
+ */
+int32_t  fotaNvmGetOtaResult(uint32_t zid, int32_t *deltaState);
+
+/**
  * @brief fotaNvmDoExtension(uint32_t flags, void *args)
  * @details externsion api
  *
@@ -136,6 +165,7 @@ int32_t fotaNvmGetExtras(uint32_t zid);
  * @return 0 succ; < 0 failure with errno.
  */
 int32_t fotaNvmDoExtension(uint32_t flags, void *args);
+
 
 #ifdef __cplusplus
 }

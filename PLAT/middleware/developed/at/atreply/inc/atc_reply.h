@@ -203,6 +203,9 @@ typedef enum AtResultCode_Tag
     AT_RC_SSL_ERROR,            //Timer will Stop, +SSL ERROR
     AT_RC_FWUPD_ERROR,          //FWUPD ERROR
     AT_RC_CTW_ERROR,            //CTW ERROR
+    AT_RC_CIS_ERROR,            //Timer will Stop, +CIS ERROR
+    AT_RC_CTM2M_ERROR,          //Timer will Stop, +CTM2M ERROR
+    AT_RC_ECOTA_ERROR           //ECOTA ERROR
 }AtResultCode;
 
 
