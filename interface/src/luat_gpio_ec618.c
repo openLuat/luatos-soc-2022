@@ -111,14 +111,14 @@ int luat_gpio_open(luat_gpio_cfg_t* gpio)
 				return -1;
 				break;
 			}
-			apmuSetWakeupPadCfg(pad_id, true, &padConfig);
+			slpManSetWakeupPadCfg(pad_id, true, &padConfig);
 			NVIC_EnableIRQ(pad_id);
 		}
 		else
 		{
 			NVIC_DisableIRQ(pad_id);
 			NVIC_ClearPendingIRQ(pad_id);
-			apmuSetWakeupPadCfg(pad_id, false, &padConfig);
+			slpManSetWakeupPadCfg(pad_id, false, &padConfig);
 			GPIO_ExtiSetCB(gpio->pin, NULL, gpio->irq_args);
 		}
 		return 0;
@@ -244,14 +244,14 @@ int luat_gpio_setup(luat_gpio_t *gpio){
 		    	return -1;
 				break;
 	        }
-	        apmuSetWakeupPadCfg(pad_id, true, &padConfig);
+	        slpManSetWakeupPadCfg(pad_id, true, &padConfig);
 	        NVIC_EnableIRQ(pad_id);
 	    }
 	    else
 	    {
 	    	NVIC_DisableIRQ(pad_id);
 	    	NVIC_ClearPendingIRQ(pad_id);
-	    	apmuSetWakeupPadCfg(pad_id, false, &padConfig);
+	    	slpManSetWakeupPadCfg(pad_id, false, &padConfig);
 	    	GPIO_ExtiSetCB(gpio->pin, NULL, gpio->irq_args);
 	    }
 		return 0;
