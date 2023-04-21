@@ -85,7 +85,10 @@ static void luat_test_task(void *param)
 	network_init_ctrl(g_s_network_ctrl, g_s_task_handle, luat_test_socket_callback, NULL);
 	network_set_base_mode(g_s_network_ctrl, 1, 15000, 1, 300, 5, 9);
 	g_s_network_ctrl->is_debug = 1;
+	// 请访问 https://netlab.luatos.com 获取新的端口号
 	const char remote_ip[] = "112.125.89.8";
+	int port = 35228;
+
 	const char hello[] = "hello, luatos!";
 	uint8_t *tx_data = malloc(1024);
 	uint8_t *rx_data = malloc(1024);
@@ -108,7 +111,7 @@ static void luat_test_task(void *param)
 			continue;
 		}
 
-		result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, 35228, 30000);
+		result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, port, 30000);
 		if (!result)
 		{
 			result = network_tx(g_s_network_ctrl, hello, sizeof(hello) - 1, 0, NULL, 0, &tx_len, 15000);
