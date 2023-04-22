@@ -81,17 +81,19 @@ static void luat_test_task(void *param)
 {
 	uint32_t all,now_free_block,min_free_block;
 	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	net_lwip_set_rx_fast_ack(NW_ADAPTER_INDEX_LWIP_GPRS, 1);	//为了下行测试才需要打开，对于不需要高速流量的应用不要打开
 	g_s_network_ctrl = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_init_ctrl(g_s_network_ctrl, g_s_task_handle, luat_test_socket_callback, NULL);
 	network_set_base_mode(g_s_network_ctrl, 1, 15000, 1, 300, 5, 9);
-	g_s_network_ctrl->is_debug = 1;
+	g_s_network_ctrl->is_debug = 0;	//下行测速时关闭debug，如果只是普通测试，打开debug
 	// 请访问 https://netlab.luatos.com 获取新的端口号
-	const char remote_ip[] = "112.125.89.8";
-	int port = 35228;
-
+//	const char remote_ip[] = "112.125.89.8";
+//	int port = 35228;
+	const char remote_ip[] = "alienwalker.f3322.net";
+	int port = 60010;
 	const char hello[] = "hello, luatos!";
 	uint8_t *tx_data = malloc(1024);
-	uint8_t *rx_data = malloc(1024);
+	uint8_t *rx_data = malloc(1024 * 8);
 	uint32_t tx_len, rx_len, cnt;
 	uint64_t uplink, downlink;
 	int result;
@@ -126,10 +128,10 @@ static void luat_test_task(void *param)
 						{
 							do
 							{
-								result = network_rx(g_s_network_ctrl, rx_data, 1024, 0, NULL, NULL, &rx_len);
+								result = network_rx(g_s_network_ctrl, rx_data, 1024 * 8, 0, NULL, NULL, &rx_len);
 								if (rx_len > 0)
 								{
-									LUAT_DEBUG_PRINT("%.*s", rx_len, rx_data);
+									LUAT_DEBUG_PRINT("rx %d", rx_len);
 								}
 							}while(!result && rx_len > 0);
 						}
@@ -144,10 +146,11 @@ static void luat_test_task(void *param)
 								LUAT_DEBUG_PRINT("%u,%u", (uint32_t)uplink, (uint32_t)downlink);
 								luat_mobile_clear_ip_data_traffic(1, 1);
 							}
+							luat_meminfo_sys(&all, &now_free_block, &min_free_block);
+							LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
 						}
 					}
-					luat_meminfo_sys(&all, &now_free_block, &min_free_block);
-					LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
+
 				}
 			}
 		}
@@ -305,10 +308,11 @@ static void luat_test_init(void)
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
-	luat_rtos_task_create(&g_s_task_handle, 2 * 1024, 10, "test", luat_test_task, NULL, 16);
+	//	下行测试，不要和上行测试同步进行
+	luat_rtos_task_create(&g_s_task_handle, 2 * 1024, 90, "test", luat_test_task, NULL, 16);
 //	luat_rtos_task_create(&g_s_server_task_handle, 4 * 1024, 10, "server", luat_server_test_task, NULL, 16);
 //	上行测试
-	luat_rtos_task_create(&g_s_upload_test_task_handle, 2 * 1024, 10, "test2", luat_async_test_task, NULL,0);
+//	luat_rtos_task_create(&g_s_upload_test_task_handle, 2 * 1024, 10, "test2", luat_async_test_task, NULL,0);
 	luat_mobile_set_default_pdn_ipv6(1);
 //	luat_mobile_set_rrc_auto_release_time(2);
 }

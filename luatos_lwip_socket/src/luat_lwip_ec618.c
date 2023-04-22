@@ -349,7 +349,7 @@ typedef struct
 	uint8_t dns_adapter_index;
 	uint8_t netif_network_ready;
 	uint8_t common_timer_active;
-//	uint8_t fast_sleep_enable;
+	uint8_t fast_rx_ack;
 	uint8_t next_socket_index;
 }net_lwip_ctrl_struct;
 
@@ -532,7 +532,10 @@ static err_t net_lwip_tcp_recv_cb(void *arg, struct tcp_pcb *tpcb,
 
 	if (p)
 	{
-//		tcp_recved(tpcb, p->tot_len);
+		if (prvlwip.socket[socket_id].fast_rx_ack)
+		{
+			tcp_recved(tpcb, p->tot_len);
+		}
 		len = p->tot_len;
 		if (net_lwip_rx_data(socket_id, p, NULL, 0))
 		{
@@ -996,7 +999,10 @@ static void net_lwip_task(void *param)
 			NET_DBG("error socket %d state %d,%x,%d", socket_id, prvlwip.socket[socket_id].in_use, prvlwip.socket[socket_id].pcb.ip, prvlwip.socket[socket_id].is_tcp);
 			break;
 		}
-//			NET_DBG("socket %d rx ack %dbytes", socket_id, event.Param2);
+		if (prvlwip.socket[socket_id].fast_rx_ack)
+		{
+			NET_DBG("socket %d rx ack %dbytes, but in fast ack mode", socket_id, event.Param2);
+		}
 		tcp_recved(prvlwip.socket[socket_id].pcb.tcp, event.Param2);
 		break;
 	case EV_LWIP_SOCKET_CREATE:
@@ -1245,6 +1251,7 @@ static void net_lwip_create_socket_now(uint8_t adapter_index, uint8_t socket_id)
 			prvlwip.socket[socket_id].pcb.tcp->sent = net_lwip_tcp_sent_cb;
 			prvlwip.socket[socket_id].pcb.tcp->errf = net_lwip_tcp_err_cb;
 			prvlwip.socket[socket_id].pcb.tcp->so_options |= SOF_KEEPALIVE|SOF_REUSEADDR;
+			prvlwip.socket[socket_id].fast_rx_ack = prvlwip.fast_rx_ack;
 //					tcp_set_flags(prvlwip.socket[socket_id].pcb.tcp, TCP_NODELAY);
 
 		}
@@ -1412,7 +1419,7 @@ static uint32_t net_lwip_socket_read_data(int socket_id, uint8_t *buf, uint32_t 
 	p->read_pos += dummy_len;
 	if (p->read_pos >= p->len)
 	{
-		if (prvlwip.socket[socket_id].is_tcp)
+		if (prvlwip.socket[socket_id].is_tcp && !prvlwip.socket[socket_id].fast_rx_ack)
 		{
 			platform_send_event(prvlwip.task_handle, EV_LWIP_SOCKET_RX_DONE, socket_id, p->len, 0);
 		}
@@ -2057,6 +2064,11 @@ void soc_set_netif(struct netif *netif)
 void soc_remove_netif(struct netif *netif)
 {
 	return;
+}
+
+void net_lwip_set_rx_fast_ack(uint8_t adapter_index, uint8_t onoff)
+{
+	prvlwip.fast_rx_ack = onoff;
 }
 
 //void net_lwip_fast_sleep(uint8_t onoff)

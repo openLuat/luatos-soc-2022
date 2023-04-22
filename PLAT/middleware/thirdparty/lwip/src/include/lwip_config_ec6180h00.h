@@ -643,7 +643,7 @@
  */
 #if !defined PBUF_POOL_SIZE || defined __DOXYGEN__
 #ifdef __USER_CODE__
-#define PBUF_POOL_SIZE                  8
+#define PBUF_POOL_SIZE                  40
 #else
 #define PBUF_POOL_SIZE                  8
 #endif
@@ -1355,7 +1355,7 @@
  */
 #if !defined TCP_WND || defined __DOXYGEN__
 #ifdef __USER_CODE__
-#define TCP_WND                         (6 * TCP_MSS)//6*TCP_MSS
+#define TCP_WND                         (32 * TCP_MSS)//6*TCP_MSS
 #else
 #define TCP_WND                         (6 * 1024) //6*TCP_MSS
 #endif
