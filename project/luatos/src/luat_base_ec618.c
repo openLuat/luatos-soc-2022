@@ -12,7 +12,8 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/md5.h"
-
+#include "plat_config.h"
+#include "reset.h"
 #define LUAT_LOG_TAG "base"
 #include "luat_log.h"
 
@@ -379,4 +380,28 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 	tm_buf->tm_sec = Time.Sec;
 	return tm_buf;
 
+}
+
+void luat_mcu_set_hardfault_mode(int mode)
+{
+	uint8_t new_mode = EXCEP_OPTION_DUMP_FLASH_EPAT_RESET;
+	switch (mode)
+	{
+	case 0:
+		new_mode = EXCEP_OPTION_DUMP_FLASH_EPAT_LOOP;
+		break;
+	case 1:
+		new_mode = EXCEP_OPTION_DUMP_FLASH_RESET;
+		break;
+	case 2:
+		new_mode = EXCEP_OPTION_DUMP_FLASH_EPAT_RESET;
+		break;
+	default:
+		return;
+	}
+	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, new_mode);
+    if(BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION) == EXCEP_OPTION_SILENT_RESET)
+        ResetLockupCfg(true, true);
+    else
+        ResetLockupCfg(false, false);
 }
