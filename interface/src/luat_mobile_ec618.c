@@ -764,6 +764,10 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 		req.qualityFirst = value;
 		req.qualityFirstPresent = 1;
 		break;
+	case MOBILE_CONF_USERDRXCYCLE:
+		req.userDrxCycle = value;
+		req.userDrxCyclePresent = 1;
+		break;
 	default:
 		return -1;
 	}
