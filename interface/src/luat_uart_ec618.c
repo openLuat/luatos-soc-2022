@@ -364,8 +364,12 @@ void soc_usb_serial_output_done(uint8_t channel)
 #endif
 
 static void luat_usb_recv_cb(uint8_t channel, uint8_t *input, uint32_t len){
-	if (input){
-
+	if (input) {
+		if (!g_s_vuart_rx_buffer.MaxLen)
+		{
+			DBG("usb serial not init,%d,%x,%d!", channel, input, len);
+			return;
+		}
         OS_BufferWrite(&g_s_vuart_rx_buffer, input, len);
 #ifdef __LUATOS__
         rtos_msg_t msg;
