@@ -212,10 +212,15 @@ int luat_uart_setup(luat_uart_t* uart) {
 #else
 		soc_get_model_name(model, 0);
 #endif
-		if (g_s_serials[UART_ID2].alt_type || !strcmp("Air780EG", model))
+		if ((1 == g_s_serials[UART_ID2].alt_type) || !strcmp("Air780EG", model))
 		{
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 0), 5, 0, 0);
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 5, 0, 0);
+		}
+		else if (2 == g_s_serials[UART_ID2].alt_type)
+		{
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_6, 0), 3, 0, 0);
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_7, 0), 3, 0, 0);
 		}
 		else
 		{
