@@ -72,7 +72,17 @@ void luat_audio_play_global_init(
 		audio_play_default_fun_t play_file_fun,
 		audio_play_default_fun_t play_tts_fun,
 		void *user_param);
-
+/**
+ * @brief 音频播放初始化，可以选择是否启用TTS，文件播放功能，用来节省flash空间，可以配置audio任务优先级
+ *
+ * @param event_cb 播放时event回调函数
+ * @param data_cb 数据解码回调函数，如果是直接播放原始数据流就不会用到
+ * @param play_file_fun 播放文件的具体处理函数，选择luat_audio_play_file_default_fun进行处理，或者写NULL不启用播放文件的功能
+ * @param play_tts_fun 播放TTS的具体处理函数，选择luat_audio_play_tts_default_fun进行处理，或者写NULL不启用播放TTS的功能
+ * @param user_param 回调函数的用户参数
+ * @param priority audio任务优先级
+ */
+void luat_audio_play_global_init_with_task_priority(audio_play_event_cb_fun_t event_cb, audio_play_data_cb_fun_t data_cb, audio_play_default_fun_t play_file_fun, audio_play_default_fun_t play_tts_fun, void *user_param, uint8_t priority);
 
 /**
  * @brief 播放指定数量的文件或者ROM数组（文件数据直接写成数组形式）
@@ -201,5 +211,12 @@ void luat_audio_play_tts_set_resource(void *address, void *sdk_id, void *tts_res
  * @param bus_type 见LUAT_AUDIO_BUS，目前只有1=I2S 2=SOFT_DAC
  */
 void luat_audio_play_set_bus_type(uint8_t bus_type);
+/**
+ * @brief 获取底层播放的stream指针
+ *
+ * @param multimedia_id multimedia_id 多媒体通道，目前只有0
+ * @return void *stream指针，真正的类型是Audio_StreamStruct
+ */
+void *luat_audio_play_get_stream(uint32_t multimedia_id);
 /**@}*/
 #endif
