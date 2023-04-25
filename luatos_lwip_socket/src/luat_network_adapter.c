@@ -885,14 +885,6 @@ static void network_default_statemachine(network_ctrl_t *ctrl, OS_EVENT *event, 
 	NW_UNLOCK;
 	if (ctrl->task_handle)
 	{
-		if (EV_NW_RESULT_EVENT == event->ID)
-		{
-			ctrl->event_cnt++;
-			if (ctrl->event_cnt >= 2)
-			{
-				return;
-			}
-		}
 		platform_send_event(ctrl->task_handle, event->ID, event->Param1, event->Param2, event->Param3);
 	}
 	else if (ctrl->user_callback)
@@ -1682,7 +1674,7 @@ int network_connect(network_ctrl_t *ctrl, const char *domain_name, uint32_t doma
 	{
 		return -1;
 	}
-	ctrl->event_cnt = 0;
+
 	NW_LOCK;
 	ctrl->is_server_mode = 0;
 	ctrl->tx_size = 0;
@@ -1894,7 +1886,6 @@ int network_close(network_ctrl_t *ctrl, uint32_t timeout_ms)
 		return 0;
 	}
 	NW_UNLOCK;
-	ctrl->event_cnt = 0;
 	if (!ctrl->task_handle || !timeout_ms)
 	{
 		return 1;
@@ -1940,8 +1931,8 @@ int network_tx(network_ctrl_t *ctrl, const uint8_t *data, uint32_t len, int flag
 		return -1;
 	}
 	NW_LOCK;
-
 	int result;
+
 	ctrl->auto_mode = 1;
 #ifdef LUAT_USE_TLS
 	if (ctrl->tls_mode)
@@ -2170,7 +2161,6 @@ int network_wait_event(network_ctrl_t *ctrl, OS_EVENT *out_event, uint32_t timeo
 	{
 		return -1;
 	}
-	ctrl->event_cnt = 0;
 	NW_LOCK;
 	ctrl->auto_mode = 1;
 	ctrl->wait_target_state = NW_WAIT_EVENT;
@@ -2248,7 +2238,6 @@ int network_wait_rx(network_ctrl_t *ctrl, uint32_t timeout_ms, uint8_t *is_break
 	{
 		return -1;
 	}
-	ctrl->event_cnt = 0;
 	NW_LOCK;
 	ctrl->auto_mode = 1;
 	ctrl->wait_target_state = NW_WAIT_EVENT;
