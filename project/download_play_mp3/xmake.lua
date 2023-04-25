@@ -12,6 +12,5 @@ target(TARGET_NAME)
     --加入代码和头文件
     add_includedirs("./include",{public = true})
     add_files("./src/*.c",{public = true})
-
     LIB_USER = LIB_USER .. SDK_TOP .. LIB_DIR .. LIB_NAME .. " "
 target_end()

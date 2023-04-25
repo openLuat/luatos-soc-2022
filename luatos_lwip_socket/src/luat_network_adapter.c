@@ -1940,6 +1940,7 @@ int network_tx(network_ctrl_t *ctrl, const uint8_t *data, uint32_t len, int flag
 		return -1;
 	}
 	NW_LOCK;
+
 	int result;
 	ctrl->auto_mode = 1;
 #ifdef LUAT_USE_TLS
@@ -2183,6 +2184,7 @@ int network_wait_event(network_ctrl_t *ctrl, OS_EVENT *out_event, uint32_t timeo
 	OS_EVENT event;
 	int result;
 	//DBG_INFO("%s wait for active!,%u,%x", Net->Tag, To * SYS_TICK, Net->hTask);
+
 	platform_start_timer(ctrl->timer, timeout_ms, 0);
 	while (!finish)
 	{
@@ -2235,7 +2237,6 @@ int network_wait_event(network_ctrl_t *ctrl, OS_EVENT *out_event, uint32_t timeo
 
 int network_wait_rx(network_ctrl_t *ctrl, uint32_t timeout_ms, uint8_t *is_break, uint8_t *is_timeout)
 {
-
 	*is_timeout = 0;
 	*is_break = 0;
 	if (ctrl->new_rx_flag)
@@ -2252,6 +2253,7 @@ int network_wait_rx(network_ctrl_t *ctrl, uint32_t timeout_ms, uint8_t *is_break
 	ctrl->auto_mode = 1;
 	ctrl->wait_target_state = NW_WAIT_EVENT;
 	NW_UNLOCK;
+
 	uint8_t finish = 0;
 	OS_EVENT event;
 	int result;
