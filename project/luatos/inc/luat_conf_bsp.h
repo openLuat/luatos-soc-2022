@@ -230,6 +230,7 @@
 // 本功能仅限完全了解风险的用户使用
 // #define LUAT_UART0_FORCE_USER     1
 // #define LUAT_UART0_FORCE_ALT1     1
+// #define LUAT_UART0_LOG_BR_12M     1
 
 #define LUAT_COMPILER_NOWEAK
 #define LUAT_GPIO_PIN_MAX 36

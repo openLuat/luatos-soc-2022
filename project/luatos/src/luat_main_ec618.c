@@ -255,3 +255,11 @@ INIT_DRV_EXPORT(luat_pm_preinit, "1");
 INIT_HW_EXPORT(luatos_task_init, "1");
 
 
+void soc_get_unilog_br(uint32_t *baudrate)
+{
+#ifdef LUAT_UART0_LOG_BR_12M
+	*baudrate = 12000000; //UART0做log口输出12M波特率，必须用高性能USB转TTL
+#else
+	*baudrate = 6000000; //UART0做log口输出6M波特率，必须用高性能USB转TTL
+#endif
+}
