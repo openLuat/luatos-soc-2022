@@ -218,6 +218,11 @@
 #ifndef LUAT_HEAP_SIZE
 #define LUAT_HEAP_SIZE (200*1024)
 #endif
+
+#ifdef LUAT_EC618_RNDIS_ENABLED
+#undef LUAT_HEAP_SIZE
+#define LUAT_HEAP_SIZE (100*1024)
+#endif
 //-----------------------------
 
 // 将UART0切换到用户模式, 默认是UNILOG模式
