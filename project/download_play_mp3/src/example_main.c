@@ -104,7 +104,7 @@ int run_mp3_play(uint8_t is_start)
 	uint32_t out_len, hz, used;
 	while ((llist_num(&stream->DataHead) < 4) && (g_s_mp3_buffer.Pos > 2) )
 	{
-		while (( g_s_pcm_buffer.Pos < (g_s_pcm_buffer.MaxLen - MP3_FRAME_LEN * 2) ) && (g_s_mp3_buffer.Pos > 2))
+		while (( g_s_pcm_buffer.Pos < (g_s_pcm_buffer.MaxLen - MP3_FRAME_LEN * 2) ) && (g_s_mp3_buffer.Pos > (MP3_MAX_CODED_FRAME_SIZE * g_s_mp3_downloading + 1)))
 		{
 			pos = 0;
 			do
