@@ -1,11 +1,9 @@
-#脱离本csdk编译无依赖的库文件
+# 脱离本csdk编译无依赖的库文件
 
 本文档阐述的是脱离csdk, 单独使用gcc链编译库文件的指南
 
 1. 仅适合于完全不依赖本csdk的库
 2. 对应的库除gcc提供的基础函数外, 对其他函数的依赖均通过无依赖的头文件进行声明
-
-不符合以上条件的, 应仿照project/example, 编译成功后在 build/example 获取.a文件
 
 ## 所需的工具链
 
@@ -31,3 +29,18 @@
 
 1. 优化级别推荐 `-O2` 或者 `-Os` , 但没有强制要求
 2. gnu99是最低要求, 可以更高
+
+## 生成的.a文件如何使用
+
+1. 假定名称为`libabc.a`, 将.a文件放入 本SDK根目录下的`lib`目录 , 与`libgt.a`一样
+2. 在项目目录的xmake.lua中,添加如下语句
+
+```lua
+LIB_USER = LIB_USER .. SDK_TOP .. "/lib/libabc.a "
+```
+
+## 额外说明, 依赖本csdk生成.a文件的方法
+
+1. 应仿照project/example, 将源文件和头文件都src/include目录
+2. 按常规方式编译, 例如 `build example`
+3. 编译成功后在 build/example 获取`.a`文件
