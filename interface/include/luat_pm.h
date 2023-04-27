@@ -232,7 +232,7 @@ int luat_pm_reboot(void);
 /* --------------------------------------------- vbat/vbus begin--------------------------------------------- */
 /**
  * @brief 获取充电器状态
- * @param status 充电器状态
+ * @param status 充电器状态,插入为1，未插入为0
  */
 int luat_pm_get_vbus_status(uint8_t *status);
 
