@@ -13,6 +13,8 @@
 
 则设备订阅的主题为/sub/topic/money/866714xxxx16190
 
+qos为1
+
 ## 设备连接的服务器
 host：lbsmqtt.airm2m.com
 port：1884
