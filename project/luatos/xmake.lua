@@ -227,6 +227,9 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/lora/sx126x")
     add_files(LUATOS_ROOT.."components/lora/**.c")
 
+    -- lora2
+    add_includedirs(LUATOS_ROOT.."components/lora2/sx126x")
+    add_files(LUATOS_ROOT.."components/lora2/**.c")
     
     -- fonts
     add_includedirs(LUATOS_ROOT.."components/luatfonts")
