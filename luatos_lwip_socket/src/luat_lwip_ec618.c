@@ -2043,6 +2043,7 @@ void soc_lwip_init_hook(void)
 	prvlwip.task_handle = luat_get_current_task();
 	prvlwip.dns_udp = udp_new();
 	prvlwip.dns_udp->recv = net_lwip_dns_recv_cb;
+	prvlwip.dns_udp->err_arg = 0xffffffff;
 	udp_bind(prvlwip.dns_udp, NULL, 55);
 	dns_init_client(&prvlwip.dns_client);
 }
