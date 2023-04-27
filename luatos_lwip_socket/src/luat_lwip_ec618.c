@@ -1268,6 +1268,7 @@ static void net_lwip_create_socket_now(uint8_t adapter_index, uint8_t socket_id)
 		{
 			prvlwip.socket[socket_id].pcb.udp->recv_arg = uPV.p;
 			prvlwip.socket[socket_id].pcb.udp->recv = net_lwip_udp_recv_cb;
+			prvlwip.socket[socket_id].pcb.udp->err_arg = 0xffffffff;
 			prvlwip.socket[socket_id].pcb.udp->so_options |= SOF_BROADCAST|SOF_REUSEADDR;
 		}
 		else
