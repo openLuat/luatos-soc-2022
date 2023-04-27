@@ -1187,6 +1187,7 @@ static void net_lwip_check_network_ready(uint8_t adapter_index)
 //					NET_DBG("DNS%d:%s",i, ipaddr_ntoa_r(&prvlwip.dns_client.dns_server[i], ip_string, sizeof(ip_string)));
 //				}
 //			}
+			prvlwip.dns_udp->local_ip = prvlwip.lwip_netif->ip_addr;
 			net_lwip_callback_to_nw_task(adapter_index, EV_NW_STATE, 0, 1, adapter_index);
 		}
 
