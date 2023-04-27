@@ -236,7 +236,7 @@ int luat_pwm_update_dutycycle(int channel,size_t pulse)
     channel = channel % 10;
 
     pwms[channel].timer_config.dutyCyclePercent = pulse;
-    TIMER_setupPwm(channel, &pwms[channel].timer_config);
+    TIMER_updatePwmDutyCycle(channel, &pwms[channel].timer_config);
     return 0;
 }
 
