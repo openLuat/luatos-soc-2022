@@ -1,6 +1,9 @@
 # CSDK for ABCDEGF
 
-**强烈推荐使用git来下载本代码库**, 不会命令行操作git可以用 [tortoiseGit](https://tortoisegit.org/download/)
+## 使用前须知
+
+1. **强烈推荐使用git来下载本代码库**, 不会命令行操作git可以用 [tortoiseGit](https://tortoisegit.org/download/)
+2. 本CSDK底层是没有AT指令的,不存在"调用某某AT指令"的情况
 
 ## 文档中心
 [CSDK软件开发资料](https://doc.openluat.com/wiki/37?wiki_page_id=4544)
