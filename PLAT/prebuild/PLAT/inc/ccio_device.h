@@ -75,6 +75,7 @@ typedef enum
     CCIO_DEF_SERL_DCD_STATUS,
     CCIO_DEF_SERL_RI_STATUS,
     CCIO_DEF_GET_CTS_SIGNAL,
+    CCIO_DEF_ENABLE_DTR_SIGNAL,
 
     CCIO_DEF_CUST_RSVD_BEGIN = 0x0DEFC000,
     /*
@@ -258,6 +259,13 @@ typedef struct
     uint8_t   isAllowed;
     uint8_t   rsvd[2];
 }CcioDeaGetCtsSignal_t;
+
+/* CCIO_DEF_ENABLE_DTR_SIGNAL */
+typedef struct
+{
+    uint8_t   llsn;
+    uint8_t   rsvd[3];
+}CcioDeaEnableDtrSignal_t;
 
 /* 'flags' definition of 'chdevStatusCallback' */
 typedef enum

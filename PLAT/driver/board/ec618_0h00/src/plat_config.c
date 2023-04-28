@@ -322,6 +322,8 @@ static void BSP_SetDefaultRawFlashPlatConfig(void)
 
     g_rawFlashPlatConfig.logLevel = P_DEBUG;
 
+    g_rawFlashPlatConfig.logOwnerAndLevel = 0; //default all owner log level is 0
+
     g_rawFlashPlatConfig.logPortSel = PLAT_CFG_ULG_PORT_MIX;//default MIX mode
 
     g_rawFlashPlatConfig.usbCtrl = 0;//all en
@@ -600,6 +602,9 @@ uint32_t BSP_GetPlatConfigItemValue(plat_config_id_t id)
         case PLAT_CONFIG_ITEM_LOG_LEVEL:
             return g_rawFlashPlatConfig.logLevel;
 
+        case PLAT_CONFIG_ITEM_LOG_OWNER_AND_LEVEL:
+            return g_rawFlashPlatConfig.logOwnerAndLevel;
+
         case PLAT_CONFIG_ITEM_ENABLE_PM:
         #ifdef PLAT_CONFIG_FS_ENABLE
             return g_fsPlatConfig.enablePM;
@@ -734,6 +739,10 @@ void BSP_SetPlatConfigItemValue(plat_config_id_t id, uint32_t value)
         case PLAT_CONFIG_ITEM_LOG_LEVEL:
             if(value <= P_ERROR)
                 g_rawFlashPlatConfig.logLevel = (DebugTraceLevelType_e)value;
+            break;
+
+        case PLAT_CONFIG_ITEM_LOG_OWNER_AND_LEVEL:
+            g_rawFlashPlatConfig.logOwnerAndLevel = value;
             break;
 
         case PLAT_CONFIG_ITEM_ENABLE_PM:

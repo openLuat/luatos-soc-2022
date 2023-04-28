@@ -12,7 +12,8 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/md5.h"
-
+#include "plat_config.h"
+#include "reset.h"
 #define LUAT_LOG_TAG "base"
 #include "luat_log.h"
 
@@ -117,7 +118,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_PACK
   {"pack",    luaopen_pack},              // pack.pack/pack.unpack
 #endif
-  // {"mqttcore",luaopen_mqttcore},          // MQTT 协议封装
+#ifdef LUAT_USE_MQTTCORE
+  {"mqttcore",luaopen_mqttcore},          // MQTT 协议封装
+#endif
   // {"libcoap", luaopen_libcoap},           // 处理COAP消息
 
 #ifdef LUAT_USE_LIBGNSS
@@ -159,9 +162,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_LCD
   {"lcd",    luaopen_lcd},
 #endif
-#ifdef LUAT_USE_STATEM
-  {"statem",    luaopen_statem},
-#endif
+//#ifdef LUAT_USE_STATEM
+//  {"statem",    luaopen_statem},
+//#endif
 #ifdef LUAT_USE_GTFONT
   {"gtfont",    luaopen_gtfont},
 #endif
@@ -178,15 +181,18 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_VMX
   {"vmx",       luaopen_vmx},
 #endif
+#ifdef LUAT_USE_NES   
+  {"nes", luaopen_nes}, 
+#endif
 #ifdef LUAT_USE_COREMARK
   {"coremark", luaopen_coremark},
 #endif
 #ifdef LUAT_USE_FONTS
   {"fonts", luaopen_fonts},
 #endif
-#ifdef LUAT_USE_ZLIB
-  {"zlib", luaopen_zlib},
-#endif
+//#ifdef LUAT_USE_ZLIB
+//  {"zlib", luaopen_zlib},
+//#endif
 #ifdef LUAT_USE_MLX90640
   {"mlx90640", luaopen_mlx90640},
 #endif
@@ -198,6 +204,9 @@ static const luaL_Reg loadedlibs[] = {
 #endif
 #ifdef LUAT_USE_LORA
   {"lora", luaopen_lora},
+#endif
+#ifdef LUAT_USE_LORA2
+  {"lora2", luaopen_lora2},
 #endif
 #ifdef LUAT_USE_MINIZ
   {"miniz", luaopen_miniz},
@@ -374,4 +383,28 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 	tm_buf->tm_sec = Time.Sec;
 	return tm_buf;
 
+}
+
+void luat_mcu_set_hardfault_mode(int mode)
+{
+	uint8_t new_mode = EXCEP_OPTION_DUMP_FLASH_EPAT_RESET;
+	switch (mode)
+	{
+	case 0:
+		new_mode = EXCEP_OPTION_DUMP_FLASH_EPAT_LOOP;
+		break;
+	case 1:
+		new_mode = EXCEP_OPTION_DUMP_FLASH_RESET;
+		break;
+	case 2:
+		new_mode = EXCEP_OPTION_DUMP_FLASH_EPAT_RESET;
+		break;
+	default:
+		return;
+	}
+	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, new_mode);
+    if(BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION) == EXCEP_OPTION_SILENT_RESET)
+        ResetLockupCfg(true, true);
+    else
+        ResetLockupCfg(false, false);
 }

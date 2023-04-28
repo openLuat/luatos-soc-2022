@@ -10,6 +10,8 @@ void SPI_SetNoBlock(uint8_t SpiID);
 int32_t SPI_FlashBlockTransfer(uint8_t SpiID, const uint8_t *TxData, uint32_t WLen, uint8_t *RxData, uint32_t RLen);
 void SPI_TransferStop(uint8_t SpiID);
 uint8_t SPI_IsTransferBusy(uint8_t SpiID);
+void SPI_WaitTransferNoBusy(uint8_t SpiID, uint32_t timeout);
+void SPI_SetDMAEnable(uint8_t SpiID, uint8_t IsEnable);
 void SPI_SetNewConfig(uint8_t SpiID, uint32_t Speed, uint8_t NewMode);
 void SPI_SetDMATrigger(uint8_t SpiID, uint32_t UpValue, uint32_t DownValue);
 #endif

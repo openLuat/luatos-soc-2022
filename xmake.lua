@@ -272,7 +272,7 @@ if USER_PROJECT_NAME ~= 'luatos' then
                     {public = true})
 else
     if os.getenv("LUAT_EC618_LITE_MODE") == "1" then
-        add_defines("LUAT_EC618_LITE_MODE")
+        add_defines("LUAT_EC618_LITE_MODE", "LUAT_SCRIPT_SIZE=448", "LUAT_SCRIPT_OTA_SIZE=284")
     end
     if os.getenv("LUAT_USE_TTS") == "1" then
         add_defines("LUAT_USE_TTS")
@@ -344,6 +344,7 @@ target("driver")
     )
 	
 	remove_files(SDK_TOP .. "/PLAT/driver/board/ec618_0h00/src/camera/camAT.c",
+                SDK_TOP .. "/PLAT/driver/board/ec618_0h00/src/exstorage/*.c",
 				SDK_TOP.."/PLAT/driver/chip/ec618/ap/src/usb/usb_device/usb_bl_test.c",
 				SDK_TOP.."/PLAT/driver/chip/ec618/ap/src_cmsis/bsp_lpusart_stub.c",
 				SDK_TOP.."/PLAT/driver/chip/ec618/ap/src/tls.c",
@@ -389,9 +390,14 @@ target(USER_PROJECT_NAME..".elf")
 
             local mem_map_data = io.readfile("$(projectdir)/PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h")
             FLASH_FOTA_REGION_START = tonumber(mem_map_data:match("#define FLASH_FOTA_REGION_START%s+%((%g+)%)"))
-            LUAT_SCRIPT_SIZE = tonumber(conf_data:match("\r#define LUAT_SCRIPT_SIZE (%d+)") or conf_data:match("\n#define LUAT_SCRIPT_SIZE (%d+)"))
-            LUAT_SCRIPT_OTA_SIZE = tonumber(conf_data:match("\r#define LUAT_SCRIPT_OTA_SIZE (%d+)") or conf_data:match("\n#define LUAT_SCRIPT_OTA_SIZE (%d+)"))
-
+            if os.getenv("LUAT_EC618_LITE_MODE") == "1" then
+                LUAT_SCRIPT_SIZE = 448
+                LUAT_SCRIPT_OTA_SIZE = 284
+            else
+                LUAT_SCRIPT_SIZE = tonumber(conf_data:match("\r#define LUAT_SCRIPT_SIZE (%d+)") or conf_data:match("\n#define LUAT_SCRIPT_SIZE (%d+)"))
+                LUAT_SCRIPT_OTA_SIZE = tonumber(conf_data:match("\r#define LUAT_SCRIPT_OTA_SIZE (%d+)") or conf_data:match("\n#define LUAT_SCRIPT_OTA_SIZE (%d+)"))
+            end
+            print(string.format("script zone %d ota %d", LUAT_SCRIPT_SIZE, LUAT_SCRIPT_OTA_SIZE))
             LUA_SCRIPT_ADDR = FLASH_FOTA_REGION_START - (LUAT_SCRIPT_SIZE + LUAT_SCRIPT_OTA_SIZE) * 1024
             LUA_SCRIPT_OTA_ADDR = FLASH_FOTA_REGION_START - LUAT_SCRIPT_OTA_SIZE * 1024
             script_addr = string.format("%X", LUA_SCRIPT_ADDR)

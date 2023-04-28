@@ -1,3 +1,61 @@
+## LuatOS-SoC@EC618 V1106
+
+## V1106
+
+1. 新增: mobile库添加网络特殊配置功能
+2. 新增: 获取当前服务小区的cellid，不需要重新搜索
+3. 新增: websocket库添加sent/disconnect事件
+4. 新增: http支持fota
+5. 新增: 腾讯云demo
+6. 新增: fota.file(path)
+7. 新增: mobile增加一个网络搜索中的常量mobile.SEARCH
+8. 新增: mqtt库支持qos2的消息下发
+9. 新增: mqtt增加verify参数，可选是否强制校验证书
+10. 新增: luatos usb串口增加sent事件回调，但是仅代表数据写入底层缓存
+11. 新增: 添加httpsrv
+12. 新增: TF卡上电控制
+13. 新增: 域名解析，socket.connect里remote_port设置成0则只进行DNS，不做连接，DNS完成后直接返回ON_LINE 
+14. 优化: 优化云编译配置，增加uart0释放、字体等
+15. 优化: 调整luat_uart_setup的缓冲区默认大小,设置最小值2k, 最大值8k,解决大数量场景下uart缓冲区不够的问题, 尤其是Air780EG的uart2
+16. 优化: 增大UART的RX DMA缓存区数量，并可以随用户的RX缓存做调节
+17. 优化: string.fromhex()过滤掉非法字符
+18. 优化: 更均匀的使用socket id
+19. 优化: lcd默认清屏为黑色更合理一些，主要作用避免初始化后显示时有花屏
+20. 优化: gnss处理转到lua任务里
+21. 优化: 在加载内置库和require前后执行gc,对内存消耗进行削峰
+22. 优化: 允许cid1设置用户的apn，用于无法用公网APN激活的专网卡
+23. 优化: lpuart异常处理
+24. 优化: luatos开机打印完整硬件版本号
+25. 优化: luatos uart rs485如果转换超时设置小于1ms会强制改成1ms
+26. 优化: luat_websocket_ping先判断一下连接状态再发
+27. 优化:优化luatos音量调节
+28. 优化: 改进task的mailbox减少内存消耗
+29. 优化: mp3解码器重新封装
+30. 优化: 加快硬件协议的网卡本地端口的分配
+31. 优化: 减少ftp的ram消耗
+32. 修复: lwip小概率会对同一个tcp释放两次
+33. 修复: luatos wdt重新初始化失效
+34. 修复: 修复gc9306 90°方向设置错误
+35. 修复: zbuff:unpack、pack.unpack添加lua虚拟栈检测
+36. 修复: luatos 获取cellinfo有时候会失败
+37. 修复: json库在浮点数0.0的时候会变成科学计数法
+38. 修复: libgnss.clear()未能正确清除历史定位数据
+39. 修复: I2C读写失败后，内部硬件状态机不能自动恢复
+40. 修复: 修复i2c1默认引脚错误
+41. 修复: 开启低功耗串口后，再关闭仍然会有中断，串口关闭会死机
+42. 修复: uart0输出EPAT log时，如果rx上有杂波，可能会死机
+43. 修复: http库的timeout_timer存在多次free的可能性
+44. 修复: mqtt库设置will应允许payload为空
+45. 修复: http Content-Length=0时异常问题
+46. 修复: sntp_connect的判断不正确
+
+## LuatOS-SoC@EC618 V1105
+
+1. 新增: 添加软件DAC (PWM音频输出) **注意：现有版本开发板不支持此功能**
+
+2. 修复: 回滚V1103升级到V1104的fskv库读写整型/浮点型数据的差异
+
+   **此版本同样包含[V1104](https://gitee.com/openLuat/LuatOS/releases/tag/v0007.ec618.v1104)修改所有更新**
 ## LuatOS-SoC@EC618 V1104
 
 ## V1104

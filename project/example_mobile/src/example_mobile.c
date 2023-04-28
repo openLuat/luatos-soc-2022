@@ -157,7 +157,7 @@ static void task_run(void *param)
 {
 	int i;
 	luat_mobile_cell_info_t  cell_info;
-
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
 	char imei[20] = {0};
 	luat_mobile_get_imei(0, imei, sizeof(imei));
 	LUAT_DEBUG_PRINT("IMEI %s", imei);
@@ -170,6 +170,32 @@ static void task_run(void *param)
 	char muid[64] = {0};
 	luat_mobile_get_muid(muid, sizeof(muid));
 	LUAT_DEBUG_PRINT("MUID %s", muid);
+	luat_rtos_task_sleep(1000);
+
+	uint8_t band[32];
+	uint8_t total_num;
+	uint8_t band1[32];
+	uint8_t total_num1;
+	luat_mobile_get_band(band1, &total_num1);
+	for(i = 0; i < total_num1; i++)
+	{
+		LUAT_DEBUG_PRINT("使用频段 %d", band1[i]);
+	}
+	LUAT_DEBUG_PRINT("修改频段");
+	uint8_t band2[3] = {38,39,40};
+	luat_mobile_set_band(band2, 3);
+	luat_mobile_get_band(band, &total_num);
+	for(i = 0; i < total_num; i++)
+	{
+		LUAT_DEBUG_PRINT("使用频段 %d", band[i]);
+	}
+	LUAT_DEBUG_PRINT("恢复频段");
+	luat_mobile_set_band(band1, total_num1);
+	luat_mobile_get_band(band, &total_num);
+	for(i = 0; i < total_num; i++)
+	{
+		LUAT_DEBUG_PRINT("使用频段 %d", band[i]);
+	}
 
 
 	while(1)
@@ -217,7 +243,7 @@ void task_init(void)
 	luat_mobile_set_sim_id(2);
 	luat_mobile_set_sim_detect_sim0_fisrt();
 	luat_rtos_task_handle task_handle;
-	luat_rtos_task_create(&task_handle, 4 * 1204, 50, "test", task_run, NULL, 32);
+	luat_rtos_task_create(&task_handle, 8*1024, 50, "test", task_run, NULL, 32);
 }
 
 INIT_TASK_EXPORT(task_init, "0");

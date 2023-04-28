@@ -205,7 +205,7 @@ typedef enum
 #define PLAT_CFG_FOTA_URC_UART_PORT_IDX_MAX   1
 
 
-#define PLAT_CFG_RAW_FLASH_RSVD_SIZE    21
+#define PLAT_CFG_RAW_FLASH_RSVD_SIZE    17
 
 /** \brief typedef of platform configuration stored in raw flash */
 __PACKED_STRUCT _plat_config_raw_flash
@@ -335,8 +335,8 @@ __PACKED_STRUCT _plat_config_raw_flash
      *        1 -- UART
      **
      *  valid value(Bit0-3):
-     *        0-2 -- USB
-     *        0-1 -- UART
+     *        0-2 -- USB Idx
+     *        0-1 -- UART Idx
      **/
     uint8_t  fotaUrcPortSel;
 
@@ -359,7 +359,13 @@ __PACKED_STRUCT _plat_config_raw_flash
      * 0---0xFFFFFFFF
      */
     uint32_t slpLimitTime;
-	
+
+    /** logOwnerAndLevel
+     * valid value:
+     * 0---0xFFFFFFFF
+     */
+    uint32_t logOwnerAndLevel;
+
     /* 'PLAT_CFG_RAW_FLASH_RSVD_SIZE' bytes rsvd for future */
     uint8_t resv[PLAT_CFG_RAW_FLASH_RSVD_SIZE];
 };
@@ -405,7 +411,8 @@ typedef enum _plat_config_id
     PLAT_CONFIG_ITEM_PMUINCDRX,              /**< PMUINCDRX Select*/
     PLAT_CONFIG_ITEM_SLP_LIMIT_EN,           /**< enable sleep time limit*/
     PLAT_CONFIG_ITEM_SLP_LIMIT_TIME,         /**< set maximum sleep time in mili second*/
-    PLAT_CONFIG_ITEM_TOTAL_NUMBER            /**< total number of items */
+    PLAT_CONFIG_ITEM_TOTAL_NUMBER,           /**< total number of items */
+    PLAT_CONFIG_ITEM_LOG_OWNER_AND_LEVEL,    /**< log Owner and logLevel for this Owner item */
 } plat_config_id_t;
 
 

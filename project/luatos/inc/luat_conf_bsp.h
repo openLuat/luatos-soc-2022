@@ -2,7 +2,7 @@
 #ifndef LUAT_CONF_BSP
 #define LUAT_CONF_BSP
 
-#define LUAT_BSP_VERSION "V1106"
+#define LUAT_BSP_VERSION "V1107"
 
 //------------------------------------------------------
 // 以下custom --> 到  <-- custom 之间的内容,是供用户配置的
@@ -50,11 +50,11 @@
 #define LUAT_USE_FSKV 1
 #define LUAT_USE_I2CTOOLS 1
 #define LUAT_USE_LORA 1
+// #define LUAT_USE_LORA2 1
 // #define LUAT_USE_MAX30102 1
 // #define LUAT_USE_MLX90640 1
 // zlib压缩,更快更小的实现
 #define LUAT_USE_MINIZ 1
-#define LUAT_USE_SNTP 1
 #define LUAT_USE_FTP 1
 // #define LUAT_USE_HTTPSRV 1
 
@@ -78,6 +78,7 @@
 // #define LUAT_USE_DBG
 // 多虚拟机支持,实验性,一般不启用
 // #define LUAT_USE_VMX 1
+// #define LUAT_USE_NES 1
 #define LUAT_USE_PROTOBUF 1
 #define LUAT_USE_RSA      1
 
@@ -188,11 +189,8 @@
 // #define LUAT_SCRIPT_SIZE 448
 // #define LUAT_SCRIPT_OTA_SIZE 284
 
-//-----------------------------
-// 内存配置, 默认200k, 128 ~ 256k 可调
-// 一般无需修改. 若不需要使用SSL/TLS/TTS,可适当增加,但不应该超过256k
-//#define LUAT_HEAP_SIZE (200*1024)
-//-----------------------------
+
+#ifndef LUAT_SCRIPT_SIZE
 
 #define LUAT_SCRIPT_SIZE 128
 #define LUAT_SCRIPT_OTA_SIZE 96
@@ -204,18 +202,36 @@
 // #define LUAT_SCRIPT_SIZE 32
 // #define LUAT_SCRIPT_OTA_SIZE 24
 
+#endif
+
 //-------------------------------------------------------------------------------
 //<-- custom
 //------------------------------------------------------------------------------
 
 
 // 以下选项仅开发人员可修改, 一般用户切勿自行修改
+//-----------------------------
+// 内存配置, 默认200k, 128 ~ 256k 可调
+#ifdef LUAT_HEAP_SIZE_256K
+#define LUAT_HEAP_SIZE (256*1024)
+#endif
+// 一般无需修改. 若不需要使用SSL/TLS/TTS,可适当增加,但不应该超过256k
+#ifndef LUAT_HEAP_SIZE
+#define LUAT_HEAP_SIZE (200*1024)
+#endif
+
+#ifdef LUAT_EC618_RNDIS_ENABLED
+#undef LUAT_HEAP_SIZE
+#define LUAT_HEAP_SIZE (100*1024)
+#endif
+//-----------------------------
 
 // 将UART0切换到用户模式, 默认是UNILOG模式
 // 使用UART0, 日志将完全依赖USB输出, 若USB未引出或失效, 将无法获取底层日志
 // 本功能仅限完全了解风险的用户使用
 // #define LUAT_UART0_FORCE_USER     1
 // #define LUAT_UART0_FORCE_ALT1     1
+// #define LUAT_UART0_LOG_BR_12M     1
 
 #define LUAT_COMPILER_NOWEAK
 #define LUAT_GPIO_PIN_MAX 36
@@ -269,6 +285,7 @@
 #define LUAT_SUPPORT_AMR 1
 #define LUAT_USE_MOBILE 1
 #define LUAT_USE_WLAN_SCANONLY 1
+#define LUAT_USE_SNTP 1
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_I2S
 

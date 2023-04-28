@@ -23,7 +23,10 @@
 #include "luat_rtos.h"
 #include "luat_mobile.h"
 #include "luat_debug.h"
+#define AUTO_APN_TEST	//使用自动设置APN的模式，如果要自己手动设置，注释掉，需要用默认用特殊APN激活的，必须打开
+#ifndef AUTO_APN_TEST
 static g_s_test_cid = 2;
+#endif
 static void sms_event_cb(uint32_t event, void *param)
 {
 	LUAT_DEBUG_PRINT("短信event%d,%x",event, param);
@@ -108,10 +111,12 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		break;
 	case LUAT_MOBILE_EVENT_PDP:
 		LUAT_DEBUG_PRINT("CID %d PDP激活状态变更为 %d", index, status);
+#ifndef AUTO_APN_TEST
 		if ((g_s_test_cid == index) && !status)
 		{
 			luat_mobile_active_netif(0, index);
 		}
+#endif
 		break;
 	case LUAT_MOBILE_EVENT_NETIF:
 		LUAT_DEBUG_PRINT("internet工作状态变更为 %d", status);
@@ -119,8 +124,11 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		{
 		case LUAT_MOBILE_NETIF_LINK_ON:
 			LUAT_DEBUG_PRINT("可以上网");
-
+#ifndef AUTO_APN_TEST
 			luat_mobile_get_local_ip(0, g_s_test_cid, &ipv4, &ipv6);
+#else
+			luat_mobile_get_local_ip(0, 1, &ipv4, &ipv6);
+#endif
 			if (ipv4.type != 0xff)
 			{
 				LUAT_DEBUG_PRINT("IPV4 %s", ip4addr_ntoa(&ipv4.u_addr.ip4));
@@ -151,14 +159,20 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 			{
 				LUAT_DEBUG_PRINT("默认apn %s", apn);
 			}
+#ifndef AUTO_APN_TEST
 			luat_mobile_set_apn_base_info(0, g_s_test_cid, 3, apn, apn_len);
+#endif
 			break;
 		case LUAT_MOBILE_BEARER_APN_SET_DONE:
+#ifndef AUTO_APN_TEST
 			//可以不设置，直接激活
 			luat_mobile_set_apn_auth_info(0, g_s_test_cid, 0xff, NULL, 0, NULL, 0);
+#endif
 			break;
 		case LUAT_MOBILE_BEARER_AUTH_SET_DONE:
+#ifndef AUTO_APN_TEST
 			luat_mobile_active_apn(0, g_s_test_cid, 1);
+#endif
 			break;
 		case LUAT_MOBILE_BEARER_DEL_DONE:
 			break;
@@ -176,8 +190,25 @@ static void task_run(void *param)
 {
 	int i;
 	luat_mobile_cell_info_t  cell_info;
+#ifndef AUTO_APN_TEST
 	luat_mobile_user_ctrl_apn();
-//	luat_mobile_user_apn_auto_active(0, g_s_test_cid, 3,0xff, "cmnet", 0, NULL, 0, NULL, 0);
+#endif
+	/*
+		设置专网卡APN信息时，如需要设置在第一路承载（CID 1），则必须使用自动模式去激活
+
+		如果是其他路承载，自动模式还是手动模式都可以
+
+		如果设置过APN信息的模块需要换回普通卡用，需要把apn清空
+
+		如果APN需要设置密码，根据APN信息和加密协议设置
+
+		apn信息需要在开机注网前配置好
+	*/
+#ifdef AUTO_APN_TEST
+	//如果之前用过特殊APN的卡，现在要转回普通卡，建议删除原先设置的APN信息，调用下面的del接口即可
+//	luat_mobile_del_apn(0,1,0);
+	luat_mobile_user_apn_auto_active(0, 1, 3,3, "CMIOTTQJ",8,"ceshi",5,"tqj123456",9);
+#endif
 	char imei[20] = {0};
 	luat_mobile_get_imei(0, imei, sizeof(imei));
 	LUAT_DEBUG_PRINT("IMEI %s", imei);

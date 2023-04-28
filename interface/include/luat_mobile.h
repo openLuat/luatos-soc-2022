@@ -27,6 +27,7 @@
  * @defgroup luatos_mobile 移动网络相关接口
  * @{
  */
+
 /**
  * @brief 获取IMEI
  * 
@@ -110,6 +111,35 @@ int luat_mobile_get_sim_id(int *id);
  */
 int luat_mobile_set_sim_id(int id);
 
+
+typedef enum LUAT_MOBILE_SIM_PIN_OP
+{
+    LUAT_SIM_PIN_VERIFY = 0,       /* verify pin code */
+	LUAT_SIM_PIN_CHANGE,       /* change pin code */
+	LUAT_SIM_PIN_ENABLE,       /* enable the pin1 state for verification */
+	LUAT_SIM_PIN_DISABLE,      /* disable the pin1 state */
+	LUAT_SIM_PIN_UNBLOCK,      /* unblock pin code */
+//	LUAT_SIM_PIN_QUERY,        /* query pin1 state, enable or disable */
+}LUAT_MOBILE_SIM_PIN_OP_E;
+
+/**
+ * @brief 对SIM卡的pin码做操作
+ *
+ * @param id sim位置，对于双卡的设备，选0或者1，其他为自动选择模式，但是0和1的优先级是一致的。非双卡的设备不支持
+ * @param operation 操作码，见LUAT_MOBILE_SIM_PIN_OP_E
+ * @param pin1 旧的pin码，或者验证的pin码，解锁pin码时的PUK，参考手机操作，不用的时候，第一个字节写0
+ * @param pin2 更换pin码操作时的新的pin码，解锁pin码时的新PIN，参考手机操作，不用的时候，第一个字节写0
+ * @return int =0成功，其他失败
+ */
+int luat_mobile_set_sim_pin(int id, uint8_t operation, char pin1[9], char pin2[9]);
+
+/**
+ * @brief 检查SIM卡是否准备好
+ *
+ * @param id sim位置，对于双卡的设备，选0或者1，其他为自动选择模式，但是0和1的优先级是一致的。非双卡的设备不支持
+ * @return =1准备好，其他未准备好，或者SIM卡不在位
+ */
+uint8_t luat_mobile_get_sim_ready(int id);
 /**
  * @brief 在自动选择模式时，开机后优先用sim0
  *
@@ -420,11 +450,19 @@ int luat_mobile_get_last_notify_signal_strength_info(luat_mobile_signal_strength
 
 /**
  * @brief 获取最近一次网络信号状态更新通知后的CSQ值
- * 
+ *
  * @param info CSQ值
  * @return int =0成功，其他失败
  */
 int luat_mobile_get_last_notify_signal_strength(uint8_t *csq);
+
+/**
+ * @brief 获取当前服务小区的ECI
+ * 
+ * @param eci
+ * @return int =0成功，其他失败
+ */
+int luat_mobile_get_service_cell_identifier(uint32_t *eci);
 /* --------------------------------------------------- cell info end --------------------------------------------------- */
 
 
@@ -463,11 +501,13 @@ typedef enum LUAT_MOBILE_SIM_STATUS
 	LUAT_MOBILE_SIM_NUMBER,
 }LUAT_MOBILE_SIM_STATUS_E;
 
+
 typedef enum LUAT_MOBILE_REGISTER_STATUS
 {
 	LUAT_MOBILE_STATUS_UNREGISTER,  /**< 网络未注册*/
 	LUAT_MOBILE_STATUS_REGISTERED,  /**< 网络已注册*/
-	LUAT_MOBILE_STATUS_DENIED,  	/**< 网络注册被拒绝，或者正在搜网中*/
+	LUAT_MOBILE_STATUS_INSEARCH, 	/**< 网络搜网中*/
+	LUAT_MOBILE_STATUS_DENIED,  	/**< 网络注册被拒绝*/
 	LUAT_MOBILE_STATUS_UNKNOW,		/**< 网络状态未知*/
 	LUAT_MOBILE_STATUS_REGISTERED_ROAMING, 	/**< 网络已注册，漫游*/
 	LUAT_MOBILE_STATUS_SMS_ONLY_REGISTERED,
@@ -620,5 +660,26 @@ void luat_mobile_get_ip_data_traffic(uint64_t *uplink, uint64_t *downlink);
  * @return 无
  */
 void luat_mobile_clear_ip_data_traffic(uint8_t clear_uplink, uint8_t clear_downlink);
+/**
+ * @brief 获取模块能支持的频段
+ * @param band 存放输出频段值的缓存，至少需要CMI_DEV_SUPPORT_MAX_BAND_NUM字节的空间
+ * @param total_num 频段数量
+ * @return 成功返回0，其他失败
+ */
+int luat_mobile_get_support_band(uint8_t *band,  uint8_t *total_num);
+/**
+ * @brief 获取模块当前设置使用的频段
+ * @param band 存放输出频段值的缓存，至少需要CMI_DEV_SUPPORT_MAX_BAND_NUM字节的空间
+ * @param total_num 频段数量
+ * @return 成功返回0，其他失败
+ */
+int luat_mobile_get_band(uint8_t *band,  uint8_t *total_num);
+/**
+ * @brief 设置模块使用的频段
+ * @param band 设置的频段，需要至少total_num数量的空间
+ * @param total_num 频段数量
+ * @return 成功返回0，其他失败
+ */
+int luat_mobile_set_band(uint8_t *band,  uint8_t total_num);
 /** @}*/
 #endif

@@ -19,7 +19,7 @@
 
 #include "at_util.h"
 
-#define AUTOREGCFG_STR_LEN              128
+#define AUTOREGCFG_STR_LEN              200
 #define DMCONFIG_CET_RESP_STR_LEN       64
 /* AT+AUTOREGCFG */
 #define AUTOREGCFG_0_STR_LEN             32
@@ -55,7 +55,68 @@
 #define DMCONFIG_4_MAX               1
 #define DMCONFIG_4_DEF               0
 
+
+#define UNIKEYINFOM_PARA_STR_LEN             48
+#define UNIKEYINFOM_RSP_STR_LEN              256
+
+/* AT+UNIKEYINFOM */
+#define UNIKEYINFOM_0_MPK_STR_LEN             17
+#define UNIKEYINFOM_0_MPK_STR_DEF             NULL
+#define UNIKEYINFOM_1_MPS_STR_LEN                 33
+#define UNIKEYINFOM_1_MPS_STR_DEF                 NULL
+#define UNIKEYINFOM_2_MDK_STR_LEN             33        //device imei
+#define UNIKEYINFOM_2_MDK_STR_DEF             NULL
+#define UNIKEYINFOM_3_MDS_STR_LEN                 33
+#define UNIKEYINFOM_3_MDS_STR_DEF                 NULL
+
+/* AT+UNIDELKEYINFOM */
+#define UNIDELKEYINFOM_0_MIN               0   //0-clean pk/ps/dk/ds     1-clean ds     2-clean token
+#define UNIDELKEYINFOM_0_MAX               2
+#define UNIDELKEYINFOM_0_DEF               0
+
+
+/* AT+UNIKEYINFO */
+#define UNIKEYINFO_0_PK_STR_LEN             17
+#define UNIKEYINFO_0_PK_STR_DEF             NULL
+#define UNIKEYINFO_1_PS_STR_LEN                 33
+#define UNIKEYINFO_1_PS_STR_DEF                 NULL
+#define UNIKEYINFO_2_DK_STR_LEN             33        //device imei
+#define UNIKEYINFO_2_DK_STR_DEF             NULL
+#define UNIKEYINFO_3_DS_STR_LEN                 33
+#define UNIKEYINFO_3_DS_STR_DEF                 NULL
+
+/* AT+UNIDELKEYINFO */
+#define UNIDELKEYINFO_0_MIN               0   //0-clean pk/ps/dk/ds     1-clean ds     2-clean token
+#define UNIDELKEYINFO_1_MAX               2
+#define UNIDELKEYINFO_2_DEF               0
+
+/* AT+UNIAUTOREGCFG */
+#define UNIAUTOREGCFG_0_MANUFAC_STR_LEN             32
+#define UNIAUTOREGCFG_0_MANUFAC_STR_DEF             NULL
+#define UNIAUTOREGCFG_1_MODULE_TPYE_STR_LEN           32
+#define UNIAUTOREGCFG_1_MODULE_TPYE_STR_DEF           NULL
+#define UNIAUTOREGCFG_2_MODULE_SW_STR_LEN           32
+#define UNIAUTOREGCFG_2_MODULE_SW_STR_DEF           NULL
+#define UNIAUTOREGCFG_3_MODULE_HW_STR_LEN             32
+#define UNIAUTOREGCFG_3_MODULE_HW_STR_DEF             NULL
+#define UNIAUTOREGCFG_4_OEM_STR_LEN                 32
+#define UNIAUTOREGCFG_4_OEM_STR_DEF                 NULL
+#define UNIAUTOREGCFG_5_OEM_TPYE_STR_LEN              32
+#define UNIAUTOREGCFG_5_OEM_TPYE_STR_DEF              NULL
+#define UNIAUTOREGCFG_MAX_STR_LEN                   48
+
+/* AT+UNIAUTOREG */
+#define UNIAUTOREG_0_MIN               0   //0-clean pk/ps/dk/ds     1-clean ds     2-clean token
+#define UNIAUTOREG_0_MAX               1
+#define UNIAUTOREG_0_DEF               0
+
 CmsRetId dmAUTOREGCFG(const AtCmdInputContext *pAtCmdReq);
+CmsRetId dmCuccUniKeyInfom(const AtCmdInputContext *pAtCmdReq);
+CmsRetId dmCuccUniKeyInfo(const AtCmdInputContext *pAtCmdReq);
+CmsRetId dmCuccUniDelKeyInfom(const AtCmdInputContext *pAtCmdReq);
+CmsRetId dmCuccUniDelKeyInfo(const AtCmdInputContext *pAtCmdReq);
+CmsRetId dmCuccUniAutoRegCfg(const AtCmdInputContext *pAtCmdReq);
+CmsRetId dmCuccUniAutoReg(const AtCmdInputContext *pAtCmdReq);
 
 #endif
 

@@ -19,12 +19,6 @@ extern "C" {
 #define USART_FLAG_RX_ENABLED           (1U << 4)     // USART RX enabled
 #define USART_FLAG_SEND_ACTIVE          (1U << 5)     // USART send active
 
-#define USART_TFE_INT          (0x2<<USART_IIR_INT_ID_Pos)
-#define USART_RDA_INT          (0x4<<USART_IIR_INT_ID_Pos)
-#define USART_RLS_INT          (0x6<<USART_IIR_INT_ID_Pos)
-#define USART_CTI_INT          (0xC<<USART_IIR_INT_ID_Pos)
-#define USART_INT_TYPE_MSK     (0xF<<USART_IIR_INT_ID_Pos)
-
 // USART IRQ
 typedef const struct _USART_IRQ {
   IRQn_Type             irq_num;         // USART IRQ Number
@@ -64,19 +58,19 @@ typedef struct _USART_TRANSFER_INFO {
   uint8_t              *tx_buf;         // Pointer to out data buffer
   uint32_t              rx_cnt;         // Number of data received
   uint32_t              tx_cnt;         // Number of data sent
-  uint16_t              tx_def_val;     // Default transmit value
-  uint16_t              rx_dump_val;    // Receive dump value
+  uint8_t               tx_def_val;     // Default transmit value
+  uint8_t               rx_dump_val;    // Receive dump value
   uint8_t               send_active;    // Send active flag
-  uint32_t              sync_mode;      // Synchronous mode flag
+  uint8_t               sync_mode;      // Synchronous mode flag
 } USART_TRANSFER_INFO;
 
 typedef struct _USART_STATUS {
-  uint8_t rx_busy;                      // Receiver busy flag
-  uint8_t rx_dma_triggered;             // Receive DMA transfer triggered (cleared on start of next receive operation)
-  uint8_t rx_overflow;                  // Receive data overflow detected (cleared on start of next receive operation)
-  uint8_t rx_break;                     // Break detected on receive (cleared on start of next receive operation)
-  uint8_t rx_framing_error;             // Framing error detected on receive (cleared on start of next receive operation)
-  uint8_t rx_parity_error;              // Parity error detected on receive (cleared on start of next receive operation)
+  uint32_t rx_busy               :1;         // Receiver busy flag
+  uint32_t rx_overflow           :1;         // Receive data overflow detected (cleared on start of next receive operation)
+  uint32_t rx_break              :1;         // Break detected on receive (cleared on start of next receive operation)
+  uint32_t rx_framing_error      :1;         // Framing error detected on receive (cleared on start of next receive operation)
+  uint32_t rx_parity_error       :1;         // Parity error detected on receive (cleared on start of next receive operation)
+  uint32_t reserved              :27;        //
 } USART_STATUS;
 
 typedef struct _USART_INFO {
@@ -95,10 +89,11 @@ typedef const struct {
   USART_TX_DMA            *dma_tx;               // USART DMA register interface
   USART_RX_DMA            *dma_rx;               // USART DMA register interface
   USART_IRQ               *usart_irq;            // USART IRQ
-  uint32_t                 tx_fifo_trig_lvl;     // USART TX FIFO trigger level
-  uint32_t                 rx_fifo_trig_lvl;     // USART RX FIFO trigger level
+  uint8_t                 tx_fifo_trig_lvl;      // USART TX FIFO trigger level
+  uint8_t                 rx_fifo_trig_lvl;      // USART RX FIFO trigger level
+  uint16_t                is_unilog_mode;        // Act as unilog output
   USART_INFO              *info;                 // Run-Time Information
-  uint8_t                  is_unilog_mode;       // Act as unilog output
+  uint8_t                 *hw_rxfifo_buf;        // Pointer to extra buffer for rx data after hw rxfifo is full
 } USART_RESOURCES;
 
 #ifdef __cplusplus

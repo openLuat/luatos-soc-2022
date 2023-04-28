@@ -94,16 +94,16 @@ int luat_pm_sleep_deregister_post_handler(void);
  */
 typedef enum LUAT_PM_WAKEUP_PAD
 {
-	LUAT_PM_WAKEUP_PAD_0 = 0, /**<wakeupid_0*/
-	LUAT_PM_WAKEUP_PAD_1, /**<wakeupid_1*/
-	LUAT_PM_WAKEUP_PAD_2,/**<wakeupid_2*/
-	LUAT_PM_WAKEUP_PAD_3,/**<wakeupid_3*/
-	LUAT_PM_WAKEUP_PAD_4,/**<wakeupid_4*/
-	LUAT_PM_WAKEUP_PAD_5,/**<wakeupid_5*/
-	LUAT_PM_WAKEUP_LPUART,/**<LPUART 唤醒*/
-	LUAT_PM_WAKEUP_LPUSB,/**<LPUSB唤醒*/
-	LUAT_PM_WAKEUP_PWRKEY,/**<PWRKEY唤醒*/
-	LUAT_PM_WAKEUP_CHARGE,/**<CHARGE唤醒*/
+	LUAT_PM_WAKEUP_PAD_0 = 0, 	/**<wakeupid_0*/
+	LUAT_PM_WAKEUP_PAD_1, 		/**<wakeupid_1*/
+	LUAT_PM_WAKEUP_PAD_2,		/**<wakeupid_2*/
+	LUAT_PM_WAKEUP_PAD_3,		/**<wakeupid_3*/
+	LUAT_PM_WAKEUP_PAD_4,		/**<wakeupid_4*/
+	LUAT_PM_WAKEUP_PAD_5,		/**<wakeupid_5*/
+	LUAT_PM_WAKEUP_LPUART,		/**<LPUART 唤醒*/
+	LUAT_PM_WAKEUP_LPUSB,		/**<LPUSB唤醒*/
+	LUAT_PM_WAKEUP_PWRKEY,		/**<PWRKEY唤醒*/
+	LUAT_PM_WAKEUP_CHARGE,		/**<CHARGE唤醒*/
 	LUAT_PM_WAKEUP_PAD_MAX
 }LUAT_PM_WAKEUP_PAD_E;
 /**
@@ -111,10 +111,10 @@ typedef enum LUAT_PM_WAKEUP_PAD
  */
 typedef struct luat_pm_wakeup_pad_cfg
 {
-	uint8_t pos_edge_enable;
-    uint8_t neg_edge_enable;
-	uint8_t pull_up_enable;
-    uint8_t pull_down_enable;
+	uint8_t pos_edge_enable;	/**使能上升沿中断*/
+    uint8_t neg_edge_enable;	/**使能下降沿中断*/
+	uint8_t pull_up_enable;		/**配置上拉*/
+    uint8_t pull_down_enable;	/**配置下拉*/
 }luat_pm_wakeup_pad_cfg_t;
 /**
  * @brief 定义wakeupPad中断回调函数类型
@@ -231,8 +231,8 @@ int luat_pm_reboot(void);
 
 /* --------------------------------------------- vbat/vbus begin--------------------------------------------- */
 /**
- * @brief 获取充电器状态
- * @param status 充电器状态
+ * @brief 获取VBUS插入状态
+ * @param status VBUS插入状态,插入为1，未插入为0
  */
 int luat_pm_get_vbus_status(uint8_t *status);
 

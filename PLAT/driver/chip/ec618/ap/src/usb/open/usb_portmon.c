@@ -45,7 +45,7 @@ void usb_portmon_padcfg(void)
     wakeupPadSetting.posEdgeEn = true;
     wakeupPadSetting.pullDownEn = false;
     wakeupPadSetting.pullUpEn = false;
-    apmuSetWakeupPadCfg(usb_wkup_pad_idx, true, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(usb_wkup_pad_idx, true, &wakeupPadSetting);
 }
 
 uint8_t usb_portmon_wkuppad_level(uint32_t idx);

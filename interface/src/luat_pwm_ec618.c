@@ -111,6 +111,7 @@ static const pwm_map_t maps[] = {
     13 -- GPIO 17 -- PAD 32  xxx 不可用
     14 -- GPIO 18 -- PAD 33  ---> UART1_RX
     15 -- GPIO 19 -- PAD 34  ---> UART1_TX xxx 不可用
+
     */
     {.pwm_ch=10, .clockId=FCLK_TIMER0, .clockId_slect=FCLK_TIMER0_SEL_26M, .time_req=PXIC0_TIMER0_IRQn, .pad=16},
     {.pwm_ch=11, .clockId=FCLK_TIMER1, .clockId_slect=FCLK_TIMER1_SEL_26M, .time_req=PXIC0_TIMER1_IRQn, .pad=17},
@@ -119,6 +120,19 @@ static const pwm_map_t maps[] = {
     {.pwm_ch=14, .clockId=FCLK_TIMER4, .clockId_slect=FCLK_TIMER4_SEL_26M, .time_req=PXIC0_TIMER4_IRQn, .pad=33},
     // {.pwm_ch=15, .clockId=FCLK_TIMER5, .clockId_slect=FCLK_TIMER5_SEL_26M, .time_req=PXIC0_TIMER5_IRQn, .pad=34},
 
+
+    /* 第3组, 复用i2s的管脚
+    20 -- GPIO 无 -- PAD 39  ---> I2S_MCLK
+    21 -- GPIO 29 -- PAD 35  ---> I2S_BCLK
+    22 -- GPIO 30 -- PAD 36  ---> I2S_LCLK
+    23 -- GPIO 31 -- PAD 37  xxx 不可用 --> I2S_DIN
+    24 -- GPIO 无 -- PAD 38  ---> I2S_DOUT
+    */
+    {.pwm_ch=20, .clockId=FCLK_TIMER0, .clockId_slect=FCLK_TIMER0_SEL_26M, .time_req=PXIC0_TIMER0_IRQn, .pad=39},
+    {.pwm_ch=21, .clockId=FCLK_TIMER1, .clockId_slect=FCLK_TIMER1_SEL_26M, .time_req=PXIC0_TIMER1_IRQn, .pad=35},
+    {.pwm_ch=22, .clockId=FCLK_TIMER2, .clockId_slect=FCLK_TIMER2_SEL_26M, .time_req=PXIC0_TIMER2_IRQn, .pad=36},
+    // {.pwm_ch=23, .clockId=FCLK_TIMER3, .clockId_slect=FCLK_TIMER3_SEL_26M, .time_req=PXIC0_TIMER3_IRQn, .pad=37},
+    {.pwm_ch=24, .clockId=FCLK_TIMER4, .clockId_slect=FCLK_TIMER4_SEL_26M, .time_req=PXIC0_TIMER4_IRQn, .pad=38},
 };
 
 
@@ -222,7 +236,7 @@ int luat_pwm_update_dutycycle(int channel,size_t pulse)
     channel = channel % 10;
 
     pwms[channel].timer_config.dutyCyclePercent = pulse;
-    TIMER_setupPwm(channel, &pwms[channel].timer_config);
+    TIMER_updatePwmDutyCycle(channel, &pwms[channel].timer_config);
     return 0;
 }
 

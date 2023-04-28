@@ -684,12 +684,14 @@ typedef struct CmiPsBearerCtxDynParamTag
     CmiIpAddr           dnsAddr[CMI_PDN_MAX_NW_ADDR_NUM];
     CmiIpAddr           pCscfAddr[CMI_PCSCF_MAX_NW_ADDR_NUM];
 
-    BOOL                ipv4MtuPresent;
-    UINT16              ipv4Mtu;
+    BOOL                ipv4MtuPresent; 
     BOOL                rdsInd;
+    UINT16              ipv4Mtu;
+    
     BOOL                psDataOffSupport;
-    //UINT16              servingPlmnRateCtrl;
     BOOL                needRetryAnotherIPType;//retry another IP type bearer needed;
+    UINT16              resv1 ;
+    
 
 }CmiPsBearerCtxDynParam;    //352 bytes
 

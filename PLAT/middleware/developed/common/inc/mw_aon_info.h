@@ -161,8 +161,10 @@ typedef struct MWAonUrcCacheParamCfg_Tag
 ******************************************************************************/
 typedef struct MidWareAonInfo_Tag
 {
-    UINT32      bUtcTimeSync : 1;   /* set 1 when time sync trigger after power on(by NITZ or SNTP) */
-    UINT32      rsvd : 31;
+    UINT32      bUtcTimeSync :     1;   /* set 1 when time sync trigger after power on(by CCLK, customer call OsaTimerSync or SNTP) */
+    UINT32      bNitzUtcTimeSync : 1;   /* set 1 when time sync trigger after power on(only by NITZ) 
+                                           add for: customer use AT+CCLK or API set a future time, PHY need real time for DCXO compensation*/
+    UINT32      rsvd : 30;
 
     /*
      * AT channel Aon config, ParamId: MW_CFG_AT_CHAN_1_CONFIG/...
@@ -256,6 +258,28 @@ BOOL mwAonBeUtcTimeSync(void);
   \ Note: Only could be called after CMS task start up
 */
 void mwAonSetUtcTimeSyncFlag(BOOL bSync);
+
+
+
+/**
+  \fn           BOOL mwAonBeNitzUtcTimeSync(void)
+  \brief        Whether UTC time already synced/set
+  \param[in]    void
+  \returns      BOOL
+  \ Note: Only could be called after CMS task start up
+*/
+BOOL mwAonBeNitzUtcTimeSync(void);
+
+
+/**
+  \fn           void mwAonSetNitzUtcTimeSyncFlag(BOOL bSync)
+  \brief        Set UTC time sync flag, be syned or not
+  \param[in]    bSync   BOOL
+  \returns      void
+  \ Note: Only could be called after CMS task start up
+*/
+void mwAonSetNitzUtcTimeSyncFlag(BOOL bSync);
+
 
 
 /**

@@ -118,7 +118,7 @@ typedef enum{
 
 typedef enum{
     SOCK_EVENT_CONN_STATUS               = 0,
-    SOCK_EVENT_CONN_DL                   = 1,
+    SOCK_EVENT_CONN_DL_DATA              = 1,
     SOCK_EVENT_CONN_UL_STATUS            = 2,
     SOCK_EVENT_CONN_ERROR                = 3,
     SOCK_EVENT_CONN_TCP_ACCEPT_CLIENT    = 4, //for tcp server mode, accept client connection event
@@ -141,11 +141,13 @@ typedef enum{
     SOCK_CONN_STATUS_CONNECTED  = 3,
     SOCK_CONN_DNS_RESOLVING     = 4,
     SOCK_CONN_STATUS_CLOSING    = 5,
+    SOCK_CONN_STATUS_INVALID    = 8,
 }CmsSockMgrConnStatus;
 
 typedef enum{
     SOCK_MGR_IND_UL_STATUS              = 1,
     SOCK_MGR_IND_UL_TOTAL_LEN_STATUS    = 2,
+    SOCK_MGR_IND_DL_DATA_RECV_STATUS    = 3
 }CmsSockMgrInd;
 
 typedef enum{
@@ -441,6 +443,14 @@ typedef struct CmsSockMgrUlTotalStatusInd_Tag{
 }CmsSockMgrUlTotalStatusInd;
 
 
+typedef struct CmsSockMgrDlDataRecvStatusInd_Tag{
+
+    UINT8  source;
+    UINT8  result;
+    UINT16 recvDlLen;
+
+}CmsSockMgrDlDataRecvStatusInd;
+
 typedef struct CmsCockMgrDnsResolveResult_tag
 {
     UINT8 result;
@@ -502,6 +512,7 @@ typedef struct CmsRefSockCfgParam_Tag
     UINT16                              transPktSize; //transport paket size, range: 1-1460, def 1024 bytes
     UINT8                               transWaitTm; //range: 0-20, def: 2 ms
     UINT8                               rsvd;
+
     CmsRefSockDataFormat                sendDataFormat;
     CmsRefSockDataFormat                recvDataFormat;
     CmsRefSockViewMode                  viewMode;
@@ -576,7 +587,7 @@ void cmsSockMgrUpdateUlPendingSequenceBitMapState(UINT32 bitmap[8], UINT8 sequen
 
 //cms sock send request related
 CmsSockMgrActionResult cmsSockMgrSendAsyncRequest(UINT16 reqId, void *reqBody, CmsSockMgrSource source);
-CmsSockMgrActionResult cmsSockMgrSendsyncRequest(UINT16 reqId, void *reqBody, CmsSockMgrSource source, CmsSockMgrResponse *response, UINT16 timeout);
+CmsSockMgrActionResult cmsSockMgrSendSyncRequest(UINT16 reqId, void *reqBody, CmsSockMgrSource source, CmsSockMgrResponse *response, UINT16 timeout);
 
 //event callback related
 void csmsSockMgrCallErrorEventCallback(CmsSockMgrContext* gMgrContext, INT32 errorCode);
@@ -627,6 +638,8 @@ INT32  cmsSockMgrRemvUlAllPendingList(CmsSockMgrContext *pSockMgrContext);
 INT32  cmsSockMgrProcUlPendingList(void);
 
 UINT32 cmsSockMgrQueryDlfcDefinedSize(void);
+
+CmsSockMgrActionResult cmsSockMgrSendAsyncEvntInd(UINT16      reqlen,  UINT16 eventId,void *reqBody);
 
 
 #endif

@@ -28,6 +28,22 @@ target("gmssl")
     LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. "libgmssl.a "
 target_end()
 
+target("nes")
+    set_kind("static")
+    set_plat("cross")
+    set_optimize("fastest")
+    set_targetdir(LIB_DIR)
+    add_includedirs("./inc",{public = true})
+    add_includedirs(LUATOS_ROOT.."lua/include")
+    add_includedirs(LUATOS_ROOT.."luat/include")
+    add_includedirs(LUATOS_ROOT.."components/lcd",{public = true})
+    add_includedirs(LUATOS_ROOT.."components/u8g2",{public = true})
+    add_includedirs(LUATOS_ROOT.."components/nes/inc")
+    add_includedirs(LUATOS_ROOT.."components/nes/port")
+    add_files(LUATOS_ROOT.."components/nes/**.c")
+    LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. "libnes.a "
+target_end()
+
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)
@@ -211,6 +227,9 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/lora/sx126x")
     add_files(LUATOS_ROOT.."components/lora/**.c")
 
+    -- lora2
+    add_includedirs(LUATOS_ROOT.."components/lora2/sx126x")
+    add_files(LUATOS_ROOT.."components/lora2/**.c")
     
     -- fonts
     add_includedirs(LUATOS_ROOT.."components/luatfonts")

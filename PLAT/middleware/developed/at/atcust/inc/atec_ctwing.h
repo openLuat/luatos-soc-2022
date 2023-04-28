@@ -57,7 +57,7 @@ CmsRetId ctwMQTTREGPARAM(const AtCmdInputContext *pAtCmdReq);
 CmsRetId ctwMQTTREG(const AtCmdInputContext *pAtCmdReq);
 CmsRetId ctwMQTTDEREG(const AtCmdInputContext *pAtCmdReq);
 CmsRetId ctwMQTTSEND(const AtCmdInputContext *pAtCmdReq);
-
+CmsRetId ctwMQTTFOTAUPDATA(const AtCmdInputContext *pAtCmdReq);
 
 #endif
 

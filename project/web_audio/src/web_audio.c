@@ -311,6 +311,7 @@ static void mqtt_demo(void)
             if (pdTRUE != xQueueSend(audioQueueHandle, &MQTT_link, 0))
             {
                 LUAT_DEBUG_PRINT("start send audio fail");
+                free(MQTT_link.message.tts.data);
             }
         }
         else
@@ -318,13 +319,14 @@ static void mqtt_demo(void)
             audioQueueData MQTT_link = {0};
             MQTT_link.playType = TTS_PLAY;
             MQTT_link.priority = MONEY_PLAY;
-            char str[] = "服务器连接成功失败";
+            char str[] = "服务器连接失败";
             MQTT_link.message.tts.data = malloc(sizeof(str));
             memcpy(MQTT_link.message.tts.data, str, sizeof(str));
             MQTT_link.message.tts.len = sizeof(str);
             if (pdTRUE != xQueueSend(audioQueueHandle, &MQTT_link, 0))
             {
                 LUAT_DEBUG_PRINT("start send audio fail");
+                free(MQTT_link.message.tts.data);
             }
         }
         while (1)

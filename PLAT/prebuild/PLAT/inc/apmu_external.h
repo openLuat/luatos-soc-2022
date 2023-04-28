@@ -4,7 +4,7 @@
  * File name:    apmu_external.h
  * Description:  EC618 platform power management header file
  * History:      05/28/2018    Originated by bchang
- * A77F40058A2024A1DB6C8CDCD7888A53
+ *
  ****************************************************************************/
 
 #ifndef _EC_PM_EXT_H
@@ -235,30 +235,6 @@ typedef enum PmuVotePlatInternal_enum
 }PmuVotePlatInternal;
 
 
-typedef enum
-{
-	WAKEUP_PAD_0 = 0,
-	WAKEUP_PAD_1,
-	WAKEUP_PAD_2,
-	WAKEUP_PAD_3,
-	WAKEUP_PAD_4,
-	WAKEUP_PAD_5,
-	WAKEUP_LPUART,
-	WAKEUP_LPUSB,
-	WAKEUP_PWRKEY,
-	WAKEUP_CHARGE,
-	WAKEUP_PAD_MAX
-}APmuWakeupPad_e;
-
-typedef struct
-{
-	bool posEdgeEn;
-	bool negEdgeEn;
-	bool pullUpEn;
-	bool pullDownEn;
-}APmuWakeupPadSettings_t;
-
-
 typedef void(* pmuPreDeepSlpCb_t)(void *pdata, APSleepState state);
 typedef void(* pmuPostDeepSlpCb_t)(void *pdata, APSleepState state);
 
@@ -291,20 +267,6 @@ void apmuPrintPostPagingSlowCnt(void);
 uint16_t apmuGetLatchExternalInt(void);
 void ApmuWakeupProc(uint8_t wakeupEvent, uint8_t branchFlag);
 
-/**
-* @brief apmuSetWakeupPadCfg
-* @details set a specific pad as a wakeup pad and control the wakeup edge and pull settings
-* @return
-* @note
-*/
-void apmuSetWakeupPadCfg(APmuWakeupPad_e padNum, bool wakeupEn, APmuWakeupPadSettings_t *cfg);
-/**
-* @brief apmuGetWakeupPadCfg
-* @details get wakeup pad config
-* @return
-* @note
-*/
-void apmuGetWakeupPadCfg(APmuWakeupPad_e padNum, bool *isWakeupEn, APmuWakeupPadSettings_t *cfg);
 /**
 * @brief apmuGetAPBootFlag
 * @details get AP Boot Flag

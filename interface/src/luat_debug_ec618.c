@@ -29,7 +29,7 @@ extern void soc_vsprintf(uint8_t no_print, const char *fmt, va_list ap);
 extern void soc_printf_onoff(uint8_t no_printf);
 void luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_MODE_E mode)
 {
-	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, (LUAT_DEBUG_FAULT_RESET == mode)?4:0);
+	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, (LUAT_DEBUG_FAULT_RESET == mode)?EXCEP_OPTION_SILENT_RESET:EXCEP_OPTION_DUMP_FLASH_EPAT_LOOP);
     if(BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION) == EXCEP_OPTION_SILENT_RESET)
         ResetLockupCfg(true, true);
     else

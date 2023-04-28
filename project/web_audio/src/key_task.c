@@ -174,7 +174,6 @@ static void key_task(void *param)
             }
             case KEY3_MESSAGE:
             {
-                LUAT_DEBUG_PRINT("ceshhii111111111");
                 audioQueueData func = {0};
                 func.playType = TTS_PLAY;
                 func.priority = MONEY_PLAY;

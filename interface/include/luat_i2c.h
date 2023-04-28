@@ -45,8 +45,8 @@ int luat_i2c_exist(int id);
 
 /**
  * @brief 设置i2c复用
- * @attention 如果 id 为1 value 为 1，复用到 GPIO8,GPIO9(pin52,pin50);value为其他,复用到GPIO4，GPIO5(pin80,pin81)
- * @attention 如果 id 为0 value 为 1，复用到 GPIO12,GPIO13（pin58，pin57）;value2,复用到GPIO16，GPIO17(pin22,pin23)，value为其他,复用到模块pin67，pin66
+ * @attention 如果 id 为1 value 为 1，复用到GPIO4，GPIO5(pin80,pin81)；value为其他,复用到 GPIO8,GPIO9(pin52,pin50);
+ * @attention 如果 id 为0 value 为 1，复用到 GPIO12,GPIO13（pin58，pin57）;value 2,复用到GPIO16，GPIO17(pin22,pin23)，value为其他,复用到模块pin67，pin66
  * @param id i2c_id
  * @return -1 失败 其他正常
  */

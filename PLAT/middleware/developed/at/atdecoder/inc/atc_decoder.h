@@ -426,6 +426,10 @@ typedef enum AtcState_enum
 
     ATC_SSL_PASSTHROUGH_STATE,
 
+    ATC_XOTA_DIRECT_DLVR_STATE,
+
+    ATC_XOTA_PASSTHROUGH_STATE,
+
     ATC_STATE_MAX = 0xFF
 }AtcState;
 

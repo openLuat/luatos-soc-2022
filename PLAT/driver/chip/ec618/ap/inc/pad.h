@@ -137,6 +137,13 @@ void PAD_getDefaultConfig(PadConfig_t *config);
   \param config    Pointer to PAD configuration structure
  */
 void PAD_setPinConfig(uint32_t paddr, const PadConfig_t *config);
+/**
+  \fn    void PAD_setPinConfigWhenInit(uint32_t pin, const PadConfig_t *config)
+  \brief Sets the pad PCR register, call when init(systemInit)
+  \param pin       PAD pin number
+  \param config    Pointer to PAD configuration structure
+ */
+void PAD_setPinConfigWhenInit(uint32_t paddr, const PadConfig_t *config);
 
 /**
   \fn    void PAD_setPinMux(uint32_t pin, PadMux_e mux)

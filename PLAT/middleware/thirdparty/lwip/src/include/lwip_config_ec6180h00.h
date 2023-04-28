@@ -533,7 +533,11 @@
  * (requires the LWIP_TCP option)
  */
 #if !defined MEMP_NUM_TCP_SEG || defined __DOXYGEN__
+#ifdef __USER_CODE__
+#define MEMP_NUM_TCP_SEG                40
+#else
 #define MEMP_NUM_TCP_SEG                13
+#endif
 #endif
 
 /**
@@ -541,7 +545,7 @@
  * reassembly (whole packets, not fragments!)
  */
 #if !defined MEMP_NUM_REASSDATA || defined __DOXYGEN__
-#define MEMP_NUM_REASSDATA              25
+#define MEMP_NUM_REASSDATA              15
 #endif
 
 /**
@@ -638,7 +642,11 @@
  * PBUF_POOL_SIZE: the number of buffers in the pbuf pool.
  */
 #if !defined PBUF_POOL_SIZE || defined __DOXYGEN__
+#ifdef __USER_CODE__
+#define PBUF_POOL_SIZE                  40
+#else
 #define PBUF_POOL_SIZE                  8
+#endif
 #endif
 
 /** MEMP_NUM_API_MSG: the number of concurrently active calls to various
@@ -854,7 +862,7 @@
  * in this time, the whole packet is discarded.
  */
 #if !defined IP_REASS_MAXAGE || defined __DOXYGEN__
-#define IP_REASS_MAXAGE                 5
+#define IP_REASS_MAXAGE                 3
 #endif
 
 /**
@@ -864,7 +872,7 @@
  * packets even if the maximum amount of fragments is enqueued for reassembly!
  */
 #if !defined IP_REASS_MAX_PBUFS || defined __DOXYGEN__
-#define IP_REASS_MAX_PBUFS              50
+#define IP_REASS_MAX_PBUFS              30
 #endif
 
 /**
@@ -1347,7 +1355,7 @@
  */
 #if !defined TCP_WND || defined __DOXYGEN__
 #ifdef __USER_CODE__
-#define TCP_WND                         (6 * TCP_MSS)//6*TCP_MSS
+#define TCP_WND                         (32 * TCP_MSS)//6*TCP_MSS
 #else
 #define TCP_WND                         (6 * 1024) //6*TCP_MSS
 #endif
@@ -1460,7 +1468,7 @@
  * To achieve good performance, this should be at least 2 * TCP_MSS.
  */
 #if !defined TCP_SND_BUF || defined __DOXYGEN__
-#define TCP_SND_BUF                     (6 * TCP_MSS)
+#define TCP_SND_BUF                     (20 * TCP_MSS)
 #endif
 
 /**

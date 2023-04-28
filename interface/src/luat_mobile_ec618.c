@@ -24,6 +24,7 @@
 #include "common_api.h"
 #include "cmimm.h"
 #include "cmidev.h"
+#include "cmips.h"
 #include "cms_api.h"
 
 extern void soc_mobile_event_deregister_handler(void);
@@ -35,6 +36,7 @@ extern void soc_mobile_set_period(uint32_t get_cell_period, uint32_t check_sim_p
 extern void soc_mobile_reset_stack(void);
 extern void soc_mobile_get_signal(CmiMmCesqInd *info);
 extern void soc_mobile_get_cell_info(CmiDevGetBasicCellListInfoInd *info);
+extern void soc_mobile_get_lte_service_info(CmiPsCeregInd *info);
 extern void soc_mobile_get_sim_id(uint8_t *sim_id, uint8_t *is_auto);
 extern void soc_mobile_set_sim_id(uint8_t sim_id);
 extern void soc_mobile_sim_detect_sim0_first(void);
@@ -49,7 +51,7 @@ extern void soc_mobile_set_user_apn_auto_active(uint8_t cid,
 		uint8_t *password, uint8_t password_len);
 extern void soc_mobile_get_ip_data_traffic(uint64_t *uplink, uint64_t *downlink);
 extern void soc_mobile_clear_ip_data_traffic(uint8_t clear_uplink, uint8_t clear_downlink);
-
+extern uint8_t soc_mobile_get_sim_state(void);
 
 int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
 
@@ -179,6 +181,20 @@ int luat_mobile_set_sim_id(int id)
 		soc_mobile_set_sim_id(id);
 		return 0;
 	}
+}
+
+int luat_mobile_set_sim_pin(int sim_id, uint8_t operation, char pin1[9], char pin2[9])
+{
+	SetPinOperReqParams pPinOperReqParams = {0};
+	memset(pPinOperReqParams.pinStr, pin1, 8);
+	memset(pPinOperReqParams.newPinStr, pin2, 8);
+	pPinOperReqParams.operMode = operation;
+	return appSetPinOperationSync(&pPinOperReqParams);
+}
+
+uint8_t luat_mobile_get_sim_ready(int id)
+{
+	return soc_mobile_get_sim_state();
 }
 
 void luat_mobile_set_sim_detect_sim0_fisrt(void)
@@ -407,27 +423,35 @@ static void ec618_cell_to_luat_cell(BasicCellListInfo *bcListInfo, luat_mobile_c
 	}
 	else
 	{
-		info->lte_info_valid = 1;
-		info->lte_service_info.cid = bcListInfo->sCellInfo.cellId;
-		info->lte_service_info.band = bcListInfo->sCellInfo.band;
-		info->lte_service_info.dlbandwidth = bcListInfo->sCellInfo.dlBandWidth;
-		info->lte_service_info.ulbandwidth = bcListInfo->sCellInfo.ulBandWidth;
-		info->lte_service_info.is_tdd = bcListInfo->sCellInfo.isTdd;
-		info->lte_service_info.earfcn = bcListInfo->sCellInfo.earfcn;
-		info->lte_service_info.pci = bcListInfo->sCellInfo.phyCellId;
-		info->lte_service_info.tac = bcListInfo->sCellInfo.tac;
-		info->lte_service_info.snr = bcListInfo->sCellInfo.snr;
-		info->lte_service_info.rsrp = bcListInfo->sCellInfo.rsrp;
-		info->lte_service_info.rsrq = bcListInfo->sCellInfo.rsrq;
-		info->lte_service_info.rssi = bcListInfo->sCellInfo.rsrp - bcListInfo->sCellInfo.rsrq + (bcListInfo->sCellInfo.rssiCompensation/100);
-		info->lte_service_info.mcc = bcListInfo->sCellInfo.plmn.mcc;
-		if (0xf000 == (bcListInfo->sCellInfo.plmn.mncWithAddInfo & 0xf000))
+		if (bcListInfo->sCellInfo.rsrp < 0)
 		{
-			info->lte_service_info.mnc = bcListInfo->sCellInfo.plmn.mncWithAddInfo & 0x0fff;
+			info->lte_info_valid = 1;
+			info->lte_service_info.cid = bcListInfo->sCellInfo.cellId;
+			info->lte_service_info.band = bcListInfo->sCellInfo.band;
+			info->lte_service_info.dlbandwidth = bcListInfo->sCellInfo.dlBandWidth;
+			info->lte_service_info.ulbandwidth = bcListInfo->sCellInfo.ulBandWidth;
+			info->lte_service_info.is_tdd = bcListInfo->sCellInfo.isTdd;
+			info->lte_service_info.earfcn = bcListInfo->sCellInfo.earfcn;
+			info->lte_service_info.pci = bcListInfo->sCellInfo.phyCellId;
+			info->lte_service_info.tac = bcListInfo->sCellInfo.tac;
+			info->lte_service_info.snr = bcListInfo->sCellInfo.snr;
+			info->lte_service_info.rsrp = bcListInfo->sCellInfo.rsrp;
+			info->lte_service_info.rsrq = bcListInfo->sCellInfo.rsrq;
+			info->lte_service_info.rssi = bcListInfo->sCellInfo.rsrp - bcListInfo->sCellInfo.rsrq + (bcListInfo->sCellInfo.rssiCompensation/100);
+			info->lte_service_info.mcc = bcListInfo->sCellInfo.plmn.mcc;
+			if (0xf000 == (bcListInfo->sCellInfo.plmn.mncWithAddInfo & 0xf000))
+			{
+				info->lte_service_info.mnc = bcListInfo->sCellInfo.plmn.mncWithAddInfo & 0x0fff;
+			}
+			else
+			{
+				info->lte_service_info.mnc = bcListInfo->sCellInfo.plmn.mncWithAddInfo;
+			}
 		}
 		else
 		{
-			info->lte_service_info.mnc = bcListInfo->sCellInfo.plmn.mncWithAddInfo;
+			info->lte_info_valid = 0;
+			return;
 		}
 
 	}
@@ -468,7 +492,7 @@ static void ec618_cell_to_luat_cell(BasicCellListInfo *bcListInfo, luat_mobile_c
 			info->lte_info[j].snr = bcListInfo->nCellList[i].snr;
 			info->lte_info[j].rsrp = bcListInfo->nCellList[i].rsrp;
 			info->lte_info[j].rsrq = bcListInfo->nCellList[i].rsrq;
-			if ((info->lte_info[j].mcc == 0x0460) && (info->lte_info[j].mnc != 0x0015))
+//			if ((info->lte_info[j].mcc == 0x0460) && (info->lte_info[j].mnc != 0x0015))
 			{
 				j++;
 
@@ -591,6 +615,21 @@ int luat_mobile_get_last_notify_signal_strength(uint8_t *csq)
 	*csq = soc_mobile_get_csq();
 	return 0;
 }
+
+int luat_mobile_get_service_cell_identifier(uint32_t *eci)
+{
+	CmiPsCeregInd cereg;
+	soc_mobile_get_lte_service_info(&cereg);
+	if (cereg.celId)
+	{
+		*eci = cereg.celId;
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
+}
 /* --------------------------------------------------- cell info end --------------------------------------------------- */
 
 
@@ -692,3 +731,64 @@ void luat_mobile_clear_ip_data_traffic(uint8_t clear_uplink, uint8_t clear_downl
 {
 	soc_mobile_clear_ip_data_traffic(clear_uplink, clear_downlink);
 }
+
+int luat_mobile_set_cell_resel(uint8_t resel)
+{
+	EcCfgSetParamsReq req = {0};
+	req.reselToWeakNcellOpt = resel;
+	req.reselToWeakNcellOptPresent = 1;
+	if (appSetEcCfgSettingSync(&req) != CMS_RET_SUCC)
+	{
+		return -1;
+	}
+	return 0;
+}
+
+int luat_mobile_get_support_band(uint8_t *band,  uint8_t *total_num)
+{
+	return (appGetSupportedBandModeSync(total_num, band) == 0)?0:-1;
+}
+
+int luat_mobile_get_band(uint8_t *band,  uint8_t *total_num)
+{
+	return (appGetBandModeSync(total_num, band) == 0)?0:-1;
+}
+
+int luat_mobile_set_band(uint8_t *band,  uint8_t total_num)
+{
+	return (appSetBandModeSync(total_num, band) == 0)?0:-1;
+}
+
+
+#ifdef __LUATOS__
+int luat_mobile_config(uint8_t item, uint32_t value)
+{
+	EcCfgSetParamsReq req = {0};
+	switch(item)
+	{
+	case MOBILE_CONF_RESELTOWEAKNCELL:
+		req.reselToWeakNcellOpt = value;
+		req.reselToWeakNcellOptPresent = 1;
+		break;
+	case MOBILE_CONF_STATICCONFIG:
+		req.staticConfig = value;
+		req.staticConfigPresent = 1;
+		break;
+	case MOBILE_CONF_QUALITYFIRST:
+		req.qualityFirst = value;
+		req.qualityFirstPresent = 1;
+		break;
+	case MOBILE_CONF_USERDRXCYCLE:
+		req.userDrxCycle = value;
+		req.userDrxCyclePresent = 1;
+		break;
+	default:
+		return -1;
+	}
+	if (appSetEcCfgSettingSync(&req) != CMS_RET_SUCC)
+	{
+		return -1;
+	}
+	return 0;
+}
+#endif

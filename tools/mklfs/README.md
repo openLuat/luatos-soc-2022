@@ -2,7 +2,7 @@
 
 ## 文件说明
 
-src 目录里的是源码(TODO 待上传)
+src 目录里的是源码
 mklfs.exe 是编译好的exe, 可直接使用
 
 ## 基本用法
@@ -15,3 +15,7 @@ mklfs.exe -size 288
 ```
 
 3. 执行完成后, 会生成 `disk.fs`, 后缀无所谓, 改名为 `disk.bin` 就能用
+
+## 结合example_flash里的描述, 可实现刷入文件系统
+
+1. 文件系统的flash地址 0x384000

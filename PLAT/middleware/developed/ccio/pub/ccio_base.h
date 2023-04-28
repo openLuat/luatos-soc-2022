@@ -159,7 +159,7 @@ typedef enum
     CCIO_DT_RNDIS,
     CCIO_DT_ECM,
     CCIO_DT_EUTRA,
-
+    CCIO_DT_CCID,
     CCIO_DT_MAXNUM
 }CcioDevType_e;
 
@@ -190,6 +190,16 @@ typedef enum
 
     CUIO_DT_MAXNUM
 }CuioDevType_e;
+
+
+/* 2bits:ccid device subtype definition: currently only one */
+typedef enum
+{
+    CDIO_DT_DATA = 0,
+
+    CDIO_DT_MAXNUM
+}CdioDevType_e;
+
 
 /* 2bits: disable/en~ uplink/downlink hardware acceleration mechanism */
 typedef enum

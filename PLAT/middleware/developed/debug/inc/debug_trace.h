@@ -29,6 +29,19 @@ extern "C" {
 #define HIGH_LEVEL_LOG_NUM_CHECK_THRD           30
 #define HIGH_LEVEL_LOG_PERCENT_IN_EACH_MODULE   50
 
+
+#define UNILOG_SET_OWNER_AND_LEVEL(logOwnerAndLevelOld, logOwnerId, logOwnerLevel, logOwnerAndLevelPtr)   do{ \
+    volatile int logOwnerAndLevelClean = 0x7; \
+    volatile uint32_t logOwnerAndLevel = 0x7; \
+    logOwnerAndLevel = (logOwnerAndLevel<<(logOwnerId*3)); \
+    logOwnerAndLevel = ~logOwnerAndLevel; \
+    logOwnerAndLevel = logOwnerAndLevel|(logOwnerLevel<<(logOwnerId*3)); \
+    logOwnerAndLevelOld = logOwnerAndLevelOld|(logOwnerAndLevelClean<<(logOwnerId*3)); \
+    logOwnerAndLevel = logOwnerAndLevel&logOwnerAndLevelOld; \
+    *logOwnerAndLevelPtr = logOwnerAndLevel; \
+}while(0)
+
+
 #if 0
 #define coap_log(LogLevel, format, ...) \
 do \
@@ -84,6 +97,16 @@ typedef enum
 
     UNILOG_OWNERID_MAX       = 15
 }UniLogOwnerIdType_e;
+
+/* unilog loglevel ownerid layout
+*  23         21 20         18 17         15 14         12 11          9 8           6 5         3 2          0
+* +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+* |  CUSTOMER   |     PS2     |     PS1     |   PLAT_CP   |   PLAT_AP   | PHY_OFFLINE | PHY_ONLINE|    HW     |
+* +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+
+#define UNILOG_LOGLEVEL_MASK            0x7
+#define UNILOG_LOGLEVEL_OWNERID_START   1
 
 /*
  * ModId: 7 bits
@@ -177,6 +200,7 @@ typedef enum {
 
 // Move unilog interface to here
 extern void uniLogDebugLevelSet(DebugTraceLevelType_e debugLevel);
+extern void uniLogOwnerIdDebugLevelSet(uint32_t debugLevel);
 extern void uniLogInitStart(UnilogPeripheralType_e periphType);
 
 #define ECOMM_HEX_DUMP(owenerID, moduleID, subID, debugLevel, format, dumpLen, dump)    \
@@ -211,14 +235,14 @@ do  \
 /*
  * excep print API, suggest to use it
 */
-        
+
 #define EXCEP_PRINTF(ownerId, moduleId, subId, debugLevel, format, ...) \
         do  \
         {   \
             swLogExcep(ownerId##__##moduleId##__##subId, debugLevel, ##__VA_ARGS__); \
             {(void)format;} \
         }while(0)
-        
+
 #define EXCEP_TRACE(moduleId, subId, debugLevel, argLen, format,  ...)  \
         EXCEP_PRINTF(UNILOG_PLAT_AP, moduleId, subId, debugLevel, format, ##__VA_ARGS__)
 

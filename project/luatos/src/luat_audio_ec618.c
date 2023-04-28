@@ -299,7 +299,8 @@ void luat_audio_config_pa(uint8_t multimedia_id, uint32_t pin, int level, uint32
 		g_s_audio_hardware.pa_pin = pin;
 		g_s_audio_hardware.pa_on_level = level;
 		GPIO_Config(pin, 0, !level);
-		GPIO_IomuxEC618(GPIO_ToPadEC618(pin, 0), 0, 0, 0);
+		uint8_t alt_fun = ((HAL_GPIO_15 == pin) || (HAL_GPIO_14 == pin))?4:0;
+		GPIO_IomuxEC618(GPIO_ToPadEC618(pin, alt_fun), alt_fun, 0, 0);
 	}
 	else
 	{
@@ -324,7 +325,8 @@ void luat_audio_config_dac(uint8_t multimedia_id, int pin, int level, uint32_t d
 			g_s_audio_hardware.dac_pin = pin;
 			g_s_audio_hardware.dac_on_level = level;
 			GPIO_Config(pin, 0, !level);
-			GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_audio_hardware.dac_pin, 0), 0, 0, 0);
+			uint8_t alt_fun = ((HAL_GPIO_15 == g_s_audio_hardware.dac_pin) || (HAL_GPIO_14 == g_s_audio_hardware.dac_pin))?4:0;
+			GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_audio_hardware.dac_pin, alt_fun), alt_fun, 0, 0);
 		}
 		else
 		{

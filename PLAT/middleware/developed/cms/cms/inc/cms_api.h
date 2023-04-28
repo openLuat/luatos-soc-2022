@@ -95,7 +95,9 @@ typedef enum _SIG_EPAT_cmsSigId_Enum
     SIG_CMS_DCXO_NVM_UPDT_REQ,      // C2A_DCXO_NVM_UPDT_REQ
     SIG_CMS_AUXADC_REQ,             // C2A_AUXADC_REQ
     SIG_CMS_SEND_UART_STR_REQ,      // C2A_SEND_UART_STR_REQ
-    SIG_CMS_UTC_TIME_REQ,           // C2A_UTC_TIME_REQ
+    SIG_CMS_START_HIB_TIMER_REQ,    // C2A_SATRT_HIB_TIMER_REQ
+    SIG_CMS_UTC_TIME_LOCAL_REQ,     // C2A_UTC_TIME_LOCAL_REQ
+    SIG_CMS_UTC_TIME_DCXO_REQ,           // C2A_UTC_TIME_DCXO_REQ
     SIG_CMS_CP_BTOFFSET_UPD_REQ,	// CP indicate ap to update BT offset
     SIG_CMS_APMU_COMM_TEST_REQ,     // C2A_COMM_TEST_REQ
     SIG_CMS_CP_PAGING_EVENT_IND_ISR,    //CmsCpPagingEventIndIsr
@@ -185,6 +187,7 @@ typedef enum CmsAppLayerId_Enum
     APPL_FILE    = 20,
 
     APPL_REF_SOC = 21,
+    APPL_ECOTA   = 22,
 
 
 

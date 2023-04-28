@@ -12,7 +12,6 @@ target(TARGET_NAME)
     
     --加入代码和头文件
     add_includedirs("./include",{public = true})
-    add_includedirs(SDK_TOP .. "/PLAT/core/tts/include/16k_lite_ver",{public = true})
     add_files("./src/*.c",{public = true})
 
     --路径可以随便写,可以加任意路径的代码,下面代码等效上方代码
@@ -25,5 +24,9 @@ target(TARGET_NAME)
     LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_16K.a "
     --8K版本用下面的库，注释掉16K的库
     -- LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_8K.a "
+    --8K英文版本用下面的库，注释掉16K的库
+    -- LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_8K_eng.a "
+    --16K英文版本用下面的库，注释掉16K的库
+    -- LIB_USER = LIB_USER .. SDK_TOP .. "/PLAT/core/lib/libaisound50_16K_eng.a "
     --甚至可以加入自己的库
 target_end()

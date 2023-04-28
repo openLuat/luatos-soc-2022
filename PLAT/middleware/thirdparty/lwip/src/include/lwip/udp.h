@@ -83,6 +83,8 @@ typedef int (*udp_recv_fn)(void *arg, struct udp_pcb *pcb, struct pbuf *p,
 
 #if ENABLE_PSIF
 typedef void  (*udp_process_oos_fn)(void *arg, u8_t is_oos);
+typedef void  (*udp_process_error_fn)(void *arg, err_t error);
+void udp_error(struct udp_pcb *pcb, udp_process_error_fn errf, void *err_arg);
 int udp_send_ul_state_ind(u32_t bitmap[8], int socket_id, int status);
 #endif
 
@@ -119,6 +121,8 @@ struct udp_pcb {
 
 #if ENABLE_PSIF
   udp_process_oos_fn poosf;
+  udp_process_error_fn errf;
+  void *err_arg;
 #endif
 
 //store the suspend data info

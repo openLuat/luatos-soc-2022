@@ -24,6 +24,7 @@ extern void audio_play_file_default_fun(void *param);
 extern void audio_play_tts_default_fun(void *param);
 extern void audio_play_tts_set_resource_ex(void *address, void *sdk_id, void *read_resource_fun);
 extern void audio_play_global_init_ex(audio_play_event_cb_fun_t event_cb, audio_play_data_cb_fun_t data_cb, audio_play_default_fun_t play_file_fun, audio_play_default_fun_t play_tts_fun, void *user_param);
+extern void audio_play_global_init_with_task_priority(audio_play_event_cb_fun_t event_cb, audio_play_data_cb_fun_t data_cb, audio_play_default_fun_t play_file_fun, audio_play_default_fun_t play_tts_fun, void *user_param, uint8_t priority);
 extern int audio_play_write_blank_raw_ex(uint32_t multimedia_id, uint8_t cnt, uint8_t add_font);
 void luat_audio_play_file_default_fun(void *param)
 {
@@ -42,6 +43,11 @@ void luat_audio_play_global_init(
 		void *user_param)
 {
 	audio_play_global_init_ex(event_cb, data_cb, play_file_fun, play_tts_fun, user_param);
+}
+
+void luat_audio_play_global_init_with_task_priority(audio_play_event_cb_fun_t event_cb, audio_play_data_cb_fun_t data_cb, audio_play_default_fun_t play_file_fun, audio_play_default_fun_t play_tts_fun, void *user_param, uint8_t priority)
+{
+	audio_play_global_init_with_task_priority(event_cb, data_cb, play_file_fun, play_tts_fun, user_param, priority);
 }
 
 int luat_audio_play_multi_files(uint32_t multimedia_id, audio_play_info_t info[], uint32_t files_num)
@@ -118,4 +124,9 @@ void luat_audio_play_tts_set_resource(void *address, void *sdk_id, void *tts_res
 void luat_audio_play_set_bus_type(uint8_t bus_type)
 {
 	audio_play_set_bus_type(bus_type);
+}
+
+void *luat_audio_play_get_stream(uint32_t multimedia_id)
+{
+	return audio_play_get_stream(multimedia_id);
 }

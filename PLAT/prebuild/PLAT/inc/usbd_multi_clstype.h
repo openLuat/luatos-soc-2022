@@ -10,6 +10,7 @@ typedef enum
     multidev_tp_vcom_log,    
     multidev_tp_vcom_ppp,        
     multidev_tp_vcom_com,            
+    multidev_tp_ccid,            
 }multidev_cls_type;
 
 

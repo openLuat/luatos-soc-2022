@@ -55,7 +55,7 @@
                 "children": [
                     {
                         "name": "@comment_1",
-                        "content": "若需要兼容V1103的flash布局,脚本区大小设置到448k",
+                        "content": "若需要兼容V1103的flash布局,请设置脚本区大小为448k",
                         "rsize": 0,
                         "fsize": 0,
                         "dft": false
@@ -70,6 +70,13 @@
                     {
                         "name": "@comment_3",
                         "content": "正常编译不超过2分钟,若有疑问请到 https://gitee.com/openLuat/LuatOS/issues 反馈,或向FAE求助",
+                        "rsize": 0,
+                        "fsize": 0,
+                        "dft": false
+                    },
+                    {
+                        "name": "@comment_4",
+                        "content": "脚本区大小一致的固件才可以进行底层OTA的,务必注意",
                         "rsize": 0,
                         "fsize": 0,
                         "dft": false
@@ -232,6 +239,13 @@
                         "rsize": 60240,
                         "fsize": 288052,
                         "dft": false
+                    },
+                    {
+                        "name": "wlan",
+                        "content": "wlan扫描功能.仅支持扫描，不支持wifi通信",
+                        "rsize": 10240,
+                        "fsize": 288052,
+                        "dft": false
                     }
                 ],
                 "fsize": 287420,
@@ -243,13 +257,6 @@
                 "content": "工具库",
                 "rsize": 0,
                 "children": [
-                    {
-                        "name": "LUAT_CONF_VM_64bit",
-                        "content": "64bit虚拟机(测试阶段,内存占用会增加,需要LuaTools 2.1.77)",
-                        "rsize": 193240,
-                        "fsize": 1024,
-                        "dft": false
-                    },
                     {
                         "name": "cjson",
                         "content": "JSON序列化与反序列化",
@@ -328,6 +335,13 @@
                         "dft": false
                     },
                     {
+                        "name": "lora2",
+                        "content": "lora2驱动(支持多挂)",
+                        "rsize": 13196,
+                        "fsize": 284548,
+                        "dft": false
+                    },
+                    {
                         "name": "mlx90640",
                         "content": "红外成像mlx90640",
                         "rsize": 13196,
@@ -393,9 +407,16 @@
                     },
                     {
                         "name": "iconv",
-                        "content": "编码转换GB2312/UTF8/UNCIODE",
+                        "content": "编码转换GB2312/UTF8/UNICODE",
                         "rsize": 40008,
                         "fsize": 274360,
+                        "dft": false
+                    },
+                    {
+                        "name": "sensor",
+                        "content": "传感器(例如ds18b20/ws2812)",
+                        "rsize": 2248,
+                        "fsize": 289668,
                         "dft": false
                     },
                     {
@@ -411,70 +432,60 @@
             },
             {
                 "icon": "zmdi-puzzle-piece",
-                "name": "@EXT",
-                "content": "扩展",
+                "name": "@MASTERS",
+                "content": "高级配置",
                 "rsize": 0,
                 "children": [
                     {
-                        "name": "sensor",
-                        "content": "传感器(例如ds18b20/ws2812)",
-                        "rsize": 2248,
-                        "fsize": 289668,
-                        "dft": false
-                    },
-                    {
-                        "name": "fonts",
-                        "content": "通用字体,适用于u8g2/disp/eink/lcd库",
+                        "name": "@master123",
+                        "content": "本小节的配置均有一定的风险,请慎重选择",
                         "rsize": 0,
-                        "children": [
-                            {
-                                "name": "USE_U8G2_OPPOSANSM_ENGLISH",
-                                "content": "英文字体和特殊符号",
-                                "rsize": 48176,
-                                "fsize": 304416,
-                                "dft": false
-                            },
-                            {
-                                "name": "USE_U8G2_OPPOSANSM8_CHINESE",
-                                "content": "8pix中文字体",
-                                "rsize": 105176,
-                                "fsize": 604416,
-                                "dft": false
-                            },
-                            {
-                                "name": "USE_U8G2_OPPOSANSM10_CHINESE",
-                                "content": "10pix中文字体",
-                                "rsize": 205176,
-                                "fsize": 604416,
-                                "dft": false
-                            },
-                            {
-                                "name": "USE_U8G2_OPPOSANSM12_CHINESE",
-                                "content": "12pix中文字体",
-                                "rsize": 305176,
-                                "fsize": 287420,
-                                "dft": false
-                            }
-                        ],
-                        "fsize": 287420,
+                        "fsize": 1024,
                         "dft": false
                     },
                     {
-                        "name": "gtfont",
-                        "content": "高通矢量字体(需要配合高通字体芯片)",
-                        "rsize": 240,
-                        "children": [
-                            {
-                                "name": "gtfont_utf8",
-                                "content": "高通矢量字体支持UTF-8编码(180k的转码表)",
-                                "rsize": 0,
-                                "fsize": 287660,
-                                "dft": false
-                            }
-                        ],
-                        "fsize": 287660,
+                        "name": "LUAT_CONF_VM_64bit",
+                        "content": "64bit虚拟机(测试阶段)",
+                        "rsize": 193240,
+                        "fsize": 1024,
                         "dft": false
                     },
+                    {
+                        "name": "LUAT_UART0_FORCE_USER",
+                        "content": "释放UART0供用户使用.不能从UART0读取底层日志了,只能通过USB读取日志",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_UART0_FORCE_ALT1",
+                        "content": "切换UART0到另一复用, paddr 31/32",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+					{
+                        "name": "LUAT_UART0_LOG_BR_12M",
+                        "content": "UART0输出log的波特率为12M",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_HEAP_SIZE_256K",
+                        "content": "Lua内存设置到256k字节, 默认是200k",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    }
+                ]
+            },
+            {
+                "icon": "zmdi-puzzle-piece",
+                "name": "@EXT",
+                "content": "UI,显示类驱动",
+                "rsize": 0,
+                "children": [
                     {
                         "name": "u8g2",
                         "content": "单色屏驱动",
@@ -755,6 +766,161 @@
                 ],
                 "fsize": 287420,
                 "dft": false
+            },
+            {
+                "icon": "zmdi-puzzle-piece",
+                "name": "@FOTNS",
+                "content": "字体/字库配置",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "fonts",
+                        "content": "通用字体库",
+                        "rsize": 27888
+                    },
+                    {
+                        "name": "@u8g2_fonts",
+                        "content": "通用字体,适用于u8g2/disp/eink/lcd库",
+                        "rsize": 27888,
+                        "children": [
+                            {
+                                "name": "USE_U8G2_OPPOSANSM_ENGLISH",
+                                "content": "英文字体和特殊符号",
+                                "rsize": 48176,
+                                "fsize": 304416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM8_CHINESE",
+                                "content": "8pix中文字体,调用时使用 lcd.font_opposansm8_chinese",
+                                "rsize": 105176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM10_CHINESE",
+                                "content": "10pix中文字体 lcd.font_opposansm10_chinese",
+                                "rsize": 205176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM12_CHINESE",
+                                "content": "12pix中文字体,同理,u8g2.font_opposansm12_chinese 也可以的",
+                                "rsize": 305176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM14_CHINESE",
+                                "content": "14pix中文字体",
+                                "rsize": 405176,
+                                "fsize": 604416,
+                                "dft": false
+                            },
+                            {
+                                "name": "USE_U8G2_OPPOSANSM16_CHINESE",
+                                "content": "16pix中文字体",
+                                "rsize": 450132,
+                                "fsize": 749372,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 299240,
+                        "dft": false
+                    },
+                    {
+                        "name": "gtfont",
+                        "content": "高通矢量字体(需要配合高通字体芯片)",
+                        "rsize": 400,
+                        "children": [
+                            {
+                                "name": "gtfont_utf8",
+                                "content": "高通矢量字体支持UTF-8编码(180k的转码表)",
+                                "rsize": 0,
+                                "fsize": 271752,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 271752,
+                        "dft": false
+                    },
+                    {
+                        "name": "@lvgl_font",
+                        "content": "lvgl专用字体库",
+                        "rsize": 360536,
+                        "children": [
+                            {
+                                "name": "LV_FONT_OPPOSANS_M_8",
+                                "content": "OPPO宋体8pix ",
+                                "rsize": 391044,
+                                "fsize": 1022932,
+                                "dft": false
+                            },
+                            {
+                                "name": "LV_FONT_OPPOSANS_M_10",
+                                "content": "OPPO宋体10pix ",
+                                "rsize": 531232,
+                                "fsize": 1163120,
+                                "dft": false
+                            },
+                            {
+                                "name": "LV_FONT_OPPOSANS_M_12",
+                                "content": "OPPO宋体12pix ",
+                                "rsize": 665500,
+                                "fsize": 1297388,
+                                "dft": false
+                            },
+                            {
+                                "name": "LV_FONT_OPPOSANS_M_14",
+                                "content": "OPPO宋体14pix",
+                                "rsize": 849828,
+                                "fsize": 1481716,
+                                "dft": false
+                            }
+                        ],
+                        "fsize": 631888,
+                        "dft": false
+                    }
+                ],
+                "fsize": 271352,
+                "dft": false
+            },
+            {
+                "icon": "zmdi-puzzle-piece",
+                "name": "@ADD123",
+                "content": "非常用库,一般用不到",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "mqttcore",
+                        "content": "MQTT协议解析库,不含链接,也不依赖mqtt库",
+                        "rsize": 5200,
+                        "fsize": 357620,
+                        "dft": false
+                    },
+                    {
+                        "name": "coremark",
+                        "content": "跑分,性能测试",
+                        "rsize": 5200,
+                        "fsize": 357620,
+                        "dft": false
+                    },
+                    {
+                        "name": "ymodem",
+                        "content": "YModem通信协议",
+                        "rsize": 5200,
+                        "fsize": 357620,
+                        "dft": false
+                    },
+                    {
+                        "name": "httpsrv",
+                        "content": "IPV6下的Http服务",
+                        "rsize": 5200,
+                        "fsize": 357620,
+                        "dft": false
+                    }
+                ]
             }
         ]
     }

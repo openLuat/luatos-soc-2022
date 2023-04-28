@@ -16,7 +16,7 @@ static HANDLE g_s_delay_timer;
 
 void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
 {
-    int value = 15;
+    int value = 10;
     int ret = luat_kv_get("volume", &value, sizeof(int));
     if(ret > 0)
     {
@@ -86,7 +86,7 @@ void audio_task(void *param)
         }
         else
         {
-            // air780E +“Ù∆µ–°∞Â
+             // air780E +“Ù∆µ–°∞Â
             luat_i2s_base_setup(0, I2S_MODE_I2S, I2S_FRAME_SIZE_16_16);
         }
     }
@@ -96,7 +96,6 @@ void audio_task(void *param)
     {
         if (xQueueReceive(audioQueueHandle, &audioQueueRecv, portMAX_DELAY))
         {
-            // audio_play_tts_text(0, audioQueueRecv.data, sizeof(audioQueueRecv.data));
             LUAT_DEBUG_PRINT("this is play priority %d", audioQueueRecv.priority);
             LUAT_DEBUG_PRINT("this is play playType %d", audioQueueRecv.playType);
             if (audioQueueRecv.priority == MONEY_PLAY)
@@ -104,7 +103,6 @@ void audio_task(void *param)
 
                 if (audioQueueRecv.playType == TTS_PLAY)
                 {
-                    // DBG("TEST data address %d", sizeof(audioQueueRecv.message.data));
                     luat_audio_play_tts_text(0, audioQueueRecv.message.tts.data, audioQueueRecv.message.tts.len);
                 }
                 else if (audioQueueRecv.playType == FILE_PLAY)
@@ -157,6 +155,7 @@ void audio_task_init(void)
     if (pdTRUE != xQueueSend(audioQueueHandle, &powerOn, 0))
     {
         LUAT_DEBUG_PRINT("start send audio fail");
+        free(powerOn.message.tts.data);
     }
     luat_rtos_task_create(&audio_task_handle, 5 * 1024, 60, "audio", audio_task, NULL, NULL);
 }

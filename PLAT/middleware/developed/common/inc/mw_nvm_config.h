@@ -231,19 +231,30 @@ typedef struct _SIG_EPAT_MW_CFG_POWER_ON_CFUN
 */
 typedef struct _SIG_EPAT_MW_CFG_DM_CUCC_PARAM
 {
-    UINT8   enableFlag;       /*enableFlag  0:disable register 1: enable register*/
-    UINT8   hasReg;           /*hasReg 0:has not register  1:has regiestered*/
+    INT32   enableFlag;       /*enableFlag  0:disable register 1: enable register*/
+    INT32   autoRegPeriod;  /*0:disable register    -1:only onece    -2:start reg one time when chip powers on    other:auto reg with period*/
+    UINT8   hasReg;         /*hasReg 0:has not register  1:has regiestered*/
     UINT8   imsi[MID_WARE_DM_SIM_IMSI_LEN];  /* imsi */
     UINT8   ccid[MID_WARE_DM_SIM_CCID_LEN];  /* ccid */
     UINT8   imei[MID_WARE_DM_IMEI_LEN];      /* imei */
-    UINT8   manufacture[MID_WARE_DM_MANUFACTURE_LEN];  /* parameter MODEL set by vendor */
-    UINT8   moduleType[MID_WARE_DM_MODULE_TYPE_LEN];   /* parameter MODEL set by vendor */
-    UINT8   moduleSWVer[MID_WARE_DM_MODULE_SW_LEN];    /* parameter SWVER set by vendor */
-    UINT8   moduleHWVer[MID_WARE_DM_MODULE_HW_LEN];    /* parameter SWVER set by vendor */
+    UINT8   manufacture[MID_WARE_DM_MANUFACTURE_LEN];           /* parameter manufacture set by vendor */
+    UINT8   moduleType[MID_WARE_DM_MODULE_TYPE_LEN];            /* parameter moduleType set by vendor */
+    UINT8   chipManufacturer[MID_WARE_DM_CHIP_MANUFACTURE_LEN]; /* parameter chipManufacturer set by vendor */
+    UINT8   chipType[MID_WARE_DM_CHIP_TYPE_LEN];                /* parameter chipType set by vendor */
+    UINT8   moduleSWVer[MID_WARE_DM_MODULE_SW_LEN];             /* parameter moduleSWVer set by vendor */
+    UINT8   moduleHWVer[MID_WARE_DM_MODULE_HW_LEN];             /* parameter moduleHWVer set by vendor */
 
+    UINT8   mCuccToken[MID_WARE_DM_TOKEN_LEN];               /* cucc mqtt token M-token*/
+    UINT8   mProductKey[MID_WARE_DM_PRODUCT_KEY_LEN];        /* cucc mqtt product key M-PK*/
+    UINT8   mProductSecret[MID_WARE_DM_PRODUCT_SECRET_LEN];  /* cucc mqtt product secret M-PS*/
+    UINT8   mDeviceKey[MID_WARE_DM_DEVICE_KEY_LEN];          /* cucc mqtt device key M-DK*/
+    UINT8   mDeviceSecret[MID_WARE_DM_DEVICE_SECRET_LEN];    /* cucc mqtt device secret M-DS*/
+    UINT8   cuccToken[MID_WARE_DM_TOKEN_LEN];               /* cucc mqtt token */
     UINT8   productKey[MID_WARE_DM_PRODUCT_KEY_LEN];        /* cucc mqtt product key */
     UINT8   productSecret[MID_WARE_DM_PRODUCT_SECRET_LEN];  /* cucc mqtt product secret */
     UINT8   deviceKey[MID_WARE_DM_DEVICE_KEY_LEN];          /* cucc mqtt device key */
+    UINT8   deviceSecret[MID_WARE_DM_DEVICE_SECRET_LEN];    /* cucc mqtt device secret */
+
 }MWNvmCfgDmCuccParam;
 
 /*
@@ -332,6 +343,11 @@ typedef struct _SIG_EPAT_MW_CFG_CTW_MQTT_PARAM
     CHAR    userName[MID_WARE_CTW_MQTT_USER_NAME_LEN+1];  /* userName */
     CHAR    password[MID_WARE_CTW_MQTT_PASSWD_LEN+1];     /* password */
     UINT32  keepAlive;       /*default 300s */
+    UINT32  fotaFlag;        /*default 0 no fota */
+    CHAR    fotaTaskId[MID_WARE_CTW_MQTT_FOTA_TASK_ID+1];    /* ver */
+    CHAR    fotaVersion[MID_WARE_CTW_MQTT_FOTA_VER_LEN+1];    /* ver */
+    CHAR    fotaToken[MID_WARE_CTW_MQTT_FOTA_TOKEN_LEN+1];    /* token */	
+    CHAR    fotaModule[MID_WARE_CTW_MQTT_FOTA_MODULE_LEN+1];  /* module */	
 }MWNvmCfgCtwMqttParam;
 
 
@@ -802,6 +818,16 @@ void mwNvmCfgGetDmCuccParam(MWNvmCfgDmCuccParam *pDmCuccParam);
   \Return       void
 */
 void mwNvmCfgSetAndSaveDmCuccParam(MWNvmCfgDmCuccParam *pDmCuccParam);
+
+/**
+  \fn           void mwCfgDefaultDmCuccParam(MWNvmCfgDmCuccParam *pDmCuccParam)
+  \brief        set default value of "MWNvmCfgDmCuccParam"
+  \param[in]    
+  \param[out]   
+  \returns      void
+  \ Note: paramId: MW_CFG_AT_CHAN_1_CONFIG/...
+*/
+void mwCfgDefaultDmCuccParam(MWNvmCfgDmCuccParam *pDmCuccParam);
 
 /**
   \fn           void mwNvmCfgGetDmCtccParam(MWNvmCfgDmCtccParam *pDmCtccParam)

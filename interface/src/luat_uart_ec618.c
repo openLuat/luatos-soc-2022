@@ -178,8 +178,13 @@ int luat_uart_setup(luat_uart_t* uart) {
         DBG("uart.setup FAIL!!!");
         return -1;
     }
+	size_t buffsize = uart->bufsz;
+	if (buffsize < 2048)
+		buffsize = 2048;
+	else if (buffsize > 8*1024)
+		buffsize = 8*1024;
     if (uart->id >= MAX_DEVICE_COUNT){
-		OS_ReInitBuffer(&g_s_vuart_rx_buffer, uart->bufsz?uart->bufsz:1024);
+		OS_ReInitBuffer(&g_s_vuart_rx_buffer, buffsize);
 		g_s_vuart_rx_base_len = g_s_vuart_rx_buffer.MaxLen;
         return 0;
     }
@@ -207,10 +212,15 @@ int luat_uart_setup(luat_uart_t* uart) {
 #else
 		soc_get_model_name(model, 0);
 #endif
-		if (g_s_serials[UART_ID2].alt_type || !strcmp("Air780EG", model))
+		if ((1 == g_s_serials[UART_ID2].alt_type) || !strcmp("Air780EG", model))
 		{
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 0), 5, 0, 0);
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 5, 0, 0);
+		}
+		else if (2 == g_s_serials[UART_ID2].alt_type)
+		{
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_6, 0), 3, 0, 0);
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_7, 0), 3, 0, 0);
 		}
 		else
 		{
@@ -228,8 +238,8 @@ int luat_uart_setup(luat_uart_t* uart) {
      {
     	 uart_cb[uart->id].recv_callback_fun = luat_uart_recv_dummy_cb;
     	 uart_cb[uart->id].sent_callback_fun = luat_uart_sent_dummy_cb;
-    	 g_s_serials[uart->id].rx_buf_size = uart->bufsz?uart->bufsz:1024;
-         Uart_BaseInitEx(uart->id, uart->baud_rate, 1024, uart->bufsz?uart->bufsz:1024, (uart->data_bits), parity, stop_bits, luat_uart_cb);
+    	 g_s_serials[uart->id].rx_buf_size = buffsize;
+         Uart_BaseInitEx(uart->id, uart->baud_rate, 1024, buffsize, (uart->data_bits), parity, stop_bits, luat_uart_cb);
 #ifdef __LUATOS__
          g_s_serials[uart->id].rs485_param_bit.is_485used = (uart->pin485 < HAL_GPIO_NONE)?1:0;
          g_s_serials[uart->id].rs485_pin = uart->pin485;
@@ -359,8 +369,12 @@ void soc_usb_serial_output_done(uint8_t channel)
 #endif
 
 static void luat_usb_recv_cb(uint8_t channel, uint8_t *input, uint32_t len){
-	if (input){
-
+	if (input) {
+		if (!g_s_vuart_rx_buffer.MaxLen)
+		{
+			DBG("usb serial not init,%d,%x,%d!", channel, input, len);
+			return;
+		}
         OS_BufferWrite(&g_s_vuart_rx_buffer, input, len);
 #ifdef __LUATOS__
         rtos_msg_t msg;

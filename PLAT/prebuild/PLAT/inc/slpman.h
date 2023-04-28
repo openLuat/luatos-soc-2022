@@ -296,6 +296,34 @@ typedef enum
 
 }slpDrvVoteModule_t;
 
+/**
+  \brief enum of pad which support wakeup from sleep
+ */
+typedef enum
+{
+	WAKEUP_PAD_0 = 0,
+	WAKEUP_PAD_1,
+	WAKEUP_PAD_2,
+	WAKEUP_PAD_3,
+	WAKEUP_PAD_4,
+	WAKEUP_PAD_5,
+	WAKEUP_LPUART,
+	WAKEUP_LPUSB,
+	WAKEUP_PWRKEY,
+	WAKEUP_CHARGE,
+	WAKEUP_PAD_MAX
+}APmuWakeupPad_e;
+
+/**
+  \brief configure structure for wakeup pad
+ */
+typedef struct
+{
+	bool posEdgeEn;
+	bool negEdgeEn;
+	bool pullUpEn;
+	bool pullDownEn;
+}APmuWakeupPadSettings_t;
 
 /**
   \brief a stucture to store driver vote flag and vote counter.
@@ -886,6 +914,84 @@ uint32_t slpManGet6P25HZGlobalCnt(void);
 * @note 
 */
 void slpManSetSleepLimitTime(bool slpLimitEn, uint32_t slpLimitTime);
+/**
+* @brief void slpManSetWakeupPadCfg(APmuWakeupPad_e padNum, bool wakeupEn, APmuWakeupPadSettings_t *cfg)
+* @details  To set pin as wakeup pad or aonio.
+* @param            padNum: valid input can be
+                    WAKEUP_PAD_0 = 0,
+                    WAKEUP_PAD_1,
+                    WAKEUP_PAD_2,
+                    WAKEUP_PAD_3,
+                    WAKEUP_PAD_4,
+                    WAKEUP_PAD_5,
+                    other value is invalid.
+            wakeupEn: true----set as wakeup pad. 
+                      false---set as aonio  pad. (only valid for WAKEUP_PAD_3/4/5)
+            cfg: posEdgeEn: pos edge wakeup enable
+                 negEdgeEn: neg edge wakeup enable
+                 pullUpEn: pull up enable
+                 pullDownEn: pull down enable. Never pull down and pull up at the same time
+                 when (posEdgeEn == false) && (negEdgeEn == false), wakeup is disabled no matter wakeupEn is true or not.
+   Example:
+                APmuWakeupPadSettings_t wakeupPadSetting;
+                wakeupPadSetting.negEdgeEn = true;
+                wakeupPadSetting.posEdgeEn = false;
+                wakeupPadSetting.pullDownEn = false;
+                wakeupPadSetting.pullUpEn = true;
+
+                slpManSetWakeupPadCfg(WAKEUP_PAD_0, true, &wakeupPadSetting);   // set wakeup pad 0 as wakeup pad
+                                                                              // negetive wakeup, with internal pull up enable
+
+
+                APmuWakeupPadSettings_t wakeupPadSetting;
+                wakeupPadSetting.negEdgeEn = false;
+                wakeupPadSetting.posEdgeEn = false;
+                wakeupPadSetting.pullDownEn = false;
+                wakeupPadSetting.pullUpEn = true;
+                slpManSetWakeupPadCfg(WAKEUP_PAD_3, false, &wakeupPadSetting);  // set wakeup pad 3 as aonio (disable the wakeup function)
+                                                                              // with internal pull up enable
+* @return null
+* @note 
+*/
+void slpManSetWakeupPadCfg(APmuWakeupPad_e padNum, bool wakeupEn, APmuWakeupPadSettings_t *cfg);
+
+/**
+* @brief void slpManGetWakeupPadCfg(APmuWakeupPad_e padNum, bool *isWakeupEn, APmuWakeupPadSettings_t *cfg)
+* @details  To get wakeup pad configure
+* @param            padNum: valid input can be
+                    WAKEUP_PAD_0 = 0,
+                    WAKEUP_PAD_1,
+                    WAKEUP_PAD_2,
+                    WAKEUP_PAD_3,
+                    WAKEUP_PAD_4,
+                    WAKEUP_PAD_5,
+                    other value is invalid.
+            isWakeupEn: to get this pad is enabled as wakeup pad or not. 
+                        Only when ((posEdgeEn == true) || (posEdgeEn == true))==true, isWakeupEn = true
+                        if (posEdgeEn == false) && (posEdgeEn == false), isWakeupEn = false
+            cfg: posEdgeEn: pos edge wakeup enable
+                 negEdgeEn: neg edge wakeup enable
+                 pullUpEn: pull up enable
+                 pullDownEn: pull down enable.
+* @return null
+* @note 
+*/
+void slpManGetWakeupPadCfg(APmuWakeupPad_e padNum, bool *isWakeupEn, APmuWakeupPadSettings_t *cfg);
+/**
+* @brief void slpManSetWakeupIOPowerState(bool pwrOn)
+* @details  To decide whether IO power is auto on by hw
+* @param    pwrOn: true is also default mode, io is power on by hardware when wakeup
+                   false, io does not power on by hardware when wakeup, should call slpManForceIOPowerState(bool pwrOn) to power on io
+*/
+void slpManSetWakeupIOPowerState(bool pwrOn);
+/**
+* @brief void slpManForceIOPowerState(bool pwrOn)
+* @details  force on and off LDO1833 in active state, this api need 200us to return, do not call with high frequency
+* @param    pwrOn: true to power on LDO1833
+                   false to power off LDO1833
+*/
+void slpManForceIOPowerState(bool pwrOn);
+
 
 
 /** \} */

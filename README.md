@@ -1,6 +1,9 @@
 # CSDK for ABCDEGF
 
-**强烈推荐使用git来下载本代码库**, 不会命令行操作git可以用 [tortoiseGit](https://tortoisegit.org/download/)
+## 使用前须知
+
+1. **强烈推荐使用git来下载本代码库**, 不会命令行操作git可以用 [tortoiseGit](https://tortoisegit.org/download/)
+2. 本CSDK底层是没有AT指令的,不存在"调用某某AT指令"的情况
 
 ## 文档中心
 [CSDK软件开发资料](https://doc.openluat.com/wiki/37?wiki_page_id=4544)
@@ -119,7 +122,7 @@ apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386
 ## 应用文档
 
 1. 添加自定义数据到指定区域并[合成binpkg](project/example_flash), 用于量产刷机
-
+2. [脱离本csdk编译无依赖的库文件](doc/build_lib_by_gcc.md)
 
 
 ## 授权协议

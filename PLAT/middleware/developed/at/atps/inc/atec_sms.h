@@ -268,6 +268,13 @@ typedef struct AtecConcatSmsBuf_TAG
     osTimerId_t             guardTimer;         /* Clean the buffer after guardTimer expired */
 }AtecConcatSmsBuf;
 
+typedef struct AtecSmsCPMSinfo_TAG
+{
+    BOOL                    bSuspendCPMS;       /* +CPMS? is suspended due to checking SMSFULL */
+    BOOL                    bPendingCPMS;       /* +CPMS? is pending */
+    UINT16                  pendingCPMSHdlr;
+}AtecSmsCPMSinfo;
+
 /******************************************************************************
  *****************************************************************************
  * API
