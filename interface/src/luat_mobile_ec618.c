@@ -51,7 +51,7 @@ extern void soc_mobile_set_user_apn_auto_active(uint8_t cid,
 		uint8_t *password, uint8_t password_len);
 extern void soc_mobile_get_ip_data_traffic(uint64_t *uplink, uint64_t *downlink);
 extern void soc_mobile_clear_ip_data_traffic(uint8_t clear_uplink, uint8_t clear_downlink);
-
+extern uint8_t soc_mobile_get_sim_state(void);
 
 int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
 
@@ -181,6 +181,20 @@ int luat_mobile_set_sim_id(int id)
 		soc_mobile_set_sim_id(id);
 		return 0;
 	}
+}
+
+int luat_mobile_set_sim_pin(int sim_id, uint8_t operation, char pin1[9], char pin2[9])
+{
+	SetPinOperReqParams pPinOperReqParams = {0};
+	memset(pPinOperReqParams.pinStr, pin1, 8);
+	memset(pPinOperReqParams.newPinStr, pin2, 8);
+	pPinOperReqParams.operMode = operation;
+	return appSetPinOperationSync(&pPinOperReqParams);
+}
+
+uint8_t luat_mobile_get_sim_ready(int id)
+{
+	return soc_mobile_get_sim_state();
 }
 
 void luat_mobile_set_sim_detect_sim0_fisrt(void)
