@@ -57,7 +57,8 @@
 #define LUAT_USE_MINIZ 1
 #define LUAT_USE_FTP 1
 // #define LUAT_USE_HTTPSRV 1
-
+//32bitluavm对64bit数据的额外支持
+#define LUAT_USE_BIT64 1
 #define LUAT_USE_WLAN 1
 #define LUAT_USE_W5500 1
 //---------------FATFS特别配置

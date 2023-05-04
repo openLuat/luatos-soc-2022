@@ -274,32 +274,32 @@ int luat_pm_power_ctrl(int id, uint8_t onoff)
 }
 
 int luat_pm_iovolt_ctrl(int id, int val) {
-    switch(id) {
-    case (LUAT_PM_IOVLOT_GPIO) :
-        if (val >= 1650 && val <= 3400) {
-            val = (val - 1650) / 50;
-            slpManNormalIOVoltSet(val);
-            return 1;
-        }
-        else {
-            LLOGD("iovolt: out of range %d %d", id, val);
-            return -1;
-        }
-        break;
-    case (LUAT_PM_IOVLOT_AONGPIO) :
-        if (val >= 1650 && val <= 3400) {
-            val = (val - 1650) / 50;
-            slpManAONIOVoltSet(val);
-            return 1;
-        }
-        else {
-            LLOGD("iovolt: out of range %d %d", id, val);
-            return -1;
-        }
-        break;
-    }
-    LLOGW("iovolt: no such id %d", id);
-    return -1;
+	IOVoltageSel_t set;
+	if (val > 3400)
+	{
+		set = IOVOLT_3_40V;
+	}
+	else if (val >= 2650)
+	{
+		set = (val - 2650)/50 + IOVOLT_2_65V;
+	}
+	else if (val > 2000)
+	{
+		LLOGW("iovolt: out of range %d %d", id, val);
+		return -1;
+	}
+	else if (val >= 1650)
+	{
+		set = (val - 1650)/50;
+	}
+	else
+	{
+		set = IOVOLT_1_65V;
+	}
+	slpManNormalIOVoltSet(set);
+	slpManAONIOVoltSet(set);
+	return 0;
+
 }
 
 int luat_pm_wakeup_pin(int pin, int val){
