@@ -15,7 +15,7 @@
 #include <math.h>
 #include "luat_fs.h"
 #include "agnss.h"
-
+#include "luat_rtc.h"
 #define LBSLOC_SERVER_UDP_IP "bs.openluat.com" // 基站定位网址
 #define LBSLOC_SERVER_UDP_PORT 12411           // 端口
 #define UART_ID 2
@@ -280,9 +280,15 @@ static void lbsloc_task(void *arg)
                     LUAT_DEBUG_PRINT("location_service_task: rcv response, process success");
                     LUAT_DEBUG_PRINT("latitude:%s,longitude:%s,year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n", latitude, longitude, year, month, day, hour, minute, second);
                     char data_buf[60] = {0};
-                    snprintf(data_buf, 60, "$AIDTIME,%d,%d,%d,%d,%d,%d,000\r\n", year, month, day, hour, minute, second);
+                    struct tm tblock = {0};
+                    luat_rtc_get(&tblock);
+                    snprintf(data_buf, 60, "$AIDTIME,%d,%d,%d,%d,%d,%d,000\r\n", tblock.tm_year + 1900, tblock.tm_mon + 1, tblock.tm_mday, tblock.tm_hour, tblock.tm_min,tblock.tm_sec);
                     LUAT_DEBUG_PRINT("location_service_task: AIDTIME %s", data_buf);
-                    luat_uart_write(UART_ID, data_buf, strlen(data_buf));
+                    if (tblock.tm_year + 1900 > 2022) {
+                        luat_uart_write(UART_ID, data_buf, strlen(data_buf));
+                    }
+                    
+
                     luat_rtos_task_sleep(200);
                     memset(data_buf, 0x00, 60);
                     char lat[20] = {0};

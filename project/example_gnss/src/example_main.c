@@ -94,8 +94,6 @@ static void gnss_setup_task(void *param)
     task_ephemeris();
     while (1)
     {
-        char cmd2[] = "$AIDINFO";
-        luat_uart_write(UART_ID, cmd2, strlen(cmd2));
         luat_rtos_task_sleep(5000);
     }
     luat_rtos_task_delete(gnss_task_handle);
