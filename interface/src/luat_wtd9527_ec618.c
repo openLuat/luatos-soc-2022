@@ -12,7 +12,7 @@
 #include "platform_define.h"
 
 #define WTD_IRQ_OUTPUT_PIN HAL_GPIO_1   //开发板12口    对应看门狗芯片的中断输入
-#define WTD_FEED_PIN HAL_GPIO_11        //开发板14口    对应看门狗芯片的喂狗输入
+#define WTD_FEED_PIN HAL_GPIO_28        //开发板14口    对应看门狗芯片的喂狗输入
 #define WTD_RESET_PIN HAL_GPIO_9        //开发板13口    对应看门狗芯片的复位输出
 #define WTD_MODE_PIN HAL_GPIO_27        //开发板27口    对应看门狗芯片的喂狗模式输入
 
