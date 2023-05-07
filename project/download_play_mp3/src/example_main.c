@@ -18,7 +18,7 @@
 #define CODEC_PWR_PIN_ALT_FUN	4
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
-#define MP3_DATA_BUFFER_LEN	(150 * 1024)
+#define MP3_DATA_BUFFER_LEN	(120 * 1024)
 #define MP3_FRAME_LEN (4 * 1152)
 #define MP3_MAX_CODED_FRAME_SIZE 1792
 static HANDLE g_s_delay_timer;
@@ -102,7 +102,11 @@ int run_mp3_play(uint8_t is_start)
 	}
 	uint32_t pos = 0;
 	uint32_t out_len, hz, used;
-	while ((llist_num(&stream->DataHead) < 4) && (g_s_mp3_buffer.Pos > 2) )
+	if (!g_s_mp3_buffer.Pos)
+	{
+		return -1;
+	}
+	while ((llist_num(&stream->DataHead) < 3) && (g_s_mp3_buffer.Pos > 2) )
 	{
 		while (( g_s_pcm_buffer.Pos < (g_s_pcm_buffer.MaxLen - MP3_FRAME_LEN * 2) ) && (g_s_mp3_buffer.Pos > (MP3_MAX_CODED_FRAME_SIZE * g_s_mp3_downloading + 1)))
 		{
@@ -117,7 +121,7 @@ int run_mp3_play(uint8_t is_start)
 				}
 				pos += used;
 
-				if (g_s_pcm_buffer.Pos >= (g_s_pcm_buffer.MaxLen - MP3_FRAME_LEN * 2))
+				if (!result || (g_s_pcm_buffer.Pos >= (g_s_pcm_buffer.MaxLen - MP3_FRAME_LEN * 2)))
 				{
 					break;
 				}
@@ -294,7 +298,7 @@ static void luat_test_task(void *param)
 	int port = 80;
 	uint32_t dummy_len, start, end, total, i, data_len, download_len;
 	int tx_len = 0;
-	uint8_t *tx_data = malloc(1024);
+	uint8_t *tx_data = malloc(512);
 	Buffer_Struct rx_buffer = {0};
 	OS_InitBuffer(&rx_buffer, 8 * 1024);
 	int result, http_response, head_len;
