@@ -18,7 +18,7 @@
 #define CODEC_PWR_PIN_ALT_FUN	4
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
-#define MP3_DATA_BUFFER_LEN	(160 * 1024)
+#define MP3_DATA_BUFFER_LEN	(180 * 1024)
 #define MP3_FRAME_LEN (4 * 1152)
 #define MP3_MAX_CODED_FRAME_SIZE 1792
 static HANDLE g_s_delay_timer;
@@ -413,7 +413,7 @@ static void luat_test_task(void *param)
 				}
 				else
 				{
-					end = (((total - start) > (MP3_DATA_BUFFER_LEN/2))?(start + (MP3_DATA_BUFFER_LEN/2)):total) - 1;
+					end = (((total - start) > (g_s_mp3_buffer.MaxLen - g_s_mp3_buffer.Pos))?(start + ((g_s_mp3_buffer.MaxLen - g_s_mp3_buffer.Pos))):total) - 1;
 				}
 				data_len = end - start + 1;
 				LUAT_DEBUG_PRINT("MP3文件当前下载%u->%u,%ubyte", start, end, data_len);
