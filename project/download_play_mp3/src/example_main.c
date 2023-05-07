@@ -18,7 +18,7 @@
 #define CODEC_PWR_PIN_ALT_FUN	4
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
-#define MP3_DATA_BUFFER_LEN	(180 * 1024)
+#define MP3_DATA_BUFFER_LEN	(150 * 1024)
 #define MP3_FRAME_LEN (4 * 1152)
 #define MP3_MAX_CODED_FRAME_SIZE 1792
 static HANDLE g_s_delay_timer;
@@ -296,7 +296,7 @@ static void luat_test_task(void *param)
 	int tx_len = 0;
 	uint8_t *tx_data = malloc(1024);
 	Buffer_Struct rx_buffer = {0};
-	OS_InitBuffer(&rx_buffer, 16 * 1024);
+	OS_InitBuffer(&rx_buffer, 8 * 1024);
 	int result, http_response, head_len;
 	uint8_t is_break,is_timeout, first_play, is_error;
 	const char head[] = "GET /%s HTTP/1.1\r\nHost: %s:%d\r\nRange: bytes=%u-%u\r\nAccept: application/octet-stream\r\n\r\n";
