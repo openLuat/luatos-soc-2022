@@ -20,4 +20,5 @@ target("audio_decoder")
     add_files("./amr/**.c",{public = true})
 
     LIB_USER = LIB_USER .. SDK_TOP .. LIB_DIR .. "libaudio_decoder.a "
+	LIB_USER = LIB_USER .. SDK_TOP .. "/lib/libmp3.a "
 target_end()
