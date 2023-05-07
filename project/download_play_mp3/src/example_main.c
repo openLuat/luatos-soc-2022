@@ -1,5 +1,5 @@
 /**
- * 通过HTTP的断点续传功能来实现边下边播MP3功能，由于开源库的解码性能，高品质的MP3无法播放，需要更换商用解码库
+ * 通过HTTP的断点续传功能来实现边下边播MP3功能，由于44.1K的文件需要更多ram空间，必须开启低速模式编译！！！
  * HTTP下载并不是一个很好的流媒体播放方式，MP3格式也不是很好的流媒体播放格式
  * 本demo验证了边下边播的可行性
  *
@@ -18,7 +18,7 @@
 #define CODEC_PWR_PIN_ALT_FUN	4
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
-#define MP3_DATA_BUFFER_LEN	(40 * 1024)
+#define MP3_DATA_BUFFER_LEN	(160 * 1024)
 #define MP3_FRAME_LEN (4 * 1152)
 #define MP3_MAX_CODED_FRAME_SIZE 1792
 static HANDLE g_s_delay_timer;
@@ -290,13 +290,13 @@ static void luat_test_task(void *param)
 	network_set_base_mode(netc, 1, 15000, 0, 0, 0, 0);	//http基于TCP
 	netc->is_debug = 0;
 	const char remote_ip[] = "www.air32.cn";
-	const char mp3_file_name[] = "test_22K.mp3";	//测试服务器上的22.1Khz采样率文件。超过32Khz采样率的需要用效率更高的解码器
+	const char mp3_file_name[] = "test_44K.mp3";	//测试服务器上的22.1Khz采样率文件。超过32Khz采样率的需要用效率更高的解码器
 	int port = 80;
 	uint32_t dummy_len, start, end, total, i, data_len, download_len;
 	int tx_len = 0;
 	uint8_t *tx_data = malloc(1024);
 	Buffer_Struct rx_buffer = {0};
-	OS_InitBuffer(&rx_buffer, MP3_DATA_BUFFER_LEN/2);
+	OS_InitBuffer(&rx_buffer, 16 * 1024);
 	int result, http_response, head_len;
 	uint8_t is_break,is_timeout, first_play, is_error;
 	const char head[] = "GET /%s HTTP/1.1\r\nHost: %s:%d\r\nRange: bytes=%u-%u\r\nAccept: application/octet-stream\r\n\r\n";
@@ -467,7 +467,7 @@ static void luat_test_task(void *param)
 
 				do
 				{
-					result = network_rx(netc, rx_buffer.Data, MP3_DATA_BUFFER_LEN/2, 0, NULL, NULL, &dummy_len);
+					result = network_rx(netc, rx_buffer.Data, rx_buffer.MaxLen, 0, NULL, NULL, &dummy_len);
 					if (dummy_len > 0)
 					{
 						luat_rtos_mutex_lock(mp3_buffer_mutex, 50);
@@ -487,7 +487,7 @@ static void luat_test_task(void *param)
 					}
 					do
 					{
-						result = network_rx(netc, rx_buffer.Data, MP3_DATA_BUFFER_LEN/2, 0, NULL, NULL, &dummy_len);
+						result = network_rx(netc, rx_buffer.Data, rx_buffer.MaxLen, 0, NULL, NULL, &dummy_len);
 						if (dummy_len > 0)
 						{
 							luat_rtos_mutex_lock(mp3_buffer_mutex, 50);
@@ -553,7 +553,7 @@ static void luat_test_init(void)
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
-	luat_rtos_task_create(&g_s_task_handle, 4 * 1024, 50, "test", luat_test_task, NULL, 16);
+	luat_rtos_task_create(&g_s_task_handle, 10 * 1024, 50, "test", luat_test_task, NULL, 16);
 
 }
 
