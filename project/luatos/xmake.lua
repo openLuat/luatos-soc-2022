@@ -300,4 +300,5 @@ target(TARGET_NAME)
     LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. LIB_NAME .. " "
     -- LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. "libgmssl.a" .. " "
     --甚至可以加入自己的库
+	LIB_USER = LIB_USER .. SDK_TOP .. "/lib/libmp3.a "
 target_end()
