@@ -123,6 +123,7 @@ apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386
 
 1. 添加自定义数据到指定区域并[合成binpkg](project/example_flash), 用于量产刷机
 2. [脱离本csdk编译无依赖的库文件](doc/build_lib_by_gcc.md)
+3. CSDK调试指南 https://doc.openluat.com/article/4984
 
 
 ## 授权协议
