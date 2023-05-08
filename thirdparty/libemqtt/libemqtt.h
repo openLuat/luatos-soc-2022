@@ -29,7 +29,10 @@
 #define __LIBEMQTT_H__
 
 #include <stdint.h>
-
+/**
+ * @defgroup luatos_MQTT  MQTT相关接口
+ * @{
+ */
 #ifndef MQTT_CONF_CLIENT_ID_LENGTH
 	#define MQTT_CONF_CLIENT_ID_LENGTH 192 
 #endif
@@ -298,5 +301,5 @@ int mqtt_puback(mqtt_broker_handle_t* broker, uint16_t message_id);
 int mqtt_pubrec(mqtt_broker_handle_t* broker, uint16_t message_id);
 
 int mqtt_pubcomp(mqtt_broker_handle_t* broker, uint16_t message_id);
-
+/** @}*/
 #endif // __LIBEMQTT_H__
