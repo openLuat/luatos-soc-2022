@@ -139,7 +139,7 @@ int luat_pm_get_sleep_mode(const char *vote_tag)
 static luat_pm_sleep_callback_t g_s_user_pre_callback = NULL;
 static luat_pm_sleep_callback_t g_s_user_post_callback = NULL;
 
-static slpManBackupCb_t sleep_pre_callback(void *param, slpManLpState mode)
+static void sleep_pre_callback(void *param, slpManLpState mode)
 {
     if (g_s_user_pre_callback != NULL)
     {
@@ -147,7 +147,7 @@ static slpManBackupCb_t sleep_pre_callback(void *param, slpManLpState mode)
     }
 }
 
-static slpManBackupCb_t sleep_post_callback(void *param, slpManLpState mode)
+static void sleep_post_callback(void *param, slpManLpState mode)
 {
     if (g_s_user_post_callback != NULL)
     {
