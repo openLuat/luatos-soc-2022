@@ -27,18 +27,18 @@
     外部看门狗芯片实现看门狗
 */
 
-#define WTD_FEED_TEST           0       //测试喂狗
+#define WTD_FEED_TEST           1       //测试喂狗
 #define WTD_CLOSE_FEED          0       //关闭喂狗
 #define CLOSE_FEED_AND_FEED     0       //关闭喂狗然后又打开
 #define TEST_MODE_RESET_TEST    0       //测试模式复位
-#define SETTING_TIME            1       //定时器模式设定时间定时开机
+#define SETTING_TIME            0       //定时器模式设定时间定时开机
 #define POWER_ON_HAND           0       //定时器模式关机状态下下拉INT主动开机
 
 static luat_rtos_task_handle feed_wdt_task_handle;
 
 static void task_feed_wdt_run(void *param)
 {   
-    luat_wtd9527_cfg_init();//初始化看门狗
+    luat_wtd9527_cfg_init(28);//初始化看门狗，设置喂狗管脚
 
 /*
     测试喂狗
@@ -50,7 +50,7 @@ static void task_feed_wdt_run(void *param)
     {
         luat_wtd9527_feed_wtd();
         LUAT_DEBUG_PRINT("[DIO]Eat Dog");
-        luat_rtos_task_sleep(15000);
+        luat_rtos_task_sleep(120000);
     }
 #endif
 
@@ -107,7 +107,7 @@ static void task_feed_wdt_run(void *param)
     luat_rtos_task_sleep(3000);
     while (1)
     {
-        if (count == 30)
+        if (count == 15)
         {
             LUAT_DEBUG_PRINT("[DIO] Rrset Module");
             //设定时间实际需要时间，每次喂狗需要250ms，所以也要依次等待相应的时间
