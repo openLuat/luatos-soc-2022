@@ -1,5 +1,5 @@
 /**
- * 通过HTTP的断点续传功能来实现边下边播MP3功能，由于44.1K的文件需要更多ram空间，必须开启低速模式编译！！！
+ * 通过HTTP在线播放MP3功能，由于44.1K的文件需要更多ram空间，必须开启低速模式编译！！！更低码率的，可以不开低速模式编译
  * HTTP下载并不是一个很好的流媒体播放方式，MP3格式也不是很好的流媒体播放格式
  * 本demo验证了边下边播的可行性
  *
@@ -18,7 +18,6 @@
 #define CODEC_PWR_PIN_ALT_FUN	4
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
-#define MP3_DATA_BUFFER_LEN	(120 * 1024)
 #define MP3_FRAME_LEN (4 * 1152)
 #define MP3_MAX_CODED_FRAME_SIZE 1792
 static HANDLE g_s_delay_timer;
@@ -26,10 +25,10 @@ static luat_rtos_task_handle g_s_task_handle;
 static network_ctrl_t *g_s_server_network_ctrl;
 static Buffer_Struct g_s_mp3_buffer = {0};
 static Buffer_Struct g_s_pcm_buffer = {0};
+static uint32_t g_s_mp3_downloading;
+static uint8_t g_s_mp3_error;
+static uint8_t g_s_mp3_wait_start;
 static void *g_s_mp3_decoder;	//不用的时候可以free掉，本demo由于是循环播放，没有free
-static uint8_t g_s_mp3_downloading;
-static uint8_t g_s_mp3_download_wait;
-static luat_rtos_mutex_t mp3_buffer_mutex;
 enum
 {
 	AUDIO_NEED_DATA = 1,
@@ -44,7 +43,22 @@ void app_pa_on(uint32_t arg)
 
 void run_mp3_decode(uint8_t *data, uint32_t len)
 {
+	if (data)
+	{
+		OS_BufferWrite(&g_s_mp3_buffer, data, len);
+		free(data);
+		if (g_s_mp3_wait_start)
+		{
+			if (g_s_mp3_buffer.Pos > 4096)
+			{
+				g_s_mp3_wait_start = 0;
+				run_mp3_play(1);
+			}
+		}
+		return;
+	}
 	run_mp3_play(0);
+
 }
 
 void audio_event_cb(uint32_t event, void *param)
@@ -98,6 +112,7 @@ int run_mp3_play(uint8_t is_start)
 		else
 		{
 			LUAT_DEBUG_PRINT("mp3 decode fail!");
+			g_s_mp3_error = 1;
 			return -1;
 		}
 	}
@@ -107,7 +122,7 @@ int run_mp3_play(uint8_t is_start)
 	{
 		return -1;
 	}
-	while ((llist_num(&stream->DataHead) < 3) && (g_s_mp3_buffer.Pos > (MP3_MAX_CODED_FRAME_SIZE * g_s_mp3_downloading + 1)) )
+	while ((llist_num(&stream->DataHead) < 4) && (g_s_mp3_buffer.Pos > (MP3_MAX_CODED_FRAME_SIZE * g_s_mp3_downloading + 1)) )
 	{
 		while (( g_s_pcm_buffer.Pos < (g_s_pcm_buffer.MaxLen - MP3_FRAME_LEN * 2) ) && (g_s_mp3_buffer.Pos > (MP3_MAX_CODED_FRAME_SIZE * g_s_mp3_downloading + 1)))
 		{
@@ -127,9 +142,7 @@ int run_mp3_play(uint8_t is_start)
 					break;
 				}
 			} while ( ((g_s_mp3_buffer.Pos - pos) >= (MP3_MAX_CODED_FRAME_SIZE * g_s_mp3_downloading + 1)));
-			luat_rtos_mutex_lock(mp3_buffer_mutex, 100);
 			OS_BufferRemove(&g_s_mp3_buffer, pos);
-			luat_rtos_mutex_unlock(mp3_buffer_mutex);
 		}
 		if (is_start)
 		{
@@ -143,11 +156,6 @@ int run_mp3_play(uint8_t is_start)
 		luat_audio_play_write_raw(0, g_s_pcm_buffer.Data, g_s_pcm_buffer.Pos);
 		g_s_pcm_buffer.Pos = 0;
 	}
-	if (g_s_mp3_downloading && g_s_mp3_download_wait && (g_s_mp3_buffer.Pos < (MP3_DATA_BUFFER_LEN/2)))
-	{
-		luat_rtos_event_send(g_s_task_handle, MP3_NEED_DATA, 0, 0, 0, 0);
-	}
-
 }
 
 int get_http_response_code( uint8_t *http_buf )
@@ -228,10 +236,6 @@ static int32_t luat_test_socket_callback(void *pdata, void *param)
 {
 	OS_EVENT *event = (OS_EVENT *)pdata;
 //	LUAT_DEBUG_PRINT("%x", event->ID);
-	if ( AUDIO_NEED_DATA == event->ID )
-	{
-		run_mp3_play(0);
-	}
 	return 0;
 }
 
@@ -281,8 +285,6 @@ static void luat_test_task(void *param)
 {
 	luat_event_t event;
 	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
-	luat_rtos_mutex_create(&mp3_buffer_mutex);
-	luat_rtos_mutex_unlock(mp3_buffer_mutex);
 	uint32_t all,now_free_block,min_free_block;
 	luat_rtos_timer_create(&g_s_delay_timer);
 	luat_audio_play_global_init_with_task_priority(audio_event_cb, audio_data_cb, NULL, NULL, NULL, 90);
@@ -295,29 +297,29 @@ static void luat_test_task(void *param)
 	network_set_base_mode(netc, 1, 15000, 0, 0, 0, 0);	//http基于TCP
 	netc->is_debug = 0;
 	luat_ip_addr_t remote_ip;
-//	const char remote_domain[] = "www.air32.cn";
-//	const char mp3_file_name[] = "test_44K.mp3";
+	const char remote_domain[] = "www.air32.cn";
+	const char mp3_file_name[] = "test_44K.mp3";
 	// https测试
-	const char remote_domain[] = "drh-app-shenzhen.oss-cn-shenzhen.aliyuncs.com";
-	const char mp3_file_name[] = "2022.12.02/20221212_121502.mp3";
+//	const char remote_domain[] = "drh-app-shenzhen.oss-cn-shenzhen.aliyuncs.com";
+//	const char mp3_file_name[] = "2022.12.02/20221212_121502.mp3";
 	int port = 80;
 	// 如果是HTTPS，走443端口，并配置ssl
-	port = 443;
-	network_init_tls(netc, MBEDTLS_SSL_VERIFY_NONE);
+//	port = 443;
+//	network_init_tls(netc, MBEDTLS_SSL_VERIFY_NONE);
 	uint32_t dummy_len, start, end, total, i, data_len, download_len;
 	int tx_len = 0;
 	uint8_t *tx_data = malloc(512);
+	uint8_t *mp3_data;
 	Buffer_Struct rx_buffer = {0};
 	OS_InitBuffer(&rx_buffer, 8 * 1024);
 	int result, http_response, head_len;
-	uint8_t is_break,is_timeout, first_play, is_error;
+	uint8_t is_break,is_timeout, is_error;
 	const char head[] = "GET /%s HTTP/1.1\r\nHost: %s:%d\r\nRange: bytes=%u-%u\r\nAccept: application/octet-stream\r\n\r\n";
 	while(1)
 	{
 		luat_meminfo_sys(&all, &now_free_block, &min_free_block);
 		LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
 		rx_buffer.Pos = 0;
-		first_play = 1;
 		is_error = 1;
 		result = network_connect(netc, remote_domain, sizeof(remote_domain) - 1, NULL, port, 30000);
 		//发送HTTP请求头，获取MP3文件的头部信息和总长度
@@ -415,133 +417,116 @@ static void luat_test_task(void *param)
 			LUAT_DEBUG_PRINT("不是MP3文件，退出");
 			goto MP3_DOWNLOAD_END;
 		}
-		LUAT_DEBUG_PRINT("MP3文件全局下载%u->%u", start, total - 1);
-		OS_ReInitBuffer(&g_s_mp3_buffer, MP3_DATA_BUFFER_LEN + 1024);
+		end = total - 1;
+		LUAT_DEBUG_PRINT("MP3文件全局下载%u->%u", start, end);
 		g_s_mp3_downloading = 1;
+		g_s_mp3_error = 0;
+		g_s_mp3_wait_start = 1;
+		is_error = 0;
+MP3_DOWNLOAD_GO_ON:
 		while(start < total)
 		{
-			if (g_s_mp3_buffer.Pos < (MP3_DATA_BUFFER_LEN/2))
+
+			LUAT_DEBUG_PRINT("MP3文件当前下载%u->%u", start, end);
+			result = network_connect(netc, remote_domain, sizeof(remote_domain) - 1, &remote_ip, port, 30000);
+			//发送HTTP请求头，获取MP3文件的头部信息和总长度
+			tx_len = sprintf_(tx_data, head, mp3_file_name, remote_domain, port, start, end);
+			if (result)
 			{
-				g_s_mp3_download_wait = 0;
-				if (first_play)
+				LUAT_DEBUG_PRINT("服务器连不上");
+				goto MP3_DOWNLOAD_END;
+			}
+			result = network_tx(netc, tx_data, tx_len, 0, NULL, 0, &dummy_len, 15000);
+			if (result)
+			{
+				LUAT_DEBUG_PRINT("HTTP请求发送失败");
+				goto MP3_DOWNLOAD_END;
+			}
+			result = network_wait_rx(netc, 20000, &is_break, &is_timeout);
+			if (result || is_timeout)
+			{
+				LUAT_DEBUG_PRINT("HTTP请求没有响应");
+				goto MP3_DOWNLOAD_END;
+			}
+			result = network_rx(netc, rx_buffer.Data, rx_buffer.MaxLen - 4, 0, NULL, NULL, &dummy_len);
+			if (result)
+			{
+				LUAT_DEBUG_PRINT("网络错误,%d", result);
+				goto MP3_DOWNLOAD_END;
+			}
+			rx_buffer.Data[dummy_len] = 0;
+			http_response = get_http_response_code(rx_buffer.Data);
+			if (http_response != 206)
+			{
+				LUAT_DEBUG_PRINT("HTTP响应码错误,%d", http_response);
+				goto MP3_DOWNLOAD_END;
+			}
+			head_len = get_http_response_head_len(rx_buffer.Data);
+			if (head_len < 0)
+			{
+				LUAT_DEBUG_PRINT("HTTP头没有正确结束");
+				goto MP3_DOWNLOAD_END;
+			}
+			download_len = 0;
+			if (head_len < dummy_len)
+			{
+				mp3_data = malloc(download_len);
+				memcpy(mp3_data, rx_buffer.Data + head_len, download_len);
+				soc_call_function_in_audio(run_mp3_decode, mp3_data, download_len, LUAT_WAIT_FOREVER);
+			}
+			start += download_len;
+//			LUAT_DEBUG_PRINT("start %u", start);
+			if (start >= total)
+			{
+				is_error = 0;
+				goto MP3_DOWNLOAD_END;
+			}
+			while(!g_s_mp3_error)
+			{
+				if (g_s_mp3_buffer.Pos < 16 * 1024)
 				{
-					end = (((total - start) > MP3_DATA_BUFFER_LEN)?(start + MP3_DATA_BUFFER_LEN):total) - 1;
-				}
-				else
-				{
-					end = (((total - start) > (g_s_mp3_buffer.MaxLen - g_s_mp3_buffer.Pos))?(start + ((g_s_mp3_buffer.MaxLen - g_s_mp3_buffer.Pos))):total) - 1;
-				}
-				data_len = end - start + 1;
-				LUAT_DEBUG_PRINT("MP3文件当前下载%u->%u,%ubyte", start, end, data_len);
-				result = network_connect(netc, remote_domain, sizeof(remote_domain) - 1, &remote_ip, port, 30000);
-				//发送HTTP请求头，获取MP3文件的头部信息和总长度
-				tx_len = sprintf_(tx_data, head, mp3_file_name, remote_domain, port, start, end);
-				if (result)
-				{
-					LUAT_DEBUG_PRINT("服务器连不上");
-					goto MP3_DOWNLOAD_END;
-				}
-				result = network_tx(netc, tx_data, tx_len, 0, NULL, 0, &dummy_len, 15000);
-				if (result)
-				{
-					LUAT_DEBUG_PRINT("HTTP请求发送失败");
-					goto MP3_DOWNLOAD_END;
-				}
-				result = network_wait_rx(netc, 20000, &is_break, &is_timeout);
-				if (result || is_timeout)
-				{
-					LUAT_DEBUG_PRINT("HTTP请求没有响应");
-					goto MP3_DOWNLOAD_END;
-				}
-				result = network_rx(netc, rx_buffer.Data, 4 * 1024, 0, NULL, NULL, &dummy_len);
-				if (result)
-				{
-					LUAT_DEBUG_PRINT("网络错误,%d", result);
-					goto MP3_DOWNLOAD_END;
-				}
-				rx_buffer.Data[dummy_len] = 0;
-				http_response = get_http_response_code(rx_buffer.Data);
-				if (http_response != 206)
-				{
-					LUAT_DEBUG_PRINT("HTTP响应码错误,%d", http_response);
-					goto MP3_DOWNLOAD_END;
-				}
-				head_len = get_http_response_head_len(rx_buffer.Data);
-				if (head_len < 0)
-				{
-					LUAT_DEBUG_PRINT("HTTP头没有正确结束");
-					goto MP3_DOWNLOAD_END;
-				}
-				download_len = 0;
-				if (head_len < dummy_len)
-				{
-					luat_rtos_mutex_lock(mp3_buffer_mutex, 50);
-					OS_BufferWrite(&g_s_mp3_buffer, rx_buffer.Data + head_len, dummy_len - head_len);
-					luat_rtos_mutex_unlock(mp3_buffer_mutex);
-					download_len += dummy_len - head_len;
-				}
-
-				do
-				{
-					result = network_rx(netc, rx_buffer.Data, rx_buffer.MaxLen, 0, NULL, NULL, &dummy_len);
-					if (dummy_len > 0)
-					{
-						luat_rtos_mutex_lock(mp3_buffer_mutex, 50);
-						OS_BufferWrite(&g_s_mp3_buffer, rx_buffer.Data, dummy_len);
-						luat_rtos_mutex_unlock(mp3_buffer_mutex);
-						download_len += dummy_len;
-					}
-				}while(!result && dummy_len > 0);
-
-				while(download_len < data_len)
-				{
-					result = network_wait_rx(netc, 20000, &is_break, &is_timeout);
+					LUAT_DEBUG_PRINT("获取更多mp3数据");
+					result = network_wait_rx(netc, 5000, &is_break, &is_timeout);
 					if (result || is_timeout)
 					{
-						LUAT_DEBUG_PRINT("HTTP请求没有响应");
-						goto MP3_DOWNLOAD_END;
+						network_close(netc, 5000);
+						LUAT_DEBUG_PRINT("下载中断，进行断点补传");
+						goto MP3_DOWNLOAD_GO_ON;
 					}
 					do
 					{
 						result = network_rx(netc, rx_buffer.Data, rx_buffer.MaxLen, 0, NULL, NULL, &dummy_len);
 						if (dummy_len > 0)
 						{
-							luat_rtos_mutex_lock(mp3_buffer_mutex, 50);
-							OS_BufferWrite(&g_s_mp3_buffer, rx_buffer.Data, dummy_len);
-							luat_rtos_mutex_unlock(mp3_buffer_mutex);
-							download_len += dummy_len;
+							mp3_data = malloc(dummy_len);
+							memcpy(mp3_data, rx_buffer.Data, dummy_len);
+							soc_call_function_in_audio(run_mp3_decode, mp3_data, dummy_len, LUAT_WAIT_FOREVER);
+							start += dummy_len;
+//							LUAT_DEBUG_PRINT("start %u", start);
+							if (start >= total)
+							{
+								is_error = 0;
+								goto MP3_DOWNLOAD_END;
+							}
 						}
 					}while(!result && dummy_len > 0);
-				};
-				if (first_play)
+				}
+				else
 				{
-					if (run_mp3_play(1) < 0)
+					if (!luat_rtos_event_recv(g_s_task_handle, 0, &event, NULL, 100))
 					{
-						LUAT_DEBUG_PRINT("MP3解码错误");
-						goto MP3_DOWNLOAD_END;
+						if (event.id != EV_NW_RESULT_EVENT)
+						{
+							LUAT_DEBUG_PRINT("new event id %x", event.id);	//这里可以加入其它操作
+						}
 					}
-				}
-				LUAT_DEBUG_PRINT("等待新的下载请求");
-				start += data_len;
-				network_close(netc, 5000);
-				first_play = 0;
-				g_s_mp3_download_wait = 1;
-				if (luat_rtos_event_recv(g_s_task_handle, MP3_NEED_DATA, &event, luat_test_socket_callback, 20000))
-				{
-					LUAT_DEBUG_PRINT("长时间没有等到新的下载请求，MP3播放可能异常了");
-					goto MP3_DOWNLOAD_END;
-				}
-				LUAT_DEBUG_PRINT("新的下载请求");
-				if (start >= total)
-				{
-					is_error = 0;
 				}
 			}
 		}
 MP3_DOWNLOAD_END:
 		g_s_mp3_downloading = 0;
 		LUAT_DEBUG_PRINT("本次MP3下载结束，60秒后重试");
-		if (is_error && !first_play)
+		if (is_error || g_s_mp3_error)
 		{
 			LUAT_DEBUG_PRINT("本次MP3边下边播发生错误，需要关闭播放");
 			luat_audio_play_stop_raw(0);
@@ -551,6 +536,7 @@ MP3_DOWNLOAD_END:
 		}
 		network_close(netc, 5000);
 		luat_rtos_task_sleep(60000);
+		OS_DeInitBuffer(&g_s_mp3_buffer);
 	}
 }
 
@@ -569,7 +555,7 @@ static void luat_test_init(void)
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
-	luat_rtos_task_create(&g_s_task_handle, 10 * 1024, 50, "test", luat_test_task, NULL, 16);
+	luat_rtos_task_create(&g_s_task_handle, 4 * 1024, 50, "test", luat_test_task, NULL, 16);
 
 }
 
