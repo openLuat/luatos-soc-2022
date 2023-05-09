@@ -91,6 +91,7 @@ int run_mp3_play(uint8_t is_start)
 		if (result)
 		{
 			mp3_decoder_init(g_s_mp3_decoder);
+			LUAT_DEBUG_PRINT("mp3 %d,%d", sample_rate, num_channels);
 			len = (num_channels * sample_rate >> 2) + MP3_FRAME_LEN * 2;
 			OS_ReInitBuffer(&g_s_pcm_buffer, len);
 		}
@@ -293,9 +294,16 @@ static void luat_test_task(void *param)
 	network_init_ctrl(netc, g_s_task_handle, luat_test_socket_callback, g_s_task_handle);
 	network_set_base_mode(netc, 1, 15000, 0, 0, 0, 0);	//http基于TCP
 	netc->is_debug = 0;
-	const char remote_ip[] = "www.air32.cn";
-	const char mp3_file_name[] = "test_44K.mp3";	//测试服务器上的22.1Khz采样率文件。超过32Khz采样率的需要用效率更高的解码器
+	luat_ip_addr_t remote_ip;
+//	const char remote_domain[] = "www.air32.cn";
+//	const char mp3_file_name[] = "test_44K.mp3";
+	// https测试
+	const char remote_domain[] = "drh-app-shenzhen.oss-cn-shenzhen.aliyuncs.com";
+	const char mp3_file_name[] = "2022.12.02/20221212_121502.mp3";
 	int port = 80;
+	// 如果是HTTPS，走443端口，并配置ssl
+	port = 443;
+	network_init_tls(netc, MBEDTLS_SSL_VERIFY_NONE);
 	uint32_t dummy_len, start, end, total, i, data_len, download_len;
 	int tx_len = 0;
 	uint8_t *tx_data = malloc(512);
@@ -311,13 +319,17 @@ static void luat_test_task(void *param)
 		rx_buffer.Pos = 0;
 		first_play = 1;
 		is_error = 1;
-		result = network_connect(netc, remote_ip, sizeof(remote_ip) - 1, NULL, port, 30000);
+		result = network_connect(netc, remote_domain, sizeof(remote_domain) - 1, NULL, port, 30000);
 		//发送HTTP请求头，获取MP3文件的头部信息和总长度
-		tx_len = sprintf_(tx_data, head, mp3_file_name, remote_ip, port, 0, 11);
+		tx_len = sprintf_(tx_data, head, mp3_file_name, remote_domain, port, 0, 11);
 		if (result)
 		{
 			LUAT_DEBUG_PRINT("服务器连不上");
 			goto MP3_DOWNLOAD_END;
+		}
+		else
+		{
+			remote_ip = netc->dns_ip[netc->dns_ip_cnt].ip;
 		}
 		result = network_tx(netc, tx_data, tx_len, 0, NULL, 0, &dummy_len, 15000);
 		if (result)
@@ -421,9 +433,9 @@ static void luat_test_task(void *param)
 				}
 				data_len = end - start + 1;
 				LUAT_DEBUG_PRINT("MP3文件当前下载%u->%u,%ubyte", start, end, data_len);
-				result = network_connect(netc, remote_ip, sizeof(remote_ip) - 1, NULL, port, 30000);
+				result = network_connect(netc, remote_domain, sizeof(remote_domain) - 1, &remote_ip, port, 30000);
 				//发送HTTP请求头，获取MP3文件的头部信息和总长度
-				tx_len = sprintf_(tx_data, head, mp3_file_name, remote_ip, port, start, end);
+				tx_len = sprintf_(tx_data, head, mp3_file_name, remote_domain, port, start, end);
 				if (result)
 				{
 					LUAT_DEBUG_PRINT("服务器连不上");
@@ -444,7 +456,7 @@ static void luat_test_task(void *param)
 				result = network_rx(netc, rx_buffer.Data, 4 * 1024, 0, NULL, NULL, &dummy_len);
 				if (result)
 				{
-					LUAT_DEBUG_PRINT("网络错误");
+					LUAT_DEBUG_PRINT("网络错误,%d", result);
 					goto MP3_DOWNLOAD_END;
 				}
 				rx_buffer.Data[dummy_len] = 0;
