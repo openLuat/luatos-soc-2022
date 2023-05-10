@@ -130,3 +130,8 @@ void *luat_audio_play_get_stream(uint32_t multimedia_id)
 {
 	return audio_play_get_stream(multimedia_id);
 }
+
+void luat_audio_play_set_user_lock(uint32_t multimedia_id, uint8_t onoff)
+{
+	audio_play_set_user_lock(multimedia_id, onoff);
+}

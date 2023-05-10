@@ -218,5 +218,12 @@ void luat_audio_play_set_bus_type(uint8_t bus_type);
  * @return void *stream指针，真正的类型是Audio_StreamStruct
  */
 void *luat_audio_play_get_stream(uint32_t multimedia_id);
+/**
+ * @brief 控制底层播放是否允许结束
+ *
+ * @param multimedia_id multimedia_id 多媒体通道，目前只有0
+ * @return onoff =0允许结束 其他不允许结束
+ */
+void luat_audio_play_set_user_lock(uint32_t multimedia_id, uint8_t onoff);
 /**@}*/
 #endif

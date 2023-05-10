@@ -28,6 +28,7 @@ static Buffer_Struct g_s_pcm_buffer = {0};
 static uint32_t g_s_mp3_downloading;
 static uint8_t g_s_mp3_error;
 static uint8_t g_s_mp3_wait_start;
+static uint8_t g_s_mp3_pause;
 static void *g_s_mp3_decoder;	//不用的时候可以free掉，本demo由于是循环播放，没有free
 enum
 {
@@ -53,9 +54,15 @@ void run_mp3_decode(uint8_t *data, uint32_t len)
 			{
 				g_s_mp3_wait_start = 0;
 				run_mp3_play(1);
+
 			}
+			return;
 		}
-		return;
+		if (g_s_mp3_pause)
+		{
+			g_s_mp3_pause = 0;
+			run_mp3_play(0);
+		}
 	}
 	run_mp3_play(0);
 
@@ -72,6 +79,12 @@ void audio_event_cb(uint32_t event, void *param)
 		soc_call_function_in_audio(run_mp3_decode, NULL, 0, LUAT_WAIT_FOREVER);
 		break;
 	case LUAT_MULTIMEDIA_CB_AUDIO_DONE:
+		if (g_s_mp3_downloading)
+		{
+			LUAT_DEBUG_PRINT("pause");
+			g_s_mp3_pause = 1;
+			return;
+		}
 		luat_audio_play_stop_raw(0);
 		luat_rtos_timer_stop(g_s_delay_timer);
 		luat_gpio_set(PA_PWR_PIN, 0);
@@ -423,6 +436,7 @@ static void luat_test_task(void *param)
 		g_s_mp3_error = 0;
 		g_s_mp3_wait_start = 1;
 		is_error = 0;
+		luat_audio_play_set_user_lock(0, 1);
 MP3_DOWNLOAD_GO_ON:
 		while(start < total)
 		{
@@ -470,9 +484,11 @@ MP3_DOWNLOAD_GO_ON:
 			download_len = 0;
 			if (head_len < dummy_len)
 			{
+				download_len = dummy_len - head_len;
 				mp3_data = malloc(download_len);
 				memcpy(mp3_data, rx_buffer.Data + head_len, download_len);
 				soc_call_function_in_audio(run_mp3_decode, mp3_data, download_len, LUAT_WAIT_FOREVER);
+				luat_rtos_task_sleep(10);
 			}
 			start += download_len;
 //			LUAT_DEBUG_PRINT("start %u", start);
@@ -483,15 +499,24 @@ MP3_DOWNLOAD_GO_ON:
 			}
 			while(!g_s_mp3_error)
 			{
-				if (g_s_mp3_buffer.Pos < 16 * 1024)
+				if (g_s_mp3_buffer.Pos < 32 * 1024)
 				{
-					LUAT_DEBUG_PRINT("获取更多mp3数据");
-					result = network_wait_rx(netc, 5000, &is_break, &is_timeout);
-					if (result || is_timeout)
+					LUAT_DEBUG_PRINT("获取更多mp3数据 %d", g_s_mp3_buffer.Pos);
+					dummy_len = 0;
+					result = network_rx(netc, NULL, 0, 0, NULL, NULL, &dummy_len);
+					if (dummy_len > 0)
 					{
-						network_close(netc, 5000);
-						LUAT_DEBUG_PRINT("下载中断，进行断点补传");
-						goto MP3_DOWNLOAD_GO_ON;
+						;
+					}
+					else
+					{
+						result = network_wait_rx(netc, 5000, &is_break, &is_timeout);
+						if (result || is_timeout)
+						{
+							network_close(netc, 5000);
+							LUAT_DEBUG_PRINT("下载中断，进行断点补传");
+							goto MP3_DOWNLOAD_GO_ON;
+						}
 					}
 					do
 					{
@@ -525,6 +550,7 @@ MP3_DOWNLOAD_GO_ON:
 		}
 MP3_DOWNLOAD_END:
 		g_s_mp3_downloading = 0;
+		luat_audio_play_set_user_lock(0, 0);
 		LUAT_DEBUG_PRINT("本次MP3下载结束，60秒后重试");
 		if (is_error || g_s_mp3_error)
 		{

@@ -207,4 +207,5 @@ void audio_play_global_init_ex(audio_play_event_cb_fun_t event_cb, audio_play_da
 int audio_play_write_blank_raw_ex(uint32_t multimedia_id, uint8_t cnt, uint8_t add_font);
 void audio_play_set_bus_type(uint8_t bus_type);
 void *audio_play_get_stream(uint32_t multimedia_id);
+void audio_play_set_user_lock(uint32_t multimedia_id, uint8_t onoff);
 #endif
