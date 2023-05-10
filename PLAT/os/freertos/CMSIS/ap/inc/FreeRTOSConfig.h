@@ -192,7 +192,5 @@
 
 /* Include debug event definitions */
 //#include "freertos_evr.h"
-#ifdef __USER_CODE__
-#define configUSE_APPLICATION_TASK_TAG			1
-#endif
+
 #endif /* FREERTOS_CONFIG_H */
