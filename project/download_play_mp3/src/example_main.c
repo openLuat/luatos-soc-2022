@@ -68,6 +68,11 @@ void run_mp3_decode(uint8_t *data, uint32_t len)
 
 }
 
+void run_mp3_add_blank(uint8_t *data, uint32_t len)
+{
+	luat_audio_play_write_blank_raw(0, 6, 1);
+}
+
 void audio_event_cb(uint32_t event, void *param)
 {
 //	PadConfig_t pad_config;
@@ -83,6 +88,7 @@ void audio_event_cb(uint32_t event, void *param)
 		{
 			LUAT_DEBUG_PRINT("pause");
 			g_s_mp3_pause = 1;
+			soc_call_function_in_audio(run_mp3_add_blank, NULL, 0, LUAT_WAIT_FOREVER);
 			return;
 		}
 		luat_audio_play_stop_raw(0);
@@ -135,7 +141,7 @@ int run_mp3_play(uint8_t is_start)
 	{
 		return -1;
 	}
-	while ((llist_num(&stream->DataHead) < 4) && (g_s_mp3_buffer.Pos > (MP3_MAX_CODED_FRAME_SIZE * g_s_mp3_downloading + 1)) )
+	while ((llist_num(&stream->DataHead) < 3) && (g_s_mp3_buffer.Pos > (MP3_MAX_CODED_FRAME_SIZE * g_s_mp3_downloading + 1)) )
 	{
 		while (( g_s_pcm_buffer.Pos < (g_s_pcm_buffer.MaxLen - MP3_FRAME_LEN * 2) ) && (g_s_mp3_buffer.Pos > (MP3_MAX_CODED_FRAME_SIZE * g_s_mp3_downloading + 1)))
 		{
@@ -499,7 +505,7 @@ MP3_DOWNLOAD_GO_ON:
 			}
 			while(!g_s_mp3_error)
 			{
-				if (g_s_mp3_buffer.Pos < 32 * 1024)
+				if (g_s_mp3_buffer.Pos < 20 * 1024)
 				{
 					LUAT_DEBUG_PRINT("获取更多mp3数据 %d", g_s_mp3_buffer.Pos);
 					dummy_len = 0;
@@ -561,8 +567,10 @@ MP3_DOWNLOAD_END:
 			luat_gpio_set(CODEC_PWR_PIN, 0);
 		}
 		network_close(netc, 5000);
-		luat_rtos_task_sleep(60000);
 		OS_DeInitBuffer(&g_s_mp3_buffer);
+		luat_meminfo_sys(&all, &now_free_block, &min_free_block);
+		LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
+		luat_rtos_task_sleep(60000);
 	}
 }
 
