@@ -215,7 +215,7 @@ int get_http_response_head_len( uint8_t *http_buf )
    {
        return -1;
    }
-   p_end=p_end+strlen("\r\n\r\n");
+   p_end=p_end + 4;
    headlen = ((uint32_t)p_end-(uint32_t)p_start);
    return headlen;
 }
@@ -302,6 +302,7 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 
 static void luat_test_task(void *param)
 {
+	uint32_t water;
 	luat_event_t event;
 	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
 	uint32_t all,now_free_block,min_free_block;
@@ -316,18 +317,18 @@ static void luat_test_task(void *param)
 	network_set_base_mode(netc, 1, 15000, 0, 0, 0, 0);	//http基于TCP
 	netc->is_debug = 0;
 	luat_ip_addr_t remote_ip;
-	const char remote_domain[] = "www.air32.cn";
-	const char mp3_file_name[] = "test_44K.mp3";
+//	const char remote_domain[] = "www.air32.cn";
+//	const char mp3_file_name[] = "test_44K.mp3";
 	// https测试
-//	const char remote_domain[] = "drh-app-shenzhen.oss-cn-shenzhen.aliyuncs.com";
-//	const char mp3_file_name[] = "2022.12.02/20221212_121502.mp3";
+	const char remote_domain[] = "xz.tingmall.com";
+	const char mp3_file_name[] = "preview/66/796/66796732-MP3-64K-FTD-P.mp3?sign=7e741f41bd9df27673da780ad073333a&t=64814ab6&transDeliveryCode=HW@2147483647@1686194870@S@8f00b204e9800998";
 	int port = 80;
 	// 如果是HTTPS，走443端口，并配置ssl
-//	port = 443;
-//	network_init_tls(netc, MBEDTLS_SSL_VERIFY_NONE);
+	port = 443;
+	network_init_tls(netc, MBEDTLS_SSL_VERIFY_NONE);
 	uint32_t dummy_len, start, end, total, i, data_len, download_len;
 	int tx_len = 0;
-	uint8_t *tx_data = malloc(512);
+	uint8_t *tx_data = malloc(1024);
 	uint8_t *mp3_data;
 	Buffer_Struct rx_buffer = {0};
 	OS_InitBuffer(&rx_buffer, 8 * 1024);
@@ -389,11 +390,10 @@ static void luat_test_task(void *param)
 			LUAT_DEBUG_PRINT("HTTP头没有正确结束");
 			goto MP3_DOWNLOAD_END;
 		}
-		if ( head_len < dummy_len)
+		if ( head_len <= dummy_len)
 		{
 			OS_BufferRemove(&rx_buffer, head_len);
 		}
-		LUAT_DEBUG_PRINT("%d", rx_buffer.Pos);
 		if (rx_buffer.Pos < 12)
 		{
 			LUAT_DEBUG_PRINT("HTTP下载剩余部分");
@@ -434,6 +434,8 @@ static void luat_test_task(void *param)
 		else
 		{
 			LUAT_DEBUG_PRINT("不是MP3文件，退出");
+			rx_buffer.Data[rx_buffer.Pos] = 0;
+			LUAT_DEBUG_PRINT("%.*s", rx_buffer.Pos, rx_buffer.Data);
 			goto MP3_DOWNLOAD_END;
 		}
 		end = total - 1;
@@ -462,19 +464,27 @@ MP3_DOWNLOAD_GO_ON:
 				LUAT_DEBUG_PRINT("HTTP请求发送失败");
 				goto MP3_DOWNLOAD_END;
 			}
+			rx_buffer.Pos = 0;
+HTTP_GET_MORE_HEAD_DATA:
 			result = network_wait_rx(netc, 20000, &is_break, &is_timeout);
 			if (result || is_timeout)
 			{
 				LUAT_DEBUG_PRINT("HTTP请求没有响应");
 				goto MP3_DOWNLOAD_END;
 			}
-			result = network_rx(netc, rx_buffer.Data, rx_buffer.MaxLen - 4, 0, NULL, NULL, &dummy_len);
+			result = network_rx(netc, rx_buffer.Data + rx_buffer.Pos, rx_buffer.MaxLen - rx_buffer.Pos - 4, 0, NULL, NULL, &dummy_len);
 			if (result)
 			{
 				LUAT_DEBUG_PRINT("网络错误,%d", result);
 				goto MP3_DOWNLOAD_END;
 			}
-			rx_buffer.Data[dummy_len] = 0;
+			rx_buffer.Pos += dummy_len;
+			if (rx_buffer.Pos < 20)
+			{
+				LUAT_DEBUG_PRINT("http head len %d", rx_buffer.Pos);
+				goto HTTP_GET_MORE_HEAD_DATA;
+			}
+			rx_buffer.Data[rx_buffer.Pos] = 0;
 			http_response = get_http_response_code(rx_buffer.Data);
 			if (http_response != 206)
 			{
@@ -494,7 +504,7 @@ MP3_DOWNLOAD_GO_ON:
 				mp3_data = malloc(download_len);
 				memcpy(mp3_data, rx_buffer.Data + head_len, download_len);
 				soc_call_function_in_audio(run_mp3_decode, mp3_data, download_len, LUAT_WAIT_FOREVER);
-				luat_rtos_task_sleep(10);
+				luat_rtos_task_sleep(5);
 			}
 			start += download_len;
 //			LUAT_DEBUG_PRINT("start %u", start);
@@ -540,7 +550,7 @@ MP3_DOWNLOAD_GO_ON:
 								goto MP3_DOWNLOAD_END;
 							}
 						}
-					}while(!result && dummy_len > 0);
+					}while(!result && (dummy_len > 0) && (g_s_mp3_buffer.Pos < 20 * 1024));
 				}
 				else
 				{
