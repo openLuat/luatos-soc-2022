@@ -18,6 +18,8 @@
 #define CODEC_PWR_PIN_ALT_FUN	4
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
+#define MP3_BUFFER_LEN_LOW	(20 * 1024)
+#define MP3_BUFFER_LEN_HIGH	(30 * 1024)
 #define MP3_FRAME_LEN (4 * 1152)
 #define MP3_MAX_CODED_FRAME_SIZE 1792
 static HANDLE g_s_delay_timer;
@@ -26,6 +28,7 @@ static network_ctrl_t *g_s_server_network_ctrl;
 static Buffer_Struct g_s_mp3_buffer = {0};
 static Buffer_Struct g_s_pcm_buffer = {0};
 static uint32_t g_s_mp3_downloading;
+static uint32_t g_s_mp3_buffer_wait_len;
 static uint8_t g_s_mp3_error;
 static uint8_t g_s_mp3_wait_start;
 static uint8_t g_s_mp3_pause;
@@ -47,6 +50,15 @@ void run_mp3_decode(uint8_t *data, uint32_t len)
 	if (data)
 	{
 		OS_BufferWrite(&g_s_mp3_buffer, data, len);
+		if (g_s_mp3_buffer_wait_len >= len)
+		{
+			g_s_mp3_buffer_wait_len -= len;
+		}
+		else
+		{
+			LUAT_DEBUG_PRINT("error !");
+			g_s_mp3_buffer_wait_len = 0;
+		}
 		free(data);
 		if (g_s_mp3_wait_start)
 		{
@@ -150,6 +162,7 @@ int run_mp3_play(uint8_t is_start)
 			{
 				result = mp3_decoder_get_data(g_s_mp3_decoder, g_s_mp3_buffer.Data + pos, g_s_mp3_buffer.Pos - pos,
 						(int16_t *)&g_s_pcm_buffer.Data[g_s_pcm_buffer.Pos], &out_len, &hz, &used);
+				luat_wdt_feed();
 				if (result > 0)
 				{
 					g_s_pcm_buffer.Pos += out_len;
@@ -443,6 +456,7 @@ static void luat_test_task(void *param)
 		g_s_mp3_downloading = 1;
 		g_s_mp3_error = 0;
 		g_s_mp3_wait_start = 1;
+		g_s_mp3_buffer_wait_len = 0;
 		is_error = 0;
 		luat_audio_play_set_user_lock(0, 1);
 MP3_DOWNLOAD_GO_ON:
@@ -503,8 +517,8 @@ HTTP_GET_MORE_HEAD_DATA:
 				download_len = dummy_len - head_len;
 				mp3_data = malloc(download_len);
 				memcpy(mp3_data, rx_buffer.Data + head_len, download_len);
+				g_s_mp3_buffer_wait_len += download_len;
 				soc_call_function_in_audio(run_mp3_decode, mp3_data, download_len, LUAT_WAIT_FOREVER);
-				luat_rtos_task_sleep(5);
 			}
 			start += download_len;
 //			LUAT_DEBUG_PRINT("start %u", start);
@@ -515,9 +529,9 @@ HTTP_GET_MORE_HEAD_DATA:
 			}
 			while(!g_s_mp3_error)
 			{
-				if (g_s_mp3_buffer.Pos < 20 * 1024)
+				if ( (g_s_mp3_buffer.Pos + g_s_mp3_buffer_wait_len) < MP3_BUFFER_LEN_LOW )
 				{
-					LUAT_DEBUG_PRINT("获取更多mp3数据 %d", g_s_mp3_buffer.Pos);
+					LUAT_DEBUG_PRINT("获取更多mp3数据 %d", g_s_mp3_buffer.Pos + g_s_mp3_buffer_wait_len);
 					dummy_len = 0;
 					result = network_rx(netc, NULL, 0, 0, NULL, NULL, &dummy_len);
 					if (dummy_len > 0)
@@ -541,6 +555,7 @@ HTTP_GET_MORE_HEAD_DATA:
 						{
 							mp3_data = malloc(dummy_len);
 							memcpy(mp3_data, rx_buffer.Data, dummy_len);
+							g_s_mp3_buffer_wait_len += dummy_len;
 							soc_call_function_in_audio(run_mp3_decode, mp3_data, dummy_len, LUAT_WAIT_FOREVER);
 							start += dummy_len;
 //							LUAT_DEBUG_PRINT("start %u", start);
@@ -550,7 +565,7 @@ HTTP_GET_MORE_HEAD_DATA:
 								goto MP3_DOWNLOAD_END;
 							}
 						}
-					}while(!result && (dummy_len > 0) && (g_s_mp3_buffer.Pos < 20 * 1024));
+					}while(!result && (dummy_len > 0) && ((g_s_mp3_buffer.Pos + g_s_mp3_buffer_wait_len) < MP3_BUFFER_LEN_HIGH));
 				}
 				else
 				{
