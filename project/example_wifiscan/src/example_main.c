@@ -32,7 +32,7 @@ uint8_t link_UP = 0;
 static void Wifiscan_Task(void *param)
 {
     int32_t ret;
-    CHAR Wifiscan_req[64] = {0};
+    CHAR Wifiscan_req[96] = {0};
     while (!link_UP)
     {
         luat_rtos_task_sleep(1000);
@@ -57,7 +57,7 @@ static void Wifiscan_Task(void *param)
             for (size_t i = 0; i < wifiscan_getinfo.bssidNum; i++)
             {
                 memset(Wifiscan_req, 0, sizeof(Wifiscan_req));
-                snprintf(Wifiscan_req, 64, "\"%02x:%02x:%02x:%02x:%02x:%02x\",%d,%d", wifiscan_getinfo.bssid[i][0], wifiscan_getinfo.bssid[i][1], wifiscan_getinfo.bssid[i][2],
+                snprintf_(Wifiscan_req, 64, "%.*s, \"%02x:%02x:%02x:%02x:%02x:%02x\",%d,%d", wifiscan_getinfo.ssidHexLen[i], wifiscan_getinfo.ssidHex[i], wifiscan_getinfo.bssid[i][0], wifiscan_getinfo.bssid[i][1], wifiscan_getinfo.bssid[i][2],
                          wifiscan_getinfo.bssid[i][3], wifiscan_getinfo.bssid[i][4], wifiscan_getinfo.bssid[i][5], wifiscan_getinfo.rssi[i], wifiscan_getinfo.channel[i]);
                 LUAT_DEBUG_PRINT("wifiscan result %s", Wifiscan_req);
             }
