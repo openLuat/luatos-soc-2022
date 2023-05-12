@@ -14,10 +14,6 @@
 /*
  *此 example 需要配合合宙官方的支持外部芯片看门狗的模块使用
  */
-
-
-#define WTD_FEED_PIN HAL_GPIO_28        //开发板14口    对应看门狗芯片的喂狗输入
-
 luat_gpio_cfg_t irq_output_gpio_cfg;
 luat_gpio_cfg_t feed_gpio_cfg;
 luat_gpio_cfg_t reset_gpio_cfg;
@@ -79,7 +75,7 @@ int luat_wtd9527_close(void)
 
 int luat_wtd9527_setup(void)
 {
-    luat_wtd9527_feed_wtd();
+    return luat_wtd9527_feed_wtd();
 }
 
 /*
