@@ -31,7 +31,7 @@
 #include "stdlib.h"
 
 #include "flash_rt.h"
-
+extern void fotaNvmNfsPeInit(uint8_t isSmall);
 int luat_flash_read(char* buff, size_t addr, size_t len) {
     int ret = 0;
     if (len == 0)
@@ -77,5 +77,15 @@ int luat_flash_erase(size_t addr, size_t len) {
     int ret = 0;
     ret = BSP_QSPI_Erase_Safe(addr, len);
     return ret == 0 ? 0 : -1;
+}
+
+int luat_flash_write_without_check(char* buff, size_t addr, size_t len) {
+	int ret = BSP_QSPI_Write_Safe((uint8_t *)buff, addr, len);
+    return ret == 0 ? len : -1;
+}
+
+void luat_flash_ctrl_fw_sectors(uint8_t is_unlock)
+{
+	fotaNvmNfsPeInit(is_unlock);
 }
 

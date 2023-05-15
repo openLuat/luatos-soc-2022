@@ -57,7 +57,22 @@ int luat_flash_write(char* buff, size_t addr, size_t len);
  */
 int luat_flash_erase(size_t addr, size_t len);
 
-
+/**
+ * @brief 写入指定区域的flash数据，不对buff进行安全性检查
+ *
+ * @param buff[IN] 写入的数据
+ * @param addr 偏移量, 与具体设备相关
+ * @param len 写入长度
+ * @return int <= 0错误 >0实际写入的大小
+ */
+int luat_flash_write_without_check(char* buff, size_t addr, size_t len);
+/**
+ * @brief 解除固件区的部分保护空间，开放给用户读写操作，当前是程序区最后896KB，起始地址0x00224000
+ *
+ * @param is_unlock 0锁定，其他解除锁定
+ * @return int != 0错误 =0 正常
+ */
+void luat_flash_ctrl_fw_sectors(uint8_t is_unlock);
 /**
  * @}
  */
