@@ -375,12 +375,12 @@ target(USER_PROJECT_NAME..".elf")
     if USER_PROJECT_NAME ~= 'luatos' then
         add_files(SDK_TOP.."/thirdparty/fal/src/*.c",{public = true})
         add_files(SDK_TOP.."/thirdparty/flashdb/src/*.c",{public = true})
+        add_files(SDK_TOP .. "/thirdparty/vfs/*.c",{public = true})
     else
         remove_files(SDK_TOP .. "/interface/src/luat_kv_ec618.c"
 	)
     end
     add_files(SDK_TOP .. "/thirdparty/littlefs/**.c",{public = true})
-    add_files(SDK_TOP .. "/thirdparty/vfs/*.c",{public = true})
 
 	add_ldflags(LD_BASE_FLAGS .. " -Wl,--whole-archive -Wl,--start-group " .. LIB_BASE .. LIB_USER .. " -Wl,--end-group -Wl,--no-whole-archive -Wl,--no-undefined -Wl,--no-print-map-discarded  -ldriver", {force=true})
 	
