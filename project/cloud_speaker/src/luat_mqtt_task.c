@@ -405,7 +405,7 @@ static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
         const uint8_t* payload;
 		uint16_t payload_len = mqtt_parse_pub_msg_ptr(luat_mqtt_ctrl->mqtt_packet_buffer, &payload);
 		LUAT_DEBUG_PRINT("pub_msg: %.*s",payload_len, payload);
-        if (strcmp(mqtt_sub_topic, topic) == 0)
+        if (strncmp(mqtt_sub_topic, topic, strlen(mqtt_sub_topic)) == 0)
         {
             cJSON *boss = NULL;
             boss = cJSON_Parse((const char *)payload);
