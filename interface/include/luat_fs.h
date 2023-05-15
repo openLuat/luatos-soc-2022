@@ -230,11 +230,11 @@ int luat_fs_ready(void);
 #if LUAT_USE_FS_VFS
 
 #ifndef LUAT_VFS_FILESYSTEM_MAX
-#define LUAT_VFS_FILESYSTEM_MAX 4
+#define LUAT_VFS_FILESYSTEM_MAX 8
 #endif
 
 #ifndef LUAT_VFS_FILESYSTEM_MOUNT_MAX
-#define LUAT_VFS_FILESYSTEM_MOUNT_MAX 4
+#define LUAT_VFS_FILESYSTEM_MOUNT_MAX 8
 #endif
 
 #ifndef LUAT_VFS_FILESYSTEM_FD_MAX
@@ -251,6 +251,7 @@ struct luat_vfs_file_opts {
     int (*ferror)(void* fsdata, FILE *stream);
     size_t (*fread)(void* fsdata, void *ptr, size_t size, size_t nmemb, FILE *stream);
     size_t (*fwrite)(void* fsdata, const void *ptr, size_t size, size_t nmemb, FILE *stream);
+    void* (*mmap)(void* fsdata, FILE *stream);
 };
 
 struct luat_vfs_filesystem_opts {

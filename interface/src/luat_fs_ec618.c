@@ -429,6 +429,10 @@ int luat_fs_init(void) {
 	return 0;
 }
 
+int luat_fs_truncate(const char* filename, size_t len) {
+    return luat_vfs_ec618_truncate(NULL, filename, len);
+}
+
 #else
 
 FILE* luat_fs_fopen(const char *filename, const char *mode) {

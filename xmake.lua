@@ -130,7 +130,8 @@ add_defines("__EC618",
             "__USER_CODE__",
             "__PRINT_ALIGNED_32BIT__",
             "_REENT_SMALL",
-            "_REENT_GLOBAL_ATEXIT"
+            "_REENT_GLOBAL_ATEXIT",
+            "LUAT_USE_FS_VFS"
 )
 
 if is_rndis then
@@ -379,6 +380,7 @@ target(USER_PROJECT_NAME..".elf")
 	)
     end
     add_files(SDK_TOP .. "/thirdparty/littlefs/**.c",{public = true})
+    add_files(SDK_TOP .. "/thirdparty/vfs/*.c",{public = true})
 
 	add_ldflags(LD_BASE_FLAGS .. " -Wl,--whole-archive -Wl,--start-group " .. LIB_BASE .. LIB_USER .. " -Wl,--end-group -Wl,--no-whole-archive -Wl,--no-undefined -Wl,--no-print-map-discarded  -ldriver", {force=true})
 	
