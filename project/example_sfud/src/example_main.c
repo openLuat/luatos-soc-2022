@@ -289,22 +289,20 @@ static void task_test_sfud(void *param)
 }
 
 // 合宙云喇叭开发板打开下面注释使能flash
-#define FLASH_EN	HAL_GPIO_26
-#define FLASH_EN_ALT_FUN	0
+// #define FLASH_EN	HAL_GPIO_26
+// #define FLASH_EN_ALT_FUN	0
 
 static void task_demo_sfud(void)
 {
-    luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_RESET);
+    // luat_gpio_cfg_t gpio_cfg;
+	// luat_gpio_set_default_cfg(&gpio_cfg);
 
-    luat_gpio_cfg_t gpio_cfg;
-	luat_gpio_set_default_cfg(&gpio_cfg);
+	// gpio_cfg.pin = FLASH_EN;
+	// gpio_cfg.alt_fun = FLASH_EN_ALT_FUN;
+	// luat_gpio_open(&gpio_cfg);
+	// luat_gpio_set(FLASH_EN, LUAT_GPIO_HIGH);
 
-	gpio_cfg.pin = FLASH_EN;
-	gpio_cfg.alt_fun = FLASH_EN_ALT_FUN;
-	luat_gpio_open(&gpio_cfg);
-	luat_gpio_set(FLASH_EN, LUAT_GPIO_HIGH);
-
-    luat_rtos_task_create(&sfud_task_handle, 4096, 20, "sfud", task_test_sfud, NULL, NULL);
+    luat_rtos_task_create(&sfud_task_handle, 2048, 20, "sfud", task_test_sfud, NULL, NULL);
 }
 
 INIT_TASK_EXPORT(task_demo_sfud,"1");
