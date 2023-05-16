@@ -134,6 +134,22 @@ typedef enum LUAT_MOBILE_SIM_PIN_OP
 int luat_mobile_set_sim_pin(int id, uint8_t operation, char pin1[9], char pin2[9]);
 
 /**
+ * @brief 选择启用softSim还是实体卡，启用softSim后kv功能不可用
+ *
+ * @param enable 选1为启用softSim，0为实体卡
+ * @return int =0成功，其他失败
+ */
+int luat_mobile_soft_sim_switch(uint8_t enable);
+
+/**
+ * @brief 获取当前sim配置是softSim还是实体卡
+ *
+ * @param is_soft_sim uint8_t指针，当返回值为0时，此值有意义，1为虚拟卡，0为实体卡
+ * @return int =0成功，其他失败
+ */
+int luat_mobile_get_soft_sim_cfg(uint8_t *is_soft_sim);
+
+/**
  * @brief 检查SIM卡是否准备好
  *
  * @param id sim位置，对于双卡的设备，选0或者1，其他为自动选择模式，但是0和1的优先级是一致的。非双卡的设备不支持
