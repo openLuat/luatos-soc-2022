@@ -85,6 +85,103 @@ luat_vfs_mount_t * getmount(const char* filename) {
     return NULL;
 }
 
+extern FILE* luat_vfs_ec618_fopen(__attribute__((unused)) void* userdata, const char *filename, const char *mode) ;
+extern int luat_vfs_ec618_getc(__attribute__((unused))void* userdata, FILE* stream) ;
+
+extern int luat_vfs_ec618_fseek(__attribute__((unused))void* userdata, FILE* stream, long int offset, int origin) ;
+
+extern int luat_vfs_ec618_ftell(__attribute__((unused))void* userdata, FILE* stream);
+
+extern int luat_vfs_ec618_fclose(__attribute__((unused))void* userdata, FILE* stream) ;
+extern int luat_vfs_ec618_feof(__attribute__((unused))void* userdata, FILE* stream) ;
+extern int luat_vfs_ec618_ferror(__attribute__((unused))void* userdata, __attribute__((unused))FILE *stream) ;
+extern size_t luat_vfs_ec618_fread(__attribute__((unused))void* userdata, void *ptr, size_t size, size_t nmemb, FILE *stream);
+extern size_t luat_vfs_ec618_fwrite(__attribute__((unused))void* userdata, const void *ptr, size_t size, size_t nmemb, FILE *stream) ;
+extern int luat_vfs_ec618_remove(__attribute__((unused))void* userdata, const char *filename) ;
+extern int luat_vfs_ec618_rename(__attribute__((unused))void* userdata, const char *old_filename, const char *new_filename) ;
+extern int luat_vfs_ec618_fexist(__attribute__((unused))void* userdata, const char *filename);
+
+extern size_t luat_vfs_ec618_fsize(__attribute__((unused))void* userdata, const char *filename) ;
+extern int luat_vfs_ec618_truncate(__attribute__((unused))void* userdata, const char* filename, size_t len) ;
+
+extern int luat_vfs_ec618_mkfs(__attribute__((unused))void* userdata, __attribute__((unused))luat_fs_conf_t *conf);
+
+extern int luat_vfs_ec618_mount(__attribute__((unused))void** userdata, __attribute__((unused))luat_fs_conf_t *conf) ;
+
+extern int luat_vfs_ec618_umount(__attribute__((unused))void* userdata, __attribute__((unused))luat_fs_conf_t *conf);
+extern int luat_vfs_ec618_mkdir(__attribute__((unused))void* userdata, __attribute__((unused))char const* _DirName);
+extern int luat_vfs_ec618_rmdir(__attribute__((unused))void* userdata, __attribute__((unused))char const* _DirName);
+
+extern int luat_vfs_ec618_dexist(__attribute__((unused))void* userdata, char const* dir_name);
+
+extern int luat_vfs_ec618_lsdir(__attribute__((unused))void* userdata, char const* dir_name, luat_fs_dirent_t* ents, size_t offset, size_t len);
+
+extern int luat_vfs_ec618_info(__attribute__((unused))void* userdata, __attribute__((unused))const char* path, luat_fs_info_t *conf);
+
+#define T(name) .name = luat_vfs_ec618_##name
+const struct luat_vfs_filesystem vfs_fs_ec618 = {
+    .name = "ec618",
+    .opts = {
+        T(mkfs),
+        T(mount),
+        T(umount),
+        T(mkdir),
+        T(rmdir),
+        T(remove),
+        T(rename),
+        T(fsize),
+        T(fexist),
+        T(info),
+        T(lsdir)
+    },
+    .fopts = {
+        T(fopen),
+        T(getc),
+        T(fseek),
+        T(ftell),
+        T(fclose),
+        T(feof),
+        T(ferror),
+        T(fread),
+        T(fwrite)
+    }
+};
+
+extern const struct luat_vfs_filesystem vfs_fs_lfs2;
+static int fs_inited = 0;
+int luat_fs_init(void) {
+    if (fs_inited)
+        return 0;
+    fs_inited = 1;
+    luat_vfs_reg(&vfs_fs_ec618);
+    luat_vfs_reg(&vfs_fs_lfs2);
+
+	luat_fs_conf_t conf = {
+		.busname = "",
+		.type = "ec618",
+		.filesystem = "ec618",
+		.mount_point = ""
+	};
+	luat_fs_mount(&conf);
+	return 0;
+}
+
+
+extern luat_vfs_mount_t * getmount(const char* filename);
+extern int luat_vfs_lfs2_truncate(void* userdata, const char *filename, size_t len);
+
+int luat_fs_truncate(const char* filename, size_t len) {
+    luat_vfs_mount_t *mount = getmount(filename);
+    if (mount == NULL ) return -1;
+    if (strcmp(mount->fs->name, "lfs2") == 0) {
+        return luat_vfs_lfs2_truncate(mount->userdata, filename + strlen(mount->prefix), len);
+    }else if(strcmp(mount->fs->name, "ec618") == 0){
+        return luat_vfs_ec618_truncate(NULL, filename, len);
+    }
+    return -1;
+}
+
+
 int luat_fs_mkfs(luat_fs_conf_t *conf) {
     for (size_t j = 0; j < LUAT_VFS_FILESYSTEM_MOUNT_MAX; j++) {
         if (vfs.mounted[j].ok == 0)
