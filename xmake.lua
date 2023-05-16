@@ -130,8 +130,7 @@ add_defines("__EC618",
             "__USER_CODE__",
             "__PRINT_ALIGNED_32BIT__",
             "_REENT_SMALL",
-            "_REENT_GLOBAL_ATEXIT",
-            "LUAT_USE_FS_VFS"
+            "_REENT_GLOBAL_ATEXIT"
 )
 
 if is_rndis then
@@ -375,7 +374,6 @@ target(USER_PROJECT_NAME..".elf")
     if USER_PROJECT_NAME ~= 'luatos' then
         add_files(SDK_TOP.."/thirdparty/fal/src/*.c",{public = true})
         add_files(SDK_TOP.."/thirdparty/flashdb/src/*.c",{public = true})
-        add_files(SDK_TOP .. "/thirdparty/vfs/*.c",{public = true})
     else
         remove_files(SDK_TOP .. "/interface/src/luat_kv_ec618.c"
 	)

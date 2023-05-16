@@ -446,57 +446,57 @@ int luat_fs_truncate(const char* filename, size_t len) {
 
 #else
 
-FILE* luat_fs_fopen(const char *filename, const char *mode) {
+__attribute__((weak)) FILE* luat_fs_fopen(const char *filename, const char *mode) {
     return luat_vfs_ec618_fopen(NULL, filename, mode);
 }
 
-int luat_fs_getc(FILE* stream) {
+__attribute__((weak)) int luat_fs_getc(FILE* stream) {
     return luat_vfs_ec618_getc(NULL, stream);
 }
 
-int luat_fs_fseek(FILE* stream, long int offset, int origin) {
+__attribute__((weak)) int luat_fs_fseek(FILE* stream, long int offset, int origin) {
     return luat_vfs_ec618_fseek(NULL, stream, offset, origin);
 }
 
-int luat_fs_ftell(FILE* stream) {
+__attribute__((weak)) int luat_fs_ftell(FILE* stream) {
     return luat_vfs_ec618_ftell(NULL, stream);
 }
 
-int luat_fs_fclose(FILE* stream) {
+__attribute__((weak)) int luat_fs_fclose(FILE* stream) {
     return luat_vfs_ec618_fclose(NULL, stream);
 }
 
-int luat_fs_feof(FILE* stream) {
+__attribute__((weak)) int luat_fs_feof(FILE* stream) {
     return luat_vfs_ec618_feof(NULL, stream);
 }
 
-int luat_fs_ferror(FILE *stream) {
+__attribute__((weak)) int luat_fs_ferror(FILE *stream) {
     return luat_vfs_ec618_ferror(NULL, stream);
 }
 
 
-size_t luat_fs_fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+__attribute__((weak)) size_t luat_fs_fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     return luat_vfs_ec618_fread(NULL, ptr, size, nmemb, stream);
 }
 
-size_t luat_fs_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
+__attribute__((weak)) size_t luat_fs_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
     return luat_vfs_ec618_fwrite(NULL, ptr, size, nmemb, stream);
 }
 
-int luat_fs_remove(const char *filename) {
+__attribute__((weak)) int luat_fs_remove(const char *filename) {
     return luat_vfs_ec618_remove(NULL, filename);
 }
 
-int luat_fs_rename(const char *old_filename, const char *new_filename) {
+__attribute__((weak)) int luat_fs_rename(const char *old_filename, const char *new_filename) {
     return luat_vfs_ec618_rename(NULL, old_filename, new_filename);
 }
 
 
-size_t luat_fs_fsize(const char *filename) {
+__attribute__((weak)) size_t luat_fs_fsize(const char *filename) {
     return luat_vfs_ec618_fsize(NULL, filename);
 }
 
-int luat_fs_fexist(const char *filename) {
+__attribute__((weak)) int luat_fs_fexist(const char *filename) {
     return luat_vfs_ec618_fexist(NULL, filename);
 }
 
@@ -505,7 +505,7 @@ int luat_fs_fexist(const char *filename) {
 // }
 
 
-int luat_fs_truncate(const char* filename, size_t len) {
+__attribute__((weak)) int luat_fs_truncate(const char* filename, size_t len) {
     return luat_vfs_ec618_truncate(NULL, filename, len);
 }
 
@@ -513,32 +513,32 @@ int luat_fs_truncate(const char* filename, size_t len) {
 
 // 文件夹相关的API
 
-int luat_fs_mkdir(char const* dir) {
+__attribute__((weak)) int luat_fs_mkdir(char const* dir) {
     return luat_vfs_ec618_mkdir(NULL, dir);
 }
 
-int luat_fs_rmdir(char const* dir) {
+__attribute__((weak)) int luat_fs_rmdir(char const* dir) {
     return luat_vfs_ec618_rmdir(NULL, dir);
 }
 
-int luat_fs_lsdir(char const* dir, luat_fs_dirent_t* ents, size_t offset, size_t len) {
+__attribute__((weak)) int luat_fs_lsdir(char const* dir, luat_fs_dirent_t* ents, size_t offset, size_t len) {
     return luat_vfs_ec618_lsdir(NULL, dir, ents, offset, len);
 }
 
-int luat_fs_dexist(char const *dir){
+__attribute__((weak)) int luat_fs_dexist(char const *dir){
     return luat_vfs_ec618_dexist(NULL, dir);
 }
 
-int luat_fs_init(void) {
+__attribute__((weak)) int luat_fs_init(void) {
     return 0;
 }
 
-int luat_fs_info(const char* path, luat_fs_info_t *info){
+__attribute__((weak)) int luat_fs_info(const char* path, luat_fs_info_t *info){
     return luat_vfs_ec618_info(NULL, path, info);
 }
 
 extern int lfs_ready;
-int luat_fs_ready(void) {
+__attribute__((weak)) int luat_fs_ready(void) {
     return lfs_ready;
 }
 

@@ -3,7 +3,7 @@
 #include "luat_base.h"
 #include "luat_fs.h"
 
-
+#include "luat_vfs.h"
 #include "luat_debug.h"
 #define LLOGD LUAT_DEBUG_PRINT
 #define LLOGE LUAT_DEBUG_PRINT
