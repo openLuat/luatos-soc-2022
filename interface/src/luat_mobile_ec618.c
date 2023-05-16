@@ -192,6 +192,34 @@ int luat_mobile_set_sim_pin(int sim_id, uint8_t operation, char pin1[9], char pi
 	return appSetPinOperationSync(&pPinOperReqParams);
 }
 
+int luat_mobile_soft_sim_switch(uint8_t enable)
+{
+	if(enable != 0 && enable != 1)
+	{
+		return -1;
+	}
+	EcSimCfgSetParams cfg = {0};
+	cfg.softsimPresent = TRUE;
+	cfg.bSoftSim = enable;
+	return appSetECSIMCFGSync(&cfg);
+}
+
+
+int luat_mobile_get_soft_sim_cfg(uint8_t *is_soft_sim)
+{
+	if(is_soft_sim == NULL)
+	{
+		return -1;
+	}
+	EcSimCfgGetParams cfg = {0};
+	if(appGetECSIMCFGSync(&cfg) != CMS_RET_SUCC)
+	{
+		return -1;
+	}
+	*is_soft_sim = cfg.bSoftSim;
+	return 0;
+}
+
 uint8_t luat_mobile_get_sim_ready(int id)
 {
 	return soc_mobile_get_sim_state();
@@ -758,7 +786,6 @@ int luat_mobile_set_band(uint8_t *band,  uint8_t total_num)
 {
 	return (appSetBandModeSync(total_num, band) == 0)?0:-1;
 }
-
 
 #ifdef __LUATOS__
 int luat_mobile_config(uint8_t item, uint32_t value)
