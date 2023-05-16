@@ -385,6 +385,7 @@ int luat_fs_init(void) {
     if (fs_inited)
         return 0;
     fs_inited = 1;
+    luat_vfs_init(NULL);
     luat_vfs_reg(&vfs_fs_ec618);
     luat_vfs_reg(&vfs_fs_lfs2);
 #ifdef __LUATOS__
