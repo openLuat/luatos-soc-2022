@@ -32,6 +32,14 @@
 
 #include "lfs.h"
 
+/*
+
+    注意,sfud下的文件操作目前线程不安全,需要注意!!!!!!!!
+
+*/
+
+
+
 luat_rtos_task_handle sfud_task_handle;
 
 static int print_fs_info(const char* dir_path)
