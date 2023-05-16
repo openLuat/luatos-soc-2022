@@ -1,7 +1,6 @@
 
 #include "luat_base.h"
 #include "luat_fs.h"
-// #include "luat_spi.h"
 #include "luat_mem.h"
 
 #include "luat_debug.h"
@@ -288,6 +287,17 @@ int luat_vfs_lfs2_info(void* userdata, const char* path, luat_fs_info_t *conf) {
     conf->block_size = fs->cfg->block_size;
     //LLOGD("total %d used %d size %d", conf->total_block, conf->block_used, conf->block_size);
     return 0;
+}
+
+int luat_vfs_lfs2_truncate(void* userdata, const char *filename, size_t len) {
+    FILE *fd;
+    int ret = -1;
+    fd = luat_vfs_lfs2_fopen(userdata, filename, "rb");
+    if (fd) {
+        ret = lfs_file_truncate((lfs_t*)userdata, (lfs_file_t*)fd ,(lfs_off_t)len);
+        luat_vfs_lfs2_fclose(userdata, fd);
+    }
+    return ret;
 }
 
 #define T(name) .name = luat_vfs_lfs2_##name

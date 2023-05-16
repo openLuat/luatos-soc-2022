@@ -369,8 +369,8 @@ const struct luat_vfs_filesystem vfs_fs_ec618 = {
     }
 };
 
-#ifdef __LUATOS__
 extern const struct luat_vfs_filesystem vfs_fs_lfs2;
+#ifdef __LUATOS__
 extern const struct luat_vfs_filesystem vfs_fs_luadb;
 extern const struct luat_vfs_filesystem vfs_fs_ram;
 void luat_lv_fs_init(void);
@@ -386,10 +386,18 @@ int luat_fs_init(void) {
         return 0;
     fs_inited = 1;
     luat_vfs_reg(&vfs_fs_ec618);
-#ifdef __LUATOS__
     luat_vfs_reg(&vfs_fs_lfs2);
+#ifdef __LUATOS__
 	luat_vfs_reg(&vfs_fs_luadb);
     luat_vfs_reg(&vfs_fs_ram);
+
+    luat_fs_conf_t conf3 = {
+		.busname = NULL,
+		.type = "ram",
+		.filesystem = "ram",
+		.mount_point = "/ram/"
+	};
+	luat_fs_mount(&conf3);
 #endif
 
 	luat_fs_conf_t conf = {
@@ -399,14 +407,6 @@ int luat_fs_init(void) {
 		.mount_point = ""
 	};
 	luat_fs_mount(&conf);
-
-    luat_fs_conf_t conf3 = {
-		.busname = NULL,
-		.type = "ram",
-		.filesystem = "ram",
-		.mount_point = "/ram/"
-	};
-	luat_fs_mount(&conf3);
 
 #ifdef __LUATOS__
     #define LUADB_ADDR ((uint32_t)LUA_SCRIPT_ADDR | AP_FLASH_XIP_ADDR)
@@ -429,8 +429,19 @@ int luat_fs_init(void) {
 	return 0;
 }
 
+
+extern luat_vfs_mount_t * getmount(const char* filename);
+extern int luat_vfs_lfs2_truncate(void* userdata, const char *filename, size_t len);
+
 int luat_fs_truncate(const char* filename, size_t len) {
-    return luat_vfs_ec618_truncate(NULL, filename, len);
+    luat_vfs_mount_t *mount = getmount(filename);
+    if (mount == NULL ) return -1;
+    if (strcmp(mount->fs->name, "lfs2") == 0) {
+        return luat_vfs_lfs2_truncate(mount->userdata, filename + strlen(mount->prefix), len);
+    }else if(strcmp(mount->fs->name, "ec618") == 0){
+        return luat_vfs_ec618_truncate(NULL, filename, len);
+    }
+    return -1;
 }
 
 #else
