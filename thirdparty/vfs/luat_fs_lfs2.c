@@ -292,7 +292,7 @@ int luat_vfs_lfs2_info(void* userdata, const char* path, luat_fs_info_t *conf) {
 int luat_vfs_lfs2_truncate(void* userdata, const char *filename, size_t len) {
     FILE *fd;
     int ret = -1;
-    fd = luat_vfs_lfs2_fopen(userdata, filename, "rb");
+    fd = luat_vfs_lfs2_fopen(userdata, filename, "wb");
     if (fd) {
         ret = lfs_file_truncate((lfs_t*)userdata, (lfs_file_t*)fd ,(lfs_off_t)len);
         luat_vfs_lfs2_fclose(userdata, fd);
