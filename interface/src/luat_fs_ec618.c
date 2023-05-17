@@ -391,14 +391,6 @@ int luat_fs_init(void) {
 #ifdef __LUATOS__
 	luat_vfs_reg(&vfs_fs_luadb);
     luat_vfs_reg(&vfs_fs_ram);
-
-    luat_fs_conf_t conf3 = {
-		.busname = NULL,
-		.type = "ram",
-		.filesystem = "ram",
-		.mount_point = "/ram/"
-	};
-	luat_fs_mount(&conf3);
 #endif
 
 	luat_fs_conf_t conf = {
@@ -408,6 +400,16 @@ int luat_fs_init(void) {
 		.mount_point = ""
 	};
 	luat_fs_mount(&conf);
+
+#ifdef __LUATOS__
+    luat_fs_conf_t conf3 = {
+		.busname = NULL,
+		.type = "ram",
+		.filesystem = "ram",
+		.mount_point = "/ram/"
+	};
+	luat_fs_mount(&conf3);
+#endif
 
 #ifdef __LUATOS__
     #define LUADB_ADDR ((uint32_t)LUA_SCRIPT_ADDR | AP_FLASH_XIP_ADDR)
