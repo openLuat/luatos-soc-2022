@@ -85,8 +85,8 @@
                         "dft": false
                     },
                     {
-                        "name": "PG_APP_2816_FOTA_512_FS_480",
-                        "content": "方案3 APP分区2816k,fota区512k,文件系统480k",
+                        "name": "PG_APP_2816_FOTA_512_FS_416",
+                        "content": "方案3 APP分区2816k,fota区512k,文件系统416k",
                         "rsize": 3756,
                         "fsize": 275108,
                         "dft": false
