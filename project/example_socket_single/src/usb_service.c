@@ -14,9 +14,7 @@
 
 
 // static luat_rtos_task_handle usb_task_handle;
-//usb在电脑上枚举出的第3个口为数据通信口
-//此端口的ID为4
-#define USB_DATA_PORT_ID 4
+
 
 //仅仅测试使用，写的不够健壮
 #define USB_RECV_BUFFER_SIZE 256
@@ -42,11 +40,11 @@ static void parse_recv_data(char* data, uint32_t len)
         if(sscanf(g_s_recv_buff, "port,%d", &port))
         {
             socket_service_set_remote_port(port);
-            luat_uart_write(USB_DATA_PORT_ID, "\r\nOK\r\n", 6);
+            luat_uart_write(LUAT_VUART_ID_0, "\r\nOK\r\n", 6);
         }
         else
         {
-            luat_uart_write(USB_DATA_PORT_ID, "\r\nERROR\r\n", 9);
+            luat_uart_write(LUAT_VUART_ID_0, "\r\nERROR\r\n", 9);
         }
 
         goto exit;
@@ -75,10 +73,10 @@ static void usb_recv_cb(int uart_id, uint32_t data_len){
 void usb_service_init(void)
 {
     luat_uart_t uart = {
-        .id = USB_DATA_PORT_ID,
+        .id = LUAT_VUART_ID_0,
     };
     luat_uart_setup(&uart);
-    luat_uart_ctrl(USB_DATA_PORT_ID, LUAT_UART_SET_RECV_CALLBACK, usb_recv_cb);
+    luat_uart_ctrl(LUAT_VUART_ID_0, LUAT_UART_SET_RECV_CALLBACK, usb_recv_cb);
 }
 
 
