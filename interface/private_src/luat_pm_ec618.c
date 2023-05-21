@@ -311,7 +311,23 @@ int luat_pm_get_poweron_reason(void)
 {
     LastResetState_e apRstState,cpRstState;
 	ResetStateGet(&apRstState, &cpRstState);
+	DBG("ap %d,cp %d", apRstState, cpRstState);
 	int id = 0;
+
+	switch(cpRstState)
+	{
+	case LAST_RESET_HARDFAULT:
+	case LAST_RESET_ASSERT:
+		return LUAT_PM_POWERON_REASON_EXCEPTION;
+		break;
+	case LAST_RESET_WDTSW:
+	case LAST_RESET_WDTHW:
+	case LAST_RESET_LOCKUP:
+	case LAST_RESET_AONWDT:
+		return LUAT_PM_POWERON_REASON_WDT;
+		break;
+	}
+
 	switch(apRstState)
 	{
 	case LAST_RESET_POR:
