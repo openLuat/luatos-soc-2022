@@ -707,6 +707,7 @@ enum
 	MOBILE_CONF_USERDRXCYCLE,
 	MOBILE_CONF_T3324MAXVALUE,
 	MOBILE_CONF_PSM_MODE,
+	MOBILE_CONF_CE_MODE,
 };
 #endif
 /**
@@ -716,7 +717,6 @@ enum
  * @return 成功返回0，其他失败
  */
 int luat_mobile_config(uint8_t item, uint32_t value);
-
 /** @}*/
 
 #endif

@@ -829,6 +829,16 @@ static CmsRetId luatSetPSMSettingTest(UINT8 psmMode)
     return cmsRet;
 }
 
+static void luat_mobile_set_attach_type_ec618(UINT16 paramSize, void *pParam)
+{
+	uint32_t value;
+	memcpy(value, pParam, 4);
+	DBG("CE MODE %d", value);
+	if (value <= CMI_PS_MODE_1_OF_OPERATION)
+	{
+		psSetCemode(PS_DIAL_REQ_HANDLER, value);
+	}
+}
 
 int luat_mobile_config(uint8_t item, uint32_t value)
 {
@@ -861,6 +871,9 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 			return -1;
 		}
 		return 0;
+	case MOBILE_CONF_CE_MODE:
+		cmsNonBlockApiCall(luat_mobile_set_attach_type_ec618, 4, &value);
+		return 0;
 		break;
 	default:
 		return -1;
@@ -871,4 +884,7 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 	}
 	return 0;
 }
+
+
+
 
