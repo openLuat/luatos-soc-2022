@@ -697,5 +697,26 @@ int luat_mobile_get_band(uint8_t *band,  uint8_t *total_num);
  * @return 成功返回0，其他失败
  */
 int luat_mobile_set_band(uint8_t *band,  uint8_t total_num);
+
+#ifndef __LUATOS__
+enum
+{
+	MOBILE_CONF_RESELTOWEAKNCELL = 1,
+	MOBILE_CONF_STATICCONFIG,
+	MOBILE_CONF_QUALITYFIRST,
+	MOBILE_CONF_USERDRXCYCLE,
+	MOBILE_CONF_T3324MAXVALUE,
+	MOBILE_CONF_PSM_MODE,
+};
+#endif
+/**
+ * @brief LTE协议栈功能特殊配置
+ * @param item 见MOBILE_CONF_XXX
+ * @param value 配置值
+ * @return 成功返回0，其他失败
+ */
+int luat_mobile_config(uint8_t item, uint32_t value);
+
 /** @}*/
+
 #endif

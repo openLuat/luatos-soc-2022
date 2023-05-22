@@ -787,7 +787,49 @@ int luat_mobile_set_band(uint8_t *band,  uint8_t total_num)
 	return (appSetBandModeSync(total_num, band) == 0)?0:-1;
 }
 
-#ifdef __LUATOS__
+
+static CmsRetId luatSetPSMSettingTest(UINT8 psmMode)
+{
+    CmsRetId            cmsRet = CMS_RET_SUCC;
+    AppPsCmiReqData     psCmiReqData = {0};   //20 bytes
+    CmiMmSetPsmParmReq  cmiReq;
+    CmiMmSetPsmParmCnf  cmiCnf;
+    UINT8               bitmap = 0;
+
+    memset(&cmiReq, 0, sizeof(CmiMmSetPsmParmReq));
+    cmiReq.mode = psmMode;
+
+    psCmiReqData.sgId       = CAM_MM;
+    psCmiReqData.reqPrimId  = CMI_MM_SET_REQUESTED_PSM_PARM_REQ;
+    psCmiReqData.cnfPrimId  = CMI_MM_SET_REQUESTED_PSM_PARM_CNF;
+    psCmiReqData.reqParamLen = sizeof(cmiReq);
+    psCmiReqData.pReqParam  = &cmiReq;
+
+    /* output here */
+    psCmiReqData.cnfBufLen = sizeof(cmiCnf);
+    psCmiReqData.pCnfBuf   = &cmiCnf;
+
+    cmsRet = appPsCmiReq(&psCmiReqData, CMS_MAX_DELAY_MS);
+
+    if (cmsRet == CMS_RET_SUCC && psCmiReqData.cnfRc == CME_SUCC)
+    {
+        cmsRet = CMS_RET_SUCC;
+    }
+    else
+    {
+        OsaDebugBegin(FALSE, cmsRet, psCmiReqData.cnfRc, 0);
+        OsaDebugEnd();
+
+        if (cmsRet == CMS_RET_SUCC)
+        {
+            cmsRet = psSyncProcErrCode(psCmiReqData.cnfRc);
+        }
+    }
+
+    return cmsRet;
+}
+
+
 int luat_mobile_config(uint8_t item, uint32_t value)
 {
 	EcCfgSetParamsReq req = {0};
@@ -809,6 +851,17 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 		req.userDrxCycle = value;
 		req.userDrxCyclePresent = 1;
 		break;
+	case MOBILE_CONF_T3324MAXVALUE:
+		req.t3324MaxValueS = value;
+		req.t3324MaxValuePresent = 1;
+		break;
+	case MOBILE_CONF_PSM_MODE:
+		if (luatSetPSMSettingTest(value) != CMS_RET_SUCC)
+		{
+			return -1;
+		}
+		return 0;
+		break;
 	default:
 		return -1;
 	}
@@ -818,4 +871,4 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 	}
 	return 0;
 }
-#endif
+
