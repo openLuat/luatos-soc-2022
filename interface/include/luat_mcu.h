@@ -65,7 +65,7 @@ long luat_mcu_ticks(void);
 uint32_t luat_mcu_hz(void);
 
 /**
- * @brief 获取tick计数,64位的
+ * @brief 获取tick计数,64位的,对应频率26Mhz
  * 
  * @return uint64_t tick计数
  */
@@ -81,7 +81,7 @@ int luat_mcu_us_period(void);
 /**
  * @brief 开机至今的毫秒数
  * 
- * @return uint64_t 毫秒数,休眠后会继续累计,但精度比其他tick要低
+ * @return uint64_t 毫秒数,单位1ms,休眠后会继续累计,但精度比其他tick要低
  */
 uint64_t luat_mcu_tick64_ms(void);
 
