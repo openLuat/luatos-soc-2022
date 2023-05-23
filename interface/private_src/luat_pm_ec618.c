@@ -354,8 +354,11 @@ int luat_pm_get_poweron_reason(void)
 	case LAST_RESET_FOTA:
 		id = LUAT_PM_POWERON_REASON_FOTA;
 		break;
+	case LAST_RESET_CPRESET:
+		id = 100 + cpRstState;
+		break;
 	default:
-		id = LUAT_PM_POWERON_REASON_UNKNOWN;
+		id = 200 + cpRstState;
 		break;
 	}
 	return id;
