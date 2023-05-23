@@ -121,6 +121,8 @@ static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
 	switch (event)
 	{
 	case MQTT_MSG_CONNACK:{
+		LUAT_DEBUG_PRINT("mqtt_connect ok");
+
 		LUAT_DEBUG_PRINT("mqtt_subscribe");
 		uint16_t msgid = 0;
 		mqtt_subscribe(&(luat_mqtt_ctrl->broker), mqtt_sub_topic, &msgid, 1);
@@ -208,7 +210,7 @@ static void luat_mqtt_task(void *param)
 		luat_mqtt_close_socket(luat_mqtt_ctrl);
 		return;
 	}
-	LUAT_DEBUG_PRINT("mqtt_connect ok");
+	LUAT_DEBUG_PRINT("wait mqtt_state ...");
 
 	while(1){
 		if (luat_mqtt_ctrl->mqtt_state){
