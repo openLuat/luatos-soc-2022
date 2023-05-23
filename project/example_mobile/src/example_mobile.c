@@ -240,6 +240,7 @@ void task_init(void)
 	luat_mobile_event_register_handler(mobile_event_cb);
 	luat_mobile_sms_event_register_handler(sms_event_cb);
 	luat_mobile_set_period_work(90000, 0, 4);
+	luat_mobile_set_check_network_period(120000);
 	luat_mobile_set_sim_id(2);
 	luat_mobile_set_sim_detect_sim0_fisrt();
 	luat_rtos_task_handle task_handle;
