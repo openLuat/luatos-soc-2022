@@ -160,7 +160,7 @@ uint8_t luat_mobile_get_sim_ready(int id);
  * @brief 在自动选择模式时，开机后优先用sim0
  *
  */
-void luat_mobile_set_sim_detect_sim0_fisrt(void);
+void luat_mobile_set_sim_detect_sim0_first(void);
 
 
 /**
