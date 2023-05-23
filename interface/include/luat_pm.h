@@ -333,7 +333,12 @@ int luat_pm_get_wakeup_reason(void);
  * @return int =0成功，其他失败
  */
 int luat_pm_set_usb_power(uint8_t onoff);
-
+/**
+ * @brief 手动控制GPS电源(仅适用780EG)
+ * @param onoff 0关，1 开
+ * @return int =0成功，其他失败
+ */
+int laut_pm_set_gnss_power(uint8_t onoff);
 /**@}*/
 
 
