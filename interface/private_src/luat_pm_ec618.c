@@ -29,6 +29,8 @@
 #include "reset.h"
 #include "pwrkey.h"
 #include "luat_gpio.h"
+#include "luat_gpio_legacy.h"
+#include "platform_define.h"
 extern void soc_usb_onoff(uint8_t onoff);
 extern void soc_set_usb_sleep(uint8_t onoff);
 static uint32_t reportMode[LUAT_PM_SLEEP_MODE_STANDBY + 1][10] = {0};
@@ -435,4 +437,26 @@ uint32_t luat_pm_get_deep_sleep_mode_timer_remain_time(LUAT_PM_DEEPSLEEP_TIMERID
 int luat_pm_get_wakeup_reason()
 {
     return slpManGetWakeupSrc();
+}
+
+int laut_pm_set_gnss_power(uint8_t onoff)
+{
+    int ret=-1;
+    if (1 == onoff)
+    {
+        luat_gpio_close(HAL_GPIO_13);
+        luat_gpio_cfg_t cfg = {0};
+        cfg.pin = HAL_GPIO_13;
+        cfg.mode = LUAT_GPIO_OUTPUT;
+        cfg.output_level = 1;
+        cfg.alt_fun = 4;
+        ret=luat_gpio_open(&cfg);
+        return ret;
+    }
+    else if (0 == onoff)
+    {
+        ret=luat_gpio_set(HAL_GPIO_13, 0);
+        return ret;
+    }
+    return ret;
 }
