@@ -242,7 +242,7 @@ void task_init(void)
 	luat_mobile_set_period_work(90000, 0, 4);
 	luat_mobile_set_check_network_period(120000);
 	luat_mobile_set_sim_id(2);
-	luat_mobile_set_sim_detect_sim0_fisrt();
+	luat_mobile_set_sim_detect_sim0_first();
 	luat_rtos_task_handle task_handle;
 	luat_rtos_task_create(&task_handle, 8*1024, 50, "test", task_run, NULL, 32);
 }
