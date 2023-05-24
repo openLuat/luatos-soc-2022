@@ -330,15 +330,15 @@ static void luat_test_task(void *param)
 	network_set_base_mode(netc, 1, 15000, 0, 0, 0, 0);	//http基于TCP
 	netc->is_debug = 0;
 	luat_ip_addr_t remote_ip;
-//	const char remote_domain[] = "www.air32.cn";
-//	const char mp3_file_name[] = "test_44K.mp3";
+	const char remote_domain[] = "www.air32.cn";
+	const char mp3_file_name[] = "test_44K.mp3";
 	// https测试
-	const char remote_domain[] = "xz.tingmall.com";
-	const char mp3_file_name[] = "preview/66/796/66796732-MP3-64K-FTD-P.mp3?sign=7e741f41bd9df27673da780ad073333a&t=64814ab6&transDeliveryCode=HW@2147483647@1686194870@S@8f00b204e9800998";
+//	const char remote_domain[] = "xz.tingmall.com";
+//	const char mp3_file_name[] = "preview/66/796/66796732-MP3-64K-FTD-P.mp3?sign=7e741f41bd9df27673da780ad073333a&t=64814ab6&transDeliveryCode=HW@2147483647@1686194870@S@8f00b204e9800998";
 	int port = 80;
 	// 如果是HTTPS，走443端口，并配置ssl
-	port = 443;
-	network_init_tls(netc, MBEDTLS_SSL_VERIFY_NONE);
+//	port = 443;
+//	network_init_tls(netc, MBEDTLS_SSL_VERIFY_NONE);
 	uint32_t dummy_len, start, end, total, i, data_len, download_len;
 	int tx_len = 0;
 	uint8_t *tx_data = malloc(1024);
