@@ -40,6 +40,10 @@ typedef enum LUAT_DEBUG_FAULT_MODE
 
 /**
  * @brief 格式打印并输出到LOG口
+ * 优先尝试打印soc log	 （USB口输出log    luatools查看）
+ * 其次epat log			（USB口输出log    EPAT查看）
+ * 最后uart0 log		（UART0口输出log  EPAT查看）
+ * 用luatools查看日志时：在中断里最多打印64字节数据，在task内最多打印1k字节数据；在task内调用时，需要一定大小的栈空间
  * 
  * @param fmt 格式
  * @param ... 后续变量
