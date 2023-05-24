@@ -162,12 +162,15 @@ int luat_spi_transfer(int spi_id, const char* send_buf, size_t send_length, char
 int luat_spi_recv(int spi_id, char* recv_buf, size_t length) {
     if (!spi_exist(spi_id))
         return -1;
+    SPI_SetDMAEnable(spi_id, 0);
     if (SPI_BlockTransfer(spi_id, recv_buf, recv_buf, length))
     {
+    	SPI_SetDMAEnable(spi_id, 1);
     	return 0;
     }
     else
     {
+    	SPI_SetDMAEnable(spi_id, 1);
     	return length;
     }
 }
