@@ -77,8 +77,7 @@ int32_t luat_get_wifiscan_cell_info(luat_wifiscan_set_info_t * set_info,luat_wif
     return -1;
 }
 
-#ifndef __LUATOS__
-void luat_wlan_scan_ec618(UINT16 paramSize, void *pParam)
+void luat_wlan_scan_nonblock_init(UINT16 paramSize, void *pParam)
 {
 	devSetWIFISCAN(PS_DIAL_REQ_HANDLER, pParam);
 }
@@ -99,7 +98,6 @@ int luat_wlan_scan_nonblock(luat_wifiscan_set_info_t * set_info)
     wifiscanreq.channelRecLen=set_info->channelRecLen;
     wifiscanreq.channelCount=set_info->channelCount;
     wifiscanreq.channelId[0]=set_info->channelId[0];
-	ret=cmsNonBlockApiCall(luat_wlan_scan_ec618, sizeof(wifiscanreq), &wifiscanreq);
+	ret=cmsNonBlockApiCall(luat_wlan_scan_nonblock_init, sizeof(wifiscanreq), &wifiscanreq);
     return ret;
 }
-#endif
