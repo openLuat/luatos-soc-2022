@@ -19,7 +19,7 @@
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
 #define MP3_BUFFER_LEN_LOW	(20 * 1024)
-#define MP3_BUFFER_LEN_HIGH	(40 * 1024)
+#define MP3_BUFFER_LEN_HIGH	(30 * 1024)
 #define MP3_FRAME_LEN (4 * 1152)
 #define MP3_MAX_CODED_FRAME_SIZE 1792
 static HANDLE g_s_delay_timer;
