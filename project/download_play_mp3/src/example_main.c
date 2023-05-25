@@ -19,7 +19,7 @@
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
 #define MP3_BUFFER_LEN_LOW	(20 * 1024)
-#define MP3_BUFFER_LEN_HIGH	(30 * 1024)
+#define MP3_BUFFER_LEN_HIGH	(40 * 1024)
 #define MP3_FRAME_LEN (4 * 1152)
 #define MP3_MAX_CODED_FRAME_SIZE 1792
 static HANDLE g_s_delay_timer;
@@ -33,6 +33,7 @@ static uint8_t g_s_mp3_error;
 static uint8_t g_s_mp3_wait_start;
 static uint8_t g_s_mp3_pause;
 static void *g_s_mp3_decoder;	//不用的时候可以free掉，本demo由于是循环播放，没有free
+static uint16_t g_s_mp3_dummy;
 enum
 {
 	AUDIO_NEED_DATA = 1,
@@ -44,7 +45,17 @@ void app_pa_on(uint32_t arg)
 {
 	luat_gpio_set(PA_PWR_PIN, 1);
 }
-
+void run_mp3_add_blank(uint8_t *data, uint32_t len)
+{
+	int16_t *dummy_data = malloc(8192);
+	for(int i = 0; i < 4096; i++)
+	{
+		dummy_data[i] = g_s_mp3_dummy;
+	}
+	luat_audio_play_write_raw(0, dummy_data, 8192);
+	luat_audio_play_write_raw(0, dummy_data, 8192);
+	free(dummy_data);
+}
 void run_mp3_decode(uint8_t *data, uint32_t len)
 {
 	if (data)
@@ -70,23 +81,28 @@ void run_mp3_decode(uint8_t *data, uint32_t len)
 			}
 			return;
 		}
-		if (g_s_mp3_pause)
+		if (g_s_mp3_pause )
 		{
-			g_s_mp3_pause = 0;
-			run_mp3_play(0);
+			if ((g_s_mp3_buffer.Pos >= 8192) || !g_s_mp3_downloading)
+			{
+				g_s_mp3_pause = 0;
+				run_mp3_play(0);
+			}
+			return;
 		}
 	}
 	run_mp3_play(0);
-
-}
-
-void run_mp3_add_blank(uint8_t *data, uint32_t len)
-{
-	luat_audio_play_write_blank_raw(0, 6, 1);
+	Audio_StreamStruct *stream = (Audio_StreamStruct *)luat_audio_play_get_stream(0);
+	if (g_s_mp3_downloading && (llist_num(&stream->DataHead) <= 1))
+	{
+		LUAT_DEBUG_PRINT("no data");
+		run_mp3_add_blank(NULL, 0);
+	}
 }
 
 void audio_event_cb(uint32_t event, void *param)
 {
+
 //	PadConfig_t pad_config;
 //	GpioPinConfig_t gpio_config;
 //	LUAT_DEBUG_PRINT("%d", event);
@@ -166,6 +182,8 @@ int run_mp3_play(uint8_t is_start)
 				if (result > 0)
 				{
 					g_s_pcm_buffer.Pos += out_len;
+					//记录下最后一个采样数据，用于pause时加入空白音
+					memcpy(&g_s_mp3_dummy, g_s_pcm_buffer.Data[g_s_pcm_buffer.Pos - 2], 2);
 				}
 				pos += used;
 
@@ -330,15 +348,16 @@ static void luat_test_task(void *param)
 	network_set_base_mode(netc, 1, 15000, 0, 0, 0, 0);	//http基于TCP
 	netc->is_debug = 0;
 	luat_ip_addr_t remote_ip;
-	const char remote_domain[] = "www.air32.cn";
-	const char mp3_file_name[] = "test_44K.mp3";
-	// https测试
-//	const char remote_domain[] = "xz.tingmall.com";
-//	const char mp3_file_name[] = "preview/66/796/66796732-MP3-64K-FTD-P.mp3?sign=7e741f41bd9df27673da780ad073333a&t=64814ab6&transDeliveryCode=HW@2147483647@1686194870@S@8f00b204e9800998";
+//	const char remote_domain[] = "www.air32.cn";
+//	const char mp3_file_name[] = "test_44K.mp3";
 	int port = 80;
+	// https测试
+	const char remote_domain[] = "xz.tingmall.com";
+	const char mp3_file_name[] = "preview/66/796/66796732-MP3-64K-FTD-P.mp3?sign=7e741f41bd9df27673da780ad073333a&t=64814ab6&transDeliveryCode=HW@2147483647@1686194870@S@8f00b204e9800998";
+
 	// 如果是HTTPS，走443端口，并配置ssl
-//	port = 443;
-//	network_init_tls(netc, MBEDTLS_SSL_VERIFY_NONE);
+	port = 443;
+	network_init_tls(netc, MBEDTLS_SSL_VERIFY_NONE);
 	uint32_t dummy_len, start, end, total, i, data_len, download_len;
 	int tx_len = 0;
 	uint8_t *tx_data = malloc(1024);
@@ -462,9 +481,10 @@ static void luat_test_task(void *param)
 MP3_DOWNLOAD_GO_ON:
 		while(start < total)
 		{
-
+			luat_meminfo_sys(&all, &now_free_block, &min_free_block);
+			LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
 			LUAT_DEBUG_PRINT("MP3文件当前下载%u->%u", start, end);
-			result = network_connect(netc, remote_domain, sizeof(remote_domain) - 1, &remote_ip, port, 30000);
+			result = network_connect(netc, remote_domain, sizeof(remote_domain) - 1, NULL, port, 30000);
 			//发送HTTP请求头，获取MP3文件的头部信息和总长度
 			tx_len = sprintf_(tx_data, head, mp3_file_name, remote_domain, port, start, end);
 			if (result)
