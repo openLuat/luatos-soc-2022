@@ -427,13 +427,14 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 	uint8_t alt = channel / 10;
 	if (alt > 3) return -1;
 	if ((instance >= PWM_CH_MAX) || (instance == 3) || (freq > 13000000)) return -1;
+	CLOCK_setClockSrc(g_s_pwm_table[instance].id, g_s_pwm_table[instance].select);
+	CLOCK_setClockDiv(g_s_pwm_table[instance].id, 1);
 	XIC_DisableIRQ(g_s_pwm_table[instance].irq_line);
 	TIMER_stop(instance);
 	TIMER_deInit(instance);
 	TimerConfig_t config;
 	TIMER_getDefaultConfig(&config);
-	CLOCK_setClockSrc(g_s_pwm_table[instance].id, g_s_pwm_table[instance].select);
-	CLOCK_setClockDiv(g_s_pwm_table[instance].id, 1);
+
 	TIMER_init(instance, &config);
 	if (pulse > 1000) pulse = 1000;
 	g_s_pwm_table[instance].freq = freq;
@@ -444,6 +445,7 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 	uint64_t temp = period;
 	temp *= pulse;
 	uint32_t low_cnt = period - temp / 1000;
+//	DBG("%u,%u", period, low_cnt);
 	/* Set PWM period */
 	EIGEN_TIMER(instance)->TMR[1] = period - 1;
 	switch(pulse)
@@ -455,7 +457,7 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
 		EIGEN_TIMER(instance)->TMR[0] = period - 1;
 		break;
 	default:
-		EIGEN_TIMER(instance)->TMR[0] = low_cnt;
+		EIGEN_TIMER(instance)->TMR[0] = low_cnt?(low_cnt - 1):0;
 		break;
 	}
 
@@ -486,9 +488,9 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
         XIC_EnableIRQ(g_s_pwm_table[instance].irq_line);
         XIC_SuppressOvfIRQ(g_s_pwm_table[instance].irq_line);
     }
-
-    TIMER_start(instance);
+//    DBG("%x,%x,%x,%x", EIGEN_TIMER(instance)->TCTLR, EIGEN_TIMER(instance)->TMR[0], EIGEN_TIMER(instance)->TMR[1], EIGEN_TIMER(instance)->TMR[2]);
     GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_pwm_table[instance].pin[alt].gpio, g_s_pwm_table[instance].pin[alt].gpio_alt), 5, 1, 0);
+    TIMER_start(instance);
     return 0;
 }
 
