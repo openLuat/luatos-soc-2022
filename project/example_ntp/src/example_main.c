@@ -125,11 +125,16 @@ static void task_test_ntp(void *param)
 }
 static void rtc_get_task_demo(void *param)
 {
-	struct tm tblock = {0};
+	struct tm tblock1 = {0};
+	struct tm *tblock2 = NULL;
 	while (1)
 	{
-		luat_rtc_get(&tblock);
-		LUAT_DEBUG_PRINT("%04d/%02d/%02d/ %02d:%02d:%02d %02d", tblock.tm_year + 1900, tblock.tm_mon + 1, tblock.tm_mday, tblock.tm_hour, tblock.tm_min, tblock.tm_sec, tblock.tm_wday);
+		luat_rtc_get(&tblock1);
+		time_t nowtime;
+		time(&nowtime);
+		tblock2 = localtime(&nowtime);
+		LUAT_DEBUG_PRINT("获取UTC时间，%04d/%02d/%02d/ %02d:%02d:%02d %02d", tblock1.tm_year + 1900, tblock1.tm_mon + 1, tblock1.tm_mday, tblock1.tm_hour, tblock1.tm_min, tblock1.tm_sec, tblock1.tm_wday);
+		LUAT_DEBUG_PRINT("获取本地时间，%04d/%02d/%02d/ %02d:%02d:%02d %02d", tblock2->tm_year + 1900, tblock2->tm_mon + 1, tblock2->tm_mday, tblock2->tm_hour, tblock2->tm_min, tblock2->tm_sec, tblock2->tm_wday);
 		luat_rtos_task_sleep(2000);
 	}
 	luat_rtos_task_delete(NULL);
