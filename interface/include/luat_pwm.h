@@ -74,7 +74,7 @@ int luat_pwm_setup(luat_pwm_conf_t* conf);
  *
  * @param channel: 选择PWM通道 可选通道为 0 / 1 / 2 / 4 总计4个通道
  *        period : 设置产生的PWM频率
- *        pulse  : 设置产生的PWM占空比
+ *        pulse  : 设置产生的PWM占空比，单位0.1%
  *        pnum   ：设置产生的PWM个数，若pnum设为0将一直输出PWM
  * @return int
  *         返回值为 0 : 配置PWM成功
@@ -109,13 +109,16 @@ int luat_pwm_close(int channel);
  *        pulse  ：修改pwm占空比值
  * @return int
  */
-/*int luat_pwm_update_dutycycle(int channel,size_t pulse);函数使用方法*/
-/*此函数为修改PWM占空比函数，可在完成配置并打开PWM输出后，根据使用者需求改变PWM输出占空比*/
-/*可用于whiile 循环中，int channel 参数为要修改的PWM通道，size_t pulse 参数为将要输出的目标占空比*/
-/*使用者根据自身使用需求填入相应参数数值即可*/
 int luat_pwm_update_dutycycle(int channel,size_t pulse);
 
-
+/**
+ * @brief 设置PWM输出完成回调，只有open时，pnum不为0才有回调，必须在pwm open前设置
+ * @param channel: 选择pwm通道 可选通道为 0 / 1 / 2 / 4 总计4个通道
+ *        callback  ：回调函数
+ *        param ：回调时用户参数
+ * @return int
+ */
+int luat_pwm_set_callback(int channel, CBFuncEx_t callback, void *param);
 /** @}*/
 
 /** @}*/
