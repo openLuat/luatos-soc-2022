@@ -35,6 +35,16 @@ typedef struct
 
 static demo_ctrl_t g_s_demo;
 luat_rtos_task_handle task_test_ntp_handler,rtc_get_task_handler;
+
+/* 
+// 打开此注释可以禁用从基站同步时间的功能，由用户自有协议控制同步时间
+// return 0时，表示禁用基站同步时间，return 1，表示启用基站同步时间
+int soc_mobile_is_sync_time_enable(void) 
+{
+	return 0;
+} 
+*/
+
 static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
 {
 
@@ -51,6 +61,9 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 			LUAT_DEBUG_PRINT("SIM卡不存在");
 			break;
 		}
+		break;
+	case LUAT_MOBILE_EVENT_TIME_SYNC:
+		LUAT_DEBUG_PRINT("通过移动网络同步了UTC时间");
 		break;
 	case LUAT_MOBILE_EVENT_PDP:
 		LUAT_DEBUG_PRINT("CID %d PDP激活状态变更为 %d", index, status);
@@ -83,7 +96,7 @@ static int32_t ntp_callback(void *data, void *param)
 	if (result->succ)
     {
         time_t _t = result->sec;
-        struct tm *tm_gmt = localtime(&_t);
+        struct tm *tm_gmt = gmtime(&_t);
 		if (luat_rtc_set(tm_gmt)==0)
 		{
 			LUAT_DEBUG_PRINT("ntp done");
