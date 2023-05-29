@@ -190,50 +190,6 @@
                         "dft": false
                     },
                     {
-                        "name": "@tts",
-                        "content": "TTS=离线文本转语音,需开启media,占用200k",
-                        "rsize": 0,
-                        "fsize": 288052,
-                        "dft": false,
-                        "children" : [
-                            {
-                                "name": "tts",
-                                "content": "启用TTS主功能,功能本身占200k. 默认是外挂SPI Flash存放TTS资源",
-                                "rsize": 190240,
-                                "fsize": 288052,
-                                "dft": false
-                            },
-                            {
-                                "name" : "@tts_comment",
-                                "content": "TTS资源很大,区分外挂SPI Flash和直接放模块内,两种配置.默认前者.",
-                                "rsize" : 0,
-                                "fsize" : 288052,
-                                "dft"   : false
-                            },
-                            {
-                                "name" : "tts_onchip",
-                                "content": "将TTS资源直接放在模块里,需要750k的Flash,注意其他库的取舍,否则放不下",
-                                "rsize" : 800000,
-                                "fsize" : 288052,
-                                "dft"   : false
-                            },
-                            {
-                                "name" : "tts_8k",
-                                "content": "选用8k的TTS资源, 音质比16k稍差, 但节省100k空间,仅推荐与tts_onchip搭配",
-                                "rsize" : 1024,
-                                "fsize" : 288052,
-                                "dft"   : false
-                            },
-                            {
-                                "name" : "@tts_16k",
-                                "content": "选用16k的TTS资源,默认也是16k,音质稍好一些",
-                                "rsize" : 0,
-                                "fsize" : 288052,
-                                "dft"   : false
-                            }
-                        ]
-                    },
-                    {
                         "name": "sms",
                         "content": "短信收发,不支持电信卡!!!",
                         "rsize": 60240,
@@ -250,6 +206,50 @@
                 ],
                 "fsize": 287420,
                 "dft": false
+            },
+            {
+                "name": "@tts",
+                "content": "TTS=离线文本转语音,需开启media,占用200k",
+                "rsize": 0,
+                "fsize": 288052,
+                "dft": false,
+                "children" : [
+                    {
+                        "name": "tts",
+                        "content": "启用TTS主功能,功能本身占200k. 默认是外挂SPI Flash存放TTS资源",
+                        "rsize": 190240,
+                        "fsize": 288052,
+                        "dft": false
+                    },
+                    {
+                        "name" : "@tts_comment",
+                        "content": "TTS资源很大,区分外挂SPI Flash和直接放模块内,两种配置.默认前者.",
+                        "rsize" : 0,
+                        "fsize" : 288052,
+                        "dft"   : false
+                    },
+                    {
+                        "name" : "tts_onchip",
+                        "content": "将TTS资源直接放在模块里,需要750k的Flash,注意其他库的取舍,否则放不下",
+                        "rsize" : 800000,
+                        "fsize" : 288052,
+                        "dft"   : false
+                    },
+                    {
+                        "name" : "tts_8k",
+                        "content": "选用8k的TTS资源, 音质比16k稍差, 但节省100k空间,仅推荐与tts_onchip搭配",
+                        "rsize" : 1024,
+                        "fsize" : 288052,
+                        "dft"   : false
+                    },
+                    {
+                        "name" : "@tts_16k",
+                        "content": "选用16k的TTS资源,默认也是16k,音质稍好一些",
+                        "rsize" : 0,
+                        "fsize" : 288052,
+                        "dft"   : false
+                    }
+                ]
             },
             {
                 "icon": "zmdi-card-sd",
@@ -474,6 +474,13 @@
                     {
                         "name": "LUAT_HEAP_SIZE_256K",
                         "content": "Lua内存设置到256k字节, 默认是200k",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "rndis",
+                        "content": "启用RNDIS网卡, lua内存会强制减少到128k",
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
