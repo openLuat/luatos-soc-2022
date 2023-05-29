@@ -175,10 +175,17 @@ void apmuBootDbgGPIOSet(bool level)
              return true to set maximum sleep time to 1165 hour
   \note      false: sleep no more than 36.4 hour, true:  can sleep 1165 hour
  */
+#ifdef __USER_CODE__
+__attribute__((weak)) bool apmuGetLongSlpCfg(void)
+{
+	return true;
+}
+#else
 bool apmuGetLongSlpCfg(void)
 {
     return false;       
 }
+#endif
 
 ClockId_e CLOCK_checkClkID(void)
 {
