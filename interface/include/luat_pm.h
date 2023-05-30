@@ -35,6 +35,10 @@
 #define LUAT_PM_SLEEP_MODE_DEEP 3	 ///< 深度睡眠模式，CPU 停止，仅少数低功耗外设工作，可被特殊中断唤醒
 #define LUAT_PM_SLEEP_MODE_STANDBY 4 ///< 待机模式，CPU 停止，设备上下文丢失(可保存至特殊外设)，唤醒后通常复位
 //#define LUAT_PM_SLEEP_MODE_SHUTDOWN	5	///<关断模式，比 Standby 模式功耗更低， 上下文通常不可恢复， 唤醒后复位
+#define LUAT_PM_POWER_MODE_NORMAL (0)	///< 去除所有降低功耗的措施
+#define LUAT_PM_POWER_MODE_HIGH_PERFORMANCE (1)	///< 尽可能保持性能，兼顾低功耗，使用LUAT_PM_SLEEP_MODE_LIGHT
+#define LUAT_PM_POWER_MODE_BALANCED (2) ///< 性能和功耗平衡，使用LUAT_PM_SLEEP_MODE_LIGHT
+#define LUAT_PM_POWER_MODE_POWER_SAVER (3) ///< 超低功耗，使用LUAT_PM_SLEEP_MODE_STANDBY，进入PSM模式
 
 /**
  * @brief 设置最深休眠模式标记
@@ -338,7 +342,15 @@ int luat_pm_set_usb_power(uint8_t onoff);
  * @param onoff 0关，1 开
  * @return int =0成功，其他失败
  */
-int laut_pm_set_gnss_power(uint8_t onoff);
+int luat_pm_set_gnss_power(uint8_t onoff);
+/**
+ * @brief 设置联网低功耗模式，等同于AT+POWERMODE
+ * @param 低功耗主模式 见LUAT_PM_POWER_MODE_XXX
+ * @param 预留，低功耗次级模式，当主模式设置成LUAT_PM_POWER_MODE_BALANCED，可以微调功耗模式，当前不可用
+ * @return int =0成功，其他失败
+ * @note 和luat_pm_set_sleep_mode，luat_pm_set_usb_power冲突，不可以同时使用
+ */
+int luat_pm_set_power_mode(uint8_t mode, uint8_t sub_mode);
 /**@}*/
 
 

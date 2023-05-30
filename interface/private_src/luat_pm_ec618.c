@@ -33,6 +33,7 @@
 #include "platform_define.h"
 extern void soc_usb_onoff(uint8_t onoff);
 extern void soc_set_usb_sleep(uint8_t onoff);
+extern int soc_power_mode(uint8_t main, uint8_t sub);
 static uint32_t reportMode[LUAT_PM_SLEEP_MODE_STANDBY + 1][10] = {0};
 
 int luat_pm_set_sleep_mode(int mode, const char *vote_tag)
@@ -439,7 +440,7 @@ int luat_pm_get_wakeup_reason()
     return slpManGetWakeupSrc();
 }
 
-int laut_pm_set_gnss_power(uint8_t onoff)
+int luat_pm_set_gnss_power(uint8_t onoff)
 {
     int ret=-1;
     if (1 == onoff)
@@ -459,4 +460,9 @@ int laut_pm_set_gnss_power(uint8_t onoff)
         return ret;
     }
     return ret;
+}
+
+int luat_pm_set_power_mode(uint8_t mode, uint8_t sub_mode)
+{
+	return soc_power_mode(mode, sub_mode);
 }

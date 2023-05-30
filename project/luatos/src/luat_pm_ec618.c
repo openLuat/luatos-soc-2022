@@ -257,16 +257,9 @@ int luat_pm_power_ctrl(int id, uint8_t onoff)
 			BSP_SavePlatConfigToRawFlash();
 		}
 		break;
-    // case LUAT_PM_IOSEL_VOLT:
-    //     if (onoff == 0) {
-    //         LLOGD("io volt force 1.8v");
-    //         slpManNormalIOVoltSet(IOVOLT_1_80V);
-    //     }
-    //     else {
-    //         LLOGD("io volt force 3.3v");
-    //         slpManNormalIOVoltSet(IOVOLT_3_30V);
-    //     }
-    //     break;
+	case LUAT_PM_POWER_WORK_MODE:
+		return luat_pm_set_power_mode(onoff, 0);
+		break;
 	default:
 		return -1;
 	}
@@ -305,4 +298,9 @@ int luat_pm_iovolt_ctrl(int id, int val) {
 int luat_pm_wakeup_pin(int pin, int val){
     LLOGW("not support yet");
     return -1;
+}
+
+int luat_pm_set_power_mode(uint8_t mode, uint8_t sub_mode)
+{
+	return soc_power_mode(mode, sub_mode);
 }
