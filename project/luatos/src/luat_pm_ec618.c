@@ -258,6 +258,18 @@ int luat_pm_power_ctrl(int id, uint8_t onoff)
 		}
 		break;
 	case LUAT_PM_POWER_WORK_MODE:
+		switch(onoff)
+		{
+		case LUAT_PM_POWER_MODE_NORMAL:
+			lastRequestMode = LUAT_PM_SLEEP_MODE_IDLE;
+			break;
+		case LUAT_PM_POWER_MODE_POWER_SAVER:
+			lastRequestMode = LUAT_PM_SLEEP_MODE_STANDBY;
+			break;
+		default:
+			lastRequestMode = LUAT_PM_SLEEP_MODE_LIGHT;
+			break;
+		}
 		return luat_pm_set_power_mode(onoff, 0);
 		break;
 	default:
