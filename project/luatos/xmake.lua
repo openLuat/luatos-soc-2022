@@ -292,6 +292,10 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/max30102/*.c")
     add_includedirs(LUATOS_ROOT.."components/max30102")
 
+
+    add_files(LUATOS_ROOT.."components/ymodem/*.c")
+    add_includedirs(LUATOS_ROOT.."components/ymodem")
+
     
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "/interface/include")
