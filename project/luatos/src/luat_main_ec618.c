@@ -235,13 +235,13 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 static void luatos_task_init(void)
 {
 	GPIO_GlobalInit(NULL);
+// https://gitee.com/openLuat/LuatOS/issues/I6H86Q
 #ifdef LUAT_UART0_FORCE_USER
-	// https://gitee.com/openLuat/LuatOS/issues/I6H86Q
 	extern void soc_uart0_set_log_off(uint8_t is_off);
     soc_uart0_set_log_off(1);
-	#ifdef LUAT_UART0_FORCE_ALT1
+#endif
+#ifdef LUAT_UART0_FORCE_ALT1
 	luat_uart_pre_setup(0, 1);
-	#endif
 #endif
 	luat_mobile_event_register_handler(luatos_mobile_event_callback);
 	luat_sms_init();

@@ -24,14 +24,12 @@ fi
 
 
 # check csdk rndis
-# export RNDIS_MARK="csdk_rndis"
-# if -e $RNDIS_MARK (
+export RNDIS_MARK="csdk_rndis"
+if [[ -f "$FILE" ]]; then
 # 	@echo This is CSDK with RNDIS
-# 	set EC618_RNDIS=enable
-# 	set LSPD_MODE=disable
-# ) else (
-# 	set EC618_RNDIS=disable
-# )
+	export EC618_RNDIS=enable
+	export LSPD_MODE=disable
+fi
 
 echo "=============================="
 echo "AirM2M https://openluat.com"
