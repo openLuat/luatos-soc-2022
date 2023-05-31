@@ -23,7 +23,7 @@
 #include "luat_debug.h"
 
 #include "luat_uart.h"
-
+#include "plat_config.h"
 /*
  一.上报接收数据中断的逻辑：
     1.串口初始化时，新建一个缓冲区
@@ -56,6 +56,8 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
 
 static void task_test_uart(void *param)
 {
+    // 除非你已经非常清楚uart0作为普通串口给用户使用所带来的的后果，否则不要打开以下注释掉的代码
+    // BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL,PLAT_CFG_ULG_PORT_USB);
     char send_buff[] = "hello LUAT!!!\n";
     luat_uart_t uart = {
         .id = UART_ID,
