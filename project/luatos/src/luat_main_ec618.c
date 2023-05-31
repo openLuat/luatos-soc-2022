@@ -129,6 +129,9 @@ static void self_info(uint16_t param_size, void* p_param)
 
 static void luatos_task(void *param)
 {
+#ifdef LUAT_UART0_FORCE_USER
+	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL, PLAT_CFG_ULG_PORT_USB);
+#endif
 	(void)param;
 	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION, EXCEP_OPTION_DUMP_FLASH_EPAT_RESET);
     if(BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION) == EXCEP_OPTION_SILENT_RESET)
