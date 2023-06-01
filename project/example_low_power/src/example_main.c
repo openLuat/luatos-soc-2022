@@ -29,8 +29,8 @@
 #include "luat_mobile.h"
 #include "networkmgr.h"
 #define PM_TEST_DEEP_SLEEP_TIMER_ID	3
-#define PM_TEST_SERVICE_IP	"112.125.89.8" //换成自己的服务器
-#define PM_TEST_SERVICE_PORT	34352 //换成自己的服务器
+#define PM_TEST_SERVICE_IP	"112.125.89.8" //换成自己的服务器，为了方便演示PSM模式，demo使用UDP
+#define PM_TEST_SERVICE_PORT	37436 //换成自己的服务器
 #define PM_TEST_PERIOD	1800 //单个项目测试时间30分钟，如果有需要可以修改
 luat_rtos_task_handle pm_task_handle;
 static uint8_t pm_wakeup_by_timer_flag;
@@ -51,12 +51,28 @@ static void pm_deep_sleep_timer_callback(uint8_t id)
 	}
 }
 
+static int pm_deep_sleep_gpio_wakeup(void *pdata, void *param)
+{
+
+}
+
 static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
 {
+	LUAT_DEBUG_PRINT("%d,%d,%d", event, index, status);
 	if (LUAT_MOBILE_EVENT_NETIF == event)
 	{
 		if (LUAT_MOBILE_NETIF_LINK_ON == status)
 		{
+			char imsi[20];
+			char iccid[24] = {0};
+			luat_mobile_get_iccid(0, iccid, sizeof(iccid));
+			LUAT_DEBUG_PRINT("ICCID %s", iccid);
+			luat_mobile_get_imsi(0, imsi, sizeof(imsi));
+			LUAT_DEBUG_PRINT("IMSI %s", imsi);
+			char imei[20] = {0};
+			luat_mobile_get_imei(0, imei, sizeof(imei));
+			LUAT_DEBUG_PRINT("IMEI %s", imei);
+
 			ip_addr_t dns_ip[2];
 			uint8_t type, dns_num;
 			dns_num = 2;
@@ -104,17 +120,17 @@ static void socket_task(void *param)
 	uint8_t *rx_data = malloc(1024);
 	uint32_t tx_len, rx_len;
 	uint8_t is_break,is_timeout;
-	if (LUAT_PM_WAKEUP_FROM_RTC == luat_pm_get_wakeup_reason())
-	{
-		if (pm_wakeup_by_timer_flag)
-		{
-			LUAT_DEBUG_PRINT("wakeup from deep sleep");
-			luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
-		}
-	}
 	g_s_network_ctrl = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_init_ctrl(g_s_network_ctrl, g_s_task_handle, luat_test_socket_callback, NULL);
-	network_set_base_mode(g_s_network_ctrl, 1, 15000, 0, 0, 0, 0);
+	network_set_base_mode(g_s_network_ctrl, 0, 15000, 0, 0, 0, 0);	//UDP
+
+	if (luat_pm_get_wakeup_reason() > LUAT_PM_WAKEUP_FROM_POR)
+	{
+		luat_pm_deep_sleep_mode_timer_stop(PM_TEST_DEEP_SLEEP_TIMER_ID);
+		luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
+		LUAT_DEBUG_PRINT("wakeup from deep sleep");
+	}
+
 	while(1)
 	{
 		result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, PM_TEST_SERVICE_PORT, 30000);
@@ -124,24 +140,32 @@ static void socket_task(void *param)
 			while (!result)
 			{
 
-				if (LUAT_PM_WAKEUP_FROM_RTC == luat_pm_get_wakeup_reason())
+				if (luat_pm_get_wakeup_reason() > LUAT_PM_WAKEUP_FROM_POR)
 				{
-					if (pm_wakeup_by_timer_flag)
-					{
-						LUAT_DEBUG_PRINT("发送完成，再次休眠");
-						luat_pm_deep_sleep_mode_register_timer_cb(PM_TEST_DEEP_SLEEP_TIMER_ID, pm_deep_sleep_timer_callback);
-						luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
-						//最低功耗要关闭GPIO23输出
-						luat_gpio_cfg_t gpio_cfg = {0};
-						gpio_cfg.pin = HAL_GPIO_23;
-						gpio_cfg.mode = LUAT_GPIO_INPUT;
-						luat_gpio_open(&gpio_cfg);
-						//powerkey接地的，还要关闭powerkey的上拉
-						pwrKeyHwDeinit(0);
-						luat_rtos_task_sleep(30000);
-						LUAT_DEBUG_PRINT("未进入极致功耗模式，测试失败");
-						LUAT_DEBUG_ASSERT(0, "!");
-					}
+
+					LUAT_DEBUG_PRINT("发送完成，再次休眠");
+					luat_pm_deep_sleep_mode_register_timer_cb(PM_TEST_DEEP_SLEEP_TIMER_ID, pm_deep_sleep_timer_callback);
+					luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
+					luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
+					//最低功耗要关闭GPIO23输出
+					luat_gpio_cfg_t gpio_cfg = {0};
+					gpio_cfg.pin = HAL_GPIO_23;
+					gpio_cfg.mode = LUAT_GPIO_INPUT;
+					luat_gpio_open(&gpio_cfg);
+					//用GPIO20来唤醒
+					gpio_cfg.pin = HAL_GPIO_20;
+					gpio_cfg.mode = LUAT_GPIO_IRQ;
+					gpio_cfg.irq_cb = pm_deep_sleep_gpio_wakeup;
+					gpio_cfg.pull = LUAT_GPIO_PULLUP;
+					gpio_cfg.irq_type = LUAT_GPIO_FALLING_IRQ;
+					luat_gpio_open(&gpio_cfg);
+
+					//powerkey接地的，还要关闭powerkey的上拉
+					pwrKeyHwDeinit(0);
+					luat_rtos_task_sleep(30000);
+					LUAT_DEBUG_PRINT("未进入极致功耗模式，测试失败");
+					LUAT_DEBUG_ASSERT(0, "!");
+
 				}
 
 				result = network_wait_rx(g_s_network_ctrl, 300000, &is_break, &is_timeout);
@@ -165,9 +189,9 @@ static void socket_task(void *param)
 				}
 			}
 		}
-		LUAT_DEBUG_PRINT("网络断开，15秒后重试");
+		LUAT_DEBUG_PRINT("网络断开，立刻重试");
 		network_close(g_s_network_ctrl, 5000);
-		luat_rtos_task_sleep(15000);
+//		luat_rtos_task_sleep(15000);
 	}
 
 
@@ -195,11 +219,28 @@ static void pm_task(void *param)
 	gpio_cfg.pin = HAL_GPIO_23;
 	gpio_cfg.mode = LUAT_GPIO_INPUT;
 	luat_gpio_open(&gpio_cfg);
+
+	//用GPIO20来唤醒
+	gpio_cfg.pin = HAL_GPIO_20;
+	gpio_cfg.mode = LUAT_GPIO_IRQ;
+	gpio_cfg.irq_cb = pm_deep_sleep_gpio_wakeup;
+	gpio_cfg.pull = LUAT_GPIO_PULLUP;
+	gpio_cfg.irq_type = LUAT_GPIO_FALLING_IRQ;
+	luat_gpio_open(&gpio_cfg);
+
 	//powerkey接地的，还要关闭powerkey的上拉
 	pwrKeyHwDeinit(0);
 	luat_rtos_task_sleep(30000);
 	LUAT_DEBUG_PRINT("未进入极致功耗模式，测试失败");
 	LUAT_DEBUG_ASSERT(0, "!");
+}
+
+/*
+ * 本demo几乎所有log都从uart0输出，必须提高波特率
+ */
+void soc_get_unilog_br(uint32_t *baudrate)
+{
+	*baudrate = 6000000; //UART0做log口输出6M波特率，必须用高性能USB转TTL，比如CH343
 }
 
 
@@ -215,10 +256,12 @@ static void pm(void)
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
 	luat_rtos_task_create(&g_s_task_handle, 4 * 1024, 50, "socket", socket_task, NULL, 16);
-	if (LUAT_PM_WAKEUP_FROM_RTC != luat_pm_get_wakeup_reason())
+	if (LUAT_PM_WAKEUP_FROM_POR == luat_pm_get_wakeup_reason())
 	{
 		luat_rtos_task_create(&pm_task_handle, 2 * 1024, 50, "pm", pm_task, NULL, 16);
 	}
+
+
 
 }
 INIT_HW_EXPORT(pm_pre_init, "1");
