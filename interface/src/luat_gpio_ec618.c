@@ -275,7 +275,16 @@ int luat_gpio_setup(luat_gpio_t *gpio){
 		break;
     }
 	// 2023-01-30 GPIO14/15 映射到PAD 13/14的ALT 4, 从而避免与UART0冲突 by wendal
-	uint8_t AltFun = (HAL_GPIO_14 == gpio->pin || HAL_GPIO_15 == gpio->pin ? 4 : 0);
+	uint8_t AltFun = 0;
+	if (HAL_GPIO_14 == gpio->pin || HAL_GPIO_15 == gpio->pin) {
+		AltFun = 4;
+	}
+// https://gitee.com/openLuat/LuatOS/issues/I79Q0Z
+#ifdef LUAT_UART0_FORCE_ALT1
+	#ifdef LUAT_GPIO_1415_ALT0
+		AltFun = 0;
+	#endif
+#endif
     GPIO_Config(gpio->pin, is_input, is_pullup);
     GPIO_PullConfig(GPIO_ToPadEC618(gpio->pin, AltFun), is_pull, is_pullup);
     if (LUAT_GPIO_IRQ == gpio->mode)
