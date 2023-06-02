@@ -14,6 +14,8 @@
 #define CODEC_PWR_PIN_ALT_FUN	4
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
+#define MIC_VOL_EN	HAL_GPIO_26
+#define MIC_VOL_EN_ALT_FUN	0
 #define LED2_PIN	HAL_GPIO_24
 #define LED2_PIN_ALT_FUN	0
 #define LED3_PIN	HAL_GPIO_28
@@ -462,6 +464,9 @@ static void test_record_demo_init(void)
 	luat_gpio_open(&gpio_cfg);
 	gpio_cfg.pin = LED3_PIN;
 	luat_gpio_open(&gpio_cfg);
+	gpio_cfg.pin = MIC_VOL_EN;
+	luat_gpio_open(&gpio_cfg);
+	luat_gpio_set(MIC_VOL_EN, 1);
 	gpio_cfg.pin = LED4_PIN;
 	luat_gpio_open(&gpio_cfg);
 	gpio_cfg.pin = CHARGE_EN_PIN;
