@@ -203,6 +203,52 @@ static void luat_server_test_task(void *param)
 	}
 }
 
+
+static void luat_udp_server_test_task(void *param)
+{
+	g_s_server_network_ctrl = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
+	network_init_ctrl(g_s_server_network_ctrl, g_s_server_task_handle, luat_server_test_socket_callback, NULL);
+	network_set_base_mode(g_s_server_network_ctrl, 0, 15000, 1, 600, 5, 9);
+	network_set_local_port(g_s_server_network_ctrl, server_port);
+	g_s_server_network_ctrl->is_debug = 1;
+	uint8_t *rx_data = malloc(1024);
+	uint32_t tx_len, rx_len;
+	ip_addr_t remote_ip;
+	uint16_t remote_port;
+	int result;
+	uint8_t is_break,is_timeout;
+
+	while(1)
+	{
+		remote_ip = ip6_addr_any;
+		result = network_connect(g_s_server_network_ctrl, NULL, 0, &remote_ip, 0, 30000);
+		if (!result)
+		{
+			while(!result)
+			{
+				result = network_wait_rx(g_s_server_network_ctrl, 30000, &is_break, &is_timeout);
+				if (!result)
+				{
+					if (!is_timeout && !is_break)
+					{
+						do
+						{
+							result = network_rx(g_s_server_network_ctrl, rx_data, 1024, 0, &remote_ip, &remote_port, &rx_len);
+							if (rx_len > 0)
+							{
+								network_tx(g_s_server_network_ctrl, rx_data, rx_len, 0, &remote_ip, remote_port, &tx_len, 0);
+							}
+						}while(!result && rx_len > 0);
+
+					}
+				}
+			}
+		}
+		LUAT_DEBUG_PRINT("网络断开，重试");
+		network_close(g_s_server_network_ctrl, 5000);
+	}
+}
+
 static int32_t luat_async_test_socket_callback(void *pdata, void *param)
 {
 	OS_EVENT *event = (OS_EVENT *)pdata;
@@ -311,6 +357,7 @@ static void luat_test_init(void)
 	//	下行测试，不要和上行测试同步进行
 	luat_rtos_task_create(&g_s_task_handle, 2 * 1024, 90, "test", luat_test_task, NULL, 16);
 //	luat_rtos_task_create(&g_s_server_task_handle, 4 * 1024, 10, "server", luat_server_test_task, NULL, 16);
+//	luat_rtos_task_create(&g_s_server_task_handle, 4 * 1024, 10, "server", luat_udp_server_test_task, NULL, 16);
 //	上行测试
 //	luat_rtos_task_create(&g_s_upload_test_task_handle, 2 * 1024, 10, "test2", luat_async_test_task, NULL,0);
 	luat_mobile_set_default_pdn_ipv6(1);
