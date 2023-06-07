@@ -5,6 +5,12 @@
 
 #define AM_LOCATION_SERVICE_LOCATION_BCD_LEN 5
 
+#define LBSLOC_SUCCESS          0x0  
+#define UNKNOWN_LOCATION        0x1
+#define PERMISSION_ERROR        0x2
+#define UNKNOWN_ERROR           0x4
+#define WIFILOC_SUCCESS         0xff
+
 #ifdef PACK_STRUCT_USE_INCLUDES
 #include "arch/bpstruct.h"
 #endif

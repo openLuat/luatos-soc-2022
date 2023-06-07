@@ -291,8 +291,11 @@ static void lbsloc_Init_Task(void *param)
         ret = recv(socket_id, &locationServiceResponse, sizeof(struct am_location_service_rsp_data_t), 0);
         if (ret > 0)
         {
-            if ((locationServiceResponse.result == 0) || (locationServiceResponse.result == 255))
+            LUAT_DEBUG_PRINT("location_service_task: rcv response result %d\r\n", locationServiceResponse.result);
+            switch (locationServiceResponse.result)
             {
+            case LBSLOC_SUCCESS:
+            case WIFILOC_SUCCESS:
                 if (sizeof(struct am_location_service_rsp_data_t) == ret)
                 {
                     if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == TRUE)
@@ -304,7 +307,26 @@ static void lbsloc_Init_Task(void *param)
                         LUAT_DEBUG_PRINT("location_service_task: rcv response, but process fail\r\n");
                     }
                 }
+                break;
+            case UNKNOWN_LOCATION:
+                LUAT_DEBUG_PRINT("基站数据库查询不到所有小区的位置信息\r\n");
+                LUAT_DEBUG_PRINT("在电脑浏览器中打开http://bs.openluat.com/，根据此条打印中的小区信息，手动查找小区位置, mcc: %x, mnc: %x, lac: %d, ci: %d\r\n", cell_info.lte_service_info.mcc, cell_info.lte_service_info.mnc, cell_info.lte_service_info.tac, cell_info.lte_service_info.cid);
+                LUAT_DEBUG_PRINT("如果手动可以查到位置，则服务器存在BUG，直接向技术人员反映问题\r\n");
+                LUAT_DEBUG_PRINT("如果手动无法查到位置，则基站数据库还没有收录当前设备的小区位置信息，向技术人员反馈，我们会尽快收录\r\n");
+                break;
+            case PERMISSION_ERROR:
+                LUAT_DEBUG_PRINT("权限错误，请联系官方人员尝试定位问题 %d\r\n", locationServiceResponse.result);
+                break;
+            case UNKNOWN_ERROR:
+                LUAT_DEBUG_PRINT("未知错误，请联系官方人员尝试定位问题");
+                break;
+            default:
+                break;
             }
+        }
+        else
+        {
+            LUAT_DEBUG_PRINT("location_service_task: rcv fail %d", ret);
         }
     }
     else
