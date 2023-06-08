@@ -446,3 +446,20 @@ int luat_gpio_ctrl(int pin, LUAT_GPIO_CTRL_CMD_E cmd, int param)
 	}
 	return 0;
 }
+
+#ifndef __LUATOS__
+void luat_gpio_mode(int pin, int mode, int pull, int initOutput) {
+    if (pin == 255) return;
+    luat_gpio_t conf = {0};
+    conf.pin = pin;
+    conf.mode = mode == Luat_GPIO_INPUT ? Luat_GPIO_INPUT : Luat_GPIO_OUTPUT; // 只能是输入/输出, 不能是中断.
+    conf.pull = pull;
+    conf.irq = initOutput;
+    conf.lua_ref = 0;
+    conf.irq_cb = 0;
+    luat_gpio_setup(&conf);
+    if (conf.mode == Luat_GPIO_OUTPUT)
+        luat_gpio_set(pin, initOutput);
+}
+#endif
+
