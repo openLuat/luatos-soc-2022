@@ -103,6 +103,7 @@
 // 4. 使用8k的资源文件可节省100k,音质见仁见智,可选
 // ------------------------------
 #define LUAT_USE_MEDIA    1
+#define LUAT_SUPPORT_MP3  1
 // #define LUAT_USE_TTS    1
 // #define LUAT_USE_TTS_ONCHIP    1
 // #define LUAT_USE_TTS_8K 1
@@ -321,6 +322,7 @@
 #undef LUAT_USE_FONTS
 #undef LUAT_USE_LVGL
 #undef LUAT_USE_DISP
+#undef LUAT_SUPPORT_MP3
 #endif
 
 #endif // LUAT_EC618_LITE_MODE

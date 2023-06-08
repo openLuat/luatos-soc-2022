@@ -184,10 +184,19 @@
                     },
                     {
                         "name": "media",
-                        "content": "多媒体,当前仅音频,支持播放wav/mp3",
-                        "rsize": 60240,
+                        "content": "多媒体,当前仅音频,支持播放amr/mp3",
+                        "rsize": 10240,
                         "fsize": 288052,
-                        "dft": false
+                        "dft": false,
+                        "children" : [
+                            {
+                                "name": "LUAT_SUPPORT_MP3",
+                                "content": "支持播放MP3格式",
+                                "rsize": 60240,
+                                "fsize": 288052,
+                                "dft": false
+                            }
+                        ]
                     },
                     {
                         "name": "sms",
