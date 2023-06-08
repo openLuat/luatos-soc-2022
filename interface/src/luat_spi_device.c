@@ -2,8 +2,8 @@
 #include "luat_gpio.h"
 #include "luat_spi.h"
 
-#define LUAT_LOG_TAG "spi"
-#include "luat_log.h"
+// #define LUAT_LOG_TAG "spi"
+// #include "luat_log.h"
 
 #define LUAT_WEAK                     __attribute__((weak))
 #define LUAT_SPI_CS_SELECT 0
