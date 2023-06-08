@@ -311,9 +311,6 @@
 #undef LUAT_USE_MINIZ
 #undef LUAT_USE_OTP
 
-#endif // LUAT_EC618_LITE_MODE
-
-// TTS 相关
 #ifdef LUAT_USE_TTS
 #undef LUAT_USE_LCD
 #undef LUAT_USE_TJPGD
@@ -324,6 +321,12 @@
 #undef LUAT_USE_FONTS
 #undef LUAT_USE_LVGL
 #undef LUAT_USE_DISP
+#endif
+
+#endif // LUAT_EC618_LITE_MODE
+
+// TTS 相关
+#ifdef LUAT_USE_TTS
 
 #ifndef LUAT_USE_TTS_8K
 #define LUAT_USE_TTS_16K 1
