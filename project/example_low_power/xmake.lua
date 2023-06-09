@@ -10,6 +10,7 @@ target(TARGET_NAME)
     --加入代码和头文件
     add_includedirs("./inc",{public = true})
     add_files("./src/example_main.c",{public = true})
+    -- add_files("./src/example_ipv6.c",{public = true})
     -- add_files("./src/example_socket_pm.c",{public = true})
 
     --路径可以随便写,可以加任意路径的代码,下面代码等效上方代码
