@@ -200,10 +200,10 @@ int soc_audio_fclose(void *fp)
 
 void luat_audio_global_init(void)
 {
-#if defined(LUAT_SUPPORT_MP3) || defined(LUAT_SUPPORT_AMR)
-#define PLAY_FILE audio_play_file_default_fun
-#else
+#if defined(LUAT_USE_TTS_ONLY)
 #define PLAY_FILE NULL
+#else
+#define PLAY_FILE audio_play_file_default_fun
 #endif
 
 #ifdef LUAT_USE_TTS

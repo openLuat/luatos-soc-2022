@@ -187,16 +187,7 @@
                         "content": "多媒体,当前仅音频,支持播放amr/mp3",
                         "rsize": 10240,
                         "fsize": 288052,
-                        "dft": false,
-                        "children" : [
-                            {
-                                "name": "LUAT_SUPPORT_MP3",
-                                "content": "支持播放MP3格式",
-                                "rsize": 60240,
-                                "fsize": 288052,
-                                "dft": false
-                            }
-                        ]
+                        "dft": false
                     },
                     {
                         "name": "sms",
@@ -243,6 +234,13 @@
                         "rsize" : 800000,
                         "fsize" : 288052,
                         "dft"   : false
+                    },
+                    {
+                        "name": "tts_only",
+                        "content": "禁用AMR/MP3的解码,仅集成TTS播放功能",
+                        "rsize": -100240,
+                        "fsize": 288052,
+                        "dft": false
                     },
                     {
                         "name" : "tts_8k",
