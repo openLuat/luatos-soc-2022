@@ -23,7 +23,6 @@
 #define LUAT_SPI_H
 
 #include "luat_base.h"
-#include "luat_spi_legacy.h"
 
 /**
  * @ingroup luatos_device 外设接口
@@ -99,6 +98,10 @@ int luat_spi_recv(int spi_id, char* recv_buf, size_t length);
  * @return int 返回发送字节数
  */
 int luat_spi_send(int spi_id, const char* send_buf, size_t length);
+
+#include "luat_spi_legacy.h"
+
+
 /**@}*/
 /**@}*/
 #endif

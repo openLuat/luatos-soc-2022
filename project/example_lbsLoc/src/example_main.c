@@ -51,7 +51,6 @@ void lbsloc_demo_task(void *param)
         luat_rtos_task_sleep(1000);
         LUAT_DEBUG_PRINT("等待网络注册");
     }
-    luat_rtos_task_sleep(15000);
     while (1)
     {
         lbsloc_Init();

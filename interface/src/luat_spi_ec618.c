@@ -38,13 +38,10 @@ static int spi_exist(int id) {
 }
 
 #ifdef __LUATOS__
-
-#include "luat_base.h"
-#include "luat_spi.h"
 #include "luat_lcd.h"
 #include "ff.h"			/* Obtains integer types */
 #include "diskio.h"		/* Declarations of disk functions */
-
+#endif
 
 int luat_spi_device_config(luat_spi_device_t* spi_dev) {
     if (!spi_exist(spi_dev->bus_id))
@@ -89,7 +86,7 @@ int luat_spi_change_speed(int spi_id, uint32_t speed)
 	SPI_SetNewConfig(spi_id, speed, 0xff);
 	return 0;
 }
-#endif
+
 
 int luat_spi_setup(luat_spi_t* spi) {
     if (!spi_exist(spi->id))
