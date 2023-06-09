@@ -1468,7 +1468,11 @@
  * To achieve good performance, this should be at least 2 * TCP_MSS.
  */
 #if !defined TCP_SND_BUF || defined __DOXYGEN__
+#ifdef __USER_CODE__
 #define TCP_SND_BUF                     (20 * TCP_MSS)
+#else
+#define TCP_SND_BUF                     (6 * TCP_MSS)
+#endif
 #endif
 
 /**

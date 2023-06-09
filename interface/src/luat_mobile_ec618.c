@@ -52,6 +52,9 @@ extern void soc_mobile_set_user_apn_auto_active(uint8_t cid,
 extern void soc_mobile_get_ip_data_traffic(uint64_t *uplink, uint64_t *downlink);
 extern void soc_mobile_clear_ip_data_traffic(uint8_t clear_uplink, uint8_t clear_downlink);
 extern uint8_t soc_mobile_get_sim_state(void);
+extern void soc_mobile_rf_test_mode(uint8_t uart_id, uint8_t on_off);
+extern void soc_mobile_rf_test_input(uint8_t *data, uint32_t len);
+
 void soc_mobile_set_network_check_period(uint32_t period);
 
 int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
@@ -891,6 +894,48 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 	return 0;
 }
 
+#include "luat_uart.h"
+#include "luat_debug.h"
+#include "ctype.h"
 
+static void luat_mobile_test_uart_callback(int uart_id, uint32_t data_len)
+{
+	uint8_t data[64];
+	char *start;
+	char *end;
+	uint32_t dummy_len, i;
+	dummy_len = luat_uart_read(uart_id, data, sizeof(data));
+	while(dummy_len > 0)
+	{
+		for(i = 0; i < dummy_len; i++)
+		{
+			data[i] = toupper(data[i]);
+		}
+		soc_mobile_rf_test_input(data, dummy_len);
+		dummy_len = luat_uart_read(uart_id, data, sizeof(data));
+	}
+	soc_mobile_rf_test_input(NULL, 0);
 
+}
+
+void luat_mobile_rf_test_mode(uint8_t uart_id, uint32_t br, uint8_t on_off)
+{
+	if (on_off)
+	{
+	    luat_uart_t uart = {
+	        .id = uart_id,
+	        .baud_rate = br,
+	        .data_bits = 8,
+	        .stop_bits = 1,
+	        .parity    = 0
+	    };
+	    luat_uart_setup(&uart);
+	    luat_uart_ctrl(uart_id, LUAT_UART_SET_RECV_CALLBACK, luat_mobile_test_uart_callback);
+	}
+	else
+	{
+		luat_uart_close(uart_id);
+	}
+	soc_mobile_rf_test_mode(uart_id, on_off);
+}
 
