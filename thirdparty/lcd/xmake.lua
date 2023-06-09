@@ -5,6 +5,9 @@ target("liblcd")
 
     set_targetdir(LIB_DIR)
 
+    includes("../u8g2")
+    add_deps("libu8g2")
+
     --加入代码和头文件
     add_includedirs("./",
                     "../qrcode",

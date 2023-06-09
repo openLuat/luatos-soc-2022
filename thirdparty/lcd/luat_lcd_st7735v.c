@@ -28,13 +28,13 @@ static int st7735v_init(luat_lcd_conf_t* conf) {
     if (conf->pin_pwr != 255)
     luat_gpio_set(conf->pin_pwr, Luat_GPIO_LOW);
     luat_gpio_set(conf->pin_rst, Luat_GPIO_LOW);
-    luat_timer_mdelay(100);
+    luat_rtos_task_sleep(100);
     luat_gpio_set(conf->pin_rst, Luat_GPIO_HIGH);
-    luat_timer_mdelay(120);//ms
+    luat_rtos_task_sleep(120);//ms
 
     lcd_write_cmd(conf,0x11);
 
-    luat_timer_mdelay(120);//ms
+    luat_rtos_task_sleep(120);//ms
 
     lcd_write_cmd(conf,0x21);
 
@@ -134,7 +134,7 @@ static int st7735v_init(luat_lcd_conf_t* conf) {
     lcd_write_cmd(conf,0x29);
 
     /* wait for power stability */
-    luat_timer_mdelay(100);
+    luat_rtos_task_sleep(100);
     luat_lcd_clear(conf,BLACK);
     /* display on */
     luat_lcd_display_on(conf);
