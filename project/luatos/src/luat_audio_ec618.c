@@ -47,6 +47,7 @@ typedef struct
 	uint8_t pa_on_level;
 	uint8_t dac_on_level;
 	uint8_t raw_mode;
+	uint8_t debug_on_off;
 }luat_audio_hardware_t;
 
 static luat_audio_hardware_t g_s_audio_hardware;
@@ -67,7 +68,10 @@ static void app_pa_on(uint32_t arg)
 
 static void audio_event_cb(uint32_t event, void *param)
 {
-	//DBG("%d", event);
+	if (g_s_audio_hardware.debug_on_off)
+	{
+		DBG("%d", event);
+	}
 	rtos_msg_t msg = {0};
 	switch(event)
 	{
@@ -200,8 +204,14 @@ int soc_audio_fclose(void *fp)
 
 void luat_audio_global_init(void)
 {
+#if defined(LUAT_USE_TTS_ONLY)
+#define PLAY_FILE NULL
+#else
+#define PLAY_FILE audio_play_file_default_fun
+#endif
+
 #ifdef LUAT_USE_TTS
-	audio_play_global_init_with_task_priority(audio_event_cb, audio_data_cb, audio_play_file_default_fun, audio_play_TTS_default_fun, NULL, 90);
+	audio_play_global_init_with_task_priority(audio_event_cb, audio_data_cb, PLAY_FILE, audio_play_TTS_default_fun, NULL, 90);
 #ifdef LUAT_USE_TTS_16K
 #ifdef LUAT_USE_TTS_ONCHIP
 	audio_play_tts_set_resource_ex(ivtts_16k, AISOUND_SDK_USERID_16K, tts_read_data);
@@ -216,7 +226,7 @@ void luat_audio_global_init(void)
 #endif
 #endif
 #else
-	audio_play_global_init_with_task_priority(audio_event_cb, audio_data_cb, audio_play_file_default_fun, NULL, NULL, 90);
+	audio_play_global_init_with_task_priority(audio_event_cb, audio_data_cb, PLAY_FILE, NULL, NULL, 90);
 #endif
 	g_s_audio_hardware.dac_delay_len = 6;
 	g_s_audio_hardware.dac_off_delay_time = 0;
@@ -352,6 +362,11 @@ void luat_audio_set_bus_type(uint8_t bus_type)
 	audio_play_set_bus_type(bus_type);
 }
 
+void luat_audio_set_debug(uint8_t on_off)
+{
+	g_s_audio_hardware.debug_on_off = on_off;
+}
+
 int luat_i2s_setup(luat_i2s_conf_t *conf)
 {
 	if (conf->id >= I2S_MAX) return -1;
@@ -388,7 +403,8 @@ int l_i2s_pause(lua_State *L) {
 }
 
 int l_i2s_stop(lua_State *L) {
-	I2S_Stop(luaL_checkinteger(L, 1));
+	uint8_t id = luaL_checkinteger(L, 1);
+	I2S_RxStop(id);
 }
 #ifdef LUAT_USE_TTS
 int luat_audio_play_tts_text(uint32_t multimedia_id, void *text, uint32_t text_bytes)

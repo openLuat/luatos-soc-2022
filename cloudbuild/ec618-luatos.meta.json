@@ -184,8 +184,8 @@
                     },
                     {
                         "name": "media",
-                        "content": "多媒体,当前仅音频,支持播放wav/mp3",
-                        "rsize": 60240,
+                        "content": "多媒体,当前仅音频,支持播放amr/mp3",
+                        "rsize": 10240,
                         "fsize": 288052,
                         "dft": false
                     },
@@ -234,6 +234,13 @@
                         "rsize" : 800000,
                         "fsize" : 288052,
                         "dft"   : false
+                    },
+                    {
+                        "name": "tts_only",
+                        "content": "禁用AMR/MP3的解码,仅集成TTS播放功能",
+                        "rsize": -100240,
+                        "fsize": 288052,
+                        "dft": false
                     },
                     {
                         "name" : "tts_8k",

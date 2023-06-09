@@ -103,9 +103,12 @@
 // 4. 使用8k的资源文件可节省100k,音质见仁见智,可选
 // ------------------------------
 #define LUAT_USE_MEDIA    1
+#define LUAT_SUPPORT_AMR  1
 // #define LUAT_USE_TTS    1
 // #define LUAT_USE_TTS_ONCHIP    1
 // #define LUAT_USE_TTS_8K 1
+// // 仅开启TTS, 禁用AMR/MP3的解码
+// #define LUAT_USE_TTS_ONLY 1
 //---------------------
 // UI
 // LCD  是彩屏, 若使用LVGL就必须启用LCD
@@ -305,15 +308,12 @@
 #undef LUAT_USE_I2CTOOLS
 #undef LUAT_USE_SFUD
 #undef LUAT_USE_SFD
-#undef LUAT_SUPPORT_AMR
 #undef LUAT_USE_W5500
 #undef LUAT_USE_SOFT_UART
 #undef LUAT_USE_MINIZ
 #undef LUAT_USE_OTP
+#undef LUAT_SUPPORT_AMR
 
-#endif // LUAT_EC618_LITE_MODE
-
-// TTS 相关
 #ifdef LUAT_USE_TTS
 #undef LUAT_USE_LCD
 #undef LUAT_USE_TJPGD
@@ -324,6 +324,13 @@
 #undef LUAT_USE_FONTS
 #undef LUAT_USE_LVGL
 #undef LUAT_USE_DISP
+#define LUAT_USE_TTS_ONLY 1
+#endif
+
+#endif // LUAT_EC618_LITE_MODE
+
+// TTS 相关
+#ifdef LUAT_USE_TTS
 
 #ifndef LUAT_USE_TTS_8K
 #define LUAT_USE_TTS_16K 1
