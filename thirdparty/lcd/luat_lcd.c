@@ -7,6 +7,7 @@
 
 
 luat_color_t BACK_COLOR = WHITE, FORE_COLOR = BLACK;
+static luat_lcd_conf_t *default_conf = NULL;
 
 #define LUAT_LCD_CONF_COUNT (1)
 static luat_lcd_conf_t* confs[LUAT_LCD_CONF_COUNT] = {0};
@@ -109,6 +110,9 @@ int luat_lcd_init(luat_lcd_conf_t* conf) {
             }
         }
     }
+    default_conf = conf;
+    u8g2_SetFontMode(&(conf->luat_lcd_u8g2), 0);
+    u8g2_SetFontDirection(&(conf->luat_lcd_u8g2), 0);
     return ret;
 }
 
@@ -373,6 +377,232 @@ int luat_lcd_draw_circle(luat_lcd_conf_t* conf,uint16_t x0, uint16_t y0, uint8_t
     }
     return 0;
 }
+
+int luat_lcd_set_font(luat_lcd_conf_t* conf,const uint8_t *font) {
+    u8g2_SetFont(&(conf->luat_lcd_u8g2), font);
+    return 0;
+}
+
+static uint8_t utf8_state;
+static uint16_t encoding;
+static uint16_t utf8_next(uint8_t b)
+{
+  if ( b == 0 )  /* '\n' terminates the string to support the string list procedures */
+    return 0x0ffff; /* end of string detected, pending UTF8 is discarded */
+  if ( utf8_state == 0 )
+  {
+    if ( b >= 0xfc )  /* 6 byte sequence */
+    {
+      utf8_state = 5;
+      b &= 1;
+    }
+    else if ( b >= 0xf8 )
+    {
+      utf8_state = 4;
+      b &= 3;
+    }
+    else if ( b >= 0xf0 )
+    {
+      utf8_state = 3;
+      b &= 7;
+    }
+    else if ( b >= 0xe0 )
+    {
+      utf8_state = 2;
+      b &= 15;
+    }
+    else if ( b >= 0xc0 )
+    {
+      utf8_state = 1;
+      b &= 0x01f;
+    }
+    else
+    {
+      /* do nothing, just use the value as encoding */
+      return b;
+    }
+    encoding = b;
+    return 0x0fffe;
+  }
+  else
+  {
+    utf8_state--;
+    /* The case b < 0x080 (an illegal UTF8 encoding) is not checked here. */
+    encoding<<=6;
+    b &= 0x03f;
+    encoding |= b;
+    if ( utf8_state != 0 )
+      return 0x0fffe; /* nothing to do yet */
+  }
+  return encoding;
+}
+
+static void u8g2_draw_hv_line(u8g2_t *u8g2, int16_t x, int16_t y, int16_t len, uint8_t dir, uint16_t color){
+  switch(dir)
+  {
+    case 0:
+      luat_lcd_draw_hline(default_conf,x,y,len,color);
+      break;
+    case 1:
+      luat_lcd_draw_vline(default_conf,x,y,len,color);
+      break;
+    case 2:
+        luat_lcd_draw_hline(default_conf,x-len+1,y,len,color);
+      break;
+    case 3:
+      luat_lcd_draw_vline(default_conf,x,y-len+1,len,color);
+      break;
+  }
+}
+
+static void u8g2_font_decode_len(u8g2_t *u8g2, uint8_t len, uint8_t is_foreground){
+  uint8_t cnt;  /* total number of remaining pixels, which have to be drawn */
+  uint8_t rem;  /* remaining pixel to the right edge of the glyph */
+  uint8_t current;  /* number of pixels, which need to be drawn for the draw procedure */
+    /* current is either equal to cnt or equal to rem */
+  /* local coordinates of the glyph */
+  uint8_t lx,ly;
+  /* target position on the screen */
+  int16_t x, y;
+  u8g2_font_decode_t *decode = &(u8g2->font_decode);
+  cnt = len;
+  /* get the local position */
+  lx = decode->x;
+  ly = decode->y;
+  for(;;){
+    /* calculate the number of pixel to the right edge of the glyph */
+    rem = decode->glyph_width;
+    rem -= lx;
+    /* calculate how many pixel to draw. This is either to the right edge */
+    /* or lesser, if not enough pixel are left */
+    current = rem;
+    if ( cnt < rem )
+      current = cnt;
+    /* now draw the line, but apply the rotation around the glyph target position */
+    //u8g2_font_decode_draw_pixel(u8g2, lx,ly,current, is_foreground);
+    // printf("lx:%d,ly:%d,current:%d, is_foreground:%d \r\n",lx,ly,current, is_foreground);
+    /* get target position */
+    x = decode->target_x;
+    y = decode->target_y;
+    /* apply rotation */
+    x = u8g2_add_vector_x(x, lx, ly, decode->dir);
+    y = u8g2_add_vector_y(y, lx, ly, decode->dir);
+    /* draw foreground and background (if required) */
+    if ( current > 0 )		/* avoid drawing zero length lines, issue #4 */
+    {
+      if ( is_foreground )
+      {
+	    u8g2_draw_hv_line(u8g2, x, y, current, decode->dir, FORE_COLOR);
+      }
+      // else if ( decode->is_transparent == 0 )
+      // {
+	    // u8g2_draw_hv_line(u8g2, x, y, current, decode->dir, lcd_str_bg_color);
+      // }
+    }
+    /* check, whether the end of the run length code has been reached */
+    if ( cnt < rem )
+      break;
+    cnt -= rem;
+    lx = 0;
+    ly++;
+  }
+  lx += cnt;
+  decode->x = lx;
+  decode->y = ly;
+}
+static void u8g2_font_setup_decode(u8g2_t *u8g2, const uint8_t *glyph_data)
+{
+  u8g2_font_decode_t *decode = &(u8g2->font_decode);
+  decode->decode_ptr = glyph_data;
+  decode->decode_bit_pos = 0;
+
+  /* 8 Nov 2015, this is already done in the glyph data search procedure */
+  /*
+  decode->decode_ptr += 1;
+  decode->decode_ptr += 1;
+  */
+
+  decode->glyph_width = u8g2_font_decode_get_unsigned_bits(decode, u8g2->font_info.bits_per_char_width);
+  decode->glyph_height = u8g2_font_decode_get_unsigned_bits(decode,u8g2->font_info.bits_per_char_height);
+
+}
+static int8_t u8g2_font_decode_glyph(u8g2_t *u8g2, const uint8_t *glyph_data){
+  uint8_t a, b;
+  int8_t x, y;
+  int8_t d;
+  int8_t h;
+  u8g2_font_decode_t *decode = &(u8g2->font_decode);
+  u8g2_font_setup_decode(u8g2, glyph_data);
+  h = u8g2->font_decode.glyph_height;
+  x = u8g2_font_decode_get_signed_bits(decode, u8g2->font_info.bits_per_char_x);
+  y = u8g2_font_decode_get_signed_bits(decode, u8g2->font_info.bits_per_char_y);
+  d = u8g2_font_decode_get_signed_bits(decode, u8g2->font_info.bits_per_delta_x);
+
+  if ( decode->glyph_width > 0 )
+  {
+    decode->target_x = u8g2_add_vector_x(decode->target_x, x, -(h+y), decode->dir);
+    decode->target_y = u8g2_add_vector_y(decode->target_y, x, -(h+y), decode->dir);
+    //u8g2_add_vector(&(decode->target_x), &(decode->target_y), x, -(h+y), decode->dir);
+    /* reset local x/y position */
+    decode->x = 0;
+    decode->y = 0;
+    /* decode glyph */
+    for(;;){
+      a = u8g2_font_decode_get_unsigned_bits(decode, u8g2->font_info.bits_per_0);
+      b = u8g2_font_decode_get_unsigned_bits(decode, u8g2->font_info.bits_per_1);
+      do{
+        u8g2_font_decode_len(u8g2, a, 0);
+        u8g2_font_decode_len(u8g2, b, 1);
+      } while( u8g2_font_decode_get_unsigned_bits(decode, 1) != 0 );
+      if ( decode->y >= h )
+        break;
+    }
+  }
+  return d;
+}
+const uint8_t *u8g2_font_get_glyph_data(u8g2_t *u8g2, uint16_t encoding);
+static int16_t u8g2_font_draw_glyph(u8g2_t *u8g2, int16_t x, int16_t y, uint16_t encoding){
+  int16_t dx = 0;
+  u8g2->font_decode.target_x = x;
+  u8g2->font_decode.target_y = y;
+  const uint8_t *glyph_data = u8g2_font_get_glyph_data(u8g2, encoding);
+  if ( glyph_data != NULL ){
+    dx = u8g2_font_decode_glyph(u8g2, glyph_data);
+  }
+  return dx;
+}
+
+int luat_lcd_draw_str(luat_lcd_conf_t* conf,uint16_t x, uint16_t y,const uint8_t* str) {
+    uint16_t e;
+    int16_t delta;
+    utf8_state = 0;
+
+    for(;;){
+        e = utf8_next((uint8_t)*str);
+        if ( e == 0x0ffff )
+        break;
+        str++;
+        if ( e != 0x0fffe ){
+        delta = u8g2_font_draw_glyph(&(conf->luat_lcd_u8g2), x, y, e);
+        switch(conf->luat_lcd_u8g2.font_decode.dir){
+            case 0:
+            x += delta;
+            break;
+            case 1:
+            y += delta;
+            break;
+            case 2:
+            x -= delta;
+            break;
+            case 3:
+            y -= delta;
+            break;
+        }
+        }
+    }
+    return 0;
+}
+
 
 #include "qrcodegen.h"
 

@@ -4,7 +4,7 @@
 
 #include "luat_base.h"
 #include "luat_spi.h"
-// #include "u8g2.h"
+#include "u8g2.h"
 
 #define WHITE            0xFFFF
 #define BLACK            0x0000
@@ -57,7 +57,7 @@ typedef struct luat_lcd_conf {
     uint8_t yoffset;//偏移
     uint8_t auto_flush;
     uint8_t direction;//方向
-    // u8g2_t luat_lcd_u8g2 ;
+    u8g2_t luat_lcd_u8g2 ;
     struct luat_lcd_opts* opts;
     luat_spi_device_t* lcd_spi_device;
     int lcd_spi_ref;
@@ -104,6 +104,8 @@ int luat_lcd_draw_vline(luat_lcd_conf_t* conf, uint16_t x, uint16_t y,uint16_t h
 int luat_lcd_draw_hline(luat_lcd_conf_t* conf, uint16_t x, uint16_t y,uint16_t h, luat_color_t color);
 int luat_lcd_draw_rectangle(luat_lcd_conf_t* conf,uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, luat_color_t color);//从x / y位置（左上边缘）开始绘制一个矩形
 int luat_lcd_draw_circle(luat_lcd_conf_t* conf,uint16_t x0, uint16_t y0, uint8_t r, luat_color_t color);//从x / y位置（圆心）开始绘制一个圆
+int luat_lcd_set_font(luat_lcd_conf_t* conf,const uint8_t *font);
+int luat_lcd_draw_str(luat_lcd_conf_t* conf,uint16_t x, uint16_t y,const uint8_t* str);
 
 int luat_lcd_drawQrcode(luat_lcd_conf_t *conf,uint16_t x,uint16_t y,const char* text,int size);//二维码显示
 
