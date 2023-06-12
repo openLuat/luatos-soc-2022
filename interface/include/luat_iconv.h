@@ -32,8 +32,8 @@ typedef void *luat_iconv_t;
 
 /**
  * @brief 开启iconv转换流，分配内存
- * @param to_code 待转换编码
- * @param from_code 目标编码
+ * @param to_code 目标编码格式，gb2312/ucs2/ucs2be/utf8
+ * @param from_code 源编码格式，gb2312/ucs2/ucs2be/utf8
  * @return cionv转换流
  */
 luat_iconv_t luat_iconv_open (const char *to_code, const char *from_code);
