@@ -40,7 +40,7 @@ static void feed_wtd_cb(uint32_t arg)
     LUAT_DEBUG_PRINT("[DIO]s_time_set [%d]", s_time_set);
     if (s_time_set)
     {
-        luat_start_rtos_timer(feed_count_timer, 10, 0);
+        luat_start_rtos_timer(feed_count_timer, 125, 0);
     }
 }
 
@@ -48,7 +48,7 @@ static void feed_wtd_cb(uint32_t arg)
 int luat_wtd9527_feed_wtd(void)
 {
 	luat_gpio_set(s_wtd_feed_pin, 1);
-    luat_start_rtos_timer(feed_timer, 210, 0);
+    luat_start_rtos_timer(feed_timer, 240, 0);
     return 0;
 }
 
