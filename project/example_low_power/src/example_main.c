@@ -171,7 +171,7 @@ static void pm_task(void *param)
 {
 
 	LUAT_DEBUG_PRINT("开始演示联网低功耗功能");
-	LUAT_DEBUG_PRINT("性能优先模式测试%d分钟", PM_TEST_PERIOD/60);
+	LUAT_DEBUG_PRINT("响应优先模式测试%d分钟", PM_TEST_PERIOD/60);
 	luat_pm_set_power_mode(LUAT_PM_POWER_MODE_HIGH_PERFORMANCE, 0);
 	luat_rtos_task_sleep(PM_TEST_PERIOD * 1000);
 	LUAT_DEBUG_PRINT("均衡模式测试%d分钟", PM_TEST_PERIOD/60);
@@ -180,7 +180,7 @@ static void pm_task(void *param)
 	LUAT_DEBUG_PRINT("无低功耗模式测试%d分钟", PM_TEST_PERIOD/60);
 	luat_pm_set_power_mode(LUAT_PM_POWER_MODE_NORMAL, 0);
 	luat_rtos_task_sleep(PM_TEST_PERIOD * 1000);
-	LUAT_DEBUG_PRINT("极致功耗模式，每%d分钟唤醒一次发送数据", PM_TEST_PERIOD/60);
+	LUAT_DEBUG_PRINT("PSM+模式，每%d分钟唤醒一次发送数据", PM_TEST_PERIOD/60);
 	luat_pm_deep_sleep_mode_register_timer_cb(PM_TEST_DEEP_SLEEP_TIMER_ID, pm_deep_sleep_timer_callback);
 	luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
 	luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
@@ -201,7 +201,7 @@ static void pm_task(void *param)
 	//powerkey接地的，还要关闭powerkey的上拉
 	pwrKeyHwDeinit(0);
 	luat_rtos_task_sleep(30000);
-	LUAT_DEBUG_PRINT("未进入极致功耗模式，测试失败");
+	LUAT_DEBUG_PRINT("未进入PSM+，测试失败");
 	LUAT_DEBUG_ASSERT(0, "!");
 }
 
