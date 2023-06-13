@@ -611,38 +611,7 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 		if (LUAT_MOBILE_NETIF_LINK_ON == status)
 		{
             g_s_is_link_up = 1;
-			ip_addr_t dns_ip[2];
-			uint8_t type, dns_num;
-			dns_num = 2;
-			soc_mobile_get_default_pdp_part_info(&type, NULL, NULL, &dns_num, dns_ip);
-
-			if (type & 0x80)
-			{
-				if (index != 4)
-				{
-					return;
-				}
-				else
-				{
-					NmAtiNetifInfo *pNetifInfo = malloc(sizeof(NmAtiNetifInfo));
-					NetMgrGetNetInfo(0xff, pNetifInfo);
-					if (pNetifInfo->ipv6Cid != 0xff)
-					{
-						net_lwip_set_local_ip6(&pNetifInfo->ipv6Info.ipv6Addr);
-
-					}
-					free(pNetifInfo);
-				}
-			}
-			if (dns_num > 0)
-			{
-				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 2, &dns_ip[0]);
-				if (dns_num > 1)
-				{
-					network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip[1]);
-				}
-			}
-			net_lwip_set_link_state(NW_ADAPTER_INDEX_LWIP_GPRS, 1);
+            luat_socket_check_ready(index, NULL);
 		}
         else if(LUAT_MOBILE_NETIF_LINK_OFF == status || LUAT_MOBILE_NETIF_LINK_OOS == status)
         {

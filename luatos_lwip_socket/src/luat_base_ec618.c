@@ -8,6 +8,8 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/md5.h"
+#include "luat_network_adapter.h"
+#include "networkmgr.h"
 
 uint32_t luat_get_utc(uint32_t *tamp)
 {
@@ -83,6 +85,7 @@ void DBG_HexPrintf(void *Data, unsigned int len)
 //}
 
 #include "osasys.h"
+extern int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
 
 time_t luat_time(time_t *_Time) {
   utc_timer_value_t *timeUtc = OsaSystemTimeReadUtc();
@@ -99,3 +102,40 @@ int luat_timer_mdelay(size_t ms) {
     return 0;
 }
 
+void luat_socket_check_ready(uint32_t param, uint8_t *is_ipv6)
+{
+	ip_addr_t dns_ip[2];
+	uint8_t type, dns_num, ipv6;
+	dns_num = 2;
+	if (!is_ipv6) is_ipv6 = &ipv6;
+	*is_ipv6 = 0;
+	soc_mobile_get_default_pdp_part_info(&type, NULL, NULL, &dns_num, dns_ip);
+
+	if (type & 0x80)
+	{
+		if (param != 4)
+		{
+			return;
+		}
+		else
+		{
+			NmAtiNetifInfo *pNetifInfo = malloc(sizeof(NmAtiNetifInfo));
+			NetMgrGetNetInfo(0xff, pNetifInfo);
+			if (pNetifInfo->ipv6Cid != 0xff)
+			{
+				net_lwip_set_local_ip6(&pNetifInfo->ipv6Info.ipv6Addr);
+				*is_ipv6 = 1;
+			}
+			free(pNetifInfo);
+		}
+	}
+	if (dns_num > 0)
+	{
+		network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 2, &dns_ip[0]);
+		if (dns_num > 1)
+		{
+			network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip[1]);
+		}
+	}
+	net_lwip_set_link_state(NW_ADAPTER_INDEX_LWIP_GPRS, 1);
+}

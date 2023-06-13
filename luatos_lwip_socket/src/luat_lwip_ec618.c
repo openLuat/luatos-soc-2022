@@ -358,7 +358,7 @@ static void net_lwip_check_network_ready(uint8_t adapter_index);
 static void net_lwip_task(void *param);
 static void net_lwip_create_socket_now(uint8_t adapter_index, uint8_t socket_id);
 static void platform_send_event(void *p, uint32_t id, uint32_t param1, uint32_t param2, uint32_t param3);
-static ip_addr_t *net_lwip_get_ip6(void);
+
 
 static int net_lwip_del_data_cache(void *p, void *u)
 {
@@ -724,7 +724,7 @@ static int32_t net_lwip_dns_check_result(void *data, void *param)
 	}
 }
 
-static ip_addr_t *net_lwip_get_ip6(void)
+ip_addr_t *net_lwip_get_ip6(void)
 {
 	if (IPADDR_TYPE_V6 == prvlwip.ec618_ipv6.type)
 	{

@@ -494,5 +494,7 @@ int network_wait_event(network_ctrl_t *ctrl, OS_EVENT *out_event, uint32_t timeo
  */
 int network_wait_rx(network_ctrl_t *ctrl, uint32_t timeout_ms, uint8_t *is_break, uint8_t *is_timeout);
 /****************************高级api结束********************************************************************/
+
+void luat_socket_check_ready(uint32_t param, uint8_t *is_ipv6);
 #endif
 // #endif

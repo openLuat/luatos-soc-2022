@@ -3,7 +3,7 @@
 #include "luat_debug.h"
 #include "luat_rtos.h"
 #include "luat_mobile.h"
-#include "networkmgr.h"
+#include "net_lwip.h"
 
 enum
 {
@@ -39,40 +39,13 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 	{
 		if (LUAT_MOBILE_NETIF_LINK_ON == status)
 		{
-			ip_addr_t dns_ip[2];
-			uint8_t type, dns_num;
-			dns_num = 2;
-			soc_mobile_get_default_pdp_part_info(&type, NULL, NULL, &dns_num, dns_ip);
-
-			if (type & 0x80)
+			uint8_t is_ipv6;
+			luat_socket_check_ready(index, &is_ipv6);
+			if (is_ipv6)
 			{
-				if (index != 4)
-				{
-					return;
-				}
-				else
-				{
-					NmAtiNetifInfo *pNetifInfo = malloc(sizeof(NmAtiNetifInfo));
-					NetMgrGetNetInfo(0xff, pNetifInfo);
-					if (pNetifInfo->ipv6Cid != 0xff)
-					{
-						net_lwip_set_local_ip6(&pNetifInfo->ipv6Info.ipv6Addr);
-						g_s_server_ip.u_addr.ip6 = pNetifInfo->ipv6Info.ipv6Addr;
-						g_s_server_ip.type = IPADDR_TYPE_V6;
-						LUAT_DEBUG_PRINT("%s", ipaddr_ntoa(&g_s_server_ip));
-					}
-					free(pNetifInfo);
-				}
+				g_s_server_ip = *net_lwip_get_ip6();
+				LUAT_DEBUG_PRINT("%s", ipaddr_ntoa(&g_s_server_ip));
 			}
-			if (dns_num > 0)
-			{
-				network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 2, &dns_ip[0]);
-				if (dns_num > 1)
-				{
-					network_set_dns_server(NW_ADAPTER_INDEX_LWIP_GPRS, 3, &dns_ip[1]);
-				}
-			}
-			net_lwip_set_link_state(NW_ADAPTER_INDEX_LWIP_GPRS, 1);
 		}
 	}
 }
