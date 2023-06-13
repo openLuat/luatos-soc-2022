@@ -551,36 +551,16 @@ static void luat_client_task(void *param)
 			}
 
 			// 本次开机运行过程中是否已经设置过休眠模式
-			// 网络准备就绪后，才能调用接口进入飞行模式；
+			// 网络准备就绪后，才能调用接口设置休眠模式；
 			// 有些休眠参数需要在飞行模式下进行设置;
 			// 使用此标志变量来保证仅设置一次；
 			static uint8_t has_set_power_mode = 0;
 			if (!has_set_power_mode)
 			{
 				has_set_power_mode = 1;
-
-				// 设置为响应优先休眠模式（sleep1、关闭usb电源、paging周期默认1.28秒、rrc release 1秒释放）
-				// 或者 均衡休眠模式（sleep1、关闭usb电源、paging周期默认2.56秒、rrc release 1秒释放）
-				// 以下代码默认为响应优先休眠模式
-
-				// sleep1
-				luat_pm_set_sleep_mode(LUAT_PM_SLEEP_MODE_LIGHT, "my_app");
-				// 关闭usb电源
-				luat_pm_set_usb_power(0);
-
-				// 进入飞行模式
-				luat_mobile_set_flymode(0,1);
-				luat_rtos_task_sleep(5000);
-				// paging周期1.28秒
-				luat_mobile_config(MOBILE_CONF_USERDRXCYCLE, CMI_USER_DRXCYCLE_1280MS);
-				// 如果需要paging周期2.56秒，打开下一行代码，关闭上一行代码
-				// luat_mobile_config(MOBILE_CONF_USERDRXCYCLE, CMI_USER_DRXCYCLE_2560MS);
-				luat_rtos_task_sleep(1000);
-				// 退出飞行模式
-				luat_mobile_set_flymode(0,0);
 				
-				// rrc release 1秒释放
-				luat_mobile_set_rrc_auto_release_time(1);
+				// 设置为响应优先休眠模式
+				luat_pm_set_power_mode(LUAT_PM_POWER_MODE_HIGH_PERFORMANCE, 0);
 			}
 			
 
