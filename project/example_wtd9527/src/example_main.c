@@ -27,6 +27,7 @@
     外部看门狗芯片实现看门狗
 */
 
+#define WTD_NOT_FEED_TEST       0       //测试不喂狗
 #define WTD_FEED_TEST           1       //测试喂狗
 #define WTD_CLOSE_FEED          0       //关闭喂狗
 #define CLOSE_FEED_AND_FEED     0       //关闭喂狗然后又打开
@@ -39,6 +40,22 @@ static luat_rtos_task_handle feed_wdt_task_handle;
 static void task_feed_wdt_run(void *param)
 {   
     luat_wtd9527_cfg_init(28);//初始化看门狗，设置喂狗管脚
+
+    
+    /*
+        测试不喂狗
+    */
+    #if WTD_NOT_FEED_TEST
+        int count = 0;
+        LUAT_DEBUG_PRINT("[DIO] Feed WTD Test Start");
+        luat_rtos_task_sleep(3000);
+        while (1)
+        {
+            count++;
+            LUAT_DEBUG_PRINT("[DIO]Eat Dog Time [%d]", count);
+            luat_rtos_task_sleep(10000);
+        }
+    #endif
 
 /*
     测试喂狗
@@ -68,6 +85,8 @@ static void task_feed_wdt_run(void *param)
             flag = 1;
             luat_wtd9527_close();
         }
+        flag++;
+        LUAT_DEBUG_PRINT("[DIO] Close Feed WTD Test [%d]", flag);
         luat_rtos_task_sleep(5000);
     }
 #endif
@@ -114,9 +133,9 @@ static void task_feed_wdt_run(void *param)
             luat_wtd9527_set_timeout(8);
             /*
                 等待时间可以举例：
-                time = 24 / 4 * 250
+                time = 24 / 4 * 400
             */
-            luat_rtos_task_sleep(500);
+            luat_rtos_task_sleep(800);
             count = 0;
         }
         count++;
@@ -136,13 +155,13 @@ static void task_feed_wdt_run(void *param)
         if (count == 30)
         {
             LUAT_DEBUG_PRINT("[DIO] Set Time!!");
-            //设定时间实际需要时间，每次喂狗需要250ms，所以也要依次等待相应的时间
+            //设定时间实际需要时间，每次喂狗需要400ms，所以也要依次等待相应的时间
             luat_wtd9527_set_timeout(24);
             /*
                 等待时间可以举例：
-                time = 24 / 4 * 250；
+                time = 24 / 4 * 400；
             */
-            luat_rtos_task_sleep(1500);
+            luat_rtos_task_sleep(2500);
             count = 0;
         }
         count++;
