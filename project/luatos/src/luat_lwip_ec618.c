@@ -2115,3 +2115,7 @@ void net_lwip_set_rx_fast_ack(uint8_t adapter_index, uint8_t onoff)
 //	return prvlwip.fast_sleep_enable || !(prvlwip.dns_client.is_run || prvlwip.socket_busy || prvlwip.socket_connect);
 //}
 
+__ISR_IN_RAM__ u32_t soc_tcpip_rx_cache(void)
+{
+	return (6 * TCP_MSS);
+}

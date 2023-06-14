@@ -346,6 +346,7 @@ typedef struct
 	uint32_t socket_busy;
 	uint32_t socket_connect;
 	HANDLE dns_timer;//dhcp_fine_tmr,dhcp6_tmr
+	uint16_t user_tcp_rx_cache;
 	uint8_t dns_adapter_index;
 	uint8_t netif_network_ready;
 	uint8_t common_timer_active;
@@ -2078,6 +2079,15 @@ void net_lwip_set_rx_fast_ack(uint8_t adapter_index, uint8_t onoff)
 	prvlwip.fast_rx_ack = onoff;
 }
 
+void net_lwip_set_tcp_rx_cache(uint8_t adapter_index, uint16_t tcp_mss_num)
+{
+	if (tcp_mss_num > 32)
+	{
+		return;
+	}
+	prvlwip.user_tcp_rx_cache = tcp_mss_num * TCP_MSS;
+}
+
 //void net_lwip_fast_sleep(uint8_t onoff)
 //{
 //	prvlwip.fast_sleep_enable = onoff;
@@ -2088,3 +2098,8 @@ void net_lwip_set_rx_fast_ack(uint8_t adapter_index, uint8_t onoff)
 //	return prvlwip.fast_sleep_enable || !(prvlwip.dns_client.is_run || prvlwip.socket_busy || prvlwip.socket_connect);
 //}
 //
+
+__ISR_IN_RAM__ u32_t soc_tcpip_rx_cache(void)
+{
+	return prvlwip.user_tcp_rx_cache?prvlwip.user_tcp_rx_cache:(6 * TCP_MSS);
+}

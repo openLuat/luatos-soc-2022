@@ -1355,7 +1355,7 @@
  */
 #if !defined TCP_WND || defined __DOXYGEN__
 #ifdef __USER_CODE__
-#define TCP_WND                         (32 * TCP_MSS)//6*TCP_MSS
+#define TCP_WND                         (soc_tcpip_rx_cache())//6*TCP_MSS
 #else
 #define TCP_WND                         (6 * 1024) //6*TCP_MSS
 #endif
