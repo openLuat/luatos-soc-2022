@@ -335,6 +335,7 @@ static void es8218_demo_task(void *arg)
 			LUAT_DEBUG_PRINT("http post fail");
 		}
     }
+	// httpClose(&gHttpClient);
     free(data.headerBuf);
     free(data.respBuf);
     free(data.postContentType);
