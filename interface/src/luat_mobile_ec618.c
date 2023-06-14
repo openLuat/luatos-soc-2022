@@ -57,6 +57,16 @@ extern void soc_mobile_rf_test_input(uint8_t *data, uint32_t len);
 
 void soc_mobile_set_network_check_period(uint32_t period);
 
+/**
+ * @brief 获取默认PDP的一些信息
+ *
+ * @param ip_type[OUT] 激活的IP类型
+ * @param apn[OUT] apn name
+ * @param apn_len[OUT] apn name 长度
+ * @param dns_num[OUT] DNS数量
+ * @param dns_ip[OUT] DNS ip
+ * @return int < 0错误 >0实际使用的CID序号
+ */
 int soc_mobile_get_default_pdp_part_info(uint8_t *ip_type, uint8_t *apn,uint8_t *apn_len, uint8_t *dns_num, ip_addr_t *dns_ip);
 
 int luat_mobile_get_imei(int sim_id, char* buff, size_t buf_len)
