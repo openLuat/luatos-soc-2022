@@ -119,6 +119,10 @@ static void luat_test_task(void)
         {
             data_len = snprintf(tx_buff, 100, "%s", "pad wakeup");
         }
+        else
+        {
+            data_len = snprintf(tx_buff, 100, "%s", "other wakeup");
+        }
     }
     else
     {
