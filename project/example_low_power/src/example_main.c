@@ -102,6 +102,7 @@ static void socket_task(void *param)
 	{
 		retry = 0;
 		luat_pm_deep_sleep_mode_timer_stop(PM_TEST_DEEP_SLEEP_TIMER_ID);
+		luat_mobile_set_rrc_auto_release_time(2);
 		LUAT_DEBUG_PRINT("wakeup from deep sleep");
 		//先确保休眠前网络状态是正确的，否则就需要重新恢复网络了
 		result = network_wait_link_up(g_s_network_ctrl, 100);
