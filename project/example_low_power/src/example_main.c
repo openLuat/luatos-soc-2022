@@ -76,6 +76,10 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 			luat_socket_check_ready(index, NULL);
 		}
 	}
+	else if (LUAT_MOBILE_EVENT_CSCON == event)
+	{
+
+	}
 }
 
 
@@ -87,97 +91,94 @@ static void socket_task(void *param)
 	static network_ctrl_t *g_s_network_ctrl;
 	const char hello[] = "hello, luatos!";
 	int result;
-	uint8_t retry = 0;
 	uint8_t *rx_data = malloc(1024);
 	uint32_t tx_len, rx_len;
-	uint8_t is_break,is_timeout;
+	uint8_t is_break,is_timeout,retry;
 	g_s_network_ctrl = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_init_ctrl(g_s_network_ctrl, g_s_task_handle, luat_test_socket_callback, NULL);
 	network_set_base_mode(g_s_network_ctrl, 0, 15000, 0, 0, 0, 0);	//UDP
 
 	if (luat_pm_get_wakeup_reason() > LUAT_PM_WAKEUP_FROM_POR)
 	{
+		retry = 0;
 		luat_pm_deep_sleep_mode_timer_stop(PM_TEST_DEEP_SLEEP_TIMER_ID);
-		luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
 		LUAT_DEBUG_PRINT("wakeup from deep sleep");
+		//先确保休眠前网络状态是正确的，否则就需要重新恢复网络了
+		result = network_wait_link_up(g_s_network_ctrl, 100);
+		if (result)
+		{
+			LUAT_DEBUG_PRINT("lte stack maybe error");
+			luat_mobile_reset_stack();
+		}
+RETRY:
+		result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, PM_TEST_SERVICE_PORT, 30000);
+		if (!result)
+		{
+			result = network_tx(g_s_network_ctrl, hello, sizeof(hello) - 1, 0, NULL, 0, &tx_len, 15000);
+			result = network_wait_rx(g_s_network_ctrl, 5000, &is_break, &is_timeout);
+
+			if (!is_timeout && !is_break)
+			{
+				do
+				{
+					result = network_rx(g_s_network_ctrl, rx_data, 1024, 0, NULL, NULL, &rx_len);
+					if (rx_len > 0)
+					{
+						LUAT_DEBUG_PRINT("rx %d", rx_len);
+					}
+				}while(!result && rx_len > 0);
+			}
+			else
+			{
+				//超时没有数据，可能协议栈正在处于错误状态
+				network_close(g_s_network_ctrl, 5000);
+				if (!retry)
+				{
+					retry = 1;
+					LUAT_DEBUG_PRINT("lte stack maybe error");
+					luat_mobile_reset_stack();
+					goto RETRY;
+				}
+				else
+				{
+					LUAT_DEBUG_PRINT("lte stack still error");
+				}
+			}
+			luat_pm_deep_sleep_mode_register_timer_cb(PM_TEST_DEEP_SLEEP_TIMER_ID, pm_deep_sleep_timer_callback);
+			luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
+			luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
+			//最低功耗要关闭GPIO23输出
+			luat_gpio_cfg_t gpio_cfg = {0};
+			gpio_cfg.pin = HAL_GPIO_23;
+			gpio_cfg.mode = LUAT_GPIO_INPUT;
+			luat_gpio_open(&gpio_cfg);
+
+			//用GPIO20来唤醒
+			gpio_cfg.pin = HAL_GPIO_20;
+			gpio_cfg.mode = LUAT_GPIO_IRQ;
+			gpio_cfg.irq_cb = pm_deep_sleep_gpio_wakeup;
+			gpio_cfg.pull = LUAT_GPIO_PULLUP;
+			gpio_cfg.irq_type = LUAT_GPIO_FALLING_IRQ;
+			luat_gpio_open(&gpio_cfg);
+
+			//powerkey接地的，还要关闭powerkey的上拉
+			pwrKeyHwDeinit(0);
+			while(1)
+			{
+				luat_rtos_task_sleep(15000);
+				LUAT_DEBUG_PRINT("error no sleep");
+			}
+		}
 	}
 
 	while(1)
 	{
-RETRY:
 		result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, PM_TEST_SERVICE_PORT, 30000);
 		if (!result)
 		{
 			result = network_tx(g_s_network_ctrl, hello, sizeof(hello) - 1, 0, NULL, 0, &tx_len, 15000);
 			while (!result)
 			{
-
-				if (luat_pm_get_wakeup_reason() > LUAT_PM_WAKEUP_FROM_POR)
-				{
-					result = network_wait_rx(g_s_network_ctrl, 5000, &is_break, &is_timeout);
-					if (!result)
-					{
-						if (!is_timeout && !is_break)
-						{
-							do
-							{
-								result = network_rx(g_s_network_ctrl, rx_data, 1024, 0, NULL, NULL, &rx_len);
-								if (rx_len > 0)
-								{
-									LUAT_DEBUG_PRINT("rx %d", rx_len);
-								}
-							}while(!result && rx_len > 0);
-						}
-						else if (is_timeout)
-						{
-							network_close(g_s_network_ctrl, 5000);
-							if (!retry)
-							{
-								LUAT_DEBUG_PRINT("无应答，也许协议栈已经异常了，需要重启协议栈");
-								luat_mobile_reset_stack();
-								goto RETRY;
-							}
-							else
-							{
-								LUAT_DEBUG_PRINT("无应答，协议栈也重启过了，放弃本次传输，重新休眠");
-								goto SLEEP;
-							}
-
-						}
-					}
-SLEEP:
-					LUAT_DEBUG_PRINT("发送完成，再次休眠");
-					luat_pm_deep_sleep_mode_register_timer_cb(PM_TEST_DEEP_SLEEP_TIMER_ID, pm_deep_sleep_timer_callback);
-					luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
-					luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
-					//最低功耗要关闭GPIO23输出
-					luat_gpio_cfg_t gpio_cfg = {0};
-					gpio_cfg.pin = HAL_GPIO_23;
-					gpio_cfg.mode = LUAT_GPIO_INPUT;
-					luat_gpio_open(&gpio_cfg);
-					//用GPIO20来唤醒
-					gpio_cfg.pin = HAL_GPIO_20;
-					gpio_cfg.mode = LUAT_GPIO_IRQ;
-					gpio_cfg.irq_cb = pm_deep_sleep_gpio_wakeup;
-					gpio_cfg.pull = LUAT_GPIO_PULLUP;
-					gpio_cfg.irq_type = LUAT_GPIO_FALLING_IRQ;
-					luat_gpio_open(&gpio_cfg);
-
-					//powerkey接地的，还要关闭powerkey的上拉
-					pwrKeyHwDeinit(0);
-					luat_rtos_task_sleep(3000);
-					LUAT_DEBUG_PRINT("未进入极致功耗模式，也许是协议栈出问题了，重启协议栈来恢复一下");
-					luat_pm_deep_sleep_mode_timer_stop(PM_TEST_DEEP_SLEEP_TIMER_ID);
-					luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
-					luat_pm_set_power_mode(LUAT_PM_POWER_MODE_NORMAL, 0);
-					result = network_wait_link_up(g_s_network_ctrl, 15000);
-					luat_rtos_task_sleep(1000);
-					luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
-					luat_rtos_task_sleep(15000);
-					LUAT_DEBUG_ASSERT(0, "!!");
-
-				}
-
 				result = network_wait_rx(g_s_network_ctrl, 300000, &is_break, &is_timeout);
 				if (!result)
 				{
@@ -247,9 +248,11 @@ static void pm_task(void *param)
 	luat_pm_set_power_mode(LUAT_PM_POWER_MODE_NORMAL, 0);
 	luat_rtos_task_sleep(1000);
 	luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
-	luat_rtos_task_sleep(15000);
-	LUAT_DEBUG_ASSERT(0, "!!!");
-
+	while(1)
+	{
+		luat_rtos_task_sleep(15000);
+		LUAT_DEBUG_PRINT("error no sleep");
+	}
 }
 
 /*
