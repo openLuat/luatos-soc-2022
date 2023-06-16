@@ -7,6 +7,8 @@
 #include "luat_debug.h"
 #include "cms_def.h"
 
+void luat_shell_push(char* uart_buff, size_t rcount);
+
 #if 1
 
 #define LUAT_LOG_TAG "sc"
@@ -169,7 +171,14 @@ next:
     else {
         // 不认识的命令, 一概作为错误处理
         // TODO 后续还可以扩展更多命令
+        #ifdef LUAT_USE_REPL
+        luat_shell_push(tmpbuff, buff_size);
+        luat_heap_free(tmpbuff);
+        tmpbuff = NULL;
+        buff_size = 0;
+        #else
         usb_output_str(">>>>ERR FOTA<<<<");
+        #endif
         return;
     }
     // 如果还有剩余数据, 循环处理. 不太可能有-_-

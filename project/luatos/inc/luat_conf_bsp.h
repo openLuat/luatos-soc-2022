@@ -75,8 +75,7 @@
 
 //----------------------------
 // 高级功能
-// #define LUAT_USE_SHELL 1
-// #define LUAT_USE_DBG
+#define LUAT_USE_REPL 1
 // 多虚拟机支持,实验性,一般不启用
 // #define LUAT_USE_VMX 1
 // #define LUAT_USE_NES 1
