@@ -29,8 +29,8 @@
 #include "luat_mobile.h"
 #include "networkmgr.h"
 #define PM_TEST_DEEP_SLEEP_TIMER_ID	3
-#define PM_TEST_SERVICE_IP	"112.125.89.8" //换成自己的服务器，为了方便演示PSM模式，demo使用UDP
-#define PM_TEST_SERVICE_PORT	37436 //换成自己的服务器
+#define PM_TEST_SERVICE_IP	"47.99.172.211" //换成自己的服务器，为了方便演示PSM模式，demo使用UDP
+#define PM_TEST_SERVICE_PORT	45433 //换成自己的服务器
 #define PM_TEST_PERIOD	1800 //单个项目测试时间30分钟，如果有需要可以修改
 luat_rtos_task_handle pm_task_handle;
 static uint8_t pm_wakeup_by_timer_flag;
@@ -87,6 +87,7 @@ static void socket_task(void *param)
 	static network_ctrl_t *g_s_network_ctrl;
 	const char hello[] = "hello, luatos!";
 	int result;
+	uint8_t retry = 0;
 	uint8_t *rx_data = malloc(1024);
 	uint32_t tx_len, rx_len;
 	uint8_t is_break,is_timeout;
@@ -103,6 +104,7 @@ static void socket_task(void *param)
 
 	while(1)
 	{
+RETRY:
 		result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, PM_TEST_SERVICE_PORT, 30000);
 		if (!result)
 		{
@@ -112,7 +114,38 @@ static void socket_task(void *param)
 
 				if (luat_pm_get_wakeup_reason() > LUAT_PM_WAKEUP_FROM_POR)
 				{
+					result = network_wait_rx(g_s_network_ctrl, 5000, &is_break, &is_timeout);
+					if (!result)
+					{
+						if (!is_timeout && !is_break)
+						{
+							do
+							{
+								result = network_rx(g_s_network_ctrl, rx_data, 1024, 0, NULL, NULL, &rx_len);
+								if (rx_len > 0)
+								{
+									LUAT_DEBUG_PRINT("rx %d", rx_len);
+								}
+							}while(!result && rx_len > 0);
+						}
+						else if (is_timeout)
+						{
+							network_close(g_s_network_ctrl, 5000);
+							if (!retry)
+							{
+								LUAT_DEBUG_PRINT("无应答，也许协议栈已经异常了，需要重启协议栈");
+								luat_mobile_reset_stack();
+								goto RETRY;
+							}
+							else
+							{
+								LUAT_DEBUG_PRINT("无应答，协议栈也重启过了，放弃本次传输，重新休眠");
+								goto SLEEP;
+							}
 
+						}
+					}
+SLEEP:
 					LUAT_DEBUG_PRINT("发送完成，再次休眠");
 					luat_pm_deep_sleep_mode_register_timer_cb(PM_TEST_DEEP_SLEEP_TIMER_ID, pm_deep_sleep_timer_callback);
 					luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
