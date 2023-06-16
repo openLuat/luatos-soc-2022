@@ -105,9 +105,9 @@ static void socket_task(void *param)
 		LUAT_DEBUG_PRINT("wakeup from deep sleep");
 		//先确保休眠前网络状态是正确的，否则就需要重新恢复网络了
 		result = network_wait_link_up(g_s_network_ctrl, 100);
-		if (result <= 0)
+		if (result < 0)
 		{
-			LUAT_DEBUG_PRINT("lte stack maybe error");
+			LUAT_DEBUG_PRINT("lte stack maybe error, %d", result);
 			luat_mobile_reset_stack();
 		}
 RETRY:
