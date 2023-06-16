@@ -167,7 +167,10 @@ SLEEP:
 					pwrKeyHwDeinit(0);
 					luat_rtos_task_sleep(3000);
 					LUAT_DEBUG_PRINT("未进入极致功耗模式，也许是协议栈出问题了，重启协议栈来恢复一下");
-					luat_mobile_reset_stack();
+					luat_pm_deep_sleep_mode_timer_stop(PM_TEST_DEEP_SLEEP_TIMER_ID);
+					luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
+					luat_pm_set_power_mode(LUAT_PM_POWER_MODE_NORMAL, 0);
+					result = network_wait_link_up(g_s_network_ctrl, 15000);
 					luat_rtos_task_sleep(1000);
 					luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
 					luat_rtos_task_sleep(15000);
@@ -239,7 +242,9 @@ static void pm_task(void *param)
 	pwrKeyHwDeinit(0);
 	luat_rtos_task_sleep(3000);
 	LUAT_DEBUG_PRINT("未进入极致功耗模式，也许是协议栈出问题了，重启协议栈来恢复一下");
-	luat_mobile_reset_stack();
+	luat_pm_deep_sleep_mode_timer_stop(PM_TEST_DEEP_SLEEP_TIMER_ID);
+	luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
+	luat_pm_set_power_mode(LUAT_PM_POWER_MODE_NORMAL, 0);
 	luat_rtos_task_sleep(1000);
 	luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
 	luat_rtos_task_sleep(15000);
