@@ -165,9 +165,13 @@ SLEEP:
 
 					//powerkey接地的，还要关闭powerkey的上拉
 					pwrKeyHwDeinit(0);
-					luat_rtos_task_sleep(30000);
-					LUAT_DEBUG_PRINT("未进入极致功耗模式，测试失败");
-					LUAT_DEBUG_ASSERT(0, "!");
+					luat_rtos_task_sleep(3000);
+					LUAT_DEBUG_PRINT("未进入极致功耗模式，也许是协议栈出问题了，重启协议栈来恢复一下");
+					luat_mobile_reset_stack();
+					luat_rtos_task_sleep(1000);
+					luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
+					luat_rtos_task_sleep(15000);
+					LUAT_DEBUG_ASSERT(0, "!!");
 
 				}
 
@@ -233,9 +237,14 @@ static void pm_task(void *param)
 
 	//powerkey接地的，还要关闭powerkey的上拉
 	pwrKeyHwDeinit(0);
-	luat_rtos_task_sleep(30000);
-	LUAT_DEBUG_PRINT("未进入PSM+，测试失败");
-	LUAT_DEBUG_ASSERT(0, "!");
+	luat_rtos_task_sleep(3000);
+	LUAT_DEBUG_PRINT("未进入极致功耗模式，也许是协议栈出问题了，重启协议栈来恢复一下");
+	luat_mobile_reset_stack();
+	luat_rtos_task_sleep(1000);
+	luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
+	luat_rtos_task_sleep(15000);
+	LUAT_DEBUG_ASSERT(0, "!!!");
+
 }
 
 /*
