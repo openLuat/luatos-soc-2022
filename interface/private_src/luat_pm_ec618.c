@@ -434,7 +434,6 @@ uint32_t luat_pm_get_deep_sleep_mode_timer_remain_time(LUAT_PM_DEEPSLEEP_TIMERID
     return slpManDeepSlpTimerRemainMs(timer_id);
 }
 
-
 int luat_pm_get_wakeup_reason()
 {
     return slpManGetWakeupSrc();
@@ -465,4 +464,46 @@ int luat_pm_set_gnss_power(uint8_t onoff)
 int luat_pm_set_power_mode(uint8_t mode, uint8_t sub_mode)
 {
 	return soc_power_mode(mode, sub_mode);
+}
+
+void luat_pm_print_state(void)
+{
+    extern void slpManSlpFailedReasonCheck(slpManSlpState_t *DeepestSlpMode, slpManSlpState_t *psphyVoteState, slpManSlpState_t *appVoteState,  slpManSlpState_t *usrdefSlpMode,  uint32_t *drvVoteMap, uint32_t *drvVoteMask);
+    extern void slpManGetSDKVoteDetail(uint32_t *sleepVoteFlag, uint32_t *sleep2VoteFlag, uint32_t *hibVoteFlag);
+    extern void slpManGetCPVoteStatus(bool *cpSleeped, uint8_t *cpVote);
+
+    slpManSlpState_t DeepestSlpMode;
+    slpManSlpState_t psphyVoteState;
+    slpManSlpState_t appVoteState;
+    slpManSlpState_t usrdefSlpMode;
+    uint32_t drvVoteMap;
+    uint32_t drvVoteMask;
+    slpManSlpState_t appVoteDetail;
+    uint8_t vote_counter;
+    uint32_t sdkSleep1Vote;
+    uint32_t sdkSleep2Vote;
+    uint32_t sdkHibVote;
+    bool cpSleeped;
+    uint8_t cpVote;
+
+    slpManSlpFailedReasonCheck(&DeepestSlpMode, &psphyVoteState, &appVoteState, &usrdefSlpMode, &drvVoteMap, &drvVoteMask);
+    slpManGetSDKVoteDetail(&sdkSleep1Vote, &sdkSleep2Vote, &sdkHibVote);
+    DBG("%d,%d,%d,%d,%x,%x", DeepestSlpMode, psphyVoteState, appVoteState, usrdefSlpMode, drvVoteMap, drvVoteMask);
+    DBG("%u,%u,%u", sdkSleep1Vote, sdkSleep2Vote, sdkHibVote);
+    for(uint8_t i=0;i<32;i++)
+    {
+        if(slpManCheckVoteState(i, &appVoteDetail, &vote_counter) == RET_TRUE)
+        {
+            if(vote_counter != 0)
+            {
+            	DBG("handle %d name %s state %d, cnt %d", i, slpManGetVoteInfo(i), appVoteDetail, vote_counter);
+            }
+            else
+            {
+            	DBG("handle %d name %s state NULL, cnt %d", i, slpManGetVoteInfo(i), vote_counter);
+            }
+        }
+    }
+    slpManGetCPVoteStatus(&cpSleeped, &cpVote);
+    DBG("cp %d,%d", cpSleeped, cpVote);
 }

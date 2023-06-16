@@ -102,7 +102,6 @@ static void socket_task(void *param)
 	{
 		retry = 0;
 		luat_pm_deep_sleep_mode_timer_stop(PM_TEST_DEEP_SLEEP_TIMER_ID);
-		luat_mobile_set_rrc_auto_release_time(2);
 		LUAT_DEBUG_PRINT("wakeup from deep sleep");
 		//先确保休眠前网络状态是正确的，否则就需要重新恢复网络了
 		result = network_wait_link_up(g_s_network_ctrl, 100);
@@ -145,6 +144,7 @@ RETRY:
 					LUAT_DEBUG_PRINT("lte stack still error");
 				}
 			}
+			LUAT_DEBUG_PRINT("now sleep again");
 			luat_pm_deep_sleep_mode_register_timer_cb(PM_TEST_DEEP_SLEEP_TIMER_ID, pm_deep_sleep_timer_callback);
 			luat_pm_deep_sleep_mode_timer_start(PM_TEST_DEEP_SLEEP_TIMER_ID, PM_TEST_PERIOD * 1000);
 			luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
@@ -168,6 +168,7 @@ RETRY:
 			{
 				luat_rtos_task_sleep(15000);
 				LUAT_DEBUG_PRINT("error no sleep");
+				luat_pm_print_state();
 			}
 		}
 	}
