@@ -53,7 +53,13 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 static void luat_test_task(void *param)
 {
 	uint32_t all,now_free_block,min_free_block;
-	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	/* 
+		出现异常后默认为死机重启
+		demo这里设置为LUAT_DEBUG_FAULT_HANG_RESET出现异常后尝试上传死机信息给PC工具，上传成功或者超时后重启
+		如果为了方便调试，可以设置为LUAT_DEBUG_FAULT_HANG，出现异常后死机不重启
+		但量产出货一定要设置为出现异常重启！！！！！！！！！1
+	*/
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET); 
 	net_lwip_set_tcp_rx_cache(NW_ADAPTER_INDEX_LWIP_GPRS, 32); //为了下行测试才需要打开，对于不需要高速流量的应用不要打开
 	g_s_network_ctrl = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_init_ctrl(g_s_network_ctrl, g_s_task_handle, luat_test_socket_callback, NULL);

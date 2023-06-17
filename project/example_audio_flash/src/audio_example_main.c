@@ -263,7 +263,13 @@ static void test_audio_demo_init(void)
 	luat_gpio_set_default_cfg(&gpio_cfg);
 	luat_rtos_task_handle task_handle;
 
-	//luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	/* 
+		出现异常后默认为死机重启
+		demo这里设置为LUAT_DEBUG_FAULT_HANG_RESET出现异常后尝试上传死机信息给PC工具，上传成功或者超时后重启
+		如果为了方便调试，可以设置为LUAT_DEBUG_FAULT_HANG，出现异常后死机不重启
+		但量产出货一定要设置为出现异常重启！！！！！！！！！1
+	*/
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET); 
 
 	gpio_cfg.pin = LED2_PIN;
 	gpio_cfg.pull = LUAT_GPIO_DEFAULT;

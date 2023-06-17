@@ -252,8 +252,13 @@ static void luat_test_task(void *param)
 	cfg.pull_down_enable = 0;
 	luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_0, &cfg);
 
-	// 设置死机模式
-	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	/* 
+		出现异常后默认为死机重启
+		demo这里设置为LUAT_DEBUG_FAULT_HANG_RESET出现异常后尝试上传死机信息给PC工具，上传成功或者超时后重启
+		如果为了方便调试，可以设置为LUAT_DEBUG_FAULT_HANG，出现异常后死机不重启
+		但量产出货一定要设置为出现异常重启！！！！！！！！！1
+	*/
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET); 
 	// 响应优先
 	luat_pm_set_power_mode(LUAT_PM_POWER_MODE_HIGH_PERFORMANCE, 0);
 	// 申请socket资源

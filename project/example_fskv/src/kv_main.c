@@ -34,7 +34,13 @@ static void kv_demo(void *param)
 	int ret = 0;
 	char value[128] = {0};
 	char value2[128] = {0};
-	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	/* 
+		出现异常后默认为死机重启
+		demo这里设置为LUAT_DEBUG_FAULT_HANG_RESET出现异常后尝试上传死机信息给PC工具，上传成功或者超时后重启
+		如果为了方便调试，可以设置为LUAT_DEBUG_FAULT_HANG，出现异常后死机不重启
+		但量产出货一定要设置为出现异常重启！！！！！！！！！
+	*/
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET); 
 	ret = luat_fskv_init(FLASH_FDB_REGION_START + AP_FLASH_XIP_ADDR, FLASH_FDB_REGION_START, 64*1024);
 
 
