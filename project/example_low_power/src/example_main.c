@@ -101,6 +101,7 @@ static void socket_task(void *param)
 	if (luat_pm_get_wakeup_reason() > LUAT_PM_WAKEUP_FROM_POR)
 	{
 		retry = 0;
+		luat_gpio_close(HAL_GPIO_20);
 		luat_pm_deep_sleep_mode_timer_stop(PM_TEST_DEEP_SLEEP_TIMER_ID);
 		LUAT_DEBUG_PRINT("wakeup from deep sleep");
 		//先确保休眠前网络状态是正确的，否则就需要重新恢复网络了
