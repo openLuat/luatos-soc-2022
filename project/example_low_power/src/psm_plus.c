@@ -9,7 +9,7 @@
 #include "luat_gpio.h"
 
 
-#define PM_TEST_PERIOD	30 // 30s唤醒一次 如果有需要可以修改
+#define PM_TEST_PERIOD	1*60 // 60s唤醒一次 如果有需要可以修改
 
 static ip_addr_t g_s_server_ip;
 static network_ctrl_t *g_s_network_ctrl;
