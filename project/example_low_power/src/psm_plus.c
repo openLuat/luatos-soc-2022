@@ -7,7 +7,7 @@
 #include "platform_def.h"
 #include "luat_pm.h"
 #include "luat_gpio.h"
-
+#include "luat_uart.h"
 
 #define PM_TEST_PERIOD	30 // 30s唤醒一次 如果有需要可以修改
 
@@ -19,7 +19,15 @@ static uint8_t pm_wakeup_by_timer_flag;
 
 // 请访问 https://netlab.luatos.com 获取新的端口号
 const char remote_ip[] = "112.125.89.8";
-int port = 44462;
+int port = 44050;
+
+/*
+ * 本demo几乎所有log都从uart0输出，必须提高波特率
+ */
+void soc_get_unilog_br(uint32_t *baudrate)
+{
+	*baudrate = 6000000; //UART0做log口输出6M波特率，必须用高性能USB转TTL，比如CH343
+}
 
 static void pm_deep_sleep_timer_callback(uint8_t id)
 {
@@ -89,6 +97,10 @@ static luat_pm_wakeup_pad_isr_callback_t wakeup_pad_callback(int num)
 	}
 }
 
+luat_uart_recv_callback_t uart_recv_callback(int uart_id, uint32_t data_len)
+{
+	LUAT_DEBUG_PRINT("uart recv %d %d", uart_id, data_len);
+}
 
 static void luat_test_task(void)
 {
@@ -102,10 +114,21 @@ static void luat_test_task(void)
 	cfg.pos_edge_enable = 0;
 	cfg.pull_down_enable = 0;
 	luat_pm_wakeup_pad_set(false, LUAT_PM_WAKEUP_PAD_0, &cfg);
+	luat_uart_ctrl(UART_ID1, LUAT_UART_SET_RECV_CALLBACK, uart_recv_callback);
+	luat_uart_t uart_cfg = {0};
+	uart_cfg.id = UART_ID1;
+	uart_cfg.baud_rate = 9600;
+	uart_cfg.data_bits = 8;
+	uart_cfg.stop_bits = 1;
+	uart_cfg.parity = 0;
+	luat_uart_setup(&uart_cfg);
+
+	
+
     luat_gpio_cfg_t gpio_cfg = {0};
     uint32_t tx_len;
     uint32_t data_len;
-    uint8_t * tx_buff = malloc(100);
+    uint8_t tx_buff[100] = {0};
     int wakeup_reason = luat_pm_get_wakeup_reason();
 
 
@@ -118,6 +141,10 @@ static void luat_test_task(void)
         else if(wakeup_reason == LUAT_PM_WAKEUP_FROM_PAD)
         {
             data_len = snprintf(tx_buff, 100, "%s", "pad wakeup");
+        }
+        else if(wakeup_reason == LUAT_PM_WAKEUP_FROM_LPUART)
+        {
+            data_len = snprintf(tx_buff, 100, "%s", "uart1 wakeup");
         }
         else
         {
