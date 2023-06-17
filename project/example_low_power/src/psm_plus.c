@@ -9,7 +9,7 @@
 #include "luat_gpio.h"
 
 
-#define PM_TEST_PERIOD	1800 //单个项目测试时间30分钟，如果有需要可以修改
+#define PM_TEST_PERIOD	30 // 30s唤醒一次 如果有需要可以修改
 
 static ip_addr_t g_s_server_ip;
 static network_ctrl_t *g_s_network_ctrl;
@@ -19,7 +19,7 @@ static uint8_t pm_wakeup_by_timer_flag;
 
 // 请访问 https://netlab.luatos.com 获取新的端口号
 const char remote_ip[] = "112.125.89.8";
-int port = 44561;
+int port = 44462;
 
 static void pm_deep_sleep_timer_callback(uint8_t id)
 {
@@ -95,13 +95,13 @@ static void luat_test_task(void)
 	luat_pm_wakeup_pad_set_callback(wakeup_pad_callback);
     int result;
     int retry = 0;
-	// 初始化wakeup0，默认上拉，下降沿中断
+	// 唤醒后先关闭wakeup0
 	luat_pm_wakeup_pad_cfg_t cfg = {0};
 	cfg.pull_up_enable = 1;
 	cfg.neg_edge_enable = 1;
 	cfg.pos_edge_enable = 0;
 	cfg.pull_down_enable = 0;
-	luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_0, &cfg);
+	luat_pm_wakeup_pad_set(false, LUAT_PM_WAKEUP_PAD_0, &cfg);
     luat_gpio_cfg_t gpio_cfg = {0};
     uint32_t tx_len;
     uint32_t data_len;
@@ -145,17 +145,17 @@ static void luat_test_task(void)
 	// 连接服务器
     while (retry < 3)
     {
-       result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, port, 5000);
+       result = network_connect(g_s_network_ctrl, remote_ip, sizeof(remote_ip) - 1, NULL, port, 1000);
        if(!result)
        {
-            result = network_tx(g_s_network_ctrl, tx_buff, data_len, 0, NULL, 0, &tx_len, 5000);
+            result = network_tx(g_s_network_ctrl, tx_buff, data_len, 0, NULL, 0, &tx_len, 1000);
             if(!result)
             {
-                network_close(g_s_network_ctrl, 5000);
+                network_close(g_s_network_ctrl, 1000);
                 goto exit;
             }
        }
-       network_close(g_s_network_ctrl, 5000);
+       network_close(g_s_network_ctrl, 1000);
        retry++;
     }
     
@@ -164,9 +164,15 @@ exit:
 	gpio_cfg.mode = LUAT_GPIO_INPUT;
 	luat_gpio_open(&gpio_cfg);
     pwrKeyHwDeinit(0);
+	// 初始化wakeup0，默认上拉，下降沿中断
+	cfg.pull_up_enable = 1;
+	cfg.neg_edge_enable = 1;
+	cfg.pos_edge_enable = 0;
+	cfg.pull_down_enable = 0;
+	luat_pm_wakeup_pad_set(true, LUAT_PM_WAKEUP_PAD_0, &cfg);
     luat_pm_deep_sleep_mode_timer_start(LUAT_PM_DEEPSLEEP_TIMER_ID0, PM_TEST_PERIOD * 1000);
     luat_pm_set_power_mode(LUAT_PM_POWER_MODE_POWER_SAVER, 0);
-    luat_rtos_task_sleep(30000);
+    luat_rtos_task_sleep(10000);
     LUAT_DEBUG_PRINT("未进入PSM+，测试失败, 此处用重启来处理进入PSM+失败的逻辑");
     luat_pm_reboot();
     luat_rtos_task_sleep(5000);
