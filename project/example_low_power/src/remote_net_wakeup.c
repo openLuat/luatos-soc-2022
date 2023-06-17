@@ -21,6 +21,7 @@ enum
 };
 
 static luat_rtos_timer_t g_s_heart_timer_handle;
+
 static luat_rtos_timer_t g_s_reconnect_timer_handle;
 static luat_rtos_task_handle g_s_task_handle;
 static luat_rtos_task_handle g_s_send_task_handle;
@@ -31,7 +32,7 @@ static luat_rtos_semaphore_t g_s_wait_network_link_semaphore_handle;
 static luat_rtos_semaphore_t g_s_wait_connect_semaphore_handle;
 static uint8_t g_s_socket_is_connected = 0;
 static ip_addr_t g_s_server_ip;
-
+static int  heartbeat_interval = 5*60*1000;  // 心跳间隔
 // 请访问 https://netlab.luatos.com 获取新的端口号
 const char remote_ip[] = "112.125.89.8";
 int port = 44561;
@@ -69,7 +70,7 @@ static int32_t luat_test_socket_callback(void *pdata, void *param)
 	{
 		g_s_socket_is_connected = 1;
 		luat_rtos_semaphore_release(g_s_wait_connect_semaphore_handle);
-		luat_rtos_timer_start(g_s_heart_timer_handle, 60000, 1, total_timer_callback, &g_s_heart_timer_handle);
+		luat_rtos_timer_start(g_s_heart_timer_handle, heartbeat_interval, 1, total_timer_callback, &g_s_heart_timer_handle);
 	}
 	else if (event->ID == EV_NW_RESULT_CLOSE)
 	{
