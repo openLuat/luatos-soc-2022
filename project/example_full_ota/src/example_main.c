@@ -129,7 +129,7 @@ static void luat_test_task(void *param)
 	const char ota_file_name[200];
     char imei[16] = {0};
     luat_mobile_get_imei(0, imei, 15);
-	snprintf_(ota_file_name, 200, "api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_%s_LuatOS_CSDK_EC618&version=%s", PROJECT_KEY, imei, PROJECT_VERSION, PROJECT_NAME, PROJECT_VERSION);
+	snprintf_(ota_file_name, 200, "api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_LuatOS_CSDK_EC618&version=%s", PROJECT_KEY, imei, PROJECT_NAME, PROJECT_VERSION);
 #endif
 	int port = 80;
 	uint32_t dummy_len, start, end, total, i, download_len;
