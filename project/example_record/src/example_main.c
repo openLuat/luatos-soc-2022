@@ -274,7 +274,13 @@ static void es8311_demo_task(void *arg)
 	uint8_t rx_buf[2];
 	luat_audio_play_info_t info[1] = {0};
 	luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, NULL, NULL);
-	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	/* 
+		出现异常后默认为死机重启
+		demo这里设置为LUAT_DEBUG_FAULT_HANG_RESET出现异常后尝试上传死机信息给PC工具，上传成功或者超时后重启
+		如果为了方便调试，可以设置为LUAT_DEBUG_FAULT_HANG，出现异常后死机不重启
+		但量产出货一定要设置为出现异常重启！！！！！！！！！1
+	*/
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET); 
 	luat_i2c_setup(I2C_ID0, 400000);
 	tx_buf[0] = 0xfd;
 	luat_i2c_transfer(I2C_ID0, i2c_address, tx_buf, 1, rx_buf, 1);
@@ -343,7 +349,13 @@ static void es8218_demo_task(void *arg)
 	uint8_t rx_buf[2];
 	luat_audio_play_info_t info[1] = {0};
 	luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, NULL, NULL);
-	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	/* 
+		出现异常后默认为死机重启
+		demo这里设置为LUAT_DEBUG_FAULT_HANG_RESET出现异常后尝试上传死机信息给PC工具，上传成功或者超时后重启
+		如果为了方便调试，可以设置为LUAT_DEBUG_FAULT_HANG，出现异常后死机不重启
+		但量产出货一定要设置为出现异常重启！！！！！！！！！1
+	*/
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET); 
 	luat_i2c_setup(I2C_ID0, 400000);
 
 	luat_rtos_timer_create(&g_s_delay_timer);
@@ -398,7 +410,13 @@ static void es7243_demo_task(void *arg)
 	uint8_t rx_buf[2];
 	luat_audio_play_info_t info[1] = {0};
 	luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, NULL, NULL);
-	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	/* 
+		出现异常后默认为死机重启
+		demo这里设置为LUAT_DEBUG_FAULT_HANG_RESET出现异常后尝试上传死机信息给PC工具，上传成功或者超时后重启
+		如果为了方便调试，可以设置为LUAT_DEBUG_FAULT_HANG，出现异常后死机不重启
+		但量产出货一定要设置为出现异常重启！！！！！！！！！1
+	*/
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET); 
 	luat_i2c_setup(I2C_ID0, 400000);
 
 	luat_rtos_timer_create(&g_s_delay_timer);
