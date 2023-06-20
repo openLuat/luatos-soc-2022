@@ -43,7 +43,7 @@ int32_t luat_get_wifiscan_cell_info(luat_wifiscan_set_info_t * set_info,luat_wif
     wifiscanreq.wifiPriority=set_info->wifiPriority;
     wifiscanreq.channelRecLen=set_info->channelRecLen;
     wifiscanreq.channelCount=set_info->channelCount;
-    wifiscanreq.channelId[0]=set_info->channelId[0];
+    memcpy(wifiscanreq.channelId, set_info->channelId, CMI_DEV_MAX_CHANNEL_NUM);
     ret=appGetWifiScanInfo(&wifiscanreq, &pWifiScanInfo);
     if (ret == 0)
     {
@@ -97,7 +97,7 @@ int luat_wlan_scan_nonblock(luat_wifiscan_set_info_t * set_info)
     wifiscanreq.wifiPriority=set_info->wifiPriority;
     wifiscanreq.channelRecLen=set_info->channelRecLen;
     wifiscanreq.channelCount=set_info->channelCount;
-    wifiscanreq.channelId[0]=set_info->channelId[0];
+    memcpy(wifiscanreq.channelId, set_info->channelId, CMI_DEV_MAX_CHANNEL_NUM);
 	ret=cmsNonBlockApiCall(luat_wlan_scan_nonblock_init, sizeof(wifiscanreq), &wifiscanreq);
     return ret;
 }
