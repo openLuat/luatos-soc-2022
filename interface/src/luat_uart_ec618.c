@@ -209,10 +209,10 @@ int luat_uart_setup(luat_uart_t* uart) {
 	case UART_ID2:
 #ifdef __LUATOS__
 		luat_hmeta_model_name(model);
-#else
-		soc_get_model_name(model, 0);
-#endif
 		if ((1 == g_s_serials[UART_ID2].alt_type) || !strcmp("Air780EG", model))
+#else
+		if ((1 == g_s_serials[UART_ID2].alt_type))
+#endif
 		{
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 0), 5, 0, 0);
 		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 5, 0, 0);
