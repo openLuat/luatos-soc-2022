@@ -351,6 +351,13 @@ int luat_pm_set_gnss_power(uint8_t onoff);
  * @note 和luat_pm_set_sleep_mode，luat_pm_set_usb_power冲突，不可以同时使用
  */
 int luat_pm_set_power_mode(uint8_t mode, uint8_t sub_mode);
+/**
+ * @brief io电压调节
+ * @param id 预留，目前不需要
+ * @param val，电压值，单位mV
+ * @return int =0成功，其他失败
+ */
+int luat_pm_iovolt_ctrl(int id, int val);
 /**@}*/
 
 

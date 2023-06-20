@@ -507,3 +507,32 @@ void luat_pm_print_state(void)
     slpManGetCPVoteStatus(&cpSleeped, &cpVote);
     DBG("cp %d,%d", cpSleeped, cpVote);
 }
+
+int luat_pm_iovolt_ctrl(int id, int val) {
+	IOVoltageSel_t set;
+	if (val > 3400)
+	{
+		set = IOVOLT_3_40V;
+	}
+	else if (val >= 2650)
+	{
+		set = (val - 2650)/50 + IOVOLT_2_65V;
+	}
+	else if (val > 2000)
+	{
+		DBG("iovolt: out of range %d %d", id, val);
+		return -1;
+	}
+	else if (val >= 1650)
+	{
+		set = (val - 1650)/50;
+	}
+	else
+	{
+		set = IOVOLT_1_65V;
+	}
+	slpManNormalIOVoltSet(set);
+	slpManAONIOVoltSet(set);
+	return 0;
+
+}
