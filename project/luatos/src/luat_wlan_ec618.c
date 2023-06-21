@@ -39,7 +39,7 @@ static int l_wlan_handler(lua_State *L, void* ptr) {
 }
 
 int luat_wlan_init(luat_wlan_config_t *conf){
-    DBG("wifi support scan only");
+    DBG("only wifi-scan supported");
     return 0;
 }
 
