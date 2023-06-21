@@ -187,37 +187,56 @@ void luat_pm_init(void) {
 
 int luat_pm_get_poweron_reason(void)
 {
-	LastResetState_e apRstState,cpRstState;
+    LastResetState_e apRstState,cpRstState;
 	ResetStateGet(&apRstState, &cpRstState);
+	DBG("ap %d,cp %d", apRstState, cpRstState);
 	int id = 0;
-	switch(apRstState)
+
+	switch(cpRstState)
 	{
-	case LAST_RESET_POR:
-	case LAST_RESET_NORMAL:
-		id = 0;
-		break;
-	case LAST_RESET_SWRESET:
-		id = 3;
-		break;
 	case LAST_RESET_HARDFAULT:
 	case LAST_RESET_ASSERT:
-		id = 6;
+		return LUAT_PM_POWERON_REASON_EXCEPTION;
 		break;
 	case LAST_RESET_WDTSW:
 	case LAST_RESET_WDTHW:
 	case LAST_RESET_LOCKUP:
 	case LAST_RESET_AONWDT:
-		id = 8;
+		return LUAT_PM_POWERON_REASON_WDT;
+		break;
+	}
+
+	switch(apRstState)
+	{
+	case LAST_RESET_POR:
+	case LAST_RESET_NORMAL:
+		id = LUAT_PM_POWERON_REASON_NORMAL;
+		break;
+	case LAST_RESET_SWRESET:
+		id = LUAT_PM_POWERON_REASON_SWRESET;
+		break;
+	case LAST_RESET_HARDFAULT:
+	case LAST_RESET_ASSERT:
+		id = LUAT_PM_POWERON_REASON_EXCEPTION;
+		break;
+	case LAST_RESET_WDTSW:
+	case LAST_RESET_WDTHW:
+	case LAST_RESET_LOCKUP:
+	case LAST_RESET_AONWDT:
+		id = LUAT_PM_POWERON_REASON_WDT;
 		break;
 	case LAST_RESET_BATLOW:
 	case LAST_RESET_TEMPHI:
-		id = 9;
+		id = LUAT_PM_POWERON_REASON_EXTERNAL;
 		break;
 	case LAST_RESET_FOTA:
-		id = 1;
+		id = LUAT_PM_POWERON_REASON_FOTA;
+		break;
+	case LAST_RESET_CPRESET:
+		id = 100 + cpRstState;
 		break;
 	default:
-		id = 4;
+		id = 200 + cpRstState;
 		break;
 	}
 	return id;
