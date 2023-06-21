@@ -31,6 +31,7 @@
 #include "luat_gpio.h"
 #include "luat_gpio_legacy.h"
 #include "platform_define.h"
+#include "plat_config.h"
 extern void soc_usb_onoff(uint8_t onoff);
 extern void soc_set_usb_sleep(uint8_t onoff);
 extern int soc_power_mode(uint8_t main, uint8_t sub);
@@ -535,4 +536,20 @@ int luat_pm_iovolt_ctrl(int id, int val) {
 	slpManAONIOVoltSet(set);
 	return 0;
 
+}
+
+
+int luat_pm_set_powerkey_mode(uint8_t onoff)
+{
+    if(onoff != 0 && onoff != 1)
+    {
+        return -1;
+    }
+    if(BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_PWRKEY_MODE) != onoff)
+	{
+		DBG("powerkey mode %d to %d", BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_PWRKEY_MODE), onoff);
+		BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_PWRKEY_MODE, onoff);
+		BSP_SavePlatConfigToRawFlash();
+	}
+    return 0;
 }

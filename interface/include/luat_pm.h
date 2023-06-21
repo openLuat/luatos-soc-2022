@@ -358,6 +358,13 @@ int luat_pm_set_power_mode(uint8_t mode, uint8_t sub_mode);
  * @return int =0成功，其他失败
  */
 int luat_pm_iovolt_ctrl(int id, int val);
+/**
+ * @brief 设置powerkey防抖开关
+ * @param onoff 1表示开启powerkey防抖，0表示关闭防抖
+ * @return int =0成功，其他失败
+ * @note 防抖开启时，powerkey长按开机，reset按键作用变为关机；防抖关闭时，powerkey短按开机，reset按键作用变为重启
+ */
+int luat_pm_set_powerkey_mode(uint8_t onoff);
 /**@}*/
 
 
