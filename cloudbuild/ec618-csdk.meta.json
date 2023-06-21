@@ -113,6 +113,13 @@
                         "dft": false
                     },
                     {
+                        "name": "PG_APP_2760_FOTA_384_FS_600",
+                        "content": "方案7 APP分区2760k,fota区384k,文件系统800k",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    },
+                    {
                         "name": "@pgcommet",
                         "content": "如需更多方案,请联系销售定制",
                         "rsize": 3756,
