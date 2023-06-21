@@ -500,6 +500,13 @@
                         "dft": false
                     },
                     {
+                        "name": "LUAT_HEAP_SIZE_300K",
+                        "content": "Lua内存设置到300k字节, 这个模式下不能使用音频的库,且需要限制TLS连接的数量在2个以内",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
                         "name": "rndis",
                         "content": "启用RNDIS网卡, lua内存会强制减少到128k",
                         "rsize": 0,

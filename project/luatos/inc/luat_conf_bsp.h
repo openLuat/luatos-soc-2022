@@ -214,7 +214,10 @@
 
 // 以下选项仅开发人员可修改, 一般用户切勿自行修改
 //-----------------------------
-// 内存配置, 默认200k, 128 ~ 256k 可调
+// 内存配置, 默认200k, 128 ~ 300k 可调. 300k属于极限值, 不可使用音频, 并限制TLS连接的数量不超过2个
+#ifdef LUAT_HEAP_SIZE_300K
+#define LUAT_HEAP_SIZE (300*1024)
+#endif
 #ifdef LUAT_HEAP_SIZE_256K
 #define LUAT_HEAP_SIZE (256*1024)
 #endif
