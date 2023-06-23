@@ -37,7 +37,7 @@ static void Wifiscan_Task(void *param)
     {
         luat_rtos_task_sleep(1000);
     }
-    luat_wifiscan_set_info_t wifiscan_info;
+    luat_wifiscan_set_info_t wifiscan_info = {0};
     luat_wifisacn_get_info_t wifiscan_getinfo;
     wifiscan_info.maxTimeOut = 10000;
     wifiscan_info.round = 1;

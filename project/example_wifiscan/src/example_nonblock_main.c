@@ -62,7 +62,7 @@ static void wifi_scan_nonblock_task(void *param)
 {
 	int ret = -1;
 	size_t total, used, max_used;
-	luat_wifiscan_set_info_t wifiscan_info;
+	luat_wifiscan_set_info_t wifiscan_info = {0};
 	wifiscan_info.maxTimeOut = 10000;
 	wifiscan_info.round = 1;
 	wifiscan_info.maxBssidNum = 10;
