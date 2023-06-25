@@ -194,17 +194,17 @@ int luat_uart_setup(luat_uart_t* uart) {
     {
 	case UART_ID0:
         if (g_s_serials[UART_ID0].alt_type) {
-	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_16, 0), 3, 0, 0);
-	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_17, 0), 3, 0, 0);
+	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_16, 0), 3, 1, 0);
+	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_17, 0), 3, 1, 0);
         }
         else {
-	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_14, 0), 3, 0, 0);
-	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_15, 0), 3, 0, 0);
+	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_14, 0), 3, 1, 0);
+	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_15, 0), 3, 1, 0);
         }
 		break;
 	case UART_ID1:
-	    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_18, 0), 1, 0, 0);
-	    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_19, 0), 1, 0, 0);
+	    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_18, 0), 1, 1, 0);
+	    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_19, 0), 1, 1, 0);
 	    break;
 	case UART_ID2:
 #ifdef __LUATOS__
@@ -214,18 +214,18 @@ int luat_uart_setup(luat_uart_t* uart) {
 		if ((1 == g_s_serials[UART_ID2].alt_type))
 #endif
 		{
-		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 0), 5, 0, 0);
-		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 5, 0, 0);
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_12, 0), 5, 1, 0);
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_13, 0), 5, 1, 0);
 		}
 		else if (2 == g_s_serials[UART_ID2].alt_type)
 		{
-		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_6, 0), 3, 0, 0);
-		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_7, 0), 3, 0, 0);
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_6, 0), 3, 1, 0);
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_7, 0), 3, 1, 0);
 		}
 		else
 		{
-		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_10, 0), 3, 0, 0);
-		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_11, 0), 3, 0, 0);
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_10, 0), 3, 1, 0);
+		    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_11, 0), 3, 1, 0);
 		}
 		break;
 	default:
