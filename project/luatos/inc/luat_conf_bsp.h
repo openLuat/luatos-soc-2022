@@ -295,6 +295,10 @@
 //目前没用到的宏，但是得写在这里
 //#define LUAT_USE_I2S
 
+#ifndef LUAT_USE_HMETA
+#define LUAT_USE_HMETA 1
+#endif
+
 #ifdef LUAT_EC618_LITE_MODE
 #undef LUAT_USE_LCD
 #undef LUAT_USE_TJPGD
