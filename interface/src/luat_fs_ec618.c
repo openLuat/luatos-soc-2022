@@ -212,8 +212,8 @@ int luat_vfs_ec618_truncate(__attribute__((unused))void* userdata, const char* f
 }
 
 int luat_vfs_ec618_mkfs(__attribute__((unused))void* userdata, __attribute__((unused))luat_fs_conf_t *conf) {
-    //DBG("not support yet : mkfs");
-    return -1;
+    LFS_format();
+    return 0;
 }
 int luat_vfs_ec618_mount(__attribute__((unused))void** userdata, __attribute__((unused))luat_fs_conf_t *conf) {
     //DBG("not support yet : mount");
