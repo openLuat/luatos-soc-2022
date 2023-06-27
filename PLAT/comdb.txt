@@ -1,8 +1,8 @@
 DbVersion
-1140856393,100
+105004042,100
 <end>
 BuildInfo
-The current data file was built by the Application Ver. 2.2.73.199, Tue Jun 27 07:40:05 2023
+The current data file was built by the Application Ver. 2.2.73.199, Tue Jun 27 11:52:42 2023
 <end>
 EnumVals
 0,2048,0,0,PHY_ONLINE,PHY_ICS_MODULE,PhyIcsMeasMainEntrance_0,P_INFO,swLogPrintf("ICS MEAS of euArfcn %d will be started ");
@@ -1140,34 +1140,22 @@ EnumVals
 265216,544217087,0,0,PLAT_AP,PLA_DRIVER,USART_DmaRxEvent_1,P_DEBUG,swLogPrintf("uart dma rx complete ");
 265216,544219135,0,0,PLAT_AP,PLA_DRIVER,SoftSimInit_0,P_INFO,swLogPrintf("Softsim task has already been created ");
 265216,544221183,0,0,PLAT_AP,PLA_DRIVER,SoftSimInit_1,P_INFO,swLogPrintf("Start softsim task ");
-265216,544222208,0,0,PLAT_AP,PLA_DRIVER,ALM_exitLowPowerStateRestore_1,P_VALUE,swLogPrintf("Alarm Func Init : %d , %e<alarmVoltThd> - %d , %e<alarmThmThd> , %e<alarmHysteresisRange> ");
-265216,544225279,0,0,PLAT_AP,PLA_DRIVER,thmHigh_interruptHandler_0,P_WARNING,swLogPrintf("Thm Interrupt Enter : Temperature too high ");
-265216,544227327,0,0,PLAT_AP,PLA_DRIVER,thmHigh_interruptHandler_1,P_VALUE,swLogPrintf("Thm Interrupt Enter : Temperature below threshold ");
-265216,544229375,0,0,PLAT_AP,PLA_DRIVER,thmHigh_interruptHandler_2,P_VALUE,swLogPrintf("Alarm message send in isr error ");
-265216,544231423,0,0,PLAT_AP,PLA_DRIVER,thmHigh_interruptHandler_3,P_VALUE,swLogPrintf("Alarm message queue not ready in isr ");
-265216,544233471,0,0,PLAT_AP,PLA_DRIVER,vbatLow_interruptHandler_0,P_WARNING,swLogPrintf("Vbat Interrupt Enter : Bat volatage too low ");
-265216,544235519,0,0,PLAT_AP,PLA_DRIVER,vbatLow_interruptHandler_1,P_VALUE,swLogPrintf("Vbat Interrupt Enter : Bat volatage above threshold ");
-265216,544237567,0,0,PLAT_AP,PLA_DRIVER,vbatLow_interruptHandler_2,P_VALUE,swLogPrintf("Alarm message send in isr error ");
-265216,544239615,0,0,PLAT_AP,PLA_DRIVER,vbatLow_interruptHandler_3,P_VALUE,swLogPrintf("Alarm message queue not ready in isr ");
-265216,544239872,0,0,PLAT_AP,PLA_DRIVER,alarmTask_1,P_VALUE,swLogPrintf("alarmTask : type = %d , info = %d ");
-265216,544243711,0,0,PLAT_AP,PLA_DRIVER,alarmThreadInit_1,P_VALUE,swLogPrintf("Alarm task queue init error ");
-265216,544244736,0,0,PLAT_AP,PLA_DRIVER,alarmFuncInit_1,P_VALUE,swLogPrintf("Alarm Func Init : %d , %e<alarmVoltThd> - %d , %e<alarmThmThd> , %e<alarmHysteresisRange> ");
-265216,544247807,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtInit_1,P_VALUE,swLogPrintf("Log above print through uart ");
-265216,544249855,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtInit_2,P_VALUE,swLogPrintf("Log below print through usb ");
-265216,544251903,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtInit_4,P_VALUE,swLogPrintf("Log below print through usb ");
-265216,544251904,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtInit_5,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtInit Process Time = %d ");
-265216,544253952,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtDinit_1,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtDinit Process Time = %d ");
-265216,544256000,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtReset_1,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtReset Process Time = %d ");
-265216,544260095,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtSuspend_1,P_VALUE,swLogPrintf("Log above print through usb ");
-265216,544262143,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtSuspend_3,P_VALUE,swLogPrintf("Log below print through uart ");
-265216,544262144,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtSuspend_4,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtSuspend Process Time = %d ");
-265216,544266239,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtResume_1,P_VALUE,swLogPrintf("Log above print through uart ");
-265216,544268287,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtResume_2,P_VALUE,swLogPrintf("Low below print through usb ");
-265216,544270335,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtResume_3,P_VALUE,swLogPrintf("Low below print through usb ");
-265216,544270336,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtResume_4,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtResume Process Time = %d ");
-265216,544272896,0,0,PLAT_AP,PLA_DRIVER,npiLoadNvmConfig_4,P_ERROR,swLogPrintf("Can ' t read ' npiconfig.nvm ' version : %d file body , or body not right , ( %u / %u ) , use the defult value ");
-265216,544274432,0,0,PLAT_AP,PLA_DRIVER,npiLoadNvmConfig_5,P_ERROR,swLogPrintf("' npiconfig.nvm ' version : %d not right , use the defult value ");
-265216,544276992,0,0,PLAT_AP,PLA_DRIVER,xTimerGenericCommand_1,P_WARNING,swLogPrintf("OsTimer Operation in ISR , msgId = %u , value = %d , pTimer = 0x%x ");
+265216,544223231,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtInit_1,P_VALUE,swLogPrintf("Log above print through uart ");
+265216,544225279,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtInit_2,P_VALUE,swLogPrintf("Log below print through usb ");
+265216,544227327,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtInit_4,P_VALUE,swLogPrintf("Log below print through usb ");
+265216,544227328,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtInit_5,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtInit Process Time = %d ");
+265216,544229376,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtDinit_1,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtDinit Process Time = %d ");
+265216,544231424,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtReset_1,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtReset Process Time = %d ");
+265216,544235519,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtSuspend_1,P_VALUE,swLogPrintf("Log above print through usb ");
+265216,544237567,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtSuspend_3,P_VALUE,swLogPrintf("Log below print through uart ");
+265216,544237568,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtSuspend_4,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtSuspend Process Time = %d ");
+265216,544241663,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtResume_1,P_VALUE,swLogPrintf("Log above print through uart ");
+265216,544243711,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtResume_2,P_VALUE,swLogPrintf("Low below print through usb ");
+265216,544245759,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtResume_3,P_VALUE,swLogPrintf("Low below print through usb ");
+265216,544245760,0,0,PLAT_AP,PLA_DRIVER,usbDevLowLvlEvtResume_4,P_VALUE,swLogPrintf("USB IRQ usbDevLowLvlEvtResume Process Time = %d ");
+265216,544248320,0,0,PLAT_AP,PLA_DRIVER,npiLoadNvmConfig_4,P_ERROR,swLogPrintf("Can ' t read ' npiconfig.nvm ' version : %d file body , or body not right , ( %u / %u ) , use the defult value ");
+265216,544249856,0,0,PLAT_AP,PLA_DRIVER,npiLoadNvmConfig_5,P_ERROR,swLogPrintf("' npiconfig.nvm ' version : %d not right , use the defult value ");
+265216,544252416,0,0,PLAT_AP,PLA_DRIVER,xTimerGenericCommand_1,P_WARNING,swLogPrintf("OsTimer Operation in ISR , msgId = %u , value = %d , pTimer = 0x%x ");
 266240,545261568,0,0,PLAT_AP,PLA_HAL,ApmuHandleScCalibrCancel,P_INFO,swLogPrintf("ApmuHandleScCalibration Cancelled! and timer status is %d ");
 266240,545265663,0,0,PLAT_AP,PLA_HAL,ApmuScCalibrTimerExpired_0,P_INFO,swLogPrintf("ApmuScCalibrTimerExpired! ");
 266240,545267711,0,0,PLAT_AP,PLA_HAL,ApmuHandleScCalibrReq_0,P_INFO,swLogPrintf("ApmuHandleScCalibrReq! ");
@@ -8902,5 +8890,5 @@ MW_INFO_PHY_EDRX_PARAM,midWareNvmInfoPhyEdrxParam
 plat_config,plat_config_fs_t
 <end>
 OptionalSegment
-optional_sk_01,D83FC79B3CF7538ED011AD98A158310F907FDFF5D4D4D5E190673567CD470188
+optional_sk_01,3AA0CA36F75B8D559A7F7A9E77DA7C2413C97EF771B882E56F3DA656840E2C9D
 <end>

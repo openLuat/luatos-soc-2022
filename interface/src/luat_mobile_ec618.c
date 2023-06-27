@@ -908,44 +908,25 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 #include "luat_debug.h"
 #include "ctype.h"
 
-static void luat_mobile_test_uart_callback(int uart_id, uint32_t data_len)
+void luat_mobile_rf_test_input(char *data, uint32_t data_len)
 {
-	uint8_t data[64];
-	char *start;
-	char *end;
-	uint32_t dummy_len, i;
-	dummy_len = luat_uart_read(uart_id, data, sizeof(data));
-	while(dummy_len > 0)
+	if (data && data_len)
 	{
-		for(i = 0; i < dummy_len; i++)
+		uint32_t i;
+		for(i = 0; i < data_len; i++)
 		{
 			data[i] = toupper(data[i]);
 		}
-		soc_mobile_rf_test_input(data, dummy_len);
-		dummy_len = luat_uart_read(uart_id, data, sizeof(data));
-	}
-	soc_mobile_rf_test_input(NULL, 0);
-
-}
-
-void luat_mobile_rf_test_mode(uint8_t uart_id, uint32_t br, uint8_t on_off)
-{
-	if (on_off)
-	{
-	    luat_uart_t uart = {
-	        .id = uart_id,
-	        .baud_rate = br,
-	        .data_bits = 8,
-	        .stop_bits = 1,
-	        .parity    = 0
-	    };
-	    luat_uart_setup(&uart);
-	    luat_uart_ctrl(uart_id, LUAT_UART_SET_RECV_CALLBACK, luat_mobile_test_uart_callback);
+		soc_mobile_rf_test_input(data, data_len);
 	}
 	else
 	{
-		luat_uart_close(uart_id);
+		soc_mobile_rf_test_input(NULL, 0);
 	}
+}
+
+void luat_mobile_rf_test_mode(uint8_t uart_id, uint8_t on_off)
+{
 	soc_mobile_rf_test_mode(uart_id, on_off);
 }
 

@@ -33,7 +33,12 @@
 #ifdef FEATURE_AT_ENABLE
 #include "atec_alarm_cnf_ind.h"
 #endif
-
+#ifdef __USER_CODE__
+__attribute__((weak)) void alarmFuncInit(void)
+{
+	;
+}
+#else
 extern void delay_us(uint32_t us);
 
 /*----------------------------------------------------------------------------*
@@ -343,7 +348,7 @@ void alarmFuncInit(void)        // this function also call in paging
     }
 
 }
-
+#endif
 
 
 

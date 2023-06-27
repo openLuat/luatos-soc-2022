@@ -19,6 +19,11 @@
 #include "bsp_usart.h"
 #include "slpman.h"
 
+#ifdef __USER_CODE__
+#undef PLAT_PA_RAMCODE
+#define PLAT_PA_RAMCODE PLAT_FM_RAMCODE
+#endif
+
 #ifdef PM_FEATURE_ENABLE
 #define USART_DEBUG  1
 #if USART_DEBUG
