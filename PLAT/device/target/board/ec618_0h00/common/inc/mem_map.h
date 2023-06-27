@@ -268,10 +268,10 @@ flash xip address(from ap view): 0x08800000---0x08900000
 
 #ifdef LOW_SPEED_SERVICE_ONLY
 #define min_heap_size_threshold 0x19000
-#define up_buf_start 0x4c3500
+#define up_buf_start 0x4c3300
 #else
 #define min_heap_size_threshold 0x20000
-#define up_buf_start 0x499000
+#define up_buf_start 0x498E00
 #endif
 
 // TODO: need re-design excption dump
