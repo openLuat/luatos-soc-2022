@@ -674,14 +674,9 @@ static int network_state_shakehand(network_ctrl_t *ctrl, OS_EVENT *event, networ
 		break;
 	case EV_NW_SOCKET_TX_OK:
 		ctrl->ack_size += event->Param2;
-		if (ctrl->is_debug)
-		{
-			DBG("%llu,%llu",ctrl->tx_size, ctrl->ack_size);
-		}
 		break;
 #ifdef LUAT_USE_TLS
 	case EV_NW_SOCKET_RX_NEW:
-
     	do
     	{
     		int result = mbedtls_ssl_handshake_step( ctrl->ssl );
@@ -754,7 +749,6 @@ static int network_state_on_line(network_ctrl_t *ctrl, OS_EVENT *event, network_
 		ctrl->ack_size += event->Param2;
 		if (NW_WAIT_TX_OK == ctrl->wait_target_state)
 		{
-
 			if (ctrl->ack_size == ctrl->tx_size)
 			{
 #ifdef LUAT_USE_LWIP
@@ -777,6 +771,27 @@ static int network_state_on_line(network_ctrl_t *ctrl, OS_EVENT *event, network_
 		}
 		break;
 	case EV_NW_SOCKET_RX_NEW:
+#ifdef LUAT_USE_TLS
+		if (ctrl->tls_mode && (ctrl->ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER))
+		{
+			DBG("rehandshaking");
+	    	do
+	    	{
+	    		int result = mbedtls_ssl_handshake_step( ctrl->ssl );
+	    		switch(result)
+	    		{
+	    		case MBEDTLS_ERR_SSL_WANT_READ:
+	    			return 1;
+	    		case 0:
+	    			break;
+	    		default:
+	    			DBG_ERR("0x%x, %d", -result, ctrl->ssl->state);
+	    			ctrl->need_close = 1;
+	    			return -1;
+	    		}
+	    	}while(ctrl->ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER);
+		}
+#endif
 		ctrl->new_rx_flag = 1;
 		if (NW_WAIT_TX_OK != ctrl->wait_target_state)
 		{
@@ -1584,6 +1599,8 @@ void network_init_tls(network_ctrl_t *ctrl, int verify_mode)
 		ctrl->config->p_vrfy = ctrl;
 		ctrl->config->ca_chain = ctrl->ca_cert;
 		ctrl->config->read_timeout = 20000;
+		ctrl->config->allow_legacy_renegotiation = MBEDTLS_SSL_LEGACY_ALLOW_RENEGOTIATION;
+		ctrl->config->disable_renegotiation = MBEDTLS_SSL_RENEGOTIATION_ENABLED;
 	    ctrl->tls_long_timer = platform_create_timer(tls_longtimeout, ctrl, NULL);
 	    ctrl->tls_short_timer = platform_create_timer(tls_shorttimeout, ctrl, NULL);
 	}
