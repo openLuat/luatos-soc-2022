@@ -367,6 +367,7 @@ static void luat_test_task(void *param)
 			LUAT_DEBUG_PRINT("HTTP请求发送失败");
 			goto MP3_DOWNLOAD_END;
 		}
+HTTP_NEED_MORE_HEAD_DATA:
 		result = network_wait_rx(netc, 20000, &is_break, &is_timeout);
 		if (result || is_timeout)
 		{
@@ -379,6 +380,7 @@ static void luat_test_task(void *param)
 			LUAT_DEBUG_PRINT("网络错误");
 			goto MP3_DOWNLOAD_END;
 		}
+		if (!dummy_len) goto HTTP_NEED_MORE_HEAD_DATA;
 		rx_buffer.Pos = dummy_len;
 		rx_buffer.Data[dummy_len] = 0;
 		http_response = get_http_response_code(rx_buffer.Data);
