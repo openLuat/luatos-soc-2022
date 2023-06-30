@@ -100,6 +100,9 @@ void audio_event_cb(uint32_t event, void *param)
 		LUAT_DEBUG_PRINT("audio play done, result=%d!", luat_audio_play_get_last_error(0));
 		luat_gpio_set(PA_PWR_PIN, 0);
 		luat_gpio_set(CODEC_PWR_PIN, 0);
+		//如果用软件DAC，打开下面的2句注释，消除POP音和允许进低功耗
+//		luat_rtos_task_sleep(10);
+//		SoftDAC_Stop();
 		break;
 	}
 }
