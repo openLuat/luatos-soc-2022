@@ -33,6 +33,7 @@
 #include "sfud.h"
 #include "luat_rtos.h"
 #include "luat_gpio.h"
+#include "driver_pcm.h"
 //#include "luat_multimedia.h"
 typedef struct
 {
@@ -48,6 +49,7 @@ typedef struct
 	uint8_t dac_on_level;
 	uint8_t raw_mode;
 	uint8_t debug_on_off;
+	uint8_t soft_dac_mode;
 }luat_audio_hardware_t;
 
 static luat_audio_hardware_t g_s_audio_hardware;
@@ -108,6 +110,10 @@ static void audio_event_cb(uint32_t event, void *param)
 			luat_rtos_task_sleep(g_s_audio_hardware.dac_off_delay_time);
 		}
 		luat_gpio_set(g_s_audio_hardware.dac_pin, !g_s_audio_hardware.dac_on_level);
+		if (g_s_audio_hardware.soft_dac_mode)
+		{
+			SoftDAC_Stop();
+		}
 		msg.handler = l_multimedia_raw_handler;
 		msg.arg1 = MULTIMEDIA_CB_AUDIO_DONE;
 		msg.arg2 = (int)param;
@@ -360,6 +366,7 @@ uint16_t luat_audio_vol(uint8_t multimedia_id, uint16_t vol)
 void luat_audio_set_bus_type(uint8_t bus_type)
 {
 	audio_play_set_bus_type(bus_type);
+	g_s_audio_hardware.soft_dac_mode = (bus_type == 2);
 }
 
 void luat_audio_set_debug(uint8_t on_off)

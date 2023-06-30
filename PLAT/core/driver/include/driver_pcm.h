@@ -32,10 +32,8 @@ int PCM_Start(uint32_t SampleRate);
 void PCM_Tx(uint8_t* Data, uint32_t ByteLen, CBFuncEx_t cb, void *param);
 void PCM_TxStop(void);
 void PCM_TxPause(void);
-/**
- * @brief PCM播报音频音量调节
- *
- * @param pcm_volume : 音量调节数值，调节范围为0-150
- */
-void am_pcm_volume(uint8_t pcm_volume);
+void SoftDAC_InitDefault(void);
+void SoftDAC_Init(uint8_t IsUserCtrl, uint32_t UserChannel);
+void SoftDAC_DeInit(void);
+void SoftDAC_Stop(void);
 #endif
