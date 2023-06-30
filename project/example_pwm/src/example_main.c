@@ -45,6 +45,18 @@ static void task_test_pwm(void *param)
 	*/
 	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET); 
 	luat_rtos_task_sleep(2000);
+
+	/* 
+		pwm重构后，精度为千分之一，使用100%占空比时，需要填入1000，50%占空比时候，填入500
+
+		channel: pwm引脚的选择，pwm3，pwm5底层占用，不可使用
+		例：  
+			传入channel为4， 对10取余得4，和10相除得0，表示使用的是引脚为GPIO27的PWM4
+		    传入channel为12，对10取余得2，和10相除得1，表示使用的是引脚为GPIO16的PWM2
+
+			pwm引脚的选择定义参考luat_pwm_ec618.c中  g_s_pwm_table
+	*/
+
 	uint8_t channel = 4;
 	luat_pwm_set_callback(channel, pwm_test_callback, NULL);
 	//测试13M, 50%占空比连续输出，看示波器
