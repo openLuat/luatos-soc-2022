@@ -197,6 +197,15 @@ int luat_gpio_setup(luat_gpio_t *gpio){
 	cfg.mode = gpio->mode;
 	cfg.output_level = gpio->irq;
 	cfg.pull = gpio->pull;
+	if (cfg.alt_fun == -1) {
+		// 兼容老的GPIO14/15
+		if (HAL_GPIO_14 == gpio->pin || HAL_GPIO_15 == gpio->pin) {
+			cfg.alt_fun = 4;
+		}
+		else {
+			cfg.alt_fun = 0;
+		}
+	}
 	return luat_gpio_open(&cfg);
 }
 
