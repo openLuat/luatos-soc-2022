@@ -188,145 +188,16 @@ int luat_gpio_open(luat_gpio_cfg_t* gpio)
 }
 
 int luat_gpio_setup(luat_gpio_t *gpio){
-	if (((uint32_t)(gpio->pin)) >= HAL_GPIO_QTY) return -1;
-	GPIO_GlobalInit(NULL);
-#ifdef __LUATOS__
-	if (HAL_WAKEUP_PWRKEY == gpio->pin)
-	{
-		if (gpio->mode != LUAT_GPIO_IRQ)
-		{
-			return -1;
-		}
-		pwrKeyIsrCallback = luat_gpio_pwrkey_irq_callback;
-		pwrKeyHwInit((LUAT_GPIO_PULLUP == gpio->pull)?1:0);
-		NVIC_EnableIRQ(PwrkeyWakeup_IRQn);
-		return 0;
-	}
-#endif
-	if (gpio->pin >= HAL_GPIO_MAX)
-	{
-		APmuWakeupPadSettings_t padConfig = {0};
-		if (LUAT_GPIO_OUTPUT == gpio->mode) return -1;
-		uint8_t pad_id = gpio->pin - HAL_WAKEUP_0;
-	    switch (gpio->pull)
-	    {
-		case LUAT_GPIO_PULLUP:
-			padConfig.pullUpEn = 1;
-			break;
-		case LUAT_GPIO_PULLDOWN:
-			padConfig.pullDownEn = 1;
-			break;
-		default:
-			break;
-	    }
-	    if (LUAT_GPIO_IRQ == gpio->mode)
-	    {
-	        if (gpio->irq_cb) {
-	        	GPIO_ExtiSetCB(gpio->pin, gpio->irq_cb, gpio->irq_args);
-	        }
-	        else
-	        {
-	        	GPIO_ExtiSetCB(gpio->pin, luat_gpio_irq_callback, gpio->irq_args);
-	        }
-	        switch (gpio->irq)
-	        {
-			case LUAT_GPIO_RISING_IRQ:
-				padConfig.posEdgeEn = 1;
-				break;
-			case LUAT_GPIO_FALLING_IRQ:
-				padConfig.negEdgeEn = 1;
-				break;
-			case LUAT_GPIO_BOTH_IRQ:
-				padConfig.posEdgeEn = 1;
-				padConfig.negEdgeEn = 1;
-				break;
-			default:
-		    	return -1;
-				break;
-	        }
-	        slpManSetWakeupPadCfg(pad_id, true, &padConfig);
-	        NVIC_EnableIRQ(pad_id);
-	    }
-	    else
-	    {
-	    	NVIC_DisableIRQ(pad_id);
-	    	NVIC_ClearPendingIRQ(pad_id);
-	    	slpManSetWakeupPadCfg(pad_id, false, &padConfig);
-	    	GPIO_ExtiSetCB(gpio->pin, NULL, gpio->irq_args);
-	    }
-		return 0;
-	}
-	uint8_t is_pull;
-	uint8_t is_pullup;
-	uint8_t is_input = (LUAT_GPIO_OUTPUT == gpio->mode)?0:1;
-    switch (gpio->pull)
-    {
-	case LUAT_GPIO_PULLUP:
-		is_pull = 1;
-		is_pullup = 1;
-		break;
-	case LUAT_GPIO_PULLDOWN:
-		is_pull = 1;
-		is_pullup = 0;
-		break;
-	default:
-		is_pull = 0;
-		is_pullup = 0;
-		break;
-    }
-	// 2023-01-30 GPIO14/15 映射到PAD 13/14的ALT 4, 从而避免与UART0冲突 by wendal
-	uint8_t AltFun = gpio->alt_func;
-	if (HAL_GPIO_14 == gpio->pin || HAL_GPIO_15 == gpio->pin) {
-		AltFun = 4;
-	}
-// https://gitee.com/openLuat/LuatOS/issues/I79Q0Z
-#ifdef LUAT_UART0_FORCE_ALT1
-	#ifdef LUAT_GPIO_1415_ALT0
-		AltFun = 0;
-	#endif
-#endif
-    GPIO_Config(gpio->pin, is_input, is_pullup);
-    GPIO_PullConfig(GPIO_ToPadEC618(gpio->pin, AltFun), is_pull, is_pullup);
-    if (LUAT_GPIO_IRQ == gpio->mode)
-    {
-        if (gpio->irq_cb) {
-        	GPIO_ExtiSetCB(gpio->pin, gpio->irq_cb, gpio->irq_args);
-        }
-        else
-        {
-        	GPIO_ExtiSetCB(gpio->pin, luat_gpio_irq_callback, gpio->irq_args);
-        }
-        switch (gpio->irq)
-        {
-		case LUAT_GPIO_RISING_IRQ:
-			GPIO_ExtiConfig(gpio->pin, 0,1,0);
-			break;
-		case LUAT_GPIO_FALLING_IRQ:
-			GPIO_ExtiConfig(gpio->pin, 0,0,1);
-			break;
-		case LUAT_GPIO_BOTH_IRQ:
-			GPIO_ExtiConfig(gpio->pin, 0,1,1);
-			break;
-		case LUAT_GPIO_HIGH_IRQ:
-			GPIO_ExtiConfig(gpio->pin, 1,1,0);
-			break;
-		case LUAT_GPIO_LOW_IRQ:
-			GPIO_ExtiConfig(gpio->pin, 1,0,1);
-			break;
-		default:
-			GPIO_ExtiConfig(gpio->pin, 0,0,0);
-			break;
-        }
-
-    }
-    else
-    {
-    	GPIO_ExtiConfig(gpio->pin, 0,0,0);
-    	GPIO_ExtiSetCB(gpio->pin, NULL, NULL);
-    }
-
-    GPIO_IomuxEC618(GPIO_ToPadEC618(gpio->pin, AltFun), AltFun, 0, 0);
-	return 0;
+	luat_gpio_cfg_t cfg = {0};
+	cfg.pin = gpio->pin;
+	cfg.alt_fun = gpio->alt_func;
+	cfg.irq_cb = gpio->irq_cb;
+	cfg.irq_args = gpio->irq_args;
+	cfg.irq_type = gpio->irq;
+	cfg.mode = gpio->mode;
+	cfg.output_level = gpio->irq;
+	cfg.pull = gpio->pull;
+	return luat_gpio_open(&cfg);
 }
 
 int luat_gpio_set(int pin, int level){

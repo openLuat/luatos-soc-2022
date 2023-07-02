@@ -480,7 +480,7 @@
                     },
                     {
                         "name" : "LUAT_GPIO_1415_ALT0",
-                        "content": "GPIO14/15强制分配到UART0的位置, paddr 29/30, 需要开启LUAT_UART0_FORCE_ALT1",
+                        "content": "[已废弃,不可用]GPIO14/15强制分配到UART0的位置, paddr 29/30, 需要开启LUAT_UART0_FORCE_ALT1",
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
