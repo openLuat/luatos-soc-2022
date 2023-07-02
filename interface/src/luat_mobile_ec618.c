@@ -628,8 +628,26 @@ int luat_mobile_get_cell_info_async(uint8_t max_time)
 int luat_mobile_get_last_notify_cell_info(luat_mobile_cell_info_t  *info)
 {
 	BasicCellListInfo bcListInfo;
+	CmiPsCeregInd cereg;
+	CmiMmCesqInd cesq_info;
 	soc_mobile_get_cell_info(&bcListInfo);
 	ec618_cell_to_luat_cell(&bcListInfo, info);
+	soc_mobile_get_lte_service_info(&cereg);
+	soc_mobile_get_signal(&cesq_info);
+	// DBG("cereg %d %d %d %d %d", cereg.celId, cereg.tac, cesq_info.snr, cesq_info.rsrp, cesq_info.rsrq);
+	if (cereg.celId) {
+		info->lte_info_valid = 1;
+		info->lte_info[0].cid = cereg.celId;
+		// info->lte_info[0].mcc = 0; // TODO 也更新一下?
+		// info->lte_info[0].mnc = 0;
+		info->lte_info[0].tac = cereg.tac;
+		info->lte_info[0].snr = cesq_info.snr;
+		info->lte_info[0].rsrp = cesq_info.rsrp;
+		info->lte_info[0].rsrq = cesq_info.rsrq;
+	}
+	else {
+		// info->lte_info_valid = 0; // 是否应该设置为0呢?
+	}
 	return 0;
 }
 
