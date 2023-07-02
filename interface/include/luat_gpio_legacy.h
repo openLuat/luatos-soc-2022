@@ -63,6 +63,7 @@ typedef struct luat_gpio
     int lua_ref;
     luat_gpio_irq_cb irq_cb;/**<中断处理函数*/
     void* irq_args;
+    int alt_func;
 } luat_gpio_t;
 /**
  * @brief GPIO初始化
