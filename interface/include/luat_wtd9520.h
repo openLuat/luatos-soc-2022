@@ -27,31 +27,24 @@
  * @brief 开启看门狗
  * @return int =0成功，其他失败
  */
-int luat_wtd9527_setup(void);
+int luat_wtd9520_setup(void);
 
 /**
  * @brief 喂狗
  * @return int =0成功，其他失败
  */
-int luat_wtd9527_feed_wtd(void);
-
-/**
- * @brief 定时器模式设定开机时间
- * @param timeout 开机时间
- * @return int =0成功，其他失败
- */
-int luat_wtd9527_set_timeout(size_t timeout);
+int luat_wtd9520_feed_wtd(void);
 
 /**
  * @brief 关闭看门狗喂狗
  * @return int =0成功，其他失败
  */
-int luat_wtd9527_close(void);
+int luat_wtd9520_close(void);
 
 /**
  * @brief 看门狗初始化设置
  * @param wtd_feed_pin 模块的喂狗管脚
  */
-void luat_wtd9527_cfg_init(int wtd_feed_pin);
+void luat_wtd9520_cfg_init(int wtd_feed_pin);
 
 #endif
