@@ -8,7 +8,7 @@
 #include "luat_rtos.h"
 #include "common_api.h"
 #include "luat_debug.h"
-#include "luat_wtd9527.h"
+#include "luat_wtd9520.h"
 #include "platform_define.h"
 
 /*
@@ -27,7 +27,7 @@ static int s_wtd_feed_pin = 28;//默认的模块喂狗管教
 
 static void wtd_feed_count_cb(uint32_t arg)
 {
-    luat_wtd9527_feed_wtd();
+    luat_wtd9520_feed_wtd();
 }
 
 //喂狗回调
@@ -40,48 +40,36 @@ static void feed_wtd_cb(uint32_t arg)
     LUAT_DEBUG_PRINT("[DIO]s_time_set [%d]", s_time_set);
     if (s_time_set)
     {
-        luat_start_rtos_timer(feed_count_timer, 125, 0);
+        luat_start_rtos_timer(feed_count_timer, 100, 0);
     }
 }
 
 //喂狗
-int luat_wtd9527_feed_wtd(void)
+int luat_wtd9520_feed_wtd(void)
 {
 	luat_gpio_set(s_wtd_feed_pin, 1);
-    luat_start_rtos_timer(feed_timer, 240, 0);
-    return 0;
-}
-
-//设置定时器模式的时间
-int luat_wtd9527_set_timeout(size_t timeout)
-{
-    s_time_set = 0;
-    if ((timeout % 4 != 0) || !timeout || timeout > 24)
-        return 1;
-
-    s_time_set = timeout / 4;
-    luat_wtd9527_feed_wtd();
+    luat_start_rtos_timer(feed_timer, 400, 0);
     return 0;
 }
 
 //关闭喂狗
-int luat_wtd9527_close(void)
+int luat_wtd9520_close(void)
 {
 	luat_gpio_set(s_wtd_feed_pin, 1);
-    luat_start_rtos_timer(feed_timer, 410, 0);
+    luat_start_rtos_timer(feed_timer, 700, 0);
     return 0;
 }
 
 
-int luat_wtd9527_setup(void)
+int luat_wtd9520_setup(void)
 {
-    return luat_wtd9527_feed_wtd();
+    return luat_wtd9520_feed_wtd();
 }
 
 /*
     默认模块GPIO引脚配置初始化
 */
-void luat_wtd9527_cfg_init(int wtd_feed_pin)
+void luat_wtd9520_cfg_init(int wtd_feed_pin)
 {
     slpManAONIOPowerOn();
     luat_gpio_set_default_cfg(&feed_gpio_cfg);

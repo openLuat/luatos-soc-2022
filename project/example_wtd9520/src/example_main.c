@@ -21,7 +21,7 @@
 #include "common_api.h"
 #include "luat_rtos.h"
 #include "luat_debug.h"
-#include "luat_wtd9527.h"
+#include "luat_wtd9520.h"
 
 /*
     外部看门狗芯片实现看门狗
@@ -39,7 +39,7 @@ static luat_rtos_task_handle feed_wdt_task_handle;
 
 static void task_feed_wdt_run(void *param)
 {   
-    luat_wtd9527_cfg_init(28);//初始化看门狗，设置喂狗管脚
+    luat_wtd9520_cfg_init(28);//初始化看门狗，设置喂狗管脚
 
     
     /*
@@ -65,7 +65,7 @@ static void task_feed_wdt_run(void *param)
     luat_rtos_task_sleep(3000);
     while (1)
     {
-        luat_wtd9527_feed_wtd();
+        luat_wtd9520_feed_wtd();
         LUAT_DEBUG_PRINT("[DIO]Eat Dog");
         luat_rtos_task_sleep(120000);
     }
@@ -83,7 +83,7 @@ static void task_feed_wdt_run(void *param)
         if (!flag)
         {
             flag = 1;
-            luat_wtd9527_close();
+            luat_wtd9520_close();
         }
         flag++;
         LUAT_DEBUG_PRINT("[DIO] Close Feed WTD Test [%d]", flag);
@@ -105,13 +105,13 @@ static void task_feed_wdt_run(void *param)
         {
             flag = 1;
             LUAT_DEBUG_PRINT("[DIO] Close Feed WTD!");
-            luat_wtd9527_close();
+            luat_wtd9520_close();
             luat_rtos_task_sleep(10000);//方便观察设置的时间长一点
         }
         flag++;
         if (flag == 28){
             LUAT_DEBUG_PRINT("[DIO] Open Feed WTD!");
-            luat_wtd9527_feed_wtd();
+            luat_wtd9520_feed_wtd();
         }
         luat_rtos_task_sleep(10000);
     }
@@ -129,64 +129,17 @@ static void task_feed_wdt_run(void *param)
         if (count == 15)
         {
             LUAT_DEBUG_PRINT("[DIO] Rrset Module");
-            //设定时间实际需要时间，每次喂狗需要250ms，所以也要依次等待相应的时间
-            luat_wtd9527_set_timeout(8);
+            //设定时间实际需要时间，每次喂狗需要500ms，所以也要依次等待相应的时间
+            luat_wtd9520_set_timeout(8);
             /*
                 等待时间可以举例：
-                time = 24 / 4 * 400
+                time = 8 / 4 * 500
             */
-            luat_rtos_task_sleep(800);
+            luat_rtos_task_sleep(1100);
             count = 0;
         }
         count++;
         luat_rtos_task_sleep(1000);
-    }
-#endif
-
-/*
-    定时器模式设定时间定时开机
-*/
-#if SETTING_TIME
-    int count = 0;
-    LUAT_DEBUG_PRINT("[DIO] Setting Time Test Start");
-    luat_rtos_task_sleep(3000);
-    while (1)
-    {
-        if (count == 30)
-        {
-            LUAT_DEBUG_PRINT("[DIO] Set Time!!");
-            //设定时间实际需要时间，每次喂狗需要400ms，所以也要依次等待相应的时间
-            luat_wtd9527_set_timeout(24);
-            /*
-                等待时间可以举例：
-                time = 24 / 4 * 400；
-            */
-            luat_rtos_task_sleep(2500);
-            count = 0;
-        }
-        count++;
-        luat_rtos_task_sleep(500);
-    }
-#endif
-
-/*
-    定时器模式关机状态下下拉INT主动开机
-*/
-#if POWER_ON_HAND
-    int count = 0;
-    LUAT_DEBUG_PRINT("[DIO] Power on Test Start");
-    luat_rtos_task_sleep(3000);
-    while (1)
-    {
-        if (count == 20)
-        {
-            LUAT_DEBUG_PRINT("[DIO] Set Time!!");
-            luat_wtd9527_set_timeout(16);
-            luat_rtos_task_sleep(2000);
-            count = 0;
-        }
-        count++;
-        luat_rtos_task_sleep(500);
     }
 #endif
 

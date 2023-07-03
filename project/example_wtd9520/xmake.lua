@@ -1,4 +1,4 @@
-local TARGET_NAME = "example_wtd9527"
+local TARGET_NAME = "example_wtd9520"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 
