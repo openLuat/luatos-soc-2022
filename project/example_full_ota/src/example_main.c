@@ -66,6 +66,12 @@ static void luatos_http_cb(int status, void *data, uint32_t len, void *param)
 		break;
 	case HTTP_STATE_IDLE:
 		break;
+	case HTTP_STATE_SEND_BODY_START:
+		//如果是POST，在这里发送POST的body数据，如果一次发送不完，可以在HTTP_STATE_SEND_BODY回调里继续发送
+		break;
+	case HTTP_STATE_SEND_BODY:
+		//如果是POST，可以在这里发送POST剩余的body数据
+		break;
 	default:
 		break;
 	}
