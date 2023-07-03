@@ -1,5 +1,6 @@
 #ifndef LUAT_HTTP_H
 #define LUAT_HTTP_H
+#include "http_parser.h"
 #include "common_api.h"
 // #define HTTP_REQUEST_BUF_LEN_MAX 	(1024)
 enum
@@ -57,8 +58,6 @@ typedef struct{
 	void* timeout_timer;			// timeout_timer 定时器
 	int error_code;
 	Buffer_Struct response_cache;
-	size_t response_buff_offset;
-	size_t response_head_done;
 	uint32_t total_len;
 	uint32_t done_len;
 	uint8_t retry_cnt_max;		//最大重试次数
@@ -67,6 +66,7 @@ typedef struct{
 	uint8_t data_mode;
 	uint8_t is_pause;
 	uint8_t debug_onoff;
+	uint8_t new_data;
 }luat_http_ctrl_t;
 
 

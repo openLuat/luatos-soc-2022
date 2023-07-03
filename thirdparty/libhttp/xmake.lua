@@ -6,7 +6,7 @@ target("libhttp")
 
     --加入代码和头文件
     add_includedirs("./",
-                    SDK_TOP.."/luatos_lwip_socket",
+                    SDK_TOP.."/luatos_lwip_socket/include",
     {public = true})
 
     add_files("./*.c",{public = true})

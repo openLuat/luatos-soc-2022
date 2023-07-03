@@ -25,6 +25,10 @@ static void http_network_error(luat_http_ctrl_t *http_ctrl)
 	{
 		if (http_ctrl->retry_cnt >= http_ctrl->retry_cnt_max)
 		{
+			if (http_ctrl->error_code > 0)
+			{
+				http_ctrl->error_code = HTTP_ERROR_STATE;
+			}
 			http_ctrl->http_cb(http_ctrl->error_code, NULL, 0, http_ctrl->http_cb_userdata);
 			return;
 		}
@@ -38,6 +42,7 @@ static void http_network_error(luat_http_ctrl_t *http_ctrl)
 	{
 		DBG("http can not connect!");
 		http_ctrl->state = HTTP_STATE_IDLE;
+		http_ctrl->error_code = HTTP_ERROR_CONNECT;
 		network_close(http_ctrl->netc, 0);
 		http_ctrl->http_cb(http_ctrl->error_code, NULL, 0, http_ctrl->http_cb_userdata);
 	}
@@ -46,6 +51,7 @@ static void http_network_error(luat_http_ctrl_t *http_ctrl)
 
 
 static int on_header_field(http_parser* parser, const char *at, size_t length){
+	char temp[16] = {':'};
 	luat_http_ctrl_t *http_ctrl =(luat_http_ctrl_t *)parser->data;
 	if (http_ctrl->state != HTTP_STATE_GET_HEAD)
 	{
@@ -54,6 +60,7 @@ static int on_header_field(http_parser* parser, const char *at, size_t length){
 	}
 	http_ctrl->response_head_buffer.Pos = 0;
 	OS_BufferWrite(&http_ctrl->response_head_buffer, at, length);
+	OS_BufferWrite(&http_ctrl->response_head_buffer, temp, 1);
     return 0;
 }
 	
@@ -112,14 +119,15 @@ static int on_message_complete(http_parser* parser){
 	{
 		DBG("http rx body len error %u,%u", http_ctrl->done_len, http_ctrl->total_len);
 	}
+	http_ctrl->error_code = 0;
 	http_ctrl->state = HTTP_STATE_WAIT_CLOSE;
 	luat_rtos_timer_stop(http_ctrl->timeout_timer);
 	int result = network_close(http_ctrl->netc, 0);
 	if (result)
 	{
 		http_ctrl->state = HTTP_STATE_IDLE;
+		http_ctrl->http_cb(http_ctrl->state, NULL, 0, http_ctrl->http_cb_userdata);
 	}
-	http_ctrl->http_cb(http_ctrl->state, NULL, 0, http_ctrl->http_cb_userdata);
     return 0;
 }
 
@@ -179,11 +187,20 @@ static void http_send_message(luat_http_ctrl_t *http_ctrl){
 		http_ctrl->state = HTTP_STATE_SEND_BODY;
 	}
 	free(temp);
+	http_ctrl->state = HTTP_STATE_GET_HEAD;
 }
 
 static LUAT_RT_RET_TYPE luat_http_timer_callback(LUAT_RT_CB_PARAM){
 	luat_http_ctrl_t * http_ctrl = (luat_http_ctrl_t *)param;
-	http_resp_error(http_ctrl, HTTP_ERROR_TIMEOUT);
+	if (http_ctrl->new_data)
+	{
+		http_ctrl->new_data = 1;
+	}
+	else
+	{
+		http_ctrl->error_code = HTTP_ERROR_TIMEOUT;
+		http_network_close(http_ctrl);
+	}
 }
 
 static int32_t luat_lib_http_callback(void *data, void *param){
@@ -198,10 +215,11 @@ static int32_t luat_lib_http_callback(void *data, void *param){
 		http_network_close(http_ctrl);
 		return -1;
 	}
+
 	switch(event->ID)
 	{
 	case EV_NW_RESULT_EVENT:
-
+		http_ctrl->new_data = 1;
 		if (http_ctrl->is_pause)
 		{
 			if (http_ctrl->debug_onoff)
@@ -235,11 +253,13 @@ static int32_t luat_lib_http_callback(void *data, void *param){
 		}
 		break;
 	case EV_NW_RESULT_CONNECT:
-		http_ctrl->response_buff_offset = 0; // 复位resp缓冲区
-		http_ctrl->response_head_done = 0;
+		http_ctrl->response_cache.Pos = 0;
 		http_parser_init(&http_ctrl->parser, HTTP_RESPONSE);
 		http_ctrl->parser.data = http_ctrl;
 		http_send_message(http_ctrl);
+		break;
+	case EV_NW_RESULT_TX:
+		http_ctrl->state = HTTP_STATE_GET_HEAD;
 		break;
 	case EV_NW_RESULT_CLOSE:
 		if (http_ctrl->error_code)
@@ -447,7 +467,7 @@ int luat_http_client_start(luat_http_ctrl_t *http_ctrl, const char *url, uint8_t
 	http_ctrl->remote_port = 0;
 	http_ctrl->parser.status_code = 0;
 	OS_ReInitBuffer(&http_ctrl->response_head_buffer, HTTP_HEADER_BASE_SIZE);
-	OS_ReInitBuffer(&http_ctrl->response_cache, HTTP_HEADER_BASE_SIZE);
+	OS_ReInitBuffer(&http_ctrl->response_cache, HTTP_RESP_BUFF_SIZE);
 	network_connect_ipv6_domain(http_ctrl->netc, ipv6);
 
     if (http_ctrl->host)
@@ -539,7 +559,7 @@ int luat_http_client_start(luat_http_ctrl_t *http_ctrl, const char *url, uint8_t
 
 	if (http_ctrl->timeout)
 	{
-		luat_start_rtos_timer(http_ctrl->timeout_timer, http_ctrl->timeout, 0);
+		luat_start_rtos_timer(http_ctrl->timeout_timer, http_ctrl->timeout, 1);
 	}
 	else
 	{

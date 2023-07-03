@@ -9,88 +9,16 @@
 #include "luat_network_adapter.h"
 #include "luat_full_ota.h"
 #include "networkmgr.h"
+#include "luat_http.h"
 luat_rtos_task_handle g_s_task_handle;
-int get_http_response_code( uint8_t *http_buf )
+
+enum
 {
-	int response_code=0;
-    char * p_start = NULL;
-    char* p_end =NULL;
-    char re_code[10] ={0};
-    memset(re_code,0,sizeof(re_code));
-
-    p_start = (char*)strstr((const char*)http_buf, (char*)" " );
-    if(NULL == p_start)
-    {
-        return -1;
-    }
-    p_end = (char*)strstr( (const char*)++p_start, (char*)" " );
-    if(p_end)
-    {
-        if(p_end - p_start > sizeof(re_code))
-        {
-            return -1;
-        }
-        memcpy( re_code,p_start,(p_end-p_start) );
-    }
-
-    response_code = strtoul((char*)re_code, NULL, 10);
-    return response_code;
-}
-
-int get_http_response_head_len( uint8_t *http_buf )
-{
-   char *p_start = NULL;
-   char *p_end =NULL;
-   int32_t headlen=0;
-   p_start = (char *)http_buf;
-   p_end = (char *)strstr( (char *)http_buf, "\r\n\r\n");
-   if( p_end==NULL )
-   {
-       return -1;
-   }
-   p_end=p_end + 4;
-   headlen = ((uint32_t)p_end-(uint32_t)p_start);
-   return headlen;
-}
-
-int get_http_response_range( uint8_t *http_buf, uint32_t *range_start,  uint32_t *range_end, uint32_t *total_len)
-{
-   char *p_start = NULL;
-   char *p_end =NULL;
-   char Temp[12];
-   p_start = (char *)strstr( (char *)http_buf,"Content-Range: bytes ");
-   if( p_start==NULL ) return -1;
-   p_start = p_start+strlen("Content-Range: bytes ");
-   p_end = (char *)strchr((char*)p_start, '-');
-   if( p_end==NULL )   return -1;
-   memset(Temp, 0, 12);
-   memcpy(Temp, p_start, (uint32_t)p_end - (uint32_t)p_start);
-   *range_start = strtoul(Temp, NULL, 10);
-
-   p_start = p_end + 1;
-   p_end = (char *)strchr((char*)p_start, '/');
-   if( p_end==NULL )   return -1;
-   memset(Temp, 0, 12);
-   memcpy(Temp, p_start, (uint32_t)p_end - (uint32_t)p_start);
-   *range_end = strtoul(Temp, NULL, 10);
-
-   p_start = p_end + 1;
-   p_end = (char *)strstr((char*)p_start, "\r\n");
-   if( p_end==NULL )   return -1;
-   memset(Temp, 0, 12);
-   memcpy(Temp, p_start, (uint32_t)p_end - (uint32_t)p_start);
-   *total_len = strtoul(Temp, NULL, 10);
-   return 0;
-}
-
-
-static int32_t luat_test_socket_callback(void *pdata, void *param)
-{
-	OS_EVENT *event = (OS_EVENT *)pdata;
-//	LUAT_DEBUG_PRINT("%x", event->ID);
-	return 0;
-}
-
+	OTA_HTTP_GET_HEAD_DONE = 1,
+	OTA_HTTP_GET_DATA,
+	OTA_HTTP_GET_DATA_DONE,
+	OTA_HTTP_FAILED,
+};
 
 static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
 {
@@ -103,6 +31,42 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 	}
 }
 
+static void luatos_http_cb(int status, void *data, uint32_t len, void *param)
+{
+	uint8_t *ota_data;
+	if (status < 0)
+	{
+		LUAT_DEBUG_PRINT("http failed! %d", status);
+		luat_rtos_event_send(param, OTA_HTTP_FAILED, 0, 0, 0, 0);
+		return;
+	}
+	switch(status)
+	{
+	case HTTP_STATE_GET_BODY:
+		if (data)
+		{
+			ota_data = malloc(len);
+			memcpy(ota_data, data, len);
+			luat_rtos_event_send(param, OTA_HTTP_GET_DATA, ota_data, len, 0, 0);
+		}
+		break;
+	case HTTP_STATE_GET_HEAD:
+		if (data)
+		{
+			LUAT_DEBUG_PRINT("%s", data);
+		}
+		else
+		{
+			luat_rtos_event_send(param, OTA_HTTP_GET_HEAD_DONE, 0, 0, 0, 0);
+		}
+		break;
+	case HTTP_STATE_IDLE:
+		luat_rtos_event_send(param, OTA_HTTP_GET_DATA_DONE, 0, 0, 0, 0);
+		break;
+	default:
+		break;
+	}
+}
 
 #define PROJECT_VERSION  "1.0.0"                  //使用合宙iot升级的话此字段必须存在，并且强制固定格式为x.x.x, x可以为任意的数字
 #define PROJECT_KEY "AABBCCDDEEDDFFF110123"  //修改为自己iot上面的PRODUCT_KEY，这里是一个错误的，使用合宙iot升级的话此字段必须存在
@@ -113,188 +77,57 @@ static void luat_test_task(void *param)
 {
 	char version[20] = {0};
 	luat_event_t event;
+	int result, is_error;
 	/* 
 		出现异常后默认为死机重启
 		demo这里设置为LUAT_DEBUG_FAULT_HANG_RESET出现异常后尝试上传死机信息给PC工具，上传成功或者超时后重启
 		如果为了方便调试，可以设置为LUAT_DEBUG_FAULT_HANG，出现异常后死机不重启
 		但量产出货一定要设置为出现异常重启！！！！！！！！！1
 	*/
-	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET); 
-	uint32_t all,now_free_block,min_free_block;
-	network_ctrl_t *netc = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
-	network_init_ctrl(netc, g_s_task_handle, luat_test_socket_callback, g_s_task_handle);
-	network_set_base_mode(netc, 1, 15000, 0, 0, 0, 0);	//http基于TCP
-	netc->is_debug = 0;
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
+	uint32_t all,now_free_block,min_free_block,done_len;
+	luat_http_ctrl_t *http = luat_http_client_create(luatos_http_cb, luat_rtos_get_current_handle(), -1);
 	luat_full_ota_ctrl_t *fota = luat_full_ota_init(0, 0, NULL, NULL, 0);
 	//自建服务器，就随意命名了
-	const char remote_domain[] = "www.air32.cn";
-	const char ota_file_name[] = "update.bin";
+	const char remote_domain[] = "http://www.air32.cn/update.bin";
 	//如果用合宙IOT服务器，需要按照IOT平台规则创建好相应的
 #if 0
-	const char remote_domain[] = "iot.openluat.com";
-	const char ota_file_name[200];
+	const char remote_domain[200];
     char imei[16] = {0};
     luat_mobile_get_imei(0, imei, 15);
-	snprintf_(ota_file_name, 200, "api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_LuatOS_CSDK_EC618&version=%s", PROJECT_KEY, imei, PROJECT_NAME, PROJECT_VERSION);
+	snprintf_(ota_file_name, 200, "http://iot.openluat.com/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_LuatOS_CSDK_EC618&version=%s", PROJECT_KEY, imei, PROJECT_NAME, PROJECT_VERSION);
 #endif
-	int port = 80;
-	uint32_t dummy_len, start, end, total, i, download_len;
-	int tx_len = 0;
-	uint8_t *tx_data = malloc(1024);
-	Buffer_Struct rx_buffer = {0};
-	OS_InitBuffer(&rx_buffer, 8 * 1024);
-	int result, http_response, head_len;
-	uint8_t is_break,is_timeout, is_error, is_head_ok;
-	const char head[] = "GET /%s HTTP/1.1\r\nHost: %s:%d\r\nRange: bytes=%u-\r\nAccept: application/octet-stream\r\n\r\n";
-	start = 0;
-	is_head_ok = 0;
-	total = 0xffffffff;
-	end = 0xffffffff;
-	download_len = 0;
-	while(download_len < total)
+	luat_http_client_start(http, remote_domain, 0, 0, 1);
+	while (1)
 	{
-RESTART:
-		LUAT_DEBUG_PRINT("full ota 文件当前下载%u->%u", download_len, end);
-		luat_meminfo_sys(&all, &now_free_block, &min_free_block);
-		LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
-		rx_buffer.Pos = 0;
-		result = network_connect(netc, remote_domain, sizeof(remote_domain) - 1, NULL, port, 30000);
-		//发送HTTP请求头
-		tx_len = sprintf_(tx_data, head, ota_file_name, remote_domain, port, download_len);
-		if (result)
+		luat_rtos_event_recv(g_s_task_handle, 0, &event, NULL, LUAT_WAIT_FOREVER);
+		switch(event.id)
 		{
-			LUAT_DEBUG_PRINT("服务器连不上");
-			goto OTA_DOWNLOAD_END;
-		}
-		result = network_tx(netc, tx_data, tx_len, 0, NULL, 0, &dummy_len, 15000);
-		if (result)
-		{
-			LUAT_DEBUG_PRINT("HTTP请求发送失败");
-			goto OTA_DOWNLOAD_END;
-		}
-		result = network_wait_rx(netc, 20000, &is_break, &is_timeout);
-		if (result || is_timeout)
-		{
-			LUAT_DEBUG_PRINT("HTTP请求没有响应");
-			goto OTA_DOWNLOAD_END;
-		}
-		result = network_rx(netc, rx_buffer.Data, 1024 * 4, 0, NULL, NULL, &dummy_len);
-		if (result)
-		{
-			LUAT_DEBUG_PRINT("网络错误");
-			goto OTA_DOWNLOAD_END;
-		}
-		rx_buffer.Pos = dummy_len;
-		rx_buffer.Data[dummy_len] = 0;
-		http_response = get_http_response_code(rx_buffer.Data);
-		if (http_response != 206)
-		{
-			LUAT_DEBUG_PRINT("HTTP响应码错误,%d", http_response);
-			goto OTA_DOWNLOAD_END;
-		}
-		if (get_http_response_range(rx_buffer.Data, &start, &end, &total) < 0)
-		{
-			LUAT_DEBUG_PRINT("文件长度解析错误");
-			goto OTA_DOWNLOAD_END;
-		}
-		head_len = get_http_response_head_len(rx_buffer.Data);
-		if (head_len < 0)
-		{
-			LUAT_DEBUG_PRINT("HTTP头没有正确结束");
-			goto OTA_DOWNLOAD_END;
-		}
-		OS_BufferRemove(&rx_buffer, head_len);
-		if (rx_buffer.Pos)
-		{
-			result = luat_full_ota_write(fota, rx_buffer.Data, rx_buffer.Pos);
-			if (result < 0)
+		case OTA_HTTP_GET_HEAD_DONE:
+			done_len = 0;
+			DBG("status %d total %u", luat_http_client_get_status_code(http), http->total_len);
+			break;
+		case OTA_HTTP_GET_DATA:
+			result = luat_full_ota_write(fota, event.param1, event.param2);
+			free(event.param1);
+			done_len += event.param2;
+			DBG("%u,%u,%u", done_len, http->done_len, http->total_len);
+			break;
+		case OTA_HTTP_GET_DATA_DONE:
+			is_error = luat_full_ota_is_done(fota);
+			if (is_error)
 			{
-				LUAT_DEBUG_PRINT("full ota 文件写入失败");
 				goto OTA_DOWNLOAD_END;
 			}
-			download_len += rx_buffer.Pos;
-			LUAT_DEBUG_PRINT("写入 %u,%u", rx_buffer.Pos, download_len);
-			if (download_len >= total)
+			else
 			{
-				is_error = luat_full_ota_is_done(fota);
-				if (is_error)
-				{
-					goto OTA_DOWNLOAD_END;
-				}
-				else
-				{
-					luat_pm_reboot();
-				}
+				luat_pm_reboot();
 			}
+			break;
+		case OTA_HTTP_FAILED:
+			break;
 		}
-		if (!is_head_ok)
-		{
-			if (OTA_STATE_WRITE_COMMON_DATA == fota->ota_state)
-			{
-				is_head_ok = 1;
-				memcpy(version, fota->fota_file_head.MainVersion, 16);
-				LUAT_DEBUG_PRINT("full ota 用户标识 %s", version);
-				//用户标识有16个字节空间，可以存放版本号来作为升级控制
-			}
-		}
-WAIT_DATA:
-		dummy_len = 0;
-		result = network_rx(netc, NULL, 0, 0, NULL, NULL, &dummy_len);
-		if (dummy_len > 0)
-		{
-			;
-		}
-		else
-		{
-			result = network_wait_rx(netc, 5000, &is_break, &is_timeout);
-			if (result || is_timeout)
-			{
-				network_close(netc, 5000);
-				LUAT_DEBUG_PRINT("下载中断，进行断点补传");
-				goto RESTART;
-			}
-		}
-		do
-		{
-			result = network_rx(netc, rx_buffer.Data, rx_buffer.MaxLen, 0, NULL, NULL, &dummy_len);
-			if (dummy_len > 0)
-			{
-				result = luat_full_ota_write(fota, rx_buffer.Data, dummy_len);
-				if (result < 0)
-				{
-					LUAT_DEBUG_PRINT("full ota 文件写入失败");
-					goto OTA_DOWNLOAD_END;
-				}
-				download_len += dummy_len;
-				LUAT_DEBUG_PRINT("写入 %u,%u", dummy_len, download_len);
-
-				if (download_len >= total)
-				{
-					is_error = luat_full_ota_is_done(fota);
-					if (is_error)
-					{
-						goto OTA_DOWNLOAD_END;
-					}
-					else
-					{
-						luat_pm_reboot();
-					}
-				}
-				if (!is_head_ok)
-				{
-					if (OTA_STATE_WRITE_COMMON_DATA == fota->ota_state)
-					{
-						is_head_ok = 1;
-						memcpy(version, fota->fota_file_head.MainVersion, 16);
-						LUAT_DEBUG_PRINT("full ota 用户标识 %s", version);
-						//用户标识有16个字节空间，可以存放版本号来作为升级控制
-					}
-				}
-			}
-		}while(!result && (dummy_len > 0));
-		goto WAIT_DATA;
 	}
-
 
 OTA_DOWNLOAD_END:
 	LUAT_DEBUG_PRINT("full ota 测试失败");
