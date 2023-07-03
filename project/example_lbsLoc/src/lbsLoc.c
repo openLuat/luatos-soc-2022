@@ -16,7 +16,7 @@
 
 #define WIFI_LOC 0 // 是否开启wifi 定位
 /// @brief 合宙IOT 项目productkey ，必须加上，否则定位失败
-static uint8_t *productKey = "XXXXXX";
+static uint8_t *productKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
 static uint8_t imeiToBcd(uint8_t *arr, uint8_t len, uint8_t *outPut)
 {
