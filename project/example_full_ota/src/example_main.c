@@ -49,6 +49,10 @@ static void luatos_http_cb(int status, void *data, uint32_t len, void *param)
 			memcpy(ota_data, data, len);
 			luat_rtos_event_send(param, OTA_HTTP_GET_DATA, ota_data, len, 0, 0);
 		}
+		else
+		{
+			luat_rtos_event_send(param, OTA_HTTP_GET_DATA_DONE, 0, 0, 0, 0);
+		}
 		break;
 	case HTTP_STATE_GET_HEAD:
 		if (data)
@@ -61,7 +65,6 @@ static void luatos_http_cb(int status, void *data, uint32_t len, void *param)
 		}
 		break;
 	case HTTP_STATE_IDLE:
-		luat_rtos_event_send(param, OTA_HTTP_GET_DATA_DONE, 0, 0, 0, 0);
 		break;
 	default:
 		break;
@@ -108,10 +111,9 @@ static void luat_test_task(void *param)
 			DBG("status %d total %u", luat_http_client_get_status_code(http), http->total_len);
 			break;
 		case OTA_HTTP_GET_DATA:
+			done_len += event.param2;
 			result = luat_full_ota_write(fota, event.param1, event.param2);
 			free(event.param1);
-			done_len += event.param2;
-			DBG("%u,%u,%u", done_len, http->done_len, http->total_len);
 			break;
 		case OTA_HTTP_GET_DATA_DONE:
 			is_error = luat_full_ota_is_done(fota);
@@ -132,6 +134,8 @@ static void luat_test_task(void *param)
 OTA_DOWNLOAD_END:
 	LUAT_DEBUG_PRINT("full ota 测试失败");
 	free(fota);
+	luat_http_client_close(http);
+	luat_http_client_destroy(&http);
 	luat_meminfo_sys(&all, &now_free_block, &min_free_block);
 	LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
 	while(1)
@@ -144,6 +148,7 @@ OTA_DOWNLOAD_END:
 static void luat_test_init(void)
 {
 	luat_mobile_event_register_handler(luatos_mobile_event_callback);
+	luat_mobile_set_period_work(0, 5000, 0);
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);

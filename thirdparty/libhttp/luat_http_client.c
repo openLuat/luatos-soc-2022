@@ -119,15 +119,10 @@ static int on_message_complete(http_parser* parser){
 	{
 		DBG("http rx body len error %u,%u", http_ctrl->done_len, http_ctrl->total_len);
 	}
+	http_ctrl->http_cb(HTTP_STATE_GET_BODY, NULL, 0, http_ctrl->http_cb_userdata);
 	http_ctrl->error_code = 0;
 	http_ctrl->state = HTTP_STATE_WAIT_CLOSE;
 	luat_rtos_timer_stop(http_ctrl->timeout_timer);
-	int result = network_close(http_ctrl->netc, 0);
-	if (result)
-	{
-		http_ctrl->state = HTTP_STATE_IDLE;
-		http_ctrl->http_cb(http_ctrl->state, NULL, 0, http_ctrl->http_cb_userdata);
-	}
     return 0;
 }
 
@@ -182,22 +177,23 @@ static void http_send_message(luat_http_ctrl_t *http_ctrl){
 	// 结束头部
 	http_send(http_ctrl, (uint8_t*)"\r\n", 2);
 	// 发送body
-	if (http_ctrl->request_body_buffer.Data && http_ctrl->request_body_buffer.Pos){
-		http_send(http_ctrl, http_ctrl->request_body_buffer.Data, http_ctrl->request_body_buffer.Pos);
-		http_ctrl->state = HTTP_STATE_SEND_BODY;
-	}
 	free(temp);
 	http_ctrl->state = HTTP_STATE_GET_HEAD;
+	if (http_ctrl->is_post)
+	{
+		http_ctrl->http_cb(HTTP_STATE_SEND_BODY_START, NULL, 0, http_ctrl->http_cb_userdata);
+	}
 }
 
 static LUAT_RT_RET_TYPE luat_http_timer_callback(LUAT_RT_CB_PARAM){
 	luat_http_ctrl_t * http_ctrl = (luat_http_ctrl_t *)param;
 	if (http_ctrl->new_data)
 	{
-		http_ctrl->new_data = 1;
+		http_ctrl->new_data = 0;
 	}
 	else
 	{
+		DBG("http timeout error!");
 		http_ctrl->error_code = HTTP_ERROR_TIMEOUT;
 		http_network_close(http_ctrl);
 	}
@@ -206,11 +202,16 @@ static LUAT_RT_RET_TYPE luat_http_timer_callback(LUAT_RT_CB_PARAM){
 static int32_t luat_lib_http_callback(void *data, void *param){
 	OS_EVENT *event = (OS_EVENT *)data;
 	luat_http_ctrl_t *http_ctrl =(luat_http_ctrl_t *)param;
-	if (HTTP_STATE_IDLE == http_ctrl->state) return 0;
+	if (HTTP_STATE_IDLE == http_ctrl->state)
+	{
+		DBG("http state error %d", http_ctrl->state);
+		return 0;
+	}
 	int ret = 0;
 	size_t nParseBytes;
 	uint32_t rx_len = 0;
 	if (event->Param1){
+		DBG("http network error!");
 		http_ctrl->error_code = HTTP_ERROR_STATE;
 		http_network_close(http_ctrl);
 		return -1;
@@ -236,13 +237,9 @@ static int32_t luat_lib_http_callback(void *data, void *param){
 				http_ctrl->error_code = HTTP_ERROR_RX;
 				http_network_close(http_ctrl);
 			}
-			if (rx_len)
+			if (rx_len > 0)
 			{
 				http_ctrl->response_cache.Pos += rx_len;
-				if (http_ctrl->debug_onoff)
-				{
-					DBG("rx %u, cache %u", rx_len, http_ctrl->response_cache.Pos);
-				}
 				nParseBytes = http_parser_execute(&http_ctrl->parser, &parser_settings, http_ctrl->response_cache.Data, http_ctrl->response_cache.Pos);
 				OS_BufferRemove(&http_ctrl->response_cache, nParseBytes);
 			}
@@ -259,11 +256,19 @@ static int32_t luat_lib_http_callback(void *data, void *param){
 		http_send_message(http_ctrl);
 		break;
 	case EV_NW_RESULT_TX:
+		if (http_ctrl->is_post)
+		{
+			http_ctrl->http_cb(HTTP_STATE_SEND_BODY, NULL, 0, http_ctrl->http_cb_userdata);
+		}
 		http_ctrl->state = HTTP_STATE_GET_HEAD;
 		break;
 	case EV_NW_RESULT_CLOSE:
 		if (http_ctrl->error_code)
 		{
+			if (http_ctrl->debug_onoff)
+			{
+				DBG("http network closed");
+			}
 			http_network_error(http_ctrl);
 		}
 		else
@@ -340,6 +345,7 @@ int luat_http_client_base_config(luat_http_ctrl_t* http_ctrl, uint32_t timeout, 
 	}
 	http_ctrl->timeout = timeout;
 	http_ctrl->debug_onoff = debug_onoff;
+	http_ctrl->netc->is_debug = debug_onoff;
 	http_ctrl->retry_cnt_max = retry_cnt;
 	http_ctrl->netc->is_debug = debug_onoff;
 }
@@ -393,25 +399,9 @@ int luat_http_client_ssl_config(luat_http_ctrl_t* http_ctrl, int mode, const cha
 }
 
 
-int luat_http_client_set_post_data(luat_http_ctrl_t *http_ctrl, void *data, uint32_t len)
-{
-	if (!http_ctrl) return -ERROR_PARAM_INVALID;
-	if (http_ctrl->state)
-	{
-		if (http_ctrl->debug_onoff)
-		{
-			DBG("http running, please stop and set");
-		}
-		return -ERROR_PERMISSION_DENIED;
-	}
-
-	OS_DeInitBuffer(&http_ctrl->request_body_buffer);
-	OS_BufferWrite(&http_ctrl->request_body_buffer, data, len);
-}
 
 int luat_http_client_clear(luat_http_ctrl_t *http_ctrl)
 {
-	OS_DeInitBuffer(&http_ctrl->request_body_buffer);
 	OS_DeInitBuffer(&http_ctrl->request_head_buffer);
 }
 
@@ -623,8 +613,6 @@ int luat_http_client_destroy(luat_http_ctrl_t **p_http_ctrl)
 		free(http_ctrl->request_line);
 	}
 	OS_DeInitBuffer(&http_ctrl->request_head_buffer);
-	OS_DeInitBuffer(&http_ctrl->request_body_buffer);
-
 	OS_DeInitBuffer(&http_ctrl->response_head_buffer);
 	OS_DeInitBuffer(&http_ctrl->response_cache);
 

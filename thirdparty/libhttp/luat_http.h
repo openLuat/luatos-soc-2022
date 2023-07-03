@@ -8,6 +8,7 @@ enum
 	HTTP_STATE_IDLE,
 	HTTP_STATE_CONNECT,
 	HTTP_STATE_SEND_HEAD,
+	HTTP_STATE_SEND_BODY_START,
 	HTTP_STATE_SEND_BODY,
 	HTTP_STATE_GET_HEAD,
 	HTTP_STATE_GET_BODY,
@@ -47,7 +48,6 @@ typedef struct{
 	uint16_t remote_port; 		// 远程端口号
 	const char* request_line;	// 需要释放，http请求的首行数据
 	Buffer_Struct request_head_buffer;	//存放用户自定义的请求head数据
-	Buffer_Struct request_body_buffer;	//存放POST数据
 	uint8_t custom_host;        // 是否自定义Host了
 	luat_http_cb http_cb;				// http lua回调函数
 	void *http_cb_userdata;				// http lua回调函数用户传参
@@ -67,6 +67,7 @@ typedef struct{
 	uint8_t is_pause;
 	uint8_t debug_onoff;
 	uint8_t new_data;
+	uint8_t is_post;
 }luat_http_ctrl_t;
 
 
@@ -117,15 +118,6 @@ int luat_http_client_ssl_config(luat_http_ctrl_t* http_ctrl, int mode, const cha
  */
 
 int luat_http_client_clear(luat_http_ctrl_t *http_ctrl);
-/**
- * @brief 设置POST时的body
- *
- * @param http_ctrl 客户端
- * @param data body数据指针
- * @param len body数据长度
- * @return 成功返回0，其他值失败
- */
-int luat_http_client_set_post_data(luat_http_ctrl_t *http_ctrl, void *data, uint32_t len);
 
 /**
  * @brief 设置一条用户的request head参数，Content-Length一般不需要，在设置POST的body时自动生成
