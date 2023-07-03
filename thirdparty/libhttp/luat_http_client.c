@@ -2,15 +2,14 @@
 #include "luat_network_adapter.h"
 #include "luat_rtos.h"
 // #include "luat_msgbus.h"
-#include "luat_malloc.h"
 #include "http_parser.h"
 #include "luat_http.h"
 #include "common_api.h"
 #define HTTP_HEADER_BASE_SIZE 	(1024)
-
+#define HTTP_RESP_BUFF_SIZE 		(4096)
 
 static void http_send_message(luat_http_ctrl_t *http_ctrl);
-int32_t luat_lib_http_callback(void *data, void *param);
+static int32_t luat_lib_http_callback(void *data, void *param);
 
 static void luat_http_dummy_cb(int status, void *data, uint32_t data_len, void *user_param) {;}
 
@@ -192,7 +191,8 @@ static int32_t luat_lib_http_callback(void *data, void *param){
 	luat_http_ctrl_t *http_ctrl =(luat_http_ctrl_t *)param;
 	if (HTTP_STATE_IDLE == http_ctrl->state) return 0;
 	int ret = 0;
-
+	size_t nParseBytes;
+	uint32_t rx_len = 0;
 	if (event->Param1){
 		http_ctrl->error_code = HTTP_ERROR_STATE;
 		http_network_close(http_ctrl);
@@ -201,8 +201,7 @@ static int32_t luat_lib_http_callback(void *data, void *param){
 	switch(event->ID)
 	{
 	case EV_NW_RESULT_EVENT:
-		size_t nParseBytes;
-		uint32_t rx_len = 0;
+
 		if (http_ctrl->is_pause)
 		{
 			if (http_ctrl->debug_onoff)
@@ -350,12 +349,8 @@ int luat_http_client_ssl_config(luat_http_ctrl_t* http_ctrl, int mode, const cha
 		return -ERROR_PARAM_INVALID;
 	}
 	int result;
-	result = network_init_tls(http_ctrl->netc, (server_cert || client_cert)?2:0);
-	if (result)
-	{
-		DBG("init ssl failed %d", result);
-		return -ERROR_OPERATION_FAILED;
-	}
+	network_init_tls(http_ctrl->netc, (server_cert || client_cert)?2:0);
+
 	if (server_cert){
 		result = network_set_server_cert(http_ctrl->netc, (const unsigned char *)server_cert, server_cert_len);
 		if (result)
