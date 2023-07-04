@@ -323,7 +323,15 @@ int luat_adc_close(int id) {
 
 
 int luat_adc_global_config(int tp, int val) {
-    return -1;
+    switch(tp)
+    {
+    case ADC_SET_GLOBAL_RANGE:
+    	adc_range[0] = val;
+    	adc_range[1] = val;
+    	return 0;
+    default:
+    	return -1;
+    }
 }
 
 int luat_adc_ctrl(int id, LUAT_ADC_CTRL_CMD_E cmd, luat_adc_ctrl_param_t param)

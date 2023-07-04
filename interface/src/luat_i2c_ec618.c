@@ -170,6 +170,7 @@ int luat_i2c_transfer(int id, int addr, uint8_t *reg, size_t reg_len, uint8_t *b
 #include "soc_i2c.h"
 #include "driver_gpio.h"
 #include "gpr_common.h"
+static uint32_t luat_i2c_global_timeout = 25;
 static uint8_t luat_i2c_iomux[I2C_MAX];
 static const ClockResetVector_t g_i2cResetVectors[] = {I2C0_RESET_VECTOR, I2C1_RESET_VECTOR};
 int luat_i2c_exist(int id) {
@@ -270,9 +271,14 @@ int luat_i2c_close(int id) {
     return 0;
 }
 
+void luat_i2c_set_global_timeout(uint32_t time)
+{
+	luat_i2c_global_timeout = time;
+}
+
 int luat_i2c_send(int id, int addr, void* buff, size_t len, uint8_t stop) {
 	if (!luat_i2c_exist(id)) return -1;
-	int result = I2C_BlockWrite(id, addr, (const uint8_t *)buff, len, 25, NULL, NULL);
+	int result = I2C_BlockWrite(id, addr, (const uint8_t *)buff, len, luat_i2c_global_timeout, NULL, NULL);
 	if (result)
 	{
 		GPR_swResetModule(&g_i2cResetVectors[id]);
@@ -282,7 +288,7 @@ int luat_i2c_send(int id, int addr, void* buff, size_t len, uint8_t stop) {
 
 int luat_i2c_recv(int id, int addr, void* buff, size_t len) {
 	if (!luat_i2c_exist(id)) return -1;
-	int result = I2C_BlockRead(id, addr, 0, 0, (uint8_t *)buff, len, 25, NULL, NULL);
+	int result = I2C_BlockRead(id, addr, 0, 0, (uint8_t *)buff, len, luat_i2c_global_timeout, NULL, NULL);
 	if (result)
 	{
 		GPR_swResetModule(&g_i2cResetVectors[id]);
@@ -294,9 +300,9 @@ int luat_i2c_transfer(int id, int addr, uint8_t *reg, size_t reg_len, uint8_t *b
 	if (!luat_i2c_exist(id)) return -1;
 	int result;
 	if (reg && reg_len) {
-		result = I2C_BlockRead(id, addr, reg, reg_len, (uint8_t *)buff, len, 25, NULL, NULL);
+		result = I2C_BlockRead(id, addr, reg, reg_len, (uint8_t *)buff, len, luat_i2c_global_timeout, NULL, NULL);
 	} else {
-		result = I2C_BlockWrite(id, addr, (const uint8_t *)buff, len, 25, NULL, NULL);
+		result = I2C_BlockWrite(id, addr, (const uint8_t *)buff, len, luat_i2c_global_timeout, NULL, NULL);
 	}
 	if (result)
 	{

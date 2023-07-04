@@ -121,7 +121,7 @@ static int on_message_complete(http_parser* parser){
 	}
 	http_ctrl->http_cb(HTTP_STATE_GET_BODY, NULL, 0, http_ctrl->http_cb_userdata);
 	http_ctrl->error_code = 0;
-	http_ctrl->state = HTTP_STATE_WAIT_CLOSE;
+	http_ctrl->state = HTTP_STATE_DONE;
 	luat_rtos_timer_stop(http_ctrl->timeout_timer);
     return 0;
 }
@@ -263,7 +263,7 @@ static int32_t luat_lib_http_callback(void *data, void *param){
 		http_ctrl->state = HTTP_STATE_GET_HEAD;
 		break;
 	case EV_NW_RESULT_CLOSE:
-		if (http_ctrl->error_code)
+		if (http_ctrl->error_code && (http_ctrl->state != HTTP_STATE_DONE))
 		{
 			if (http_ctrl->debug_onoff)
 			{
@@ -324,7 +324,7 @@ luat_http_ctrl_t* luat_http_client_create(luat_http_cb cb, void *user_param, int
 	network_set_local_port(http_ctrl->netc, 0);
 	http_ctrl->http_cb = cb?cb:luat_http_dummy_cb;
 	http_ctrl->http_cb_userdata = user_param;
-	http_ctrl->timeout = 30000;
+	http_ctrl->timeout = 15000;
 	http_ctrl->retry_cnt_max = 3;
 	http_ctrl->state = HTTP_STATE_IDLE;
 	http_ctrl->debug_onoff = 0;
