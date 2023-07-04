@@ -158,7 +158,19 @@ int luat_http_client_close(luat_http_ctrl_t *http_ctrl);
  */
 int luat_http_client_destroy(luat_http_ctrl_t **p_http_ctrl);
 
+/**
+ * @brief POST请求时发送body数据，如果数据量比较大，可以在HTTP_STATE_SEND_BODY回调里分次发送
+ *
+ * @param http_ctrl 客户端
+ * @param data body数据
+ * @param len body数据长度
+ * @return 成功返回0，其他值失败
+ */
+int luat_http_client_post_body(luat_http_ctrl_t *http_ctrl, void *data, uint32_t len);
+
 int luat_http_client_get_status_code(luat_http_ctrl_t *http_ctrl);
 
 int luat_http_client_pause(luat_http_ctrl_t *http_ctrl, uint8_t is_pause);
+
+
 #endif

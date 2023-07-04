@@ -649,3 +649,17 @@ int luat_http_client_pause(luat_http_ctrl_t *http_ctrl, uint8_t is_pause)
 		luat_lib_http_callback(&event, http_ctrl);
 	}
 }
+
+int luat_http_client_post_body(luat_http_ctrl_t *http_ctrl, void *data, uint32_t len)
+{
+	if (!http_ctrl) return -ERROR_PARAM_INVALID;
+	if (http_ctrl->state)
+	{
+		if (http_ctrl->debug_onoff)
+		{
+			DBG("http running, please stop and set");
+		}
+		return -ERROR_PERMISSION_DENIED;
+	}
+	http_send(http_ctrl, data, len);
+}
