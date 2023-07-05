@@ -61,6 +61,7 @@ typedef struct{
 	Buffer_Struct response_cache;
 	uint32_t total_len;
 	uint32_t done_len;
+	uint32_t offset;
 	uint8_t retry_cnt_max;		//最大重试次数
 	uint8_t retry_cnt;
 	uint8_t state;
@@ -171,6 +172,12 @@ int luat_http_client_post_body(luat_http_ctrl_t *http_ctrl, void *data, uint32_t
 int luat_http_client_get_status_code(luat_http_ctrl_t *http_ctrl);
 
 int luat_http_client_pause(luat_http_ctrl_t *http_ctrl, uint8_t is_pause);
-
-
+/**
+ * @brief GET请求时要求服务器从offset位置开始传输数据，谨慎使用
+ *
+ * @param http_ctrl 客户端
+ * @param offset 偏移位置
+ * @return 成功返回0，其他值失败
+ */
+int luat_http_client_set_get_offset(luat_http_ctrl_t *http_ctrl, uint32_t offset);
 #endif

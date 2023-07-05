@@ -95,6 +95,12 @@ static int on_headers_complete(http_parser* parser){
 			DBG("no content lenght, maybe error!");
 		}
 	}
+
+	if (http_ctrl->debug_onoff)
+	{
+		DBG("total %u done %u", http_ctrl->total_len, http_ctrl->done_len);
+	}
+
 	http_ctrl->http_cb(HTTP_STATE_GET_HEAD, NULL, 0, http_ctrl->http_cb_userdata);
 	http_ctrl->state = HTTP_STATE_GET_BODY;
     return 0;
@@ -115,7 +121,7 @@ static int on_body(http_parser* parser, const char *at, size_t length){
 static int on_message_complete(http_parser* parser){
 	luat_http_ctrl_t *http_ctrl =(luat_http_ctrl_t *)parser->data;
 	// http_ctrl->body[http_ctrl->body_len] = 0x00;
-	if (http_ctrl->done_len < http_ctrl->total_len)
+	if (http_ctrl->done_len != http_ctrl->total_len)
 	{
 		DBG("http rx body len error %u,%u", http_ctrl->done_len, http_ctrl->total_len);
 	}
@@ -161,8 +167,12 @@ static void http_send_message(luat_http_ctrl_t *http_ctrl){
 		http_send(http_ctrl, temp, result);
 	}
 
-	if (http_ctrl->data_mode && http_ctrl->total_len && (http_ctrl->done_len < http_ctrl->total_len)){
-		result = snprintf_(temp, 320,  "Range: bytes=%d-\r\n", http_ctrl->done_len);
+	if (http_ctrl->data_mode && (http_ctrl->offset || http_ctrl->done_len)){
+		result = snprintf_(temp, 320,  "Range: bytes=%u-\r\n", (http_ctrl->offset + http_ctrl->done_len));
+		if (http_ctrl->debug_onoff)
+		{
+			DBG("get offset %u+%u", http_ctrl->offset, http_ctrl->done_len);
+		}
 		http_send(http_ctrl, temp, result);
 	}
 	
@@ -587,6 +597,7 @@ int luat_http_client_close(luat_http_ctrl_t *http_ctrl)
 	network_force_close_socket(http_ctrl->netc);
 	luat_rtos_timer_stop(http_ctrl->timeout_timer);
 	http_ctrl->state = HTTP_STATE_IDLE;
+	http_ctrl->offset = 0;
 	return 0;
 }
 
@@ -625,6 +636,21 @@ int luat_http_client_get_status_code(luat_http_ctrl_t *http_ctrl)
 {
 	if (!http_ctrl) return -ERROR_PARAM_INVALID;
 	return http_ctrl->parser.status_code;
+}
+
+int luat_http_client_set_get_offset(luat_http_ctrl_t *http_ctrl, uint32_t offset)
+{
+	if (!http_ctrl) return -ERROR_PARAM_INVALID;
+	if (http_ctrl->state)
+	{
+		if (http_ctrl->debug_onoff)
+		{
+			DBG("http running, stop and set!");
+		}
+		return -ERROR_PERMISSION_DENIED;
+	}
+	http_ctrl->offset = offset;
+	return 0;
 }
 
 int luat_http_client_pause(luat_http_ctrl_t *http_ctrl, uint8_t is_pause)
