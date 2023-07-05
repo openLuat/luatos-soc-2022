@@ -20,8 +20,8 @@
 #define PA_PWR_PIN HAL_GPIO_25
 #define PA_PWR_PIN_ALT_FUN	0
 #define MP3_BUFFER_LEN_MIN	(10 * 1024)	//MP3数据必须大于10KB才开始解码，需要根据实际情况确定
-#define MP3_BUFFER_LEN_LOW	(20 * 1024)
-#define MP3_BUFFER_LEN_HIGH	(30 * 1024)
+#define MP3_BUFFER_LEN_LOW	(30 * 1024)
+#define MP3_BUFFER_LEN_HIGH	(40 * 1024)
 #define MP3_FRAME_LEN (4 * 1152)
 #define MP3_MAX_CODED_FRAME_SIZE 1792
 static luat_http_ctrl_t *g_s_http_client;
@@ -91,23 +91,21 @@ void run_mp3_decode(uint8_t *data, uint32_t len)
 		}
 	}
 	run_mp3_play(0);
+	if (g_s_mp3_buffer.Pos < MP3_BUFFER_LEN_LOW)
+	{
+		if (g_s_http_client->is_pause)
+		{
+			luat_http_client_pause(g_s_http_client, 0);
+		}
+	}
 	Audio_StreamStruct *stream = (Audio_StreamStruct *)luat_audio_play_get_stream(0);
 	if (g_s_mp3_downloading && (llist_num(&stream->DataHead) <= 1))
 	{
-		LUAT_DEBUG_PRINT("no data");
+		LUAT_DEBUG_PRINT("no data %d, %d", g_s_mp3_downloading, llist_num(&stream->DataHead));
 		run_mp3_add_blank(NULL, 0);
 		return;
 	}
-	if (g_s_mp3_data_rx >= g_s_mp3_data_tx)
-	{
-		if (g_s_mp3_buffer.Pos < MP3_BUFFER_LEN_LOW)
-		{
-			if (g_s_http_client->is_pause)
-			{
-				luat_http_client_pause(g_s_http_client, 0);
-			}
-		}
-	}
+
 }
 
 void audio_event_cb(uint32_t event, void *param)
@@ -256,6 +254,7 @@ static void luatos_http_cb(int status, void *data, uint32_t len, void *param)
 				soc_call_function_in_audio(run_mp3_decode, mp3_data, len, LUAT_WAIT_FOREVER);
 				if ((g_s_mp3_data_tx - g_s_mp3_data_rx + g_s_mp3_buffer.Pos) >= MP3_BUFFER_LEN_HIGH)
 				{
+//					LUAT_DEBUG_PRINT("%u,%u,%u", g_s_mp3_data_tx, g_s_mp3_data_rx, g_s_mp3_buffer.Pos);
 					if (!g_s_http_client->is_pause)
 					{
 						luat_http_client_pause(g_s_http_client, 1);
@@ -312,12 +311,12 @@ static void luat_test_task(void *param)
 	const char remote_domain[] = "http://www.air32.cn/test_44K.mp3";
 	uint8_t *mp3_data;
 	uint32_t start, i;
-//	g_s_http_client->debug_onoff = 1;
 	uint8_t get_mp3_head = 0;
 	uint8_t is_error;
 	uint8_t mp3_head_data[12];
 	uint8_t mp3_head_len;
 	luat_http_client_base_config(g_s_http_client, 5000, 0, 3);
+	g_s_http_client->debug_onoff = 1;
 	while(1)
 	{
 		luat_meminfo_sys(&all, &now_free_block, &min_free_block);
@@ -351,6 +350,8 @@ static void luat_test_task(void *param)
 				get_mp3_head = 1;
 				break;
 			case MP3_HTTP_FAILED:
+				get_mp3_head = 1;
+				mp3_head_len = 0;
 				break;
 			}
 		}

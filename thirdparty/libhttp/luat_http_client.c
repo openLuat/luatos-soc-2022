@@ -8,6 +8,7 @@
 #define HTTP_HEADER_BASE_SIZE 	(1024)
 #define HTTP_RESP_BUFF_SIZE 		(4096)
 
+static void http_network_error(luat_http_ctrl_t *http_ctrl);
 static void http_send_message(luat_http_ctrl_t *http_ctrl);
 static int32_t luat_lib_http_callback(void *data, void *param);
 
@@ -16,7 +17,11 @@ static void luat_http_dummy_cb(int status, void *data, uint32_t data_len, void *
 static void http_network_close(luat_http_ctrl_t *http_ctrl)
 {
 	http_ctrl->state = HTTP_STATE_WAIT_CLOSE;
-	network_close(http_ctrl->netc, 0);
+	luat_rtos_timer_stop(http_ctrl->timeout_timer);
+	if (!network_close(http_ctrl->netc, 0))
+	{
+		http_network_error(http_ctrl);
+	}
 }
 
 static void http_network_error(luat_http_ctrl_t *http_ctrl)
@@ -38,6 +43,15 @@ static void http_network_error(luat_http_ctrl_t *http_ctrl)
 		DBG("retry %d", http_ctrl->retry_cnt);
 	}
 	http_ctrl->state = HTTP_STATE_CONNECT;
+	if (http_ctrl->timeout)
+	{
+		luat_start_rtos_timer(http_ctrl->timeout_timer, http_ctrl->timeout, 1);
+	}
+	else
+	{
+		luat_stop_rtos_timer(http_ctrl->timeout_timer);
+	}
+
 	if (network_connect(http_ctrl->netc, http_ctrl->host, strlen(http_ctrl->host), NULL, http_ctrl->remote_port, 0) < 0)
 	{
 		DBG("http can not connect!");
