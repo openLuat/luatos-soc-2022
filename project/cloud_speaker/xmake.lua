@@ -10,12 +10,13 @@ target(TARGET_NAME)
     includes(SDK_TOP .. "/thirdparty/libemqtt")
     add_deps("libemqtt")
 
-    -- add_includedirs("./", SDK_TOP .. "thirdparty/cjson")
+    add_includedirs(SDK_TOP .. "/thirdparty/fskv",{public = true})
+    add_files(SDK_TOP .. "/thirdparty/fskv/*.c",{public = true})
+
     add_includedirs(SDK_TOP .. "/thirdparty/cJSON")
     add_files(SDK_TOP .. "/thirdparty/cJSON/**.c")
 
     add_deps("audio_decoder")
-    -- includes(SDK_TOP .. "/thirdparty/cJSON")
 
     add_includedirs(SDK_TOP .. "/PLAT/core/tts/include/16k_lite_ver",{public = true})
     --加入自己代码和头文件

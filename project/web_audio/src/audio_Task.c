@@ -17,7 +17,7 @@ static HANDLE g_s_delay_timer;
 void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
 {
     int value = 10;
-    int ret = luat_kv_get("volume", &value, sizeof(int));
+    int ret = luat_fskv_get("volume", &value, sizeof(int));
     if(ret > 0)
     {
         HAL_I2sSrcAdjustVolumn(data, len, value);

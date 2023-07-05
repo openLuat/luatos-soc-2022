@@ -12,6 +12,9 @@ target(TARGET_NAME)
     includes(SDK_TOP .. "/thirdparty/httpclient")
     add_deps("httpclient")
  
+    add_includedirs(SDK_TOP .. "/thirdparty/fskv",{public = true})
+    add_files(SDK_TOP .. "/thirdparty/fskv/*.c",{public = true})
+
     add_deps("audio_decoder")
     includes(SDK_TOP .. "/thirdparty/miniz")
     add_deps("miniz")

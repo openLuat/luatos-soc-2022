@@ -9,7 +9,7 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
     if (strcmp("AT+CLIENTID?\r\n", data_buff) == 0)
     {
         char clientId[32] = {0};
-        int ret = luat_kv_get("clientId", clientId, 16);
+        int ret = luat_fskv_get("clientId", clientId, 16);
         if(ret > 0 )
         {
            luat_uart_write(LUAT_VUART_ID_0, clientId, strlen(clientId));
@@ -30,7 +30,7 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
             flag2 = strstr(flag, "\r\n");
             if (flag2 != NULL)
             {
-                int ret = luat_kv_set("clientId", flag, strlen(flag) - 2);              //减去末尾的\r\n
+                int ret = luat_fskv_set("clientId", flag, strlen(flag) - 2);              //减去末尾的\r\n
                 luat_uart_write(LUAT_VUART_ID_0, "OK", strlen("OK"));
             }
             
@@ -40,7 +40,7 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
     {
         int ret = 0;
         char name[32] = {0};
-        ret = luat_kv_get("username", name, 31);
+        ret = luat_fskv_get("username", name, 31);
         if (ret > 0)
         {
             luat_uart_write(LUAT_VUART_ID_0, name, strlen(name));
@@ -61,7 +61,7 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
             flag2 = strstr(flag, "\r\n");
             if (flag2 != NULL)
             {
-                int ret = luat_kv_set("username", flag, strlen(flag) - 2);              //减去末尾的\r\n
+                int ret = luat_fskv_set("username", flag, strlen(flag) - 2);              //减去末尾的\r\n
                 luat_uart_write(LUAT_VUART_ID_0, "OK", strlen("OK"));
             }
             
@@ -71,7 +71,7 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
     {
         int ret = 0;
         char name[32] = {0};
-        ret = luat_kv_get("password", name, 31);
+        ret = luat_fskv_get("password", name, 31);
         if (ret > 0)
         {
             luat_uart_write(LUAT_VUART_ID_0, name, strlen(name));
@@ -92,7 +92,7 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
             flag2 = strstr(flag, "\r\n");
             if (flag2 != NULL)
             {
-                int ret = luat_kv_set("password", flag, strlen(flag) - 2);              //减去末尾的\r\n
+                int ret = luat_fskv_set("password", flag, strlen(flag) - 2);              //减去末尾的\r\n
                 luat_uart_write(LUAT_VUART_ID_0, "OK", strlen("OK"));
             }
             

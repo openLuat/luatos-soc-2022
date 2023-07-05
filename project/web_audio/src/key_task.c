@@ -84,7 +84,7 @@ static void key_task(void *param)
                 volMinus.playType = TTS_PLAY;
                 volMinus.priority = MONEY_PLAY;
                 volume = 15;
-                ret = luat_kv_get("volume", &volume, sizeof(int));
+                ret = luat_fskv_get("volume", &volume, sizeof(int));
                 if (ret > 0)
                 {
                     if (volume > 3)
@@ -94,7 +94,7 @@ static void key_task(void *param)
                         {
                             volume = 3;
                         }
-                        luat_kv_set("volume", &volume, sizeof(int));
+                        luat_fskv_set("volume", &volume, sizeof(int));
                     }
                     if (volume == 3)
                     {
@@ -131,7 +131,7 @@ static void key_task(void *param)
                 volPlus.playType = TTS_PLAY;
                 volPlus.priority = MONEY_PLAY;
                 volume = 4;
-                ret = luat_kv_get("volume", &volume, sizeof(int));
+                ret = luat_fskv_get("volume", &volume, sizeof(int));
                 if (ret > 0)
                 {
                     if (volume < 21)
@@ -141,7 +141,7 @@ static void key_task(void *param)
                         {
                             volume = 21;
                         }
-                        luat_kv_set("volume", &volume, sizeof(int));
+                        luat_fskv_set("volume", &volume, sizeof(int));
                     }
                     if (volume == 21)
                     {
@@ -325,6 +325,6 @@ void key_task_init(void)
     luat_pm_set_pwrkey(LUAT_PM_PWRKEY_WAKEUP_LOWACTIVE_MODE, true, &pwrkey_cfg, pwrkey_callback);
 
     luat_rtos_queue_create(&key_queue_handle, KEY_QUEUE_SIZE, sizeof(key_message_t));
-    int result = luat_rtos_task_create(&key_task_handle, 1024, 20, "key task", key_task, NULL, NULL);
+    int result = luat_rtos_task_create(&key_task_handle, 4 * 1024, 20, "key task", key_task, NULL, NULL);
     LUAT_DEBUG_PRINT("cloud_speaker_key_task create task result %d", result);
 }

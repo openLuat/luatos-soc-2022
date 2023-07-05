@@ -537,7 +537,7 @@ static void luat_mqtt_task(void *param)
     char clientId[17] = {0};
     char username[17] = {0};
     char password[17] = {0};
-    ret = luat_kv_get("clientId", str, 17);             //从数据库中读取clientId
+    ret = luat_fskv_get("clientId", str, 17);             //从数据库中读取clientId
     if(ret > 0 )
     {
         memcpy(clientId, str, 16);                      //留一位确保字符串结尾能有0x00
@@ -559,14 +559,14 @@ static void luat_mqtt_task(void *param)
         }       
     }
     memset(str, 0, 32);
-    ret = luat_kv_get("username", str, 17);             //从数据库中读取username，如果没读到
+    ret = luat_fskv_get("username", str, 17);             //从数据库中读取username，如果没读到
     if(ret > 0 )
     {
         memcpy(username, str, 16);                      //留一位确保字符串结尾能有0x00
         // connectData.username.cstring = username;
     }
     memset(str, 0, 32);
-    ret = luat_kv_get("password", str, 17);             //从数据库中读取password，如果没读到
+    ret = luat_fskv_get("password", str, 17);             //从数据库中读取password，如果没读到
     if(ret > 0 )
     {
         memcpy(password, str, 16);                      //留一位确保字符串结尾能有0x00
