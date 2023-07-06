@@ -87,7 +87,7 @@ int luat_fs_getc(FILE* stream);
  * @param stream[IN] 文件句柄
  * @param offset[IN] 偏移量
  * @param origin[IN] 参考点, 例如 SEEK_SET 绝对坐标, SEEK_END 结尾, SEEK_CUR 当前
- * @return int =0成功,否则失败
+ * @return int >=0成功,否则失败
  */
 int luat_fs_fseek(FILE* stream, long int offset, int origin);
 /**
