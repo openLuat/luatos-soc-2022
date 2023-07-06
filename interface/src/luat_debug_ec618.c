@@ -38,9 +38,9 @@ void luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_MODE_E mode)
 	case LUAT_DEBUG_FAULT_HANG:
 		new = EXCEP_OPTION_DUMP_FLASH_EPAT_LOOP;
 		break;
-	case LUAT_DEBUG_FAULT_SAVE_RESET:
-		new = EXCEP_OPTION_DUMP_FLASH_RESET;
-		break;
+//	case LUAT_DEBUG_FAULT_SAVE_RESET:
+//		new = EXCEP_OPTION_DUMP_FLASH_RESET;
+//		break;
 	default:
 		new = EXCEP_OPTION_DUMP_FLASH_EPAT_RESET;
 		break;
