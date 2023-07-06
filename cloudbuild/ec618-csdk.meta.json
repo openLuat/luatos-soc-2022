@@ -120,6 +120,13 @@
                         "dft": false
                     },
                     {
+                        "name": "PG_APP_3000_FOTA_128_FS_616",
+                        "content": "方案8 APP分区3000k,fota区128k,文件系统616k",
+                        "rsize": 3756,
+                        "fsize": 275108,
+                        "dft": false
+                    },
+                    {
                         "name": "@pgcommet",
                         "content": "如需更多方案,请联系销售定制",
                         "rsize": 3756,
