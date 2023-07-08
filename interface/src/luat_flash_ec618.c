@@ -31,6 +31,7 @@
 #include "stdlib.h"
 
 #include "flash_rt.h"
+#include "mem_map.h"
 extern void fotaNvmNfsPeInit(uint8_t isSmall);
 int luat_flash_read(char* buff, size_t addr, size_t len) {
     int ret = 0;
@@ -44,6 +45,11 @@ int luat_flash_write(char* buff, size_t addr, size_t len) {
     int ret = 0;
     if (len == 0)
         return 0;
+    if (addr >= NVRAM_FACTORY_PHYSICAL_BASE)
+    {
+    	DBG("address %x", addr);
+    	return -1;
+    }
     // 注意, BSP_QSPI_Write_Safe 的buf不能是flash上的常量数据
     // 写入flash时XIP会关闭, 导致buf值肯定读不到
     // 下面的各种判断, 就是把常量数据拷贝到ram, 然后写入
@@ -75,11 +81,21 @@ int luat_flash_write(char* buff, size_t addr, size_t len) {
 
 int luat_flash_erase(size_t addr, size_t len) {
     int ret = 0;
+    if (addr >= NVRAM_FACTORY_PHYSICAL_BASE)
+    {
+    	DBG("address %x", addr);
+    	return -1;
+    }
     ret = BSP_QSPI_Erase_Safe(addr, len);
     return ret == 0 ? 0 : -1;
 }
 
 int luat_flash_write_without_check(char* buff, size_t addr, size_t len) {
+    if (addr >= NVRAM_FACTORY_PHYSICAL_BASE)
+    {
+    	DBG("address %x", addr);
+    	return -1;
+    }
 	int ret = BSP_QSPI_Write_Safe((uint8_t *)buff, addr, len);
     return ret == 0 ? len : -1;
 }
