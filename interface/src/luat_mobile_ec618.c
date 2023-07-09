@@ -672,6 +672,19 @@ int luat_mobile_get_service_cell_identifier(uint32_t *eci)
 		return -1;
 	}
 }
+int luat_mobile_get_service_tac_or_lac(uint16_t *tac) {
+	CmiPsCeregInd cereg;
+	soc_mobile_get_lte_service_info(&cereg);
+	if (cereg.celId)
+	{
+		*tac = cereg.tac;
+		return 0;
+	}
+	else
+	{
+		return -1;
+	}
+}
 /* --------------------------------------------------- cell info end --------------------------------------------------- */
 
 
