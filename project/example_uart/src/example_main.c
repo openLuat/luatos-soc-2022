@@ -89,8 +89,8 @@ static void task_demo_uart(void)
 // {
 //     soc_uart0_set_log_off(1);
 // }
-
 // INIT_TASK_EXPORT(uart0_init,"1");
+
 INIT_TASK_EXPORT(task_demo_uart,"1");
 
 
