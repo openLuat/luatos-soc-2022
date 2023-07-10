@@ -493,8 +493,8 @@
                         "dft": false
                     },
                     {
-                        "name": "LUAT_HEAP_SIZE_256K",
-                        "content": "Lua内存设置到256k字节, 默认是200k",
+                        "name": "LUAT_HEAP_SIZE_200K",
+                        "content": "Lua内存设置到200k字节, 2023.7.10之前默认200k, 之后默认256k,本选项只为兼容老的配置.不影响FOTA",
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
