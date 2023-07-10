@@ -1,4 +1,42 @@
-## LuatOS-SoC@EC618 V1106
+## LuatOS-SoC@EC618 发行注记
+
+## V1107
+
+待定, 预计 2023.7.11
+
+兼容性变化:
+1. 不再自动查询基站信息
+   1.1 影响: 如没有调用mobile.reqCellInfo函数, mobile.cellInfo()会返回空数组
+   1.1 解决办法: 按需调用或定时调用 `mobile.reqCellInfo(60)`
+2. 软件DAC音频的音量配置生效
+   2.1 影响: 使用Air780E的软件DAC功能时, `audio.vol(0, 50)`可能会听不清楚
+   2.2 解决办法: 设置音量到100或以上
+
+功能新增:
+* uart.read支持读取指定长度
+* 新增 mcu.iomux 函数,支持配置uart/spi/i2c复用
+* 新增 pm.ioVol 函数, 支持配置io电压
+* 新增 合宙 PSM+ 超低功耗模式, 集成在 pm.power 函数
+* 扩展 gpio.setup 函数,添加alt_func参数, 支持配置复用
+* 扩展 http.request 函数, 支持fota和下载过程回调
+* 新增 iotcloud库, 一键对接阿里云/腾讯云/华为云/Onenet等云平台
+* 新增 mobile.config 函数, 可设置网络静态优化
+* 新增 lora2 库, 支持挂载多个lora设备
+* 新增 mobile.setPin 函数, 支持对SIM卡的PIN码的相关操作
+* 新增多款传感器/外设驱动, ina226/ak8963/mpu9250/st7565等
+* 新增 repl 库, 支持从串口直接输入lua语句,执行后输出结果
+* 新增 adc.set 库支持分压设置
+* 新增demo
+   * 低功耗演示      demo/psm
+   * 钉钉机器人      demo/dingding
+   * 飞书机器人      demo/feishu
+   * 云平台对接      demo/iotcloud
+   * 部标jt808对接   demo/jt808
+   * 录音功能        demo/record
+   * 虚拟串口上位机  demo/usb_uart
+   * 中国电信ctwing  demo/ctwing
+
+更详细的更新内容请查阅git的提交日志
 
 ## V1106
 
