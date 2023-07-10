@@ -32,6 +32,7 @@
 #include "luat_gpio_legacy.h"
 #include "platform_define.h"
 #include "plat_config.h"
+#include "driver_gpio.h"
 extern void soc_usb_onoff(uint8_t onoff);
 extern void soc_set_usb_sleep(uint8_t onoff);
 extern int soc_power_mode(uint8_t main, uint8_t sub);
@@ -188,6 +189,7 @@ int luat_pm_wakeup_pad_set_callback(luat_pm_wakeup_pad_isr_callback_t callback_f
 
 int luat_pm_wakeup_pad_set(uint8_t enable, LUAT_PM_WAKEUP_PAD_E source_id, luat_pm_wakeup_pad_cfg_t *cfg)
 {
+#if 0
     if ((enable != 1 && enable != 0) || ((source_id < LUAT_PM_WAKEUP_PAD_0) && (source_id > LUAT_PM_WAKEUP_PAD_5)) || cfg == NULL)
     {
         return -1;
@@ -264,11 +266,22 @@ int luat_pm_wakeup_pad_set(uint8_t enable, LUAT_PM_WAKEUP_PAD_E source_id, luat_
     {
         luat_gpio_close(pin);
     }
+#else
+    if (enable)
+    {
+    	GPIO_WakeupPadConfig(HAL_WAKEUP_0 + source_id, cfg->pos_edge_enable, cfg->neg_edge_enable, cfg->pull_up_enable, cfg->pull_down_enable);
+    }
+    else
+    {
+    	GPIO_WakeupPadConfig(HAL_WAKEUP_0 + source_id, 0, 0, 0, 0);
+    }
+#endif
     return 0;
 }
 
 int luat_pm_wakeup_pad_get_value(LUAT_PM_WAKEUP_PAD_E source_id)
 {
+#if 0
     if ((source_id < LUAT_PM_WAKEUP_PAD_0) && (source_id > LUAT_PM_WAKEUP_PAD_5))
     {
         return -1;
@@ -299,6 +312,9 @@ int luat_pm_wakeup_pad_get_value(LUAT_PM_WAKEUP_PAD_E source_id)
             break;
         }
     return luat_gpio_get(pin);
+#else
+	return (slpManGetWakeupPinValue() & (1 << source_id))?1:0;
+#endif
 }
 
 int luat_pm_set_pwrkey(LUAT_PM_POWERKEY_MODE_E mode, bool pullUpEn, luat_pm_pwrkey_cfg_t *cfg, luat_pm_pwrkey_callback_t callback)
