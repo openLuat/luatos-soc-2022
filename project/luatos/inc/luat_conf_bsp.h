@@ -232,12 +232,12 @@
 #ifdef LUAT_HEAP_SIZE_300K
 #define LUAT_HEAP_SIZE (300*1024)
 #endif
-#ifdef LUAT_HEAP_SIZE_256K
-#define LUAT_HEAP_SIZE (256*1024)
+#ifdef LUAT_HEAP_SIZE_200K
+#define LUAT_HEAP_SIZE (200*1024)
 #endif
 // 一般无需修改. 若不需要使用SSL/TLS/TTS,可适当增加,但不应该超过256k
 #ifndef LUAT_HEAP_SIZE
-#define LUAT_HEAP_SIZE (200*1024)
+#define LUAT_HEAP_SIZE (256*1024)
 #endif
 
 #ifdef LUAT_EC618_RNDIS_ENABLED
