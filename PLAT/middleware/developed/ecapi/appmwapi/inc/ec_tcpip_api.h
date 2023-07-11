@@ -127,6 +127,33 @@ typedef void (*tcpipConnectionCallBack)(UINT8 connectionEventType, void *bodyEve
 INT32 tcpipConnectionCreate(TcpipConnectionProtocol protocol, char *localIp, UINT16 localPort, char *destIp, UINT16 destPort, tcpipConnectionCallBack callBack);
 
 /******************************************************************************
+ *****************************************************************************
+ * FUNCTION
+ *****************************************************************************
+******************************************************************************/
+
+/******************************************************************************
+ * TcpipConnectionCreateWithoutBlock
+ * Description: create a tcpip connection
+ * input: type(mandatory)
+ *        localIp(option) stringlen <= 63
+ *        localPort(option)
+ *        destIp(mandatory)"183.100.1.123" or"2001::2"
+ *        destPort(mandatory)
+ *        callBack -> the tcpip connection related event(TcpipConnectionEvent) callback handler
+ * output: >=0 connectionId, <0 fail (the connection status will be notify with status event)
+ * Note !!!!
+ * 1.callBack() should be implemented by customer
+   2.this callback() process the raw data & length ,it should not to free any DLFC memory when use it
+   3.it suggests to implement callback() as synchronize api,as when it exited, all data has been processed.
+   4.the connection status change will notify with status event
+
+******************************************************************************/
+
+INT32 TcpipConnectionCreateWithoutBlock(TcpipConnectionProtocol protocol, CHAR *localIp, UINT16 localPort, CHAR *destIp, UINT16 destPort, tcpipConnectionCallBack callBack);
+
+
+/******************************************************************************
  * TcpipConnectionSend
  * Description: send data by a tcpip connection
  * input: connectionId(mandatory)

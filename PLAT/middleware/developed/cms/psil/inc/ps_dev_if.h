@@ -72,6 +72,8 @@ CmiRcCode devGetNasTimerParaReqSync(CmiDevGetNasTimerParaCnf *pGetTimerPareCnf);
 */
 CmiRcCode devSetNasTimerParaReqSync(CmiDevSetNasTimerParaReq *pSetParaReq);
 
+CmsRetId devGetECBarCell(UINT32 atHandle);
+CmsRetId devSetECBarCell(UINT32 atHandle, CmiDevSetBarCellReq *pSetBarCellReq);
 
 
 

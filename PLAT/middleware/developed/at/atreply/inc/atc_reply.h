@@ -308,6 +308,14 @@ CmsRetId atcPduReply(UINT16 srcHandler, AtResultCode resCode, UINT32 errCode, At
 */
 CmsRetId atcPduURC(UINT32 chanId, AtOutPdu *pAtPdu);
 
+/*
+ * AT SMS URC in PDU
+ * Note:
+ * 1> pAtPdu will send to Tx task in this API, if want to re-use, need to call: atPduInit() to init again.
+ * 2> In this API, will add: "\r\n" at start/end of URC string.
+*/
+CmsRetId atcSmsPduURC(UINT32 chanId, AtOutPdu *pAtPdu);
+
 
 /*
  * 1> "DlPduBlock" not changed any in this API, only send the "DlPduBlock"

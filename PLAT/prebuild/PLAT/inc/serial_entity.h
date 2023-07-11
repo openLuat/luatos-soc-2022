@@ -40,7 +40,7 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 #define ATOS_ENTITY_FLAGS_INIT    0x01    /* created */
 #define ATOS_ENTITY_FLAGS_ACT     0x02    /* activated */
-typedef uint8_t AtosEntFlags;
+typedef uint8_t AtosEntFlags_t;
 
 typedef enum
 {
@@ -71,7 +71,7 @@ typedef struct
 typedef struct
 {
     uint8_t  atCid;      /* at context Id between ps  */
-    uint8_t  flags;      /* AtosEntFlags */
+    uint8_t  flags;      /* AtosEntFlags_t */
     uint8_t  outFmt;     /* CcioOutXferFormat_e */
     uint8_t  rsvd;
 

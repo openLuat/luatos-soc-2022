@@ -354,6 +354,13 @@ typedef struct
     struct CcioDevice *chdev;
 }CcioDevOutXfer_t;
 
+typedef enum
+{
+    CCIO_DEV_XBATCH_FSM_INIT = 0,
+    CCIO_DEV_XBATCH_FSM_GOT,
+    CCIO_DEV_XBATCH_FSM_DONE
+}CcioDevXbatchFsm_e;
+
 typedef CcioDevInXfer_t CcioDsaRxStatus_t;
 
 /* CCIO_DSF_QUERY_PEER_MAC */
@@ -561,9 +568,10 @@ void ccioSetDeviceEntity(CcioDevice_t *chdev, chdevInCallback chdevInCb, void *c
  * set the working state of device.
  */
 void ccioSetDeviceState(CcioDevice_t *chdev, CcioDevWorkState_e state, uint8_t bmHwAcm);
-
-uint8_t ccioAsgnDeviceTxCos(CcioHwType_e htype, uint8_t idx);
-
+/**
+ * assign the txCos for usb/uart device.
+ */
+uint8_t ccioAsgnDeviceTxCos(CcioHwType_e htype, uint8_t llsn);
 /**
  * free the ulpdu list for a certain kind of device.
  */

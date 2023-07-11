@@ -40,7 +40,9 @@ typedef enum{
  *****************************************************************************
 ******************************************************************************/
 typedef struct TcpipApiCreateConnectionReq_Tag{
-    UINT32 type;
+    UINT8 type;
+    BOOL bUnBlock;
+    UINT16 rsvd;
     UINT16 localPort;
     UINT16 remotePort;
     ip_addr_t localAddr;
@@ -79,6 +81,9 @@ typedef struct TcpipApiTcpSendBuffLenReq_Tag{
 }TcpipApiTcpSendBuffLenReq;
 
 typedef struct TcpipApiPriMgrContext_Tag{
+    BOOL bUnBlockConnect;
+    UINT8 rsvd0;
+    UINT16 rsvd1;
     UINT16 createSourcePort;
     UINT16 creatTimeout;
     UINT32 startCreateTicks;

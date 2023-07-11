@@ -48,7 +48,7 @@ SECTIONS
 
     Image$$LOAD_BOOTCODE$$Length = SIZEOF(.load_bootcode);
 
-  .load_ap_piram_asmb :ALIGN(4)
+  .load_ap_piram_asmb : ALIGN(4)
   {
    . = ALIGN(4);
    Load$$LOAD_AP_PIRAM_ASMB$$Base = LOADADDR(.load_ap_piram_asmb);
@@ -90,7 +90,6 @@ SECTIONS
 
   Image$$LOAD_APOS$$Length = SIZEOF(.load_apos);
 
-
   .load_ap_rwdata_asmb : ALIGN(4)
   {
    . = ALIGN(4);
@@ -123,6 +122,7 @@ SECTIONS
    . = ALIGN(4);
    Image$$LOAD_PS_FDATA_ASMB$$ZI$$Limit = .;
    
+   *(.psFANoInitData)
    *(.exceptCheck)
   } >ASMB_AREA
 
@@ -130,7 +130,7 @@ SECTIONS
   {
 
   } >ASMB_AREA
-
+  
   .load_rrcmem 0xB000 (NOLOAD):
   {
     *(.rrcMem)
@@ -269,6 +269,7 @@ SECTIONS
   {
     . = ALIGN(4);
     Image$$LOAD_DRAM_SHARED$$ZI$$Base = .;
+    *(.platBlSctZIData)
     *(.bss*)
     *(COMMON)
     . = ALIGN(4);

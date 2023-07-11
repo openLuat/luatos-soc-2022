@@ -1199,7 +1199,7 @@ int32_t SPI_Control(uint32_t control, uint32_t arg, SPI_RESOURCES *spi)
             {
                 GPIO_pinWrite(RTE_SPI1_SSN_GPIO_INSTANCE, 1 << RTE_SPI1_SSN_GPIO_INDEX, arg << RTE_SPI1_SSN_GPIO_INDEX);
             }
-            break;
+            return ARM_DRIVER_OK;
 
         default:
             return ARM_DRIVER_ERROR_UNSUPPORTED;

@@ -1031,6 +1031,7 @@ typedef enum CmiMmCeLevelEnum_Tag
 typedef struct CmiMmGetCEStatusCnf_Tag
 {
     UINT8   act;        //CmiMmCeStatusActEnum
+    //CE Level not supported in CAT1
     UINT8   ceLevel;    //CmiMmCeLevelEnum
     UINT8   ccLevel;    //Coverage Class (CC), used for "EC-GSMIoT", set to 0 by default
     UINT8   reserved0;
@@ -1039,6 +1040,7 @@ typedef struct CmiMmGetCEStatusCnf_Tag
 
 typedef struct CmiMmCEStatusInd_Tag
 {
+    //CE Level not supported in CAT1
     UINT8   ceLevel;    //CmiMmCeLevelEnum
     UINT8   reserved0;
     UINT16  reserved1;

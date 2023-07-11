@@ -41,7 +41,6 @@ extern "C" {
 
 
 #ifdef FEATURE_FOTA_ENABLE
-#define FOTA_PLAT_SCT_ZI               PLAT_BL_SCT_ZI
 
 #define portTICK_RATE_MS               (1)
 #define FOTA_NVM_FLASH_ERASE_SIZE      FOTA_BUF_SIZE_4K
@@ -72,8 +71,6 @@ extern "C" {
 #endif
 
 #else
-#define FOTA_PLAT_SCT_ZI
-
 #define FOTA_NVM_FLASH_ERASE_SIZE      FOTA_BUF_SIZE_32K
 
 #define BSP_QSPI_ERASE_AP_FLASH(addr, size)        BSP_QSPI_Erase_Safe(addr, size)

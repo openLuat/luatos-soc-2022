@@ -142,8 +142,12 @@ typedef enum _EPAT_CMI_DEV_PRIM_ID_TAG
     CMI_DEV_SET_NAS_TIMER_PARA_REQ,         /* CmiDevSetNasTimerParaReq, AT+ECNASTCFG = <timer_id>,[<timer_val>,[<try_count>]] */
     CMI_DEV_SET_NAS_TIMER_PARA_CNF,
 
-    CMI_DEV_SET_TX_POWER_REQ,              //appSetTxPowerSetting
+    CMI_DEV_SET_TX_POWER_REQ,              //CmiDevSetTxPowerReq
     CMI_DEV_SET_TX_POWER_CNF,
+    CMI_DEV_SET_BAR_CELL_REQ,               //CmiDevSetBarCellReq
+    CMI_DEV_SET_BAR_CELL_CNF,
+    CMI_DEV_GET_BAR_CELL_REQ,
+    CMI_DEV_GET_BAR_CELL_CNF,               //CmiDevGetBarCellCnf
 
     CMI_DEV_PRIM_END = 0x0fff
 }CMI_DEV_PRIM_ID;
@@ -512,6 +516,10 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    ignoreEmmCause;
     UINT8   rsvd3[2];
 
+    BOOL    enableFakeCellOptPresent;
+    BOOL    enableFakeCellOpt;
+    UINT16  fakeCellBarTimerS;
+
     /* ERRC */
     BOOL    dataInactTimerPresent;
     UINT8   dataInactTimerS;    /*DataInactivityTimer-r14, used in CERRC; should > 40s; 0 - just means not use DataInactivityTimer feature */
@@ -547,7 +555,8 @@ typedef struct CmiDevSetExtCfgReq_Tag
     //If enabled, UE will monitor paging with the drxCycle * drxCycleMultiple, there will be lots of risk such as missing paging, neighbour cell measurement, etc.
     BOOL    userDrxCyclePresent;
     UINT8   userDrxCycle;   //CmiUserDrxCycle
-    UINT16  rsvd5;
+    BOOL    cfunClrBarCellPresent;
+    BOOL    cfunClrBarCell;     //True: clear bar cell (except cell barred by ATCMD) when perform cfun0/cfun4
 }CmiDevSetExtCfgReq;    // 64 bytes
 
 typedef CamCmiEmptySig CmiDevSetExtCfgCnf;
@@ -599,6 +608,10 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     BOOL    ignoreEmmCause;
     UINT8   rsvd1[2];
 
+    BOOL    enableFakeCellOpt;
+    UINT8   rsvd2;
+    UINT16  fakeCellBarTimerS;
+
     /* ERRC */
     UINT8   ueCfgDataInactTimer;        /* ERRC data inactivity timer, in seconds */
     UINT8   ueCfgRelaxMonitorDeltaP;    /* relaxed monitor parameter, in DB, 0 - 17 */
@@ -615,7 +628,8 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     BOOL    bDisableCDRX;
 
     UINT8   userDrxCycle;          //CmiUserDrxCycle
-    UINT8   rsvd2[3];
+    BOOL    cfunClrBarCell;
+    UINT8   rsvd3[2];
 }CmiDevGetExtCfgCnf;    // 36 bytes
 
 /******************************************************************************
@@ -2666,6 +2680,49 @@ typedef struct CmiDevSetTxPowerReq_Tag
 
 typedef CamCmiEmptySig CmiDevSetTxPowerCnf;
 
+/******************************************************************************
+ * CMI_DEV_SET_BAR_CELL_REQ
+******************************************************************************/
+typedef enum CmiDevBarCellMode_enum
+{
+    CMI_REMOVE_BAR_CELL     = 0,    //remove an existed barred cell from NVM
+    CMI_ADD_BAR_CELL        = 1,    //add a new cell into barred list of NVM
+}CmiDevBarCellMode;
+
+typedef struct CmiDevSetBarCellReq_Tag
+{
+    UINT8       mode;       //CmiDevBarCellMode
+    UINT8       rsvd;
+    UINT16      phyCellId;
+    UINT32      earfcn;
+}CmiDevSetBarCellReq;
+
+/******************************************************************************
+ * CMI_DEV_SET_BAR_CELL_CNF
+******************************************************************************/
+typedef struct CmiDevSetBarCellCnf_Tag
+{
+    UINT8       ret;
+    UINT8       rsvd[3];
+}CmiDevSetBarCellCnf;
+
+/******************************************************************************
+ * CMI_DEV_GET_BAR_CELL_REQ
+******************************************************************************/
+typedef CamCmiEmptySig CmiDevGetBarCellReq;
+
+/******************************************************************************
+ * CMI_DEV_GET_BAR_CELL_CNF
+******************************************************************************/
+#define     CMI_MAX_BAR_CELL_NUM    8
+
+typedef struct CmiDevGetBarCellCnf_Tag
+{
+    UINT8       barCellNum;
+    UINT8       rsvd[3];
+    UINT32      earfcn[CMI_MAX_BAR_CELL_NUM];
+    UINT16      phyCellId[CMI_MAX_BAR_CELL_NUM];
+}CmiDevGetBarCellCnf;
 #endif
 
 

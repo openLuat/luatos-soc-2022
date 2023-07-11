@@ -100,6 +100,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CEMM_CFG_POWER_ATTACH_WITHOUT_EIA,              /* TV,  BOOL */
     CEMM_CFG_UPDATE_LOCI_CTRL,                      /* TV,  BOOL */
     CEMM_CFG_IGNORE_EMM_CAUSE,                      /* TV,  BOOL */
+    CEMM_CFG_FAKE_CELL_OPT,                         /* TLV, PsCfgCemmFakeCellOpt */
 
     CERRC_CFG_AS_RELEASE_TYPE = 50,                 /* TV,  AsReleaseType_t */
     CERRC_CFG_UE_CATEGORY_TYPE,                     /* TV,  UeCategoryType_t */
@@ -132,6 +133,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CERRC_CFG_DISABLE_CDRX_CONFIG,                  /* TV,  BOOL disableCDRX */
     CERRC_CFG_USER_DRX_CYCLE,                       /* TV,  UINT8 userDrxCycle */
 
+    CERRC_CFG_CFUN_CLEAR_BARCELL,                   /* TV,  BOOL cfunClrBarCell */
     /*
      * !!!!  PARAM ID !!!!
      * 1> Only allowed
@@ -444,6 +446,15 @@ typedef struct _SIG_EPAT_L2_CFG_DATA_COUNTER_INFO
     UINT64  pkgRecvBytes;            /* dl recv bytes save in nvm */
 }PsCfgL2DataCounterInfo;      // 16 bytes
 
+/*
+ * CEMM_CFG_FAKE_CELL_OPT
+*/
+typedef struct _SIG_EPAT_CEMM_CFG_FAKE_CELL_OPT
+{
+    BOOL    enableFakeCellOpt;      /* Enable or disable fake cell detect optimisation */
+    UINT8   rsvd0;
+    UINT16  fakeCellBarTimerS;      /* The timer to bar the fake cell, in second */
+}PsCfgCemmFakeCellOpt;
 
 /******************************************************************************
  *****************************************************************************
@@ -550,6 +561,9 @@ void PsCfgDefaultCesm3492Tm(PsCfgCesmUserDefinedT3492 *pCesm3492TmSetting);
 
 /*to Set the L2 Data Counter Info default value*/
 void PsCfgDefaultL2DataCounterInfoSetting(PsCfgL2DataCounterInfo *pL2DataCounterInfo);
+
+/* to Set the default Fake Cell Opt value */
+void PsCfgDefaultCemmFakeCellOptSetting(PsCfgCemmFakeCellOpt *pCemmFakeCellOpt);
 
 #endif
 

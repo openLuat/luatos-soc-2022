@@ -638,6 +638,20 @@ typedef CmiSimImsAuthCnf    EcSimAuthRspParams;
 typedef CmiDevSetTxPowerReq   TxPowerSettingReq;
 
 /******************************************************************************
+ *Set bar cell Params
+******************************************************************************/
+#define ECBARCELL_0_MODE_VAL_MIN            (0)
+#define ECBARCELL_0_MODE_VAL_MAX            (1)         //0:remove barred cell, 1:add new cell into barred-list
+
+#define ECBARCELL_1_EARFCN_VAL_MIN          (1)
+#define ECBARCELL_1_EARFCN_VAL_MAX          (262143)    //max support maxEarfcn2
+
+#define ECBARCELL_2_PCI_VAL_MIN             (0)
+#define ECBARCELL_2_PCI_VAL_MAX             (503)       //physcellid (0..503)
+
+typedef CmiDevSetBarCellReq   SetBarCellParams;
+
+/******************************************************************************
  *****************************************************************************
  * API
  *****************************************************************************
@@ -799,6 +813,74 @@ CmsRetId appSetPinOperationSync(SetPinOperReqParams *pPinOperReqParams);
   \returns     CmsRetId
 */
 CmsRetId appGetPINStateSync(GetPinStateType type, GetPinStateCnfParams *pGetPinStateCnfParams);
+
+/**
+  \fn          appSetSimCCHOSync
+  \brief       Send cmi request to open SIM logical channel
+  \param[in]   *pDfName: Pointer to DFname selected on the new logical channel, hex string, max length is CMI_SIM_MAX_AID_LEN(16 bytes)
+  \param[out]  *pSessionId: Pointer to store the result of a new logical channel number returned by SIM
+  \returns     CmsRetId
+  \NOTE:       refer to AT+CCHO
+*/
+CmsRetId appSetSimCCHOSync(UINT8 *pDfName, UINT8 *pSessionId);
+
+/**
+  \fn          appSetSimCCHCSync
+  \brief       Send cmi request to close SIM logical channel
+  \param[in]   sessionId: the logical channel number to be closed
+  \returns     CmsRetId
+  \NOTE:       refer to AT+CCHC
+*/
+CmsRetId appSetSimCCHCSync(UINT8 sessionId);
+
+/**
+  \fn          appSetSimCGLASync
+  \brief       Send cmi request to get generic SIM logical channel access
+  \param[in]   sessionID: the logical channel number
+  \param[in]   cmdApduStrLen: the length of cmdApduStr, max value is CMI_SIM_MAX_CMD_APDU_LEN * 2 (522)
+  \param[in]   *cmdApduStr: Pointer to command apdu, HEX string
+  \param[in]   UINT16 rspApduBufSize, the buffer size for response apdu string, shall evaluate the max legnth of response APDU hex string
+  \param[out]  *rspApduStrLen: Pointer to store the result of the length of rspApduStr, max value allowed is 4K, it's depend on the special card application
+  \param[out]  *rspApduStr: Pointer to store the result of response apdu, HEX string
+  \returns     CmsRetId
+  \NOTE:       refer to AT+CGLA
+*/
+CmsRetId appSetSimCGLASync(UINT8 sessionId,
+                                  UINT16 cmdApduStrLen,
+                                  UINT8 *cmdApduStr,
+                                  UINT16 rspApduBufSize,
+                                  UINT16 *rspApduStrLen,
+                                  UINT8 *rspApduStr);
+
+/**
+  \fn          appSetEcSIMSleepSync
+  \brief       set UE to allow SIM card sleep (power off SIM) or not (power on SIM) for appSetCSIMSync(AT+CSIM) and appSetRestrictedSimAccessSync(AT+CRSM)
+  \param[in]   BOOL bAllowSleep, indicated whether allow SIM sleep or not
+  \returns     CmsRetId
+  \NOTE:       refer: AT+ECSIMSLEEP,
+  \            shall set SIM sleep not allowed (power on SIM) before use appSetCSIMSync(AT+CSIM) or appSetRestrictedSimAccessSync(AT+CRSM),
+  \            then set SIM sleep allowed (power off SIM) to save power after finish if required.
+*/
+CmsRetId appSetEcSIMSleepSync(BOOL bAllowSleep);
+
+/**
+  \fn          appSetCSIMSync
+  \brief       Send cmi request to transmit APDU command to the SIM and get APDU response from the SIM
+  \param[in]   UINT16 cmdApduStrLen, the length of command APDU string
+  \param[in]   UINT8 *cmdApduStr, the pointor to the command APDU, hex string
+  \param[in]   UINT16 rspApduBufSize, the buffer size for response APDU, shall evaluate the max legnth of response APDU hex string
+  \param[out]  UINT16 *rspApduStrLen, the pointor to the length of response APDU string, shall less than rspApduBufSize
+  \param[out]  UINT8 *rspApduStr, the pointor to the response APDU, hex string
+  \returns     CmsRetId
+  \NOTE:       refer: AT+CSIM
+  \            shall set SIM sleep not allowed (power on SIM) by appSetEcSIMSleepSync first if enable SIM power save,
+  \            then set SIM sleep allowed (power off SIM) to save power after finish if required.
+*/
+CmsRetId appSetCSIMSync(UINT16 cmdApduStrLen,
+                                UINT8 *cmdApduStr,
+                                UINT16 rspApduBufSize,
+                                UINT16 *rspApduStrLen,
+                                UINT8 *rspApduStr);
 
 /**
   \fn          CmsRetId appManualPlmnSearch
@@ -982,6 +1064,8 @@ CmsRetId appGetAuthParamSync(const UINT8  cid, GetPsAuthCtxParams *pGetAuthParam
   \returns     CmsRetId
 */
 CmsRetId appSetTxPowerSetting(TxPowerSettingReq *pTxPowerSettingReq);
+
+CmsRetId appSetECBarCell(SetBarCellParams *pSetBarCellReq);
 
 #endif
 

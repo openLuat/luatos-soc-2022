@@ -106,6 +106,8 @@ typedef struct
 /*----------------------------------------------------------------------------*
  *                    GLOBAL FUNCTIONS DECLEARATION                           *
  *----------------------------------------------------------------------------*/
+int32_t diagCmdInput(UlPduBlock_t *ulpdu, void *extras);
+
 int32_t atCmdInput(uint8_t atCid, uint8_t *atStr, uint16_t atStrLen);
 int32_t atCmdOutput(uint8_t atCid, uint8_t *atStr, uint16_t atStrLen);
 int32_t atCmdOutputDlPdu(uint8_t atCid, uint8_t outFmt, DlPduBlock_t *dlpdu);

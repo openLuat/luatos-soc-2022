@@ -684,14 +684,14 @@ void smsResetSrvCenterAddr(void);
 void smsPduDecodeAddress(UINT8 *pduData, UINT8 *pOffset, UINT8 *pAddressType, UINT8 *pAddress, UINT8 addressSize);
 void smsPduDecodeDcs(UINT8 *pduData, UINT8 *pOffset, PsilSmsDcsInfo *pDcsInfo);
 void smsPduDecodeTimeStamp(UINT8 *pduData, UINT8 *pOffset, PsilSmsTimeStampInfo *pTimeStamp);
-void smsPduDecodeUserData(UINT8                 *pUserData,
-                          UINT8                 pduDataLen,
-                          PsilMsgCodingType     codingType,
-                          BOOL                  hdrPresent,
-                          UINT8                 *pOutData,
-                          UINT16                *pSmsLength,
-                          UINT16                dstBufSize,
-                          UdhIe                 *pUdhIe);
+UINT16 smsPduDecodeUserData(UINT8                 *pUserData,
+                            UINT8                 pduDataLen,
+                            PsilMsgCodingType     codingType,
+                            BOOL                  hdrPresent,
+                            UINT8                 *pOutData,
+                            UINT16                *pSmsLength,
+                            UINT16                dstBufSize,
+                            UdhIe                 *pUdhIe);
 
 CmsRetId smsSendSms(UINT8 smsFormat, PsilSmsSendInfo *pSendInfo);
 CmsRetId smsWriteSms(UINT8 smsFormat, PsilSmsWriteInfo *pWriteInfo, UINT8 smsMemType, UINT8* memIndex);
@@ -699,8 +699,8 @@ CmsRetId smsSendStoredSms(UINT32 atHandle, BOOL daPresent, CmiSmsAddressInfo *pD
 CmsRetId smsPduReplaceDestAddress(CmiSmsAddressInfo *pNewDestAddrInfo, CmiSmsPdu *pInSmsPdu, CmiSmsPdu *pOutSmsPdu);
 CmsRetId smsReadSmsFromNvm(UINT8 memIndex, PsilSmsStoreItemInfo *pReadSmsInfo);
 
-BOOL SmsSubmitPduToText(AtecMoSubmitSmsInfo *pMoSumbitInfo, CmiSmsPdu *pPduData);
-BOOL SmsDeliverPduToText(AtecMtDeliverSmsInfo *pMtDeliverInfo, CmiSmsPdu *pPduData);
+UINT16 SmsSubmitPduToText(AtecMoSubmitSmsInfo *pMoSumbitInfo, CmiSmsPdu *pPduData);
+UINT16 SmsDeliverPduToText(AtecMtDeliverSmsInfo *pMtDeliverInfo, CmiSmsPdu *pPduData);
 
 UINT16 errorCauseofSendSms(UINT16 rc, UINT8 rpCause, UINT8 tpCause, UINT16 errorCode);
 void smsSmscToHexStrPdu(CmiSmsAddressInfo *pScaInfo, CHAR *pSmsc, UINT16 *pSmscLen);

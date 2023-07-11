@@ -123,7 +123,7 @@ typedef enum _EPAT_CMI_PS_PRIM_ID_TAG
     CMI_PS_GET_PS_EVENT_REPORT_CFG_CAPA_REQ, //AT+CGEREP=? -TBD
     CMI_PS_GET_PS_EVENT_REPORT_CFG_CAPA_CNF ,
 
-    CMI_PS_DETACH_STATE_IND =0x50,    //+CGEV: xx DETACH, -TBD
+    CMI_PS_DETACH_STATE_IND =0x50,                  //+CGEV: xx DETACH,
 
     //+CGEV: ME PDN ACT <cid>
     //+CGEV: NW/ME ACT <p_cid>, <cid>, <event_type>
@@ -857,6 +857,17 @@ typedef struct CmiPsSetBearerActStateReqTag
 */
 typedef CamCmiEmptySig  CmiPsSetBearerActStateCnf;
 
+/*
+ * CMI_PS_DETACH_STATE_IND
+ * +CGEV:NW DETACH
+ * +CGEV:ME DETACH
+*/
+typedef struct CmiPsDetachStateIndTag
+{
+    BOOL           isMeInitial; /* indicate the detach is intialed by ME(TRUE) or NW(FALSE) */
+    UINT8          rsvd;
+    UINT16         rsvd1;
+}CmiPsDetachStateInd;
 
 
 /*

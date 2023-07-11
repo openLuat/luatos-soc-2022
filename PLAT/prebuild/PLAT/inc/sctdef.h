@@ -15,6 +15,7 @@
 // But this area should init by user
 #define PLAT_BL_SCT_ZI __attribute__((__section__(".platBlSctZIData")))
 
+#define FOTA_PLAT_SCT_ZI             PLAT_BL_SCT_ZI
 
 // ap section define
 
@@ -49,6 +50,7 @@
 // never re-init if asmb not power off
 #define PS_FA_ZI __attribute__((__section__(".psFAZIData")))
 #define PS_FA_DATA __attribute__((__section__(".psFARWData")))
+#define PS_FA_NOINIT __attribute__((__section__(".psFANoInitData")))
 
 // up and down buffer
 #define CAT_PSPHY_SHAREDATA __attribute__((__section__(".catShareBuf")))

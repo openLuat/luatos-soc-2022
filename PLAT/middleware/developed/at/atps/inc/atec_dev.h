@@ -31,7 +31,7 @@
 /* AT+ECBAND */
 #define ATC_ECBAND_0_NW_MODE_VAL_DEFAULT            2
 #define ATC_ECBAND_1_BAND_VAL_MIN                   0
-#define ATC_ECBAND_1_BAND_VAL_MAX                   85
+#define ATC_ECBAND_1_BAND_VAL_MAX                   255
 #define ATC_ECBAND_1_BAND_VAL_DEFAULT               0
 
 /* AT+ECFREQ */
@@ -253,6 +253,18 @@
 #define ATC_ECCFG_1_USER_DRXCYCLE_VAL_MAX    (12)
 #define ATC_ECCFG_1_USER_DRXCYCLE_VAL_DEF    (0)
 
+#define ATC_ECCFG_1_FAKE_CELL_OPT_ENABLE_VAL_MIN    (0)
+#define ATC_ECCFG_1_FAKE_CELL_OPT_ENABLE_VAL_MAX    (1)
+#define ATC_ECCFG_1_FAKE_CELL_OPT_ENABLE_VAL_DEF    (1)
+#define ATC_ECCFG_2_FAKE_CELL_OPT_BAR_TIMER_VAL_MIN (1)
+#define ATC_ECCFG_2_FAKE_CELL_OPT_BAR_TIMER_VAL_MAX (65535)
+#define ATC_ECCFG_2_FAKE_CELL_OPT_BAR_TIMER_VAL_DEF (30*60) /* default: 30mins */
+
+//AT+ECCFG="CfunClrBarCell"
+#define ATC_ECCFG_1_CFUN_CLEAR_BARCELL_VAL_MIN       (0)
+#define ATC_ECCFG_1_CFUN_CLEAR_BARCELL_VAL_MAX       (1)
+#define ATC_ECCFG_1_CFUN_CLEAR_BARCELL_VAL_DEFAULT   (0)
+
 #define ATEC_ECCFG_GET_RSP_STR_LEN   512
 
 /* AT+ECSTATUS */
@@ -427,6 +439,18 @@
 
 #define ATC_ECWIFISCAN_CHANNELID_MAX_NUM         14
 
+/* AT+ECBARCELL */
+#define ATC_ECBARCELL_0_MODE_VAL_MIN            (0)
+#define ATC_ECBARCELL_0_MODE_VAL_MAX            (1)         //0:remove barred cell, 1:add new cell into barred-list
+#define ATC_ECBARCELL_0_MODE_VAL_DEF            (0)
+
+#define ATC_ECBARCELL_1_EARFCN_VAL_MIN          (1)
+#define ATC_ECBARCELL_1_EARFCN_VAL_MAX          (262143)    //support maxEarfcn2
+#define ATC_ECBARCELL_1_EARFCN_VAL_DEF          (0)
+
+#define ATC_ECBARCELL_2_PCI_VAL_MIN             (0)
+#define ATC_ECBARCELL_2_PCI_VAL_MAX             (503)       //physcellid (0..503)
+#define ATC_ECBARCELL_2_PCI_VAL_DEF             (0)
 CmsRetId  devCFUN(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devECBAND(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devECFREQ(const AtCmdInputContext *pAtCmdReq);
@@ -447,7 +471,7 @@ CmsRetId  devECPSTEST(const AtCmdInputContext *pAtCmdReq);
 //CmsRetId  devECPOWERCLASS(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devECEVENTSTATIS(const AtCmdInputContext *pAtCmdReq);
 //extern void atCmdResetSystem(uint8_t atCid, uint32_t delayMs);
-
+CmsRetId  devECBARCELL(const AtCmdInputContext *pAtCmdReq);
 
 CmsRetId  devECNASTCFG(const AtCmdInputContext *pAtCmdReq);
 

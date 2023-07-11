@@ -24,7 +24,7 @@
 #define CE_INVALID_MCC                  0xFFFF
 #define SUPPORT_MAX_PLMN_NUM            20      //TBD
 #define CEMM_PLMN_LIST_MAX_NUM          16
-#define MAX_BAND_MASK_NUM               3       //the max number of UINT32 bandmask, i.e. the max supported band num is 32*MAX_BAND_MASK_NUM
+#define MAX_BAND_MASK_NUM               4       //the max number of UINT32 bandmask, i.e. the max supported band num is 32*MAX_BAND_MASK_NUM
 #define MAX_NAS_MSG_BITMAP_NUM          8       // equal to 256/32
 
 #define PS_INVALID_PHY_CELL_ID          0xFFFF
