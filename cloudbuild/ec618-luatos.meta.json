@@ -446,6 +446,35 @@
             },
             {
                 "icon": "zmdi-puzzle-piece",
+                "name": "@REVS",
+                "content": "代码版本选择",
+                "rsize": 0,
+                "children": [
+                    {
+                        "name": "@rev_master_comment1",
+                        "content": "本小节是选择代码版本, 默认情况下是选代码库的最新代码,即master分支的最新代码",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "@BUILD_TIME_FIXED",
+                        "content": "LuatOS固件启动时会打印固件编译时间,启用'固定时间戳'后会变成一个固定值,这样让固件多次生成也得到一样的指纹",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "@rev_release_v1107",
+                        "content": "[待发布,未生效]选用V1107发行版的代码进行编译, 并启用固定时间戳",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    }
+                ]
+            },
+            {
+                "icon": "zmdi-puzzle-piece",
                 "name": "@MASTERS",
                 "content": "高级配置",
                 "rsize": 0,
