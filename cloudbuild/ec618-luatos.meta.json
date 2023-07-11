@@ -458,15 +458,8 @@
                         "dft": false
                     },
                     {
-                        "name": "@BUILD_TIME_FIXED",
-                        "content": "LuatOS固件启动时会打印固件编译时间,启用'固定时间戳'后会变成一个固定值,这样让固件多次生成也得到一样的指纹",
-                        "rsize": 0,
-                        "fsize": 1024,
-                        "dft": false
-                    },
-                    {
                         "name": "@rev_release_v1107",
-                        "content": "[待发布,未生效]选用V1107发行版的代码进行编译, 并启用固定时间戳",
+                        "content": "选用V1107发行版的代码进行编译, 固件标识固定为 V1107 RELEASE CLOUD. 发布日期 2023.7.11",
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
