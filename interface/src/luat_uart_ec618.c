@@ -67,14 +67,6 @@ typedef struct
 static serials_info g_s_serials[MAX_DEVICE_COUNT - 1] ={0};
 
 #ifdef __LUATOS__
-static LUAT_RT_RET_TYPE luat_uart_wait_timer_cb(LUAT_RT_CB_PARAM)
-{
-    uint32_t uartid = (uint32_t)param;
-    if (g_s_serials[uartid].rs485_param_bit.is_485used) {
-    	GPIO_Output(g_s_serials[uartid].rs485_pin, g_s_serials[uartid].rs485_param_bit.rx_level);
-    }
-    uart_cb[uartid].sent_callback_fun(uartid, NULL);
-}
 
 void luat_uart_recv_cb(int uart_id, uint32_t data_len){
         rtos_msg_t msg;
@@ -95,6 +87,15 @@ void luat_uart_sent_cb(int uart_id, void *param){
 }
 #endif
 
+static LUAT_RT_RET_TYPE luat_uart_wait_timer_cb(LUAT_RT_CB_PARAM)
+{
+    uint32_t uartid = (uint32_t)param;
+    if (g_s_serials[uartid].rs485_param_bit.is_485used) {
+    	GPIO_Output(g_s_serials[uartid].rs485_pin, g_s_serials[uartid].rs485_param_bit.rx_level);
+    }
+    uart_cb[uartid].sent_callback_fun(uartid, NULL);
+}
+
 int luat_uart_pre_setup(int uart_id, uint8_t use_alt_type)
 {
     if (uart_id >= MAX_DEVICE_COUNT){
@@ -114,7 +115,6 @@ static int32_t luat_uart_cb(void *pData, void *pParam){
 //    DBG("luat_uart_cb pData:%d pParam:%d ",uartid,State);
     switch (State){
         case UART_CB_TX_BUFFER_DONE:
-#ifdef __LUATOS__
         	if (g_s_serials[uartid].rs485_param_bit.is_485used)
         	{
         		if (g_s_serials[uartid].rs485_param_bit.wait_time)
@@ -128,17 +128,14 @@ static int32_t luat_uart_cb(void *pData, void *pParam){
         		}
         	}
         	else
-#endif
         	{
         		uart_cb[uartid].sent_callback_fun(uartid, NULL);
         	}
             break;
         case UART_CB_TX_ALL_DONE:
-#ifdef __LUATOS__
 			if (g_s_serials[uartid].rs485_param_bit.is_485used) {
 				GPIO_Output(g_s_serials[uartid].rs485_pin, g_s_serials[uartid].rs485_param_bit.rx_level);
 			}
-#endif
 			uart_cb[uartid].sent_callback_fun(uartid, NULL);
             break;
         case UART_CB_RX_BUFFER_FULL:
@@ -250,7 +247,10 @@ int luat_uart_setup(luat_uart_t* uart) {
          Uart_BaseInitEx(uart->id, uart->baud_rate, 1024, buffsize, (uart->data_bits), parity, stop_bits, luat_uart_cb);
 #ifdef __LUATOS__
          g_s_serials[uart->id].rs485_param_bit.is_485used = (uart->pin485 < HAL_GPIO_NONE)?1:0;
-         g_s_serials[uart->id].rs485_pin = uart->pin485;
+#else
+		 g_s_serials[uart->id].rs485_param_bit.is_485used = (uart->delay > 0)?1:0;
+#endif
+		 g_s_serials[uart->id].rs485_pin = uart->pin485;
          g_s_serials[uart->id].rs485_param_bit.rx_level = uart->rx_level;
 
          g_s_serials[uart->id].rs485_param_bit.wait_time = uart->delay/1000;
@@ -263,7 +263,6 @@ int luat_uart_setup(luat_uart_t* uart) {
          }
          GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_serials[uart->id].rs485_pin, 0), 0, 0, 0);
          GPIO_Config(g_s_serials[uart->id].rs485_pin, 0, g_s_serials[uart->id].rs485_param_bit.rx_level);
-#endif
     }
     return 0;
 }
@@ -290,9 +289,7 @@ int luat_uart_write(int uartid, void* data, size_t length) {
 
             return length;
         }else{
-#ifdef __LUATOS__
         	if (g_s_serials[uartid].rs485_param_bit.is_485used) GPIO_Output(g_s_serials[uartid].rs485_pin, !g_s_serials[uartid].rs485_param_bit.rx_level);
-#endif
         	int ret = Uart_TxTaskSafe(uartid, data, length);
             if (ret == 0)
                 return length;
