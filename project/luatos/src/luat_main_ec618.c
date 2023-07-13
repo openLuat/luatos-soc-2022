@@ -232,6 +232,19 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 	luat_mobile_event_cb(event, index, status);
 }
 
+#ifdef LUAT_UART0_FORCE_ALT1
+extern int32_t soc_unilog_callback(void *pdata, void *param);
+bool soc_init_unilog_uart(uint8_t port, uint32_t baudrate, bool startRecv)
+{
+	GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_16, 0), 3, 1, 0);
+	GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_17, 0), 3, 1, 0);
+	GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_14, 0), 0, 0, 0);	//原先的UART0 TXRX变回GPIO功能
+	GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_15, 0), 0, 0, 0);
+	Uart_BaseInitEx(port, baudrate, 0, 256, UART_DATA_BIT8, UART_PARITY_NONE, UART_STOP_BIT1, soc_unilog_callback);
+	return true;
+}
+#endif
+
 static void luatos_task_init(void)
 {
 	GPIO_GlobalInit(NULL);
