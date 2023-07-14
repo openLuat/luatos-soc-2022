@@ -21,7 +21,7 @@
 
 #ifndef LUAT_DEBUG_H
 #define LUAT_DEBUG_H
-
+#include "luat_base.h"
 /**
  * @defgroup luatos_debug  调式接口
  * @{
