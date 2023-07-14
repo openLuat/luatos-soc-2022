@@ -225,5 +225,7 @@ void *luat_audio_play_get_stream(uint32_t multimedia_id);
  * @return onoff =0允许结束 其他不允许结束
  */
 void luat_audio_play_set_user_lock(uint32_t multimedia_id, uint8_t onoff);
+
+void luat_audio_play_debug_onoff(uint32_t multimedia_id, uint8_t onoff);
 /**@}*/
 #endif

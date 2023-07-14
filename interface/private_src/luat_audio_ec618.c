@@ -135,3 +135,8 @@ void luat_audio_play_set_user_lock(uint32_t multimedia_id, uint8_t onoff)
 {
 	audio_play_set_user_lock(multimedia_id, onoff);
 }
+
+void luat_audio_play_debug_onoff(uint32_t multimedia_id, uint8_t onoff)
+{
+	audio_play_debug_onoff(multimedia_id, onoff);
+}

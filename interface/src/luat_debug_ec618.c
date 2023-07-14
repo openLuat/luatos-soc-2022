@@ -24,9 +24,11 @@
 #include "plat_config.h"
 #include "reset.h"
 static unsigned char g_s_debug_onoff = 1;
+extern const uint8_t ByteToAsciiTable[];
 extern void soc_assert(const char *fun_name, uint32_t line_no, const char *fmt, va_list ap);
 extern void soc_vsprintf(uint8_t no_print, const char *fmt, va_list ap);
 extern void soc_printf_onoff(uint8_t no_printf);
+extern void soc_debug_out(char *string, uint32_t size);
 void luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_MODE_E mode)
 {
 	uint32_t new = BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_FAULT_ACTION);
@@ -74,4 +76,21 @@ void luat_debug_print_onoff(unsigned char onoff)
 {
 	soc_printf_onoff(!onoff);
 	g_s_debug_onoff = onoff;
+}
+
+void luat_debug_dump(uint8_t *data, uint32_t len)
+{
+	if (!len) return;
+	char *uart_buf = malloc(len * 3);
+	if (uart_buf)
+	{
+		uint32_t i,j;
+	    for (i = 0; i < len; i++){
+			uart_buf[j++] = ByteToAsciiTable[(data[i] & 0xf0) >> 4];
+			uart_buf[j++] = ByteToAsciiTable[data[i] & 0x0f];
+			uart_buf[j++] = ' ';
+	    }
+	    soc_debug_out(uart_buf, len * 3);
+		free(uart_buf);
+	}
 }

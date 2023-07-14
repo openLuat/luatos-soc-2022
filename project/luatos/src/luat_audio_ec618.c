@@ -372,6 +372,7 @@ void luat_audio_set_bus_type(uint8_t bus_type)
 void luat_audio_set_debug(uint8_t on_off)
 {
 	g_s_audio_hardware.debug_on_off = on_off;
+	audio_play_debug_onoff(0, on_off);
 }
 
 int luat_i2s_setup(luat_i2s_conf_t *conf)

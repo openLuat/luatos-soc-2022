@@ -91,6 +91,8 @@ void luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_MODE_E mode);
  * @param onoff 开关  0关闭 1打开，开机默认开状态
  */
 void luat_debug_print_onoff(unsigned char onoff);
+
+void luat_debug_dump(uint8_t *data, uint32_t len);
 /** @}*/
 
 #endif
