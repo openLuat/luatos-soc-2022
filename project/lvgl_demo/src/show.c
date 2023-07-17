@@ -26,8 +26,11 @@
 #define SPI_LCD_H	320
 #define SPI_LCD_X_OFFSET	0
 #define SPI_LCD_Y_OFFSET	0
-#define LVGL_FLUSH_TIME	(50)
+#define SPI_LCD_RAM_CACHE_MAX	(SPI_LCD_W * SPI_LCD_H * 2)
 
+#define LVGL_FLUSH_TIME	(50)
+#define LVGL_FLUSH_BUF_LINE	(20) //buf开到20行大小，也可以自行修改
+#define LVGL_FLUSH_WAIT_TIME (5)
 enum
 {
 	LVGL_FLUSH_EVENT = 1,
@@ -61,8 +64,11 @@ static const LCD_DrawStruct g_s_draw =
 
 typedef struct
 {
+	lv_disp_draw_buf_t draw_buf_dsc;
+	lv_disp_drv_t disp_drv;
 	luat_rtos_task_handle h_lvgl_task;
 	luat_rtos_timer_t h_lvgl_timer;
+	lv_color_t *draw_buf;
 	uint8_t is_sleep;
 	uint8_t wait_flush;
 }lvgl_ctrl_t;
@@ -76,6 +82,40 @@ static LUAT_RT_RET_TYPE lvgl_flush_timer_cb(LUAT_RT_CB_PARAM)
 		g_s_lvgl.wait_flush++;
 		luat_send_event_to_task(g_s_lvgl.h_lvgl_task, LVGL_FLUSH_EVENT, 0, 0, 0);
 	}
+}
+
+static void lvgl_flush_cb(struct _lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
+{
+	LCD_DrawStruct *draw;
+	uint32_t retry_cnt = 0;
+	while (LCD_DrawCacheLen() >= SPI_LCD_RAM_CACHE_MAX)
+	{
+		retry_cnt++;
+		luat_rtos_task_sleep(LVGL_FLUSH_WAIT_TIME);
+	}
+	draw = calloc(sizeof(LCD_DrawStruct), 1);
+	if (!draw)
+	{
+		DBG("no mem!");
+		goto FLUSH_END;
+	}
+	*draw = g_s_draw;
+	draw->x1 = area->x1;
+	draw->x2 = area->x2;
+	draw->y1 = area->y1;
+	draw->y2 = area->y2;
+	draw->Size = (draw->x2 - draw->x1 + 1) * (draw->y2 - draw->y1 + 1) * sizeof(lv_color_t);
+	draw->Data = malloc(draw->Size);
+	if (!draw->Data)
+	{
+		free(draw);
+		DBG("no mem!");
+		goto FLUSH_END;
+	}
+    memcpy(draw->Data, color_p, draw->Size);
+    LCD_Draw(draw);
+FLUSH_END:
+	lv_disp_flush_ready(disp_drv);
 }
 
 static void lvgl_lcd_init(void)
@@ -93,6 +133,29 @@ static void lvgl_lcd_init(void)
 	};
 	luat_spi_setup(&spi_cfg);
 	spi_lcd_init_auto(&g_s_spi_lcd, result);
+
+}
+
+static void lvgl_draw_init(void)
+{
+	g_s_lvgl.draw_buf = malloc(g_s_spi_lcd.w_max * LVGL_FLUSH_BUF_LINE * sizeof(lv_color_t));
+    lv_disp_draw_buf_init(&g_s_lvgl.draw_buf_dsc, g_s_lvgl.draw_buf, NULL, g_s_spi_lcd.w_max * LVGL_FLUSH_BUF_LINE);   /*Initialize the display buffer*/
+    lv_disp_drv_init(&g_s_lvgl.disp_drv);                    /*Basic initialization*/
+
+    /*Set up the functions to access to your display*/
+
+    /*Set the resolution of the display*/
+    g_s_lvgl.disp_drv.hor_res = g_s_spi_lcd.w_max;
+    g_s_lvgl.disp_drv.ver_res = g_s_spi_lcd.h_max;
+
+    /*Used to copy the buffer's content to the display*/
+    g_s_lvgl.disp_drv.flush_cb = lvgl_flush_cb;
+
+    /*Set a display buffer*/
+    g_s_lvgl.disp_drv.draw_buf = &g_s_lvgl.draw_buf_dsc;
+
+    /*Finally register the driver*/
+    lv_disp_drv_register(&g_s_lvgl.disp_drv);
 }
 
 //static void lvgl_task_test(void *param)
@@ -140,8 +203,9 @@ static void lvgl_task(void *param)
 	luat_event_t event;
 	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET);
 	lvgl_lcd_init();
-	luat_start_rtos_timer(g_s_lvgl.h_lvgl_timer, 30, 1);
 	lv_init();
+	lvgl_draw_init();
+	luat_start_rtos_timer(g_s_lvgl.h_lvgl_timer, LVGL_FLUSH_TIME, 1);
 	while(1)
 	{
 		luat_wait_event_from_task(g_s_lvgl.h_lvgl_task, 0, &event, NULL, LUAT_WAIT_FOREVER);
