@@ -27,10 +27,16 @@
 #define SPI_LCD_X_OFFSET	0
 #define SPI_LCD_Y_OFFSET	0
 #define SPI_LCD_RAM_CACHE_MAX	(SPI_LCD_W * SPI_LCD_H * 2)
-
+#if LV_USE_DEMO_BENCHMARK
+#define LVGL_FLUSH_TIME	(5)
+#define LVGL_FLUSH_BUF_LINE	(160) //buf开到20行大小，也可以自行修改
+#define LVGL_FLUSH_WAIT_TIME (3)
+#else
 #define LVGL_FLUSH_TIME	(50)
 #define LVGL_FLUSH_BUF_LINE	(20) //buf开到20行大小，也可以自行修改
 #define LVGL_FLUSH_WAIT_TIME (5)
+#endif
+
 enum
 {
 	LVGL_FLUSH_EVENT = 1,
@@ -206,6 +212,10 @@ static void lvgl_task(void *param)
 	lv_init();
 	lvgl_draw_init();
 	luat_start_rtos_timer(g_s_lvgl.h_lvgl_timer, LVGL_FLUSH_TIME, 1);
+#if LV_USE_DEMO_BENCHMARK
+	luat_wdt_close();
+	lv_demo_benchmark();
+#endif
 	while(1)
 	{
 		luat_wait_event_from_task(g_s_lvgl.h_lvgl_task, 0, &event, NULL, LUAT_WAIT_FOREVER);
