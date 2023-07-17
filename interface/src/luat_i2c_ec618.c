@@ -177,6 +177,13 @@ int luat_i2c_exist(int id) {
     return (id < I2C_MAX);
 }
 
+int luat_i2c_set_polling_mode(int id, uint8_t on_off)
+{
+	if (!luat_i2c_exist(id)) return -1;
+    I2C_UsePollingMode(id, on_off);
+    return 0;
+}
+
 int luat_i2c_set_iomux(int id, uint8_t value)
 {
 	if (!luat_i2c_exist(id)) return -1;
