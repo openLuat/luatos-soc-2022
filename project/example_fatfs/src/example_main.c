@@ -127,11 +127,11 @@ void exmaple_fs_luat_file(void) {
         luat_fs_fclose(fp);
         goto exit;
     }
-    for (size_t i = 0; i < 100; i++)
-    {
-        luat_crypto_trng(buff + i*24, 24);
-    }
-
+//    for (size_t i = 0; i < 20; i++)
+//    {
+//        luat_crypto_trng(buff + i*24, 24);
+//    }
+    luat_crypto_trng(buff, 24 * 50);
     // 按块写入数据
     LUAT_DEBUG_PRINT("call luat_fs_write");
     for (size_t i = 0; i < 24; i++)
@@ -187,7 +187,7 @@ void exmaple_fs_luat_file(void) {
     //----------------------------------------------
 
     // 直接用路径裁剪
-    luat_fs_truncate(filepath, 300);
+    luat_fs_truncate(filepath, 300);	//fatfs不支持，所以是无效的
 
     //----------------------------------------------
     //            文件改名演示
@@ -277,7 +277,6 @@ static void task_test_fatfs(void *param)
             luat_rtos_task_sleep(1000);
         }
     }
-
 
     print_fs_info("/tf");
     exmaple_fs_lfs_dir();
