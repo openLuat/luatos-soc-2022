@@ -24,6 +24,9 @@
 #include "slpman.h"
 #include "FreeRTOS.h"
 #include "pwrkey.h"
+
+#define GPIO_ALT_MAX (5)
+
 typedef void(* pwrKeyIsrCb)(void);
 extern pwrKeyIsrCb pwrKeyIsrCallback;
 __attribute__((weak)) int luat_gpio_irq_default(int pin, void* args)
@@ -187,6 +190,20 @@ int luat_gpio_open(luat_gpio_cfg_t* gpio)
     return 0;
 }
 
+typedef struct
+{
+	uint8_t pin;
+	uint8_t alt;
+}luat_gpio_alt_table_t;
+
+static luat_gpio_alt_table_t gpio_alt[GPIO_ALT_MAX] = {
+	{HAL_GPIO_12, 0},
+	{HAL_GPIO_14, 4},		//兼容老的GPIO14/15
+	{HAL_GPIO_15, 4},		//兼容老的GPIO14/15
+	{HAL_GPIO_18, 0},
+	{HAL_GPIO_19, 0},
+};
+
 int luat_gpio_setup(luat_gpio_t *gpio){
 	luat_gpio_cfg_t cfg = {0};
 	cfg.pin = gpio->pin;
@@ -199,12 +216,25 @@ int luat_gpio_setup(luat_gpio_t *gpio){
 	if (LUAT_GPIO_PULLUP == cfg.pull)
 		cfg.output_level = 1;
 	if (gpio->alt_func == -1) {
-		// 兼容老的GPIO14/15
-		if (HAL_GPIO_14 == gpio->pin || HAL_GPIO_15 == gpio->pin) {
-			cfg.alt_fun = 4;
+		cfg.alt_fun = 0;
+		for (uint8_t i = 0; i < GPIO_ALT_MAX; i++)
+		{
+			if (gpio->pin == gpio_alt[i].pin)
+			{
+				cfg.alt_fun = gpio_alt[i].alt;
+				break;
+			}
 		}
-		else {
-			cfg.alt_fun = 0;
+	}
+	else
+	{
+		for (uint8_t i = 0; i < GPIO_ALT_MAX; i++)
+		{
+			if (gpio->pin == gpio_alt[i].pin)
+			{
+				gpio_alt[i].alt = cfg.alt_fun;
+				break;
+			}
 		}
 	}
 	return luat_gpio_open(&cfg);
