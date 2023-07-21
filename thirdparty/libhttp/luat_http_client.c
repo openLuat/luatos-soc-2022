@@ -26,7 +26,7 @@ static void http_network_close(luat_http_ctrl_t *http_ctrl)
 
 static void http_network_error(luat_http_ctrl_t *http_ctrl)
 {
-	if (http_ctrl->retry_cnt++)
+	if (++(http_ctrl->retry_cnt))
 	{
 		if (http_ctrl->retry_cnt >= http_ctrl->retry_cnt_max)
 		{
@@ -189,7 +189,7 @@ static void http_send_message(luat_http_ctrl_t *http_ctrl){
 		}
 		http_send(http_ctrl, temp, result);
 	}
-	
+
 	// 发送自定义头部
 	if (http_ctrl->request_head_buffer.Data && http_ctrl->request_head_buffer.Pos){
 		http_send(http_ctrl, http_ctrl->request_head_buffer.Data, http_ctrl->request_head_buffer.Pos);
@@ -203,6 +203,7 @@ static void http_send_message(luat_http_ctrl_t *http_ctrl){
 	// 发送body
 	free(temp);
 	http_ctrl->state = HTTP_STATE_GET_HEAD;
+
 	if (http_ctrl->is_post)
 	{
 		http_ctrl->http_cb(HTTP_STATE_SEND_BODY_START, NULL, 0, http_ctrl->http_cb_userdata);
@@ -474,6 +475,7 @@ int luat_http_client_start(luat_http_ctrl_t *http_ctrl, const char *url, uint8_t
 		}
 		return -ERROR_PERMISSION_DENIED;
 	}
+	http_ctrl->is_post = is_post;
 	http_ctrl->data_mode = data_mode;
 	http_ctrl->retry_cnt = 0;
 	http_ctrl->total_len = 0;
@@ -693,12 +695,8 @@ int luat_http_client_pause(luat_http_ctrl_t *http_ctrl, uint8_t is_pause)
 int luat_http_client_post_body(luat_http_ctrl_t *http_ctrl, void *data, uint32_t len)
 {
 	if (!http_ctrl) return -ERROR_PARAM_INVALID;
-	if (http_ctrl->state)
+	if (http_ctrl->state != HTTP_STATE_GET_HEAD)
 	{
-		if (http_ctrl->debug_onoff)
-		{
-			DBG("http running, please stop and set");
-		}
 		return -ERROR_PERMISSION_DENIED;
 	}
 	http_send(http_ctrl, data, len);
