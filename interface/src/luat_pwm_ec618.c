@@ -504,6 +504,7 @@ int luat_pwm_update_dutycycle(int channel,size_t pulse)
 	uint64_t temp = period;
 	temp *= pulse;
 	uint32_t low_cnt = period - temp / 1000;
+	EIGEN_TIMER(instance)->TMR[1] = period - 1;
 	switch(pulse)
 	{
 	case 0:
@@ -537,14 +538,22 @@ int luat_pwm_setup(luat_pwm_conf_t* conf)
 	default:
 		return -1;
 	}
-	if (conf->pulse)
-    // 判断一下是否只修改了占空比. 当且仅当频率相同,pnum为0(即持续输出),才支持单独变更
-    if ((g_s_pwm_table[instance].freq == conf->period) && !conf->pnum && !g_s_pwm_table[instance].pulse_total_num) {
-        if (conf->pulse != g_s_pwm_table[instance].last_pulse_rate) {
-        	luat_pwm_update_dutycycle(channel, conf->pulse);
-            return 0;
-        }
-    }
+	if (conf->pulse && g_s_pwm_table[instance].freq)
+	{
+		if (!conf->pnum && !g_s_pwm_table[instance].pulse_total_num)
+		{
+			if ((g_s_pwm_table[instance].freq == conf->period) && (g_s_pwm_table[instance].last_pulse_rate == conf->pulse))
+			{
+//				DBG("same pwm, no change");
+				return 0;
+			}
+//			DBG("update pwm period %u->%u rate %u->%u", g_s_pwm_table[instance].freq, conf->period, g_s_pwm_table[instance].last_pulse_rate, conf->pulse);
+			g_s_pwm_table[instance].freq = conf->period;
+			luat_pwm_update_dutycycle(channel, conf->pulse);
+			return 0;
+		}
+	}
+
     return luat_pwm_open(conf->channel,conf->period,conf->pulse,conf->pnum);
 }
 
