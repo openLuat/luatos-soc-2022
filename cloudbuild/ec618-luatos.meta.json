@@ -434,6 +434,13 @@
                         "dft": false
                     },
                     {
+                        "name": "statem",
+                        "content": "状态机,可输出GPIO序列",
+                        "rsize": 1480,
+                        "fsize": 272832,
+                        "dft": false
+                    },
+                    {
                         "name": "bit64",
                         "content": "64位数据处理库",
                         "rsize": 10008,
