@@ -299,6 +299,9 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/repl/*.c")
     add_includedirs(LUATOS_ROOT.."components/repl")
 
+    add_files(LUATOS_ROOT.."components/statem/*.c")
+    add_includedirs(LUATOS_ROOT.."components/statem")
+
     
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "/interface/include")
