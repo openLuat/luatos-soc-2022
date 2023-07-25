@@ -20,6 +20,7 @@
  */
 #include "common_api.h"
 #include "luat_gpio.h"
+#include "luat_rtos.h"
 #include "driver_gpio.h"
 #include "slpman.h"
 #include "FreeRTOS.h"
@@ -374,3 +375,24 @@ void luat_gpio_mode(int pin, int mode, int pull, int initOutput) {
 }
 #endif
 
+
+int luat_gpio_driver_ws2812b(int pin, uint8_t *data, uint32_t len, uint32_t frame_cnt, uint8_t bit0h, uint8_t bit0l, uint8_t bit1h, uint8_t bit1l)
+{
+	if (pin >= HAL_GPIO_MAX) return -1;
+	uint32_t frame_byte = frame_cnt * 3;
+	if (!frame_cnt)
+	{
+		frame_byte = len;
+	}
+	uint32_t done_len, dummy_len, cr;
+	done_len = 0;
+	while(done_len < len)
+	{
+		dummy_len = ((len - done_len) > frame_byte)?frame_byte:(len - done_len);
+		cr = luat_rtos_entry_critical();
+		GPIO_DriverWS2812B(pin, &data[done_len], dummy_len, bit0h, bit0l, bit1h, bit1l);
+		luat_rtos_exit_critical(cr);
+		done_len += dummy_len;
+	}
+	return 0;
+}

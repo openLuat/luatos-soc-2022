@@ -1,8 +1,8 @@
 DbVersion
-738753040,100
+1734430651,100
 <end>
 BuildInfo
-The current data file was built by the Application Ver. 2.2.73.199, Thu Jul  6 10:55:48 2023
+The current data file was built by the Application Ver. 2.2.73.199, Fri Jul 21 09:04:55 2023
 <end>
 EnumVals
 0,2048,0,0,PHY_ONLINE,PHY_ICS_MODULE,PhyIcsMeasMainEntrance_0,P_INFO,swLogPrintf("ICS MEAS of euArfcn %d will be started ");
@@ -1377,10 +1377,10 @@ EnumVals
 267264,547563520,0,0,PLAT_AP,EXCEP_PRINT,stack_frame_23,P_ERROR,swLogExcep("dump reg PRIMASK : 0x%x ! ");
 267264,547565568,0,0,PLAT_AP,EXCEP_PRINT,stack_frame_24,P_ERROR,swLogExcep("dump reg FAULTMASK : 0x%x ! ");
 267264,547567616,0,0,PLAT_AP,EXCEP_PRINT,stack_frame_25,P_ERROR,swLogExcep("dump reg CONTROL : 0x%x ! ");
-267264,547569920,0,0,PLAT_AP,EXCEP_PRINT,excepHardFaultHandler_1,P_WARNING,swLogExcep("AP : Min of max free block in histroy : [ %d , %d ) ");
-267264,547572224,0,0,PLAT_AP,EXCEP_PRINT,excepHardFaultHandler_2,P_WARNING,swLogExcep("AP : Current max free block size : %d in [ %d , %d ) ");
-267264,547573761,0,0,PLAT_AP,EXCEP_PRINT,exception_task0,P_ERROR,swLogExcep("hardfault task : %s ");
-267264,547575808,0,0,PLAT_AP,EXCEP_PRINT,hardfault_1,P_ERROR,swLogExcep("Current fault action : %d ");
+267264,547569664,0,0,PLAT_AP,EXCEP_PRINT,hardfault_1,P_ERROR,swLogExcep("Current fault action : %d ");
+267264,547571968,0,0,PLAT_AP,EXCEP_PRINT,excepHardFaultHandler_1,P_WARNING,swLogExcep("AP : Min of max free block in histroy : [ %d , %d ) ");
+267264,547574272,0,0,PLAT_AP,EXCEP_PRINT,excepHardFaultHandler_2,P_WARNING,swLogExcep("AP : Current max free block size : %d in [ %d , %d ) ");
+267264,547575809,0,0,PLAT_AP,EXCEP_PRINT,exception_task0,P_ERROR,swLogExcep("hardfault task : %s ");
 267264,547579903,0,0,PLAT_AP,EXCEP_PRINT,hardfault_rndis,P_ERROR,swLogExcep("RNDIS HALT FAILED ");
 267264,547581951,0,0,PLAT_AP,EXCEP_PRINT,hardfault_enter0,P_ERROR,swLogExcep("AP hard fault triggered!! ");
 267264,547581952,0,0,PLAT_AP,EXCEP_PRINT,stack_dump_1,P_ERROR,swLogExcep("dump latest %d words stack start ");
@@ -1393,13 +1393,13 @@ EnumVals
 267264,547596289,0,0,PLAT_AP,EXCEP_PRINT,unilogAssertInfo_1,P_ERROR,swLogExcep("ASSERT , FUNC : %s ");
 267264,547598337,0,0,PLAT_AP,EXCEP_PRINT,unilogAssertInfo_2,P_ERROR,swLogExcep("ASSERT , FILE : %s ");
 267264,547601152,0,0,PLAT_AP,EXCEP_PRINT,unilogAssertInfo_3,P_ERROR,swLogExcep("ASSERT line : %d , val is 0x%x , 0x%x , 0x%x ");
-267264,547602688,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_001,P_WARNING,swLogExcep("AP : Min of max free block in histroy : [ %d , %d ) ");
-267264,547604992,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_002,P_WARNING,swLogExcep("AP : Current max free block size : %d in [ %d , %d ) ");
-267264,547606529,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_00,P_ERROR,swLogExcep("Assert INFO : %s ");
-267264,547608577,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_01,P_ERROR,swLogExcep("assert in task : %s ");
-267264,547610625,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_02,P_ERROR,swLogExcep("assert in : %s ");
-267264,547612673,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_03,P_ERROR,swLogExcep("assert in : %s ");
-267264,547614720,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_7,P_ERROR,swLogExcep("Current exception action : %d ");
+267264,547602432,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_7,P_ERROR,swLogExcep("Current exception action : %d ");
+267264,547604736,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_001,P_WARNING,swLogExcep("AP : Min of max free block in histroy : [ %d , %d ) ");
+267264,547607040,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_002,P_WARNING,swLogExcep("AP : Current max free block size : %d in [ %d , %d ) ");
+267264,547608577,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_00,P_ERROR,swLogExcep("Assert INFO : %s ");
+267264,547610625,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_01,P_ERROR,swLogExcep("assert in task : %s ");
+267264,547612673,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_02,P_ERROR,swLogExcep("assert in : %s ");
+267264,547614721,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_03,P_ERROR,swLogExcep("assert in : %s ");
 267264,547617280,0,0,PLAT_AP,EXCEP_PRINT,ecAssert_enter_0,P_ERROR,swLogExcep("AP assert triggered!!SP = 0x%x , PSP = 0x%x , MSP = 0x%x ");
 267264,547620863,0,0,PLAT_AP,EXCEP_PRINT,assert_rndis,P_ERROR,swLogExcep("RNDIS HALT FAILED ");
 267264,547620865,0,0,PLAT_AP,EXCEP_PRINT,excepEcAssert_0,P_ERROR,swLogExcep("Assert INFO : %s ");
@@ -6680,5 +6680,5 @@ MW_INFO_PHY_EDRX_PARAM,midWareNvmInfoPhyEdrxParam
 plat_config,plat_config_fs_t
 <end>
 OptionalSegment
-optional_sk_01,27931C2F64DE1C502844D0EDA187F39235B13115ACB5E97DB3C3E718DEEDFFE4
+optional_sk_01,4381A79FFF08BA95E7F715939AF204FC9C1D0A3E0C1BF9B74378E092742319FC
 <end>

@@ -39,7 +39,9 @@
 #define EC_EXCEP_FLASH_SECTOR_BASE      EC_EXCEPTION_FLASH_BASE
 #define EC_EXCEP_TASK_NAME_LEN          12
 
-#define EC_SP_PSP_FLAG                  0x4
+#define EC_SP_PSP_FLAG                   0x4
+#define EC_EXCEP_TPYE_HARDFAULT          0x0
+#define EC_EXCEP_TPYE_ASSERT             0x1
 
 #define EC_REG_SYS_CTRL_STATE   (*(volatile unsigned int *) (0xE000ED24u))
 #define EC_REG_MFSR             (*(volatile unsigned int *) (0xE000ED28u))

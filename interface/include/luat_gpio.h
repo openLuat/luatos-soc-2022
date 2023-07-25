@@ -138,6 +138,19 @@ void luat_gpio_pulse(int pin, uint8_t *level, uint16_t len, uint16_t delay_ns);
  * @return -1 失败 0 成功
  */
 int luat_gpio_ctrl(int pin, LUAT_GPIO_CTRL_CMD_E cmd, int param);
+/**
+ * @brief gpio方式输出bit0和bit1给WS2812B，不输出reset，由于严格的时序要求，会关闭中断来保证时序，因此驱动大量LED灯时会对其他驱动，甚至整个系统有影响。建议用多个GPIO分组驱动大量LED灯，1个GPIO最好不要超过32个灯
+ * @param pin GPIO号
+ * @param data 输出的byte数据，驱动不对数据做任何RGB顺序调整，请自行调整
+ * @param len 输出的byte数量，必须是3的倍数
+ * @param frame_cnt 在一次关闭全局中断到开启全局中断中间发送的帧数，1帧3个byte。分段发送是为了能让其他中断有响应的时间，但是造成提前发送reset而导致剩下的灯不亮。写0则一次性全部发送
+ * @param bit0h bit0的高电平额外延迟，默认写10，如果高电平时间不足酌情增加
+ * @param bit0l bit0的低电平额外延迟，默认写0
+ * @param bit1h bit1的高电平额外延迟，默认写10，如果高电平时间不足酌情增加
+ * @param bit1l bit1的低电平额外延迟，默认写0
+ * @return -1 失败 0 成功
+ */
+int luat_gpio_driver_ws2812b(int pin, uint8_t *data, uint32_t len, uint32_t frame_cnt, uint8_t bit0h, uint8_t bit0l, uint8_t bit1h, uint8_t bit1l);
 /** @}*/
 /** @}*/
 #endif

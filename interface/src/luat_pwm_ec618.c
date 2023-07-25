@@ -504,6 +504,7 @@ int luat_pwm_update_dutycycle(int channel,size_t pulse)
 	uint64_t temp = period;
 	temp *= pulse;
 	uint32_t low_cnt = period - temp / 1000;
+	while (EIGEN_TIMER(instance)->TCAR > 5) {;}
 	EIGEN_TIMER(instance)->TMR[1] = period - 1;
 	switch(pulse)
 	{

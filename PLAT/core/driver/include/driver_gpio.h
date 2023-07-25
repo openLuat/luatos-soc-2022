@@ -172,4 +172,6 @@ uint32_t GPIO_ToPadEC618(uint32_t Pin, uint8_t AltFun);
  * @param Pulldown 下拉
  */
 void GPIO_WakeupPadConfig(uint32_t Pin, uint8_t IsRiseHigh, uint8_t IsFallLow, uint8_t Pullup, uint8_t Pulldown);
+
+void GPIO_DriverWS2812B(uint32_t Pin, uint8_t *Data, uint32_t Len, uint8_t Bit0H, uint8_t Bit0L, uint8_t Bit1H, uint8_t Bit1L);
 #endif
