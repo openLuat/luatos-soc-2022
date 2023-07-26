@@ -4,11 +4,12 @@
  * @defgroup luatos_MQTT  MQTT相关接口
  * @{
  */
-#define MQTT_MSG_RELEASE 0
-#define MQTT_MSG_TIMER_PING 2
-#define MQTT_MSG_RECONNECT  3
+#define MQTT_MSG_RELEASE 		0
+#define MQTT_MSG_TIMER_PING 	2
+#define MQTT_MSG_RECONNECT  	3
+#define MQTT_MSG_CLOSE 			4
 
-#define MQTT_RECV_BUF_LEN_MAX 4096 ///< MQTT 接收BUFF大小
+#define MQTT_RECV_BUF_LEN_MAX 	4096 ///< MQTT 接收BUFF大小
 /**
  * @brief 设置MQTT客户端的配置参数
 */

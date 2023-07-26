@@ -108,6 +108,8 @@ void luat_mqtt_close_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
 	mqtt_ctrl->mqtt_state = 0;
 	if (mqtt_ctrl->reconnect && mqtt_ctrl->reconnect_time > 0){
 		mqtt_reconnect(mqtt_ctrl);
+	}else{
+		l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_CLOSE, 0);
 	}
 }
 
