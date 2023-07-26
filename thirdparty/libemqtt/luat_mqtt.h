@@ -29,6 +29,7 @@ typedef struct{
 	void* reconnect_timer;		/**< mqtt重连定时器*/
 	void* ping_timer;			/**< mqtt_ping定时器*/
 	int mqtt_ref;				/**<  强制引用自身避免被GC*/
+	void* userdata;				/**< userdata */
 }luat_mqtt_ctrl_t;
 
 typedef struct{
