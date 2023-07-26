@@ -2,7 +2,7 @@
 #ifndef MQTT_DTLS_H
 #define MQTT_DTLS_H
 
-#include "commonTypedef.h"
+#include "commontypedef.h"
 
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"

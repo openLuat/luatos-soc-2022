@@ -18,7 +18,7 @@
  
 #include <stdio.h>
 #include <stdarg.h>
-#include "commonTypedef.h"
+#include "commontypedef.h"
 #include "MQTTClient.h"
 #include "luat_debug.h"
 #include "debug_trace.h"

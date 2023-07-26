@@ -19,7 +19,7 @@
 #ifndef HTTP_CLIENT_H
 #define HTTP_CLIENT_H
 
-#include "commonTypedef.h"
+#include "commontypedef.h"
 #include "common_api.h"
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
