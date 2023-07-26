@@ -125,7 +125,7 @@ static bool location_service_parse_response(struct am_location_service_rsp_data_
     return TRUE;
 }
 
-static void lbsloc_Init_Task(void *param)
+static void lbsLoc_request_task(void *param)
 {
     ip_addr_t remote_ip;
     char *txbuf;
@@ -146,8 +146,7 @@ static void lbsloc_Init_Task(void *param)
     uint8_t minute = 0;          // 分钟
     uint8_t second = 0;          // 秒
 
-    uint8_t lbsLocReqBuf[127] = {0};
-    memset(lbsLocReqBuf, 0, 127);
+    uint8_t lbsLocReqBuf[200] = {0};
     uint8_t sendLen = 0;
     lbsLocReqBuf[sendLen++] = strlen(productKey);
     memcpy(&lbsLocReqBuf[sendLen], (uint8_t *)productKey, 32);
@@ -157,21 +156,18 @@ static void lbsloc_Init_Task(void *param)
 #else
     lbsLocReqBuf[sendLen++] = 0x28;
 #endif
-    CHAR imeiBuf[16];
-    memset(imeiBuf, 0, sizeof(imeiBuf));
+    char imeiBuf[16] = {0};
     luat_mobile_get_imei(0, imeiBuf, 16);
     uint8_t imeiBcdBuf[8] = {0};
     imeiToBcd((uint8_t *)imeiBuf, 15, imeiBcdBuf);
     memcpy(&lbsLocReqBuf[sendLen], (uint8_t *)imeiBcdBuf, 8);
     sendLen = sendLen + 8;
-    CHAR muidBuf[64];
-    memset(muidBuf, 0, sizeof(muidBuf));
+    char muidBuf[64] = {0};
     luat_mobile_get_muid(muidBuf, sizeof(muidBuf));
     lbsLocReqBuf[sendLen++] = strlen(muidBuf);
     memcpy(&lbsLocReqBuf[sendLen], (uint8_t *)muidBuf, strlen(muidBuf));
     sendLen = sendLen + strlen(muidBuf);
-    luat_mobile_cell_info_t cell_info;
-    memset(&cell_info, 0, sizeof(cell_info));
+    luat_mobile_cell_info_t cell_info = {0};
     ret = luat_mobile_get_cell_info_async(5);
     if (ret != 0)
     {
@@ -186,7 +182,9 @@ static void lbsloc_Init_Task(void *param)
         LUAT_DEBUG_PRINT("get last notify cell_info false\r\n");
         goto quit;
     }
-    lbsLocReqBuf[sendLen++] = 0x01;
+
+    uint8_t lac_total_num = 0x01;
+    uint8_t lac_num_index = sendLen++;
     lbsLocReqBuf[sendLen++] = (cell_info.lte_service_info.tac >> 8) & 0xFF;
     lbsLocReqBuf[sendLen++] = cell_info.lte_service_info.tac & 0xFF;
     lbsLocReqBuf[sendLen++] = (cell_info.lte_service_info.mcc >> 8) & 0xFF;
@@ -218,11 +216,136 @@ static void lbsloc_Init_Task(void *param)
     {
         retRssi = 31;
     }
-    lbsLocReqBuf[sendLen++] = retRssi;
+    uint8_t rssi_index = sendLen++;
     lbsLocReqBuf[sendLen++] = (cell_info.lte_service_info.cid >> 24) & 0xFF;
     lbsLocReqBuf[sendLen++] = (cell_info.lte_service_info.cid >> 16) & 0xFF;
     lbsLocReqBuf[sendLen++] = (cell_info.lte_service_info.cid >> 8) & 0xFF;
     lbsLocReqBuf[sendLen++] = cell_info.lte_service_info.cid & 0xFF;
+
+
+    uint8_t lac1Num = 0;
+    uint8_t index = 0;
+    uint16_t lte_tac_table[LUAT_MOBILE_CELL_MAX_NUM] = {0};
+    for (uint8_t i = 0; i < cell_info.lte_neighbor_info_num; i++)
+    {
+        if (cell_info.lte_info[i].tac == cell_info.lte_service_info.tac)
+        {
+            int16_t rsrp = cell_info.lte_info[i].rsrp + 144;
+            uint8_t ret_rssi = 0;
+            if (rsrp > 0 && rsrp < 31)
+            {
+                ret_rssi = rsrp;
+            }
+            else if(rsrp > 31)
+            {
+                ret_rssi = 31;
+            }
+            else if(rsrp < 0)
+            {
+                ret_rssi = 0;
+            }
+            lbsLocReqBuf[sendLen++] = ret_rssi;
+            lbsLocReqBuf[sendLen++] = (cell_info.lte_info[i].cid >> 24) & 0xFF;
+            lbsLocReqBuf[sendLen++] = (cell_info.lte_info[i].cid >> 16) & 0xFF;
+            lbsLocReqBuf[sendLen++] = (cell_info.lte_info[i].cid >> 8) & 0xFF;
+            lbsLocReqBuf[sendLen++] = cell_info.lte_info[i].cid & 0xFF;
+            lac1Num ++;
+        }
+        else
+        {
+            lte_tac_table[index] = cell_info.lte_info[i].tac;
+            index++;
+        }
+    }
+
+    lbsLocReqBuf[rssi_index] = (lac1Num << 5) + retRssi;
+
+    if (index > 0)
+    {
+        for (size_t i = 0; i < index - 1; i++)
+        {
+            for (size_t j = 0; j < index - i - 1; j++)
+            {
+                if (lte_tac_table[j] > lte_tac_table[j + 1])
+                {
+                    uint16_t temp = lte_tac_table[j];
+                    lte_tac_table[j] = lte_tac_table[j + 1];
+                    lte_tac_table[j + 1] = temp;
+                } 
+            }
+        }
+        uint16_t temp = lte_tac_table[0];
+        uint8_t lacxNum = 1;
+        for (uint8_t i = 1; i < cell_info.lte_neighbor_info_num; i++)
+        {
+            if (temp == lte_tac_table[i])
+            {
+                lacxNum++;
+            }
+            else
+            {
+                uint8_t is_first_lac = 1;
+                for(uint8_t j = 0; j < cell_info.lte_neighbor_info_num; j++)
+                {
+                    if(cell_info.lte_info[j].tac == temp)
+                    {
+                        int16_t rsrp = cell_info.lte_info[j].rsrp + 144;
+                        uint8_t ret_rssi = 0;
+                        if (rsrp > 0 && rsrp < 31)
+                        {
+                            ret_rssi = rsrp;
+                        }
+                        else if(rsrp > 31)
+                        {
+                            ret_rssi = 31;
+                        }
+                        else if(rsrp < 0)
+                        {
+                            ret_rssi = 0;
+                        }
+                        if (is_first_lac)
+                        {
+                            lac_total_num ++;
+                            is_first_lac = 0;
+                            lbsLocReqBuf[sendLen++] = (cell_info.lte_info[j].tac >> 8) & 0xFF;
+                            lbsLocReqBuf[sendLen++] = cell_info.lte_info[j].tac & 0xFF;
+                            lbsLocReqBuf[sendLen++] = (cell_info.lte_info[j].mcc >> 8) & 0xFF;
+                            lbsLocReqBuf[sendLen++] = cell_info.lte_info[j].mcc & 0XFF;
+
+                            mnc = cell_info.lte_info[j].mnc;
+                            if (mnc > 10)
+                            {
+                                CHAR buf[3] = {0};
+                                snprintf(buf, 3, "%02x", mnc);
+                                int ret1 = atoi(buf);
+                                lbsLocReqBuf[sendLen++] = ret1;
+                            }
+                            else
+                            {
+                                lbsLocReqBuf[sendLen++] = mnc;
+                            }
+                            lbsLocReqBuf[sendLen++] = (lacxNum - 1 << 5) + ret_rssi;
+                        }
+                        else
+                        {
+                            lbsLocReqBuf[sendLen++] = ret_rssi;
+                        }
+                        lbsLocReqBuf[sendLen++] = (cell_info.lte_info[j].cid >> 24) & 0xFF;
+                        lbsLocReqBuf[sendLen++] = (cell_info.lte_info[j].cid >> 16) & 0xFF;
+                        lbsLocReqBuf[sendLen++] = (cell_info.lte_info[j].cid >> 8) & 0xFF;
+                        lbsLocReqBuf[sendLen++] = cell_info.lte_info[j].cid & 0xFF;
+                    }
+                }
+                temp = lte_tac_table[i];
+                if (temp == 0)
+                    break;
+                lacxNum = 1;
+            }
+        }
+    } 
+
+    lbsLocReqBuf[lac_num_index] = lac_total_num;
+
 #if WIFI_LOC
     luat_wifiscan_set_info_t wifiscan_set_info;
     luat_wifisacn_get_info_t wifiscan_get_info;
@@ -342,14 +465,14 @@ quit:
     hour = 0;
     minute = 0;
     second = 0;
-    LUAT_DEBUG_PRINT("lbsloc init quit\r\n");
+    LUAT_DEBUG_PRINT("lbsLoc request quit\r\n");
     close(socket_id);
     socket_id = -1;
     vTaskDelete(NULL);
 }
 
-void lbsloc_Init(void)
+void lbsLoc_request(void)
 {
-    luat_rtos_task_handle lbsloc_Init_handle;
-    luat_rtos_task_create(&lbsloc_Init_handle, 4 * 2048, 80, "lbsloc_Init", lbsloc_Init_Task, NULL, NULL);
+    luat_rtos_task_handle lbsLoc_request_task_handle;
+    luat_rtos_task_create(&lbsLoc_request_task_handle, 4 * 2048, 80, "lbsLoc_Init", lbsLoc_request_task, NULL, NULL);
 }

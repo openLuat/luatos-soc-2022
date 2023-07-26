@@ -53,7 +53,7 @@ void lbsloc_demo_task(void *param)
     }
     while (1)
     {
-        lbsloc_Init();
+        lbsLoc_request();
         luat_rtos_task_sleep(30000);
     }
 }
