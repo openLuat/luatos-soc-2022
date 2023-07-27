@@ -68,7 +68,7 @@
 
 // #define LUAT_USE_PROFILER 1
 
-// #define LUAT_USE_YMODEM
+#define LUAT_USE_YMODEM 1
 
 //----------------------------
 // 高通字体, 需配合芯片使用
