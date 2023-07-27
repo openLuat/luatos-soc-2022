@@ -7,7 +7,7 @@ target("target1")
     set_targetdir(LIB_DIR)
     
     --加入代码和头文件
-    add_includedirs("/inc",{public = true})
+    add_includedirs("./inc",{public = true})
     add_files("/target1/*.c",{public = true})
 
     LIB_USER = LIB_USER .. SDK_TOP .. LIB_DIR .. "libtarget1.a "
@@ -18,7 +18,7 @@ target("target2")
     set_targetdir(LIB_DIR)
     
     --加入代码和头文件
-    add_includedirs("/inc",{public = true})
+    add_includedirs("./inc",{public = true})
     add_files("/target2/*.c",{public = true})
 
     LIB_USER = LIB_USER .. SDK_TOP .. LIB_DIR .. "libtarget2.a "
@@ -29,7 +29,7 @@ target("target3")
     set_targetdir(LIB_DIR)
     
     --加入代码和头文件
-    add_includedirs("/inc",{public = true})
+    add_includedirs("./inc",{public = true})
     add_files("/target3/*.c",{public = true})
 
     LIB_USER = LIB_USER .. SDK_TOP .. LIB_DIR .. "libtarget3.a "

@@ -16,8 +16,8 @@ target(TARGET_NAME)
     add_files(SDK_TOP .. "/thirdparty/mqtt/MQTTClient-C/src/*.c",{public = true})
 
     --加入自己代码和头文件
-    add_includedirs("/inc",{public = true})
-    add_files("/src/*.c",{public = true})
+    add_includedirs("./inc",{public = true})
+    add_files("./src/*.c",{public = true})
 
     --可以继续增加add_includedirs和add_files
 
