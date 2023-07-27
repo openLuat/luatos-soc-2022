@@ -125,6 +125,7 @@ apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386
 2. [脱离本csdk编译无依赖的库文件](doc/build_lib_by_gcc.md)
 3. CSDK调试指南 https://doc.openluat.com/article/4984
 4. Linux/Mac刷机工具(测试版) https://github.com/openLuat/ectool2py
+5. CI状态 http://gitea.wendal.cn/openLuat/luatos-soc-2022/actions
 
 ## 授权协议
 
