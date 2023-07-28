@@ -14,6 +14,45 @@
 #define DEMO_SERVER_UDP_IP "bs.openluat.com" // 基站定位网址
 #define DEMO_SERVER_UDP_PORT 12411           // 端口
 
+#define MOBILE_MNC          (0)
+#define UNICOM_MNC          (1)
+#define TELE_MNC            (11)
+#define IMSI_LEN            (18)
+#define MOBILE_NUM          (6)
+#define UNICOM_NUM          (4)
+#define TELE_NUM            (4)
+
+const char mobile[MOBILE_NUM][3] = {"00", "02", "04", "07", "08", "13"};
+const char unicom[UNICOM_NUM][3] = {"01", "06", "09", "10"};
+const char tele[TELE_NUM][3] = {"03", "05", "11", "12"};
+
+static int8_t search_mnc(char *mnc)
+{
+    for (uint8_t i = 0; i < MOBILE_NUM; i++)
+    {
+        if (strncmp(mnc, mobile[i], 2) == 0)
+        {
+            return MOBILE_MNC;
+        }
+    }
+    for (uint8_t i = 0; i < UNICOM_NUM; i++)
+    {
+        if (strncmp(mnc, unicom[i], 2) == 0)
+        {
+            return UNICOM_MNC;
+        }
+    }
+    for (uint8_t i = 0; i < TELE_NUM; i++)
+    {
+        if (strncmp(mnc, tele[i], 2) == 0)
+        {
+            return TELE_MNC;
+        }
+    }
+    return -1;
+}
+
+
 #define WIFI_LOC 0 // 是否开启wifi 定位
 /// @brief 合宙IOT 项目productkey ，必须加上，否则定位失败
 static uint8_t *productKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
@@ -146,6 +185,7 @@ static void lbsLoc_request_task(void *param)
     uint8_t minute = 0;          // 分钟
     uint8_t second = 0;          // 秒
 
+    uint8_t lac_total_num = 0x01;
     uint8_t lbsLocReqBuf[200] = {0};
     uint8_t sendLen = 0;
     lbsLocReqBuf[sendLen++] = strlen(productKey);
@@ -183,24 +223,58 @@ static void lbsLoc_request_task(void *param)
         goto quit;
     }
 
-    uint8_t lac_total_num = 0x01;
+    uint8_t mnc = 0;
+
     uint8_t lac_num_index = sendLen++;
     lbsLocReqBuf[sendLen++] = (cell_info.lte_service_info.tac >> 8) & 0xFF;
     lbsLocReqBuf[sendLen++] = cell_info.lte_service_info.tac & 0xFF;
     lbsLocReqBuf[sendLen++] = (cell_info.lte_service_info.mcc >> 8) & 0xFF;
     lbsLocReqBuf[sendLen++] = cell_info.lte_service_info.mcc & 0XFF;
-    uint8_t mnc = cell_info.lte_service_info.mnc;
-    if (mnc > 10)
+
+    int buf = 10;
+    char imsi[IMSI_LEN + 1] = {0};
+    int result = luat_mobile_get_imsi(0, imsi, IMSI_LEN + 1);
+    if(result != -1)
     {
-        CHAR buf[3] = {0};
-        snprintf(buf, 3, "%02x", mnc);
-        int ret1 = atoi(buf);
-        lbsLocReqBuf[sendLen++] = ret1;
+        char mncTmp[3] = {0};
+        memcpy(mncTmp, imsi + 3, 2);
+        int8_t mncSearchResult = search_mnc(mncTmp);
+        if (mncSearchResult != -1)
+        {
+            lbsLocReqBuf[sendLen++] = mncSearchResult;
+        }
+        else
+        {
+            mnc = cell_info.lte_service_info.mnc & 0xFF;
+            if(mnc > 10)
+            {
+                char buf[3] = {0};
+                snprintf(buf, 3, "%02x", mnc);
+                int mncRet = atoi(buf);
+                lbsLocReqBuf[sendLen++] = mncRet;
+            }
+            else
+            {
+                lbsLocReqBuf[sendLen++] = mnc;
+            }
+        }
     }
     else
     {
-        lbsLocReqBuf[sendLen++] = mnc;
+        mnc = cell_info.lte_service_info.mnc & 0xFF;
+        if(mnc > 10)
+        {
+            char buf[3] = {0};
+            snprintf(buf, 3, "%02x", mnc);
+            int mncRet = atoi(buf);
+            lbsLocReqBuf[sendLen++] = mncRet;
+        }
+        else
+        {
+            lbsLocReqBuf[sendLen++] = mnc;
+        }
     }
+
     int16_t sRssi;
     uint8_t retRssi;
     sRssi = cell_info.lte_service_info.rssi;
@@ -312,7 +386,7 @@ static void lbsLoc_request_task(void *param)
                             lbsLocReqBuf[sendLen++] = (cell_info.lte_info[j].mcc >> 8) & 0xFF;
                             lbsLocReqBuf[sendLen++] = cell_info.lte_info[j].mcc & 0XFF;
 
-                            mnc = cell_info.lte_info[j].mnc;
+                            mnc = cell_info.lte_info[j].mnc & 0xFF;
                             if (mnc > 10)
                             {
                                 CHAR buf[3] = {0};
