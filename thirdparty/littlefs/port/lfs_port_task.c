@@ -257,12 +257,12 @@ static int block_device_erase(const struct lfs_config *cfg, lfs_block_t block)
     return (retValue == QSPI_OK) ? LFS_ERR_OK: LFS_ERR_IO;
 }
 
-static int block_device_sync(const struct lfs_config *cfg)
+static int block_device_sync(const struct lfs_config *cfg __attribute__((unused)))
 {
     return 0;
 }
 
-static int lfs_statfs_count(void *p, lfs_block_t b)
+static int lfs_statfs_count(void *p, lfs_block_t b __attribute__((unused)))
 {
     *(lfs_size_t *)p += 1;
 
@@ -480,12 +480,12 @@ void LFS_resetMonitorResult(void)
 
 #else
 
-int LFS_getFileWriteMonitorResult(file_operation_statistic_result_t* result)
+int LFS_getFileWriteMonitorResult(file_operation_statistic_result_t* result __attribute__((unused)))
 {
     return 0;
 }
 
-int LFS_getBlockEraseCountResult(uint32_t* result)
+int LFS_getBlockEraseCountResult(uint32_t* result __attribute__((unused)))
 {
     return 0;
 }
@@ -594,7 +594,7 @@ static int LFS_waitForCompletion(lfs_request_type_t type, void *handle, uint32_t
 
 }
 
-static void LFS_daemonTaskEntry(void *arg)
+static void LFS_daemonTaskEntry(void *arg __attribute__((unused)))
 {
 
     while(1)
