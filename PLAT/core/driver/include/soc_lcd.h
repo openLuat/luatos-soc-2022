@@ -31,4 +31,6 @@ uint32_t LCD_DrawCacheLen(void);
 void LCD_Draw(LCD_DrawStruct *Draw);
 void LCD_DrawBlock(LCD_DrawStruct *Draw);
 void LCD_CameraDraw(LCD_DrawStruct *Draw);
+void LCD_ServiceInit(uint8_t Priority);
+void LCD_RunUserAPI(CBDataFun_t CB, uint32_t data, uint32_t param, uint32_t timeout);
 #endif /* DRIVER_INCLUDE_SOC_LCD_H_ */
