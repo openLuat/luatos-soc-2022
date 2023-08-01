@@ -31,6 +31,9 @@ static char mqtt_sub_topic2[] = "test_topic2";
 static char mqtt_pub_topic[] = "test_topic";
 static char mqtt_send_payload[] = "hello mqtt_test!!!";
 
+// static char mqtt_will_topic[] = "test_will";				// 测试遗嘱
+// static char mqtt_will_payload[] = "hello, i was dead";
+
 #if (MQTT_DEMO_SSL == 1)
 static const char *testCaCrt = \
 {
@@ -198,6 +201,8 @@ static void luat_mqtt_task(void *param)
 
 	luat_mqtt_ctrl->reconnect = 1;
 	luat_mqtt_ctrl->reconnect_time = 3000;
+
+	// luat_mqtt_set_will(luat_mqtt_ctrl, mqtt_will_topic, mqtt_will_payload, strlen(mqtt_will_payload), 0, 0); // 测试遗嘱
 	
 	luat_mqtt_set_cb(luat_mqtt_ctrl,luat_mqtt_cb);
 

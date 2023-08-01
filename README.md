@@ -92,7 +92,7 @@ error: fatal: not a git repository
 
 或者git/http连接失败的提示. 故这里提供离线gcc工具链下载和编译的方法
 
-1. 下载[gcc for arm工具链](http://cdndownload.openluat.com/xmake/toolchains/gcc-arm/gcc-arm-none-eabi-10.3-2021.10-win32.zip)
+1. 下载gcc for arm工具链[windows版](http://cdndownload.openluat.com/xmake/toolchains/gcc-arm/gcc-arm-none-eabi-10.3-2021.10-win32.zip)/[linux版](http://cdndownload.openluat.com/xmake/toolchains/gcc-arm/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2)
 2. 解压, 不要选太深的目录, 不要包含中文字符和特殊符号, 建议解压到`D盘根目录`, 压缩包内自带一层目录`gcc-arm-none-eabi-10.3-2021.10`
 3. 假设解压后的路径是 `D:\gcc-arm-none-eabi-10.3-2021.10`, 检查 `D:\gcc-arm-none-eabi-10.3-2021.10\bin\arm-none-eabi-g++.exe` 是否存在, 如果不存在, 那肯定是多一层目录. **务必检查!!!**
 4. 用文本编辑器(例如vscode)打开 `本代码库` 的 `build.bat`, 修改内容如下
@@ -125,6 +125,7 @@ apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386
 2. [脱离本csdk编译无依赖的库文件](doc/build_lib_by_gcc.md)
 3. CSDK调试指南 https://doc.openluat.com/article/4984
 4. Linux/Mac刷机工具(测试版) https://github.com/openLuat/ectool2py
+5. CI状态 http://gitea.wendal.cn/openLuat/luatos-soc-2022/actions
 
 ## 授权协议
 

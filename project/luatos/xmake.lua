@@ -44,6 +44,22 @@ target("nes")
     LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. "libnes.a "
 target_end()
 
+
+target("fastlz")
+    set_kind("static")
+    set_plat("cross")
+    set_optimize("fastest")
+    set_targetdir(LIB_DIR)
+    add_includedirs("./inc",{public = true})
+    add_includedirs(LUATOS_ROOT.."lua/include")
+    add_includedirs(LUATOS_ROOT.."luat/include")
+    add_includedirs(LUATOS_ROOT.."components/lcd",{public = true})
+    add_includedirs(LUATOS_ROOT.."components/u8g2",{public = true})
+    add_includedirs(LUATOS_ROOT.."components/fastlz")
+    add_files(LUATOS_ROOT.."components/fastlz/**.c")
+    LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. "libfastlz.a "
+target_end()
+
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)

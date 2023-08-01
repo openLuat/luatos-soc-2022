@@ -16,8 +16,8 @@ target(TARGET_NAME)
     --加入代码和头文件
      includes(SDK_TOP .. "/thirdparty/httpclient")
     add_deps("httpclient")
-    add_includedirs("/inc",{public = true})
-    add_files("/src/*.c",{public = true})
+    add_includedirs("./inc",{public = true})
+    add_files("./src/*.c",{public = true})
     add_deps("audio_decoder")
     --加入代码和头文件
     add_includedirs("/include",{public = true})

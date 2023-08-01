@@ -260,6 +260,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_STATEM
   {"statem",    luaopen_statem},
 #endif
+#ifdef LUAT_USE_FASTLZ
+  {"fastlz",    luaopen_fastlz},
+#endif
   {NULL, NULL}
 };
 
