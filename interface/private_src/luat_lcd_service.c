@@ -3,7 +3,7 @@
 
 uint32_t luat_lcd_draw_cache(void) {return LCD_DrawCacheLen();}
 
-int luat_lcd_draw_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint8_t dc_pin,  uint32_t spi_speed, void *data, uint16_t w_start, uint16_t w_end, uint16_t h_start, h_end, uint16_t w_offset, uint16_t h_offset, uint8_t color_mode)
+int luat_lcd_draw_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint8_t dc_pin,  uint32_t spi_speed, void *data, uint16_t w_start, uint16_t w_end, uint16_t h_start, uint16_t h_end, uint16_t w_offset, uint16_t h_offset, uint8_t color_mode)
 {
 	LCD_DrawStruct *draw;
 	draw = calloc(sizeof(LCD_DrawStruct), 1);
@@ -38,7 +38,7 @@ int luat_lcd_draw_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint
 }
 
 
-int luat_lcd_draw_camera_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint8_t dc_pin,  uint32_t spi_speed, void *data, uint16_t w_start, uint16_t w_end, uint16_t h_start, h_end, uint16_t w_offset, uint16_t h_offset, uint8_t color_mode)
+int luat_lcd_draw_camera_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint8_t dc_pin,  uint32_t spi_speed, void *data, uint16_t w_start, uint16_t w_end, uint16_t h_start, uint16_t h_end, uint16_t w_offset, uint16_t h_offset, uint8_t color_mode)
 {
 	LCD_DrawStruct *draw;
 	draw = calloc(sizeof(LCD_DrawStruct), 1);

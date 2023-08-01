@@ -48,7 +48,7 @@ uint32_t luat_lcd_draw_cache(void);
  * @param color_mode 颜色模式，见COLOR_MODE_XXX，目前只支持COLOR_MODE_RGB_565和COLOR_MODE_GRAY
  * @return 成功返回0，其他失败，失败一般都是ram不足
  */
-int luat_lcd_draw_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint8_t dc_pin,  uint32_t spi_speed, void *data, uint16_t w_start, uint16_t w_end, uint16_t h_start, h_end, uint16_t w_offset, uint16_t h_offset, uint8_t color_mode);
+int luat_lcd_draw_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint8_t dc_pin,  uint32_t spi_speed, void *data, uint16_t w_start, uint16_t w_end, uint16_t h_start, uint16_t h_end, uint16_t w_offset, uint16_t h_offset, uint8_t color_mode);
 
 /**
  * @brief lcd刷新camera数据请求，这里不会拷贝刷新区域的数据，如果camera速度比lcd刷新快，就需要注意数据同步问题，camera要等lcd刷新
@@ -67,7 +67,7 @@ int luat_lcd_draw_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint
  * @param color_mode 颜色模式，见COLOR_MODE_XXX，目前只支持COLOR_MODE_RGB_565和COLOR_MODE_GRAY
  * @return 成功返回0，其他失败，失败一般都是ram不足
  */
-int luat_lcd_draw_camera_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint8_t dc_pin,  uint32_t spi_speed, void *data, uint16_t w_start, uint16_t w_end, uint16_t h_start, h_end, uint16_t w_offset, uint16_t h_offset, uint8_t color_mode);
+int luat_lcd_draw_camera_require(uint8_t spi_id, uint8_t spi_mode, uint8_t cs_pin, uint8_t dc_pin,  uint32_t spi_speed, void *data, uint16_t w_start, uint16_t w_end, uint16_t h_start, uint16_t h_end, uint16_t w_offset, uint16_t h_offset, uint8_t color_mode);
 
 /**
  * @brief lcd刷新服务初始化

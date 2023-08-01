@@ -73,7 +73,7 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT .. "components/cjson")
     add_includedirs(LUATOS_ROOT .. "components/fatfs")
     add_includedirs(LUATOS_ROOT .. "components/shell")
-
+	add_includedirs(LUATOS_ROOT .. "components/camera")
 
     add_files(LUATOS_ROOT .. "lua/src/*.c")
     add_files(LUATOS_ROOT .. "luat/modules/*.c")
