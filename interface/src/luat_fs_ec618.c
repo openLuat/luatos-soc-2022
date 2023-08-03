@@ -119,12 +119,14 @@ int luat_vfs_ec618_getc(__attribute__((unused))void* userdata, FILE* stream) {
 
 int luat_vfs_ec618_fseek(__attribute__((unused))void* userdata, FILE* stream, long int offset, int origin) {
     //DBG("luat_fs_fseek fd=%p offset=%ld ori=%ld", stream, offset, origin);
-    return LFS_fileSeek((lfs_file_t*)stream, offset, origin);
+    int ret = LFS_fileSeek((lfs_file_t*)stream, offset, origin);
+    return ret < 0 ? -1 : 0;
 }
 
 int luat_vfs_ec618_ftell(__attribute__((unused))void* userdata, FILE* stream) {
     //DBG("luat_fs_ftell fd=%ld", stream);
-    return LFS_fileTell((lfs_file_t *)stream);
+    int ret = LFS_fileTell((lfs_file_t *)stream);
+    return ret < 0 ? -1 : ret;
 }
 
 int luat_vfs_ec618_fclose(__attribute__((unused))void* userdata, FILE* stream) {
