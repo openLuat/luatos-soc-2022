@@ -104,7 +104,7 @@ static void luat_test_task(void *param)
 	const char remote_domain[200];
     char imei[16] = {0};
     luat_mobile_get_imei(0, imei, 15);
-	snprintf_(ota_file_name, 200, "http://iot.openluat.com/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_LuatOS_CSDK_EC618&version=%s", PROJECT_KEY, imei, PROJECT_NAME, PROJECT_VERSION);
+	snprintf_(remote_domain, 200, "http://iot.openluat.com/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_LuatOS_CSDK_EC618&version=%s", PROJECT_KEY, imei, PROJECT_NAME, PROJECT_VERSION);
 #endif
 	luat_http_client_start(http, remote_domain, 0, 0, 1);
 	while (1)
