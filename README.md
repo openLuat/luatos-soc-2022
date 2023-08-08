@@ -9,7 +9,13 @@
 [CSDK软件开发资料](https://doc.openluat.com/wiki/37?wiki_page_id=4544)
 
 ## 介绍
-CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 例如Air780E系列, Air600E系列
+CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型号及海外型号:
+
+* Air780E   合宙主推封装
+* Air600E   兼容友商的封装
+* Air700E   极致小封装
+* Air780EG  带GNSS定位
+* Air780EX  邮票孔封装
 
 ## 目录说明
 
