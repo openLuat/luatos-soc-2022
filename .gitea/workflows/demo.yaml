@@ -10,6 +10,7 @@ jobs:
         csdk_project: ["example", "luatos", "example_gpio", "example_adc", "example_socket", "example_fota", "example_cjson", "example_psm", "example_record", "web_audio", "tracker", "example_ntp", "example_crypto"]
     steps:
       - name: 克隆 LuatOS 代码库
+        if: matrix.csdk_project == "luatos"
         run:  git clone --depth=1 http://192.168.1.231:13000/openLuat/LuatOS.git
       - name: 克隆 ec618-csdk 代码库
         run:  git clone --depth=1 http://192.168.1.231:13000/openLuat/luatos-soc-2022.git
