@@ -188,6 +188,7 @@ int luat_uart_setup(luat_uart_t* uart) {
     char model[40] = {0};
 #ifdef __LUATOS__
     Uart_SetDebug(uart->id, 1);
+	Uart_SetErrorDropData(uart->id, 1);
 #endif
     switch (uart->id)
     {
