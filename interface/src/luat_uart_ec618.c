@@ -188,13 +188,11 @@ int luat_uart_setup(luat_uart_t* uart) {
     char model[40] = {0};
 #ifdef __LUATOS__
     Uart_SetDebug(uart->id, 1);
+	Uart_SetErrorDropData(uart->id, 1);
 #endif
     switch (uart->id)
     {
 	case UART_ID0:
-#ifdef __LUATOS__
-		Uart_SetErrorDropData(UART_ID0, 1);
-#endif
         if (g_s_serials[UART_ID0].alt_type) {
 	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_16, 0), 3, 0, 0);
 	        GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_17, 0), 3, 0, 0);
@@ -207,16 +205,12 @@ int luat_uart_setup(luat_uart_t* uart) {
         }
 		break;
 	case UART_ID1:
-#ifdef __LUATOS__
-		Uart_SetErrorDropData(UART_ID1, 1);
-#endif
 	    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_18, 0), 1, 0, 0);
 	    GPIO_IomuxEC618(GPIO_ToPadEC618(HAL_GPIO_19, 0), 1, 0, 0);
 	    GPIO_PullConfig(GPIO_ToPadEC618(HAL_GPIO_18, 0), 1, 1);
 	    break;
 	case UART_ID2:
 #ifdef __LUATOS__
-		Uart_SetErrorDropData(UART_ID2, 1);
 		luat_hmeta_model_name(model);
 		if ((1 == g_s_serials[UART_ID2].alt_type) || !strcmp("Air780EG", model))
 #else
