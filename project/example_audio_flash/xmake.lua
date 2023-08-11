@@ -10,6 +10,7 @@ target(TARGET_NAME)
     includes(SDK_TOP .. "/thirdparty/miniz")
     add_deps("miniz")
     
+    add_includedirs(SDK_TOP .. "/thirdparty/vfs",{public = true})
     add_includedirs(SDK_TOP .. "/thirdparty/sfud",{public = true})
     add_files(SDK_TOP.."/thirdparty/sfud/*.c",{public = true})
 
