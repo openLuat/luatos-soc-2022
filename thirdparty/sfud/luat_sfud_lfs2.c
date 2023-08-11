@@ -1,6 +1,6 @@
 
 #include "luat_base.h"
-#include "luat_fs.h"
+#include "luat_vfs.h"
 #include "luat_mem.h"
 #include "luat_debug.h"
 #define LLOGD LUAT_DEBUG_PRINT
@@ -9,7 +9,6 @@
 #define LLOGI LUAT_DEBUG_PRINT
 
 #ifdef LUAT_USE_FS_VFS
-#include "luat_vfs.h"
 #include "lfs.h"
 #include "sfud.h"
 

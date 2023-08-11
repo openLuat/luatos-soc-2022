@@ -10,7 +10,7 @@ target(TARGET_NAME)
     add_includedirs(SDK_TOP .. "/thirdparty/sfud",{public = true})
 	add_includedirs(SDK_TOP .. "/thirdparty/vfs",{public = true})
     add_files(SDK_TOP.."/thirdparty/sfud/*.c",{public = true})
-	add_files(SDK_TOP.."/thirdparty/vfs/*.c",{public = true})
+	add_files(SDK_TOP.."/thirdparty/vfs/*.c|luat_fs_fatfs.c",{public = true})
     add_includedirs("./inc",{public = true})
     add_files("./src/*.c",{public = true})
 

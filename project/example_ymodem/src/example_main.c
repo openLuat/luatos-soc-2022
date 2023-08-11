@@ -25,7 +25,7 @@
 #include "luat_gpio.h"
 #include "luat_spi.h"
 #include "sfud.h"
-#include "luat_fs.h"
+#include "luat_vfs.h"
 #include "common_api.h"
 #include "bsp_custom.h"
 #include "luat_mem.h"
