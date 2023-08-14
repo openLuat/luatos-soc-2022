@@ -11,10 +11,12 @@ target("liblcd")
     --加入代码和头文件
     add_includedirs("./",
                     "../qrcode",
+                    "../tjpgd",
     {public = true})
 
     add_files("./*.c",
                 "../qrcode/*.c",
+                "../tjpgd/*.c",
     {public = true})
 
     --自动链接

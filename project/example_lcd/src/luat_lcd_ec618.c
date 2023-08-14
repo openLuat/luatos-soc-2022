@@ -73,7 +73,9 @@ static void task_test_lcd(void *param)
     luat_lcd_draw_circle(&lcd_conf,60,60,10,0x0CE0);
 
     luat_lcd_drawQrcode(&lcd_conf,40,90,"luatos",60);
-    
+
+    // lcd_draw_jpeg("/test.jpg", 0, 0);
+
     while (1){
         luat_rtos_task_sleep(1000);
     }
