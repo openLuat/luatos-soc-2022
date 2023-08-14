@@ -98,47 +98,35 @@ int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack
 	*file_ok = 0;
 	*all_done = 0;
 	*flag = 0;
-	if (data)
-	{
-		if (data[0] == XMODEM_CAN)
-		{
+	if (data){
+		if (data[0] == XMODEM_CAN){
 			luat_ymodem_reset(handler);
 			*ack = XMODEM_ACK;
 			*all_done = 1;
 			return 0;
 		}
 	}
-
-	switch (ctrl->state)
-	{
+	// LUAT_DEBUG_PRINT("ctrl->state:%d data_pos:%d len:%d", ctrl->state,ctrl->data_pos , len);
+	switch (ctrl->state){
 	case 0:
-		if (!data)
-		{
+		if (!data){
 			*ack = XMODEM_FLAG;
 			return 0;
-		}
-		else
-		{
-			if ((ctrl->data_pos + len) >= (XMODEM_SOH_DATA_LEN + 5))
-			{
+		}else{
+			if ((ctrl->data_pos + len) >= (XMODEM_SOH_DATA_LEN + 5)){
 				memcpy(&ctrl->packet_data[ctrl->data_pos], data, (XMODEM_SOH_DATA_LEN + 5) - ctrl->data_pos);
-				if (ctrl->packet_data[0] != XMODEM_SOH || ctrl->packet_data[1] != 0x00 || ctrl->packet_data[2] != 0xff)
-				{
+				if (ctrl->packet_data[0] != XMODEM_SOH || ctrl->packet_data[1] != 0x00 || ctrl->packet_data[2] != 0xff){
 					LUAT_DEBUG_PRINT("head %x %x %x", ctrl->packet_data[0], ctrl->packet_data[1], ctrl->packet_data[2]);
 					goto DATA_RECIEVE_ERROR;
 				}
 				crc16_org = ctrl->packet_data[XMODEM_SOH_DATA_LEN + 3];
 				crc16_org = (crc16_org << 8) + ctrl->packet_data[XMODEM_SOH_DATA_LEN + 4];
 				crc16 = CRC16_Cal(&ctrl->packet_data[XMODEM_DATA_POS], XMODEM_SOH_DATA_LEN, 0);
-				if (crc16 != crc16_org)
-				{
+				if (crc16 != crc16_org){
 					LUAT_DEBUG_PRINT("crc16 %x %x ", crc16, crc16_org);
 					goto DATA_RECIEVE_ERROR;
-				}
-				else
-				{
-					if (!ctrl->packet_data[XMODEM_DATA_POS])
-					{
+				}else{
+					if (!ctrl->packet_data[XMODEM_DATA_POS]){
 						luat_ymodem_reset(handler);
 						*flag = 0;
 						*ack = XMODEM_ACK;
@@ -146,69 +134,52 @@ int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack
 						return 0;
 					}
 					NameEnd = NULL;
-					for(i = XMODEM_DATA_POS; i < (XMODEM_SOH_DATA_LEN + 5); i++)
-					{
-						if (!ctrl->packet_data[i])
-						{
+					for(i = XMODEM_DATA_POS; i < (XMODEM_SOH_DATA_LEN + 5); i++){
+						if (!ctrl->packet_data[i]){
 							NameEnd = i;
 							break;
 						}
 					}
-					if (!NameEnd)
-					{
+					if (!NameEnd){
 						LUAT_DEBUG_PRINT("name end");
 						goto DATA_RECIEVE_ERROR;
 					}
 					LenEnd = NULL;
-					for(i = (NameEnd + 1); i < (XMODEM_SOH_DATA_LEN + 5); i++)
-					{
-						if (!ctrl->packet_data[i])
-						{
+					for(i = (NameEnd + 1); i < (XMODEM_SOH_DATA_LEN + 5); i++){
+						if (!ctrl->packet_data[i]){
 							LenEnd = i;
 							break;
 						}
 					}
-					if (!LenEnd)
-					{
+					if (!LenEnd){
 						LUAT_DEBUG_PRINT("len end");
 						goto DATA_RECIEVE_ERROR;
 					}
-
 					ctrl->file_size = strtol((const char*)&ctrl->packet_data[NameEnd + 1], NULL, 10);
 					ctrl->write_size = 0;
-					if (ctrl->force_save_path)
-					{
+					if (ctrl->force_save_path){
 						ctrl->fd = luat_fs_fopen(ctrl->force_save_path, "w");
 						LUAT_DEBUG_PRINT("%s,%u,%x", ctrl->force_save_path, ctrl->file_size, ctrl->fd);
-					}
-					else
-					{
+					}else{
 						sprintf_(path, "%s%s", ctrl->save_path, &ctrl->packet_data[XMODEM_DATA_POS]);
 						ctrl->fd = luat_fs_fopen(path, "w");
 						LUAT_DEBUG_PRINT("%s,%u,%x", path, ctrl->file_size, ctrl->fd);
 					}
-
-
-
 					ctrl->state++;
 					ctrl->next_sn = 0;
 					ctrl->data_max = (XMODEM_STX_DATA_LEN + 5);
 					*flag = XMODEM_FLAG;
 					goto DATA_RECIEVE_OK;
 				}
-			}
-			else
-			{
+			}else{
 				memcpy(&ctrl->packet_data[ctrl->data_pos], data, len);
 				ctrl->data_pos += len;
 			}
 		}
 		break;
 	case 1:
-		if (!ctrl->data_pos)
-		{
-			switch(data[0])
-			{
+		if (!ctrl->data_pos){
+			switch(data[0]){
 			case XMODEM_STX:
 				ctrl->data_max = (XMODEM_STX_DATA_LEN + 5);
 				break;
@@ -220,28 +191,22 @@ int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack
 				break;
 			}
 			memcpy(ctrl->packet_data, data, len);
+			ctrl->data_pos += len;
 			if (len >= ctrl->data_max) goto YMODEM_DATA_CHECK;
-		}
-		else
-		{
-			if ((ctrl->data_pos + len) >= ctrl->data_max)
-			{
+		}else{
+			if ((ctrl->data_pos + len) >= ctrl->data_max){
 				memcpy(&ctrl->packet_data[ctrl->data_pos], data, ctrl->data_max - ctrl->data_pos);
 YMODEM_DATA_CHECK:
-				switch(ctrl->packet_data[0])
-				{
+				switch(ctrl->packet_data[0]){
 				case XMODEM_SOH:
-					if (ctrl->packet_data[1] != ctrl->next_sn || ctrl->packet_data[2] != (255 - ctrl->next_sn))
-					{
+					if (ctrl->packet_data[1] != ctrl->next_sn || ctrl->packet_data[2] != (255 - ctrl->next_sn)){
 						LUAT_DEBUG_PRINT("head %x %x %x", ctrl->packet_data[0], ctrl->packet_data[1], ctrl->packet_data[2]);
 						goto DATA_RECIEVE_ERROR;
 					}
-
 					crc16_org = ctrl->packet_data[XMODEM_SOH_DATA_LEN + 3];
 					crc16_org = (crc16_org << 8) + ctrl->packet_data[XMODEM_SOH_DATA_LEN + 4];
 					crc16 = CRC16_Cal(&ctrl->packet_data[XMODEM_DATA_POS], XMODEM_SOH_DATA_LEN, 0);
-					if (crc16 != crc16_org)
-					{
+					if (crc16 != crc16_org){
 						LUAT_DEBUG_PRINT("crc16 %x %x ", crc16, crc16_org);
 						goto DATA_RECIEVE_ERROR;
 					}
@@ -251,17 +216,14 @@ YMODEM_DATA_CHECK:
 					goto DATA_RECIEVE_OK;
 					break;
 				case XMODEM_STX:
-					if (ctrl->packet_data[1] != ctrl->next_sn || (ctrl->packet_data[2] != (255 - ctrl->next_sn)))
-					{
+					if (ctrl->packet_data[1] != ctrl->next_sn || (ctrl->packet_data[2] != (255 - ctrl->next_sn))){
 						LUAT_DEBUG_PRINT("head %x %x %x", ctrl->packet_data[0], ctrl->packet_data[1], ctrl->packet_data[2]);
 						goto DATA_RECIEVE_ERROR;
 					}
-
 					crc16_org = ctrl->packet_data[XMODEM_STX_DATA_LEN + 3];
 					crc16_org = (crc16_org << 8) + ctrl->packet_data[XMODEM_STX_DATA_LEN + 4];
 					crc16 = CRC16_Cal(&ctrl->packet_data[XMODEM_DATA_POS], XMODEM_STX_DATA_LEN, 0);
-					if (crc16 != crc16_org)
-					{
+					if (crc16 != crc16_org){
 						LUAT_DEBUG_PRINT("crc16 %x %x ", crc16, crc16_org);
 						goto DATA_RECIEVE_ERROR;
 					}
@@ -272,46 +234,37 @@ YMODEM_DATA_CHECK:
 					goto DATA_RECIEVE_OK;
 					break;
 				default:
-					if (ctrl->packet_data[1] != ctrl->next_sn || ctrl->packet_data[2] != ~ctrl->next_sn)
-					{
+					if (ctrl->packet_data[1] != ctrl->next_sn || ctrl->packet_data[2] != ~ctrl->next_sn){
 						LUAT_DEBUG_PRINT("head %x %x %x", ctrl->packet_data[0], ctrl->packet_data[1], ctrl->packet_data[2]);
 						goto DATA_RECIEVE_ERROR;
 					}
 					goto DATA_RECIEVE_OK;
 				}
-			}
-			else
-			{
+			}else{
 				memcpy(&ctrl->packet_data[ctrl->data_pos], data, len);
 				ctrl->data_pos += len;
 			}
 		}
 		break;
 	case 2:
-		if (data[0] == XMODEM_EOT)
-		{
+		if (data[0] == XMODEM_EOT){
 			ctrl->state++;
 			ctrl->data_pos = 0;
 			*flag = 0;
 			*ack = XMODEM_NAK;
 			if (ctrl->fd) luat_fs_fclose(ctrl->fd);
 			ctrl->fd = NULL;
-		}
-		else
-		{
+		}else{
 			goto DATA_RECIEVE_ERROR;
 		}
 		return 0;
 	case 3:
-		if (data[0] == XMODEM_EOT)
-		{
+		if (data[0] == XMODEM_EOT){
 			ctrl->state = 0;
 			*flag = XMODEM_FLAG;
 			*ack = XMODEM_ACK;
 			return 0;
-		}
-		else
-		{
+		}else{
 			goto DATA_RECIEVE_ERROR;
 		}
 		break;
@@ -330,8 +283,7 @@ DATA_RECIEVE_OK:
 	ctrl->data_pos = 0;
 	ctrl->next_sn++;
 	*ack = XMODEM_ACK;
-	if (ctrl->file_size && (ctrl->write_size >= ctrl->file_size))
-	{
+	if (ctrl->file_size && (ctrl->write_size >= ctrl->file_size)){
 		luat_fs_fclose(ctrl->fd);
 		ctrl->fd = NULL;
 		ctrl->state = 2;
