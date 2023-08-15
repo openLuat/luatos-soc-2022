@@ -35,7 +35,7 @@ static bool ddddtoddmm(char *location, char *test)
     if (integer)
     {
         fraction = strtok(NULL, ".");
-        sprintf(tmpstr, "0.%d", atoi(fraction));
+        sprintf(tmpstr, "0.%s", fraction == NULL ? "0" : fraction);
         tmp = atof(tmpstr) * 60;
         tmp = atoi(integer) * 100 + tmp;
         memset(tmpstr, 0x00, 15);

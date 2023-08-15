@@ -108,6 +108,7 @@ int luat_lcd_set_font(luat_lcd_conf_t* conf,const uint8_t *font);
 int luat_lcd_draw_str(luat_lcd_conf_t* conf,uint16_t x, uint16_t y,const uint8_t* str);
 
 int luat_lcd_drawQrcode(luat_lcd_conf_t *conf,uint16_t x,uint16_t y,const char* text,int size);//二维码显示
+int lcd_draw_jpeg(const char* path, int xpos, int ypos); // jpg显示
 
 void luat_lcd_execute_cmds(luat_lcd_conf_t* conf, uint32_t* cmds, uint32_t count);
 
