@@ -335,6 +335,13 @@
                         "dft": false
                     },
                     {
+                        "name": "fastlz",
+                        "content": "另一种LZ压缩和解压库,压缩的内存需求比miniz小",
+                        "rsize": 12768,
+                        "fsize": 317120,
+                        "dft": false
+                    },
+                    {
                         "name": "sfud",
                         "content": "通用spi flash驱动库,市面上常见的spi flash都支持",
                         "rsize": 11968,
@@ -531,6 +538,13 @@
                     {
                         "name": "LUAT_HEAP_SIZE_300K",
                         "content": "Lua内存设置到300k字节, 这个模式下不能使用音频的库,且需要限制TLS连接的数量在2个以内",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_HEAP_SIZE_324K",
+                        "content": "Lua内存设置到324k字节, 这个模式下不能使用音频的库,且需要限制TLS连接的数量在2个以内",
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
