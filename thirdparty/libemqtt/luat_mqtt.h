@@ -9,7 +9,12 @@
 #define MQTT_MSG_RECONNECT  	3
 #define MQTT_MSG_CLOSE 			4
 
-#define MQTT_RECV_BUF_LEN_MAX 	4096 ///< MQTT 接收BUFF大小
+#ifdef CHIP_EC618
+#define MQTT_RECV_BUF_LEN_MAX 8192 ///< MQTT 接收BUFF大小
+#else
+#define MQTT_RECV_BUF_LEN_MAX 4096 ///< MQTT 接收BUFF大小
+#endif
+
 /**
  * @brief 设置MQTT客户端的配置参数
 */

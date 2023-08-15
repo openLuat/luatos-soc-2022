@@ -338,7 +338,7 @@ int mqtt_publish(mqtt_broker_handle_t* broker, const char* topic, const char* ms
 int mqtt_publish_with_qos(mqtt_broker_handle_t* broker, const char* topic, const char* msg, uint32_t msg_len, uint8_t retain, uint8_t qos, uint16_t* message_id) {
 	uint16_t topiclen = strlen(topic);
 	uint32_t msglen = msg_len;
-	uint32_t tem_len;
+	// uint32_t tem_len;
 	uint8_t qos_flag = MQTT_QOS0_FLAG;
 	uint8_t qos_size = 0; // No QoS included
 	if(qos == 1) {
@@ -367,7 +367,7 @@ int mqtt_publish_with_qos(mqtt_broker_handle_t* broker, const char* topic, const
 
 	// Fixed header
 	uint32_t remainLen = sizeof(var_header)+msglen;
-	uint8_t buf[4];
+	uint8_t buf[4] = {0};
 	int rc = 0;
 	uint32_t length = remainLen;
 	do
@@ -377,10 +377,7 @@ int mqtt_publish_with_qos(mqtt_broker_handle_t* broker, const char* topic, const
 		/* if there are more digits to encode, set the top bit of this digit */
 		if (length > 0)
 			d |= 0x80;
-		if (buf)
-			buf[rc++] = d;
-		else
-			rc++;
+		buf[rc++] = d;
 	} while (length > 0);
 	uint8_t fixed_header[rc + 1];
     
@@ -391,24 +388,36 @@ int mqtt_publish_with_qos(mqtt_broker_handle_t* broker, const char* topic, const
    	}
 	memcpy(fixed_header+1, buf, rc);
 
+	#define SMALL_PUB (1400)
 
-
-	uint8_t packet[sizeof(fixed_header)+sizeof(var_header)];
+	uint8_t header_size = sizeof(fixed_header)+sizeof(var_header);
+	uint32_t total_size = header_size + msg_len;
+	int ret = 0;
+	uint8_t packet[total_size > SMALL_PUB ? header_size : total_size];
 	memset(packet, 0, sizeof(packet));
 	memcpy(packet, fixed_header, sizeof(fixed_header));
 	memcpy(packet+sizeof(fixed_header), var_header, sizeof(var_header));
 	//memcpy(packet+sizeof(fixed_header)+sizeof(var_header), msg, msglen);
 
 	// Send the packet
-	int ret = broker->send(broker->socket_info, packet, sizeof(packet));
-	//DBG("publish packet header %d ret %d", sizeof(packet), ret);
-	if(ret < 0 || ret < sizeof(packet)) {
-		return -1;
+	if (total_size <= SMALL_PUB) { // 针对小包的情况进行优化, 减少TCP交互
+		memcpy(packet + header_size, msg, msg_len);
+		ret = broker->send(broker->socket_info, packet, total_size);
+		if(ret < 0 || ret < total_size) {
+			return -1;
+		}
 	}
-	ret = broker->send(broker->socket_info, msg, msg_len);
-	//DBG("publish packet body %d ret %d", msg_len, ret);
-	if(ret < 0 || ret < msg_len) {
-		return -1;
+	else {
+		ret = broker->send(broker->socket_info, packet, sizeof(packet));
+		//DBG("publish packet header %d ret %d", sizeof(packet), ret);
+		if(ret < 0 || ret < sizeof(packet)) {
+			return -1;
+		}
+		ret = broker->send(broker->socket_info, msg, msg_len);
+		//DBG("publish packet body %d ret %d", msg_len, ret);
+		if(ret < 0 || ret < msg_len) {
+			return -1;
+		}
 	}
 
 	return 1;
@@ -589,7 +598,8 @@ int mqtt_set_will(mqtt_broker_handle_t* broker, const char* topic,
 	
 	broker->will_data[2  + topic_len] = (uint8_t)(payload_len >> 8);
 	broker->will_data[2  + topic_len + 1] = (uint8_t)(payload_len & 0xFF);
-	memcpy(broker->will_data + 2 + topic_len + 2, payload, payload_len);
+	if (payload_len)
+		memcpy(broker->will_data + 2 + topic_len + 2, payload, payload_len);
 
 	broker->will_qos = qos > 2 ? 0 : qos;
 	broker->will_retain = retain;
