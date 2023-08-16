@@ -21,7 +21,7 @@ typedef struct{
 	char *save_path;
 	const char *force_save_path;
 	FILE* fd;
-	sfud_flash* sfud_flash;
+	const sfud_flash* sfud_flash;
 	size_t sfud_offset;
 	uint32_t file_size;
 	uint32_t write_size;
@@ -79,7 +79,7 @@ void *luat_ymodem_create_handler(const char *save_path, const char *force_save_p
 	return handler;
 }
 
-void *luat_ymodem_create_handler_sfud(sfud_flash* flash,size_t sfud_offset){
+void *luat_ymodem_create_handler_sfud(const sfud_flash* flash,size_t sfud_offset){
 	ymodem_ctrlstruct *handler = luat_heap_malloc(sizeof(ymodem_ctrlstruct));
 	if (handler){
 		memset(handler, 0, sizeof(ymodem_ctrlstruct));
@@ -157,7 +157,8 @@ int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack
 					ctrl->file_size = strtol((const char*)&ctrl->packet_data[NameEnd + 1], NULL, 10);
 					ctrl->write_size = 0;
 					if (ctrl->sfud_flash){
-						LUAT_DEBUG_PRINT(" sfud_flash offset:%d", ctrl->sfud_offset);
+						LUAT_DEBUG_PRINT(" sfud_flash offset:%d %u", ctrl->sfud_offset,ctrl->file_size);
+						sfud_erase(ctrl->sfud_flash, ctrl->sfud_offset, ctrl->file_size);
 					}else if (ctrl->force_save_path){
 						ctrl->fd = luat_fs_fopen(ctrl->force_save_path, "w");
 						LUAT_DEBUG_PRINT("%s,%u,%x", ctrl->force_save_path, ctrl->file_size, ctrl->fd);
@@ -213,8 +214,8 @@ YMODEM_DATA_CHECK:
 					}
 					LenEnd = ((ctrl->file_size - ctrl->write_size) > XMODEM_SOH_DATA_LEN)?XMODEM_SOH_DATA_LEN:(ctrl->file_size - ctrl->write_size);
 					if (ctrl->sfud_flash){
-						// LUAT_DEBUG_PRINT(" sfud_erase_write addr:%d", ctrl->write_size);
-						sfud_erase_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data);
+						// LUAT_DEBUG_PRINT(" sfud_write addr:%d", ctrl->write_size);
+						sfud_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data);
 					}else{
 						luat_fs_fwrite(ctrl->packet_data, LenEnd, 1, ctrl->fd);
 					}
@@ -236,8 +237,8 @@ YMODEM_DATA_CHECK:
 					//写入
 					LenEnd = ((ctrl->file_size - ctrl->write_size) > XMODEM_STX_DATA_LEN)?XMODEM_STX_DATA_LEN:(ctrl->file_size - ctrl->write_size);
 					if (ctrl->sfud_flash){
-						// LUAT_DEBUG_PRINT(" sfud_erase_write addr:%d", ctrl->write_size);
-						sfud_erase_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data);
+						// LUAT_DEBUG_PRINT(" sfud_write addr:%d", ctrl->write_size);
+						sfud_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data);
 					}else{
 						luat_fs_fwrite(ctrl->packet_data, LenEnd, 1, ctrl->fd);
 					}
