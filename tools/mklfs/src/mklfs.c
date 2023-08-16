@@ -59,6 +59,7 @@
 static struct lfs_config cfg;
 static lfs_t lfs;
 static uint8_t *data;
+static uint8_t fix_value = 0xFF;
 
 static int lfs_read(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size) {
     memcpy(buffer, data + (block * c->block_size) + off, size);
@@ -71,7 +72,7 @@ static int lfs_prog(const struct lfs_config *c, lfs_block_t block, lfs_off_t off
 }
 
 static int lfs_erase(const struct lfs_config *c, lfs_block_t block) {
-    memset(data + (block * c->block_size), 0, c->block_size);
+    memset(data + (block * c->block_size), fix_value, c->block_size);
     return 0;
 }
 
@@ -235,6 +236,9 @@ int main(int argc, char **argv) {
 	if (argc > 1 && !strcmp("-size", argv[1])) {
 		fs_size = atoi(argv[2]) * 1024;
 	}
+	if (argc > 3 && !strcmp("-fix", argv[3])) {
+		fix_value = atoi(argv[4]);
+	}
 	for (size_t i = 0; i < argc; i++)
 	{
 		//printf("argv[%d] %s\n", i, argv[i]);
@@ -267,6 +271,8 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "no memory for mount\r\n");
 		return -1;
 	}
+	printf("fix 0x%02X\n", fix_value);
+	memset(data, fix_value, fs_size);
 
 	err = lfs_format(&lfs, &cfg);
 	if (err < 0) {
@@ -288,6 +294,22 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "can't create image file: errno=%d (%s)\r\n", errno, strerror(errno));
 		return -1;
 	}
+
+	#if 1
+	for (size_t i = 0; i < fs_size; i+=8)
+	{
+		for (size_t j = 0; j < 8; j++)
+		{
+			if (data[i+j] != fix_value) {
+				printf("%08X %02X%02X%02X%02X%02X%02X%02X%02X\n", i, data[i], data[i+1], data[i+2], data[i+3],
+                    data[i+4], data[i+5], data[i+6], data[i+7]
+                );
+				break;
+			}
+		}
+	}
+	#endif
+	
 
 	fwrite(data, 1, fs_size, img);
 
