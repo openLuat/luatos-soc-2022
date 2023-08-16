@@ -3,9 +3,13 @@
 
 #include "luat_base.h"
 
+#include "sfud.h"
+
 //save_path为保存文件夹路径
 //force_save_path强制保存文件路径，优先于save_path
 void *luat_ymodem_create_handler(const char *save_path, const char *force_save_path);
+//sfud_offsetv为flash偏移地址
+void *luat_ymodem_create_handler_sfud(sfud_flash* flash,size_t sfud_offset);
 //收文件
 //握手阶段，data为NULL,ack='c'
 //数据阶段，如果收完一整个包，根据解析结果ack返回成功或者失败符号，如果不完整，则ack=0

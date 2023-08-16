@@ -9,7 +9,7 @@ SDK_TOP = "."
 local SDK_PATH
 local USER_PROJECT_NAME = "example"
 local USER_PROJECT_NAME_VERSION
-local USER_PROJECT_DIR  = ""
+USER_PROJECT_DIR  = ""
 local LUAT_SCRIPT_SIZE
 local LUAT_SCRIPT_OTA_SIZE
 local script_addr = nil
@@ -439,7 +439,8 @@ target(USER_PROJECT_NAME..".elf")
 		io.writefile("$(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".size", os.iorun(GCC_DIR .. "bin/arm-none-eabi-size $(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".elf"))
 		-- io.cat("$(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".size")
 		os.exec(GCC_DIR .. "bin/arm-none-eabi-objcopy -O binary $(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".elf $(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".bin")
-		os.cp("$(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".bin", "$(buildir)/"..USER_PROJECT_NAME.."/ap.bin")
+		os.exec(GCC_DIR .."bin/arm-none-eabi-size $(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".elf")
+        os.cp("$(buildir)/"..USER_PROJECT_NAME.."/"..USER_PROJECT_NAME..".bin", "$(buildir)/"..USER_PROJECT_NAME.."/ap.bin")
         
         os.cp("$(buildir)/"..USER_PROJECT_NAME.."/*.bin", OUT_PATH)
 		os.cp("$(buildir)/"..USER_PROJECT_NAME.."/*.map", OUT_PATH)

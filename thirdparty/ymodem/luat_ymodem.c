@@ -1,9 +1,10 @@
-#include "luat_ymodem.h"
 #include "luat_fs.h"
 // #include "luat_malloc.h"
 #include "luat_mem.h"
 #include "luat_debug.h"
 #include "common_api.h"
+
+#include "luat_ymodem.h"
 
 #define XMODEM_FLAG 'C'
 #define XMODEM_SOH 0x01
@@ -16,11 +17,12 @@
 #define XMODEM_SOH_DATA_LEN (128)
 #define XMODEM_STX_DATA_LEN (1024)
 
-typedef struct
-{
+typedef struct{
 	char *save_path;
 	const char *force_save_path;
 	FILE* fd;
+	sfud_flash* sfud_flash;
+	size_t sfud_offset;
 	uint32_t file_size;
 	uint32_t write_size;
 	uint16_t data_pos;
@@ -30,27 +32,19 @@ typedef struct
 	uint8_t packet_data[XMODEM_STX_DATA_LEN + 8];
 }ymodem_ctrlstruct;
 
-static uint16_t CRC16_Cal(void *Data, uint16_t Len, uint16_t CRC16Last)
-{
+static uint16_t CRC16_Cal(void *Data, uint16_t Len, uint16_t CRC16Last){
 	uint16_t i;
 	uint16_t CRC16 = CRC16Last;
 	uint8_t *Src = (uint8_t *)Data;
-
-	while (Len--)
-	{
-		for (i = 8; i > 0; i--)
-		{
-			if ((CRC16 & 0x8000) != 0)
-			{
+	while (Len--){
+		for (i = 8; i > 0; i--){
+			if ((CRC16 & 0x8000) != 0){
 				CRC16 <<= 1;
 				CRC16 ^= 0x1021;
-			}
-			else
-			{
+			}else{
 				CRC16 <<= 1;
 			}
-			if ((*Src&(1 << (i - 1))) != 0)
-			{
+			if ((*Src&(1 << (i - 1))) != 0){
 				CRC16 ^= 0x1021;
 			}
 		}
@@ -59,14 +53,11 @@ static uint16_t CRC16_Cal(void *Data, uint16_t Len, uint16_t CRC16Last)
 	return CRC16;
 }
 
-void *luat_ymodem_create_handler(const char *save_path, const char *force_save_path)
-{
+void *luat_ymodem_create_handler(const char *save_path, const char *force_save_path){
 	ymodem_ctrlstruct *handler = luat_heap_malloc(sizeof(ymodem_ctrlstruct));
-	if (handler)
-	{
+	if (handler){
 		memset(handler, 0, sizeof(ymodem_ctrlstruct));
-		if (save_path)
-		{
+		if (save_path){
 			if (save_path[strlen(save_path)-1] == '/'){
 				handler->save_path = luat_heap_malloc(strlen(save_path) + 1);
 				strcpy(handler->save_path, save_path);
@@ -77,20 +68,28 @@ void *luat_ymodem_create_handler(const char *save_path, const char *force_save_p
 				handler->save_path[strlen(save_path)] = '/';
 				handler->save_path[strlen(save_path)+1] = 0;
 			}
+			// LUAT_DEBUG_PRINT("save_path %s", handler->save_path);
 		}
-		if (force_save_path)
-		{
+		
+		if (force_save_path){
 			handler->force_save_path = luat_heap_malloc(strlen(force_save_path) + 1);
 			strcpy((char*)handler->force_save_path, force_save_path);
 		}
-
-
 	}
 	return handler;
 }
 
-int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack, uint8_t *flag, uint8_t *file_ok, uint8_t *all_done)
-{
+void *luat_ymodem_create_handler_sfud(sfud_flash* flash,size_t sfud_offset){
+	ymodem_ctrlstruct *handler = luat_heap_malloc(sizeof(ymodem_ctrlstruct));
+	if (handler){
+		memset(handler, 0, sizeof(ymodem_ctrlstruct));
+		handler->sfud_flash = flash;
+		handler->sfud_offset = sfud_offset;
+	}
+	return handler;
+}
+
+int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack, uint8_t *flag, uint8_t *file_ok, uint8_t *all_done){
 	ymodem_ctrlstruct *ctrl = handler;
 	uint16_t crc16_org, crc16;
 	uint32_t i, NameEnd, LenEnd;
@@ -157,7 +156,9 @@ int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack
 					}
 					ctrl->file_size = strtol((const char*)&ctrl->packet_data[NameEnd + 1], NULL, 10);
 					ctrl->write_size = 0;
-					if (ctrl->force_save_path){
+					if (ctrl->sfud_flash){
+						LUAT_DEBUG_PRINT(" sfud_flash offset:%d", ctrl->sfud_offset);
+					}else if (ctrl->force_save_path){
 						ctrl->fd = luat_fs_fopen(ctrl->force_save_path, "w");
 						LUAT_DEBUG_PRINT("%s,%u,%x", ctrl->force_save_path, ctrl->file_size, ctrl->fd);
 					}else{
@@ -211,7 +212,12 @@ YMODEM_DATA_CHECK:
 						goto DATA_RECIEVE_ERROR;
 					}
 					LenEnd = ((ctrl->file_size - ctrl->write_size) > XMODEM_SOH_DATA_LEN)?XMODEM_SOH_DATA_LEN:(ctrl->file_size - ctrl->write_size);
-					luat_fs_fwrite(ctrl->packet_data, LenEnd, 1, ctrl->fd);
+					if (ctrl->sfud_flash){
+						// LUAT_DEBUG_PRINT(" sfud_erase_write addr:%d", ctrl->write_size);
+						sfud_erase_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data);
+					}else{
+						luat_fs_fwrite(ctrl->packet_data, LenEnd, 1, ctrl->fd);
+					}
 					ctrl->write_size += LenEnd;
 					goto DATA_RECIEVE_OK;
 					break;
@@ -229,7 +235,12 @@ YMODEM_DATA_CHECK:
 					}
 					//写入
 					LenEnd = ((ctrl->file_size - ctrl->write_size) > XMODEM_STX_DATA_LEN)?XMODEM_STX_DATA_LEN:(ctrl->file_size - ctrl->write_size);
-					luat_fs_fwrite(ctrl->packet_data, LenEnd, 1, ctrl->fd);
+					if (ctrl->sfud_flash){
+						// LUAT_DEBUG_PRINT(" sfud_erase_write addr:%d", ctrl->write_size);
+						sfud_erase_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data);
+					}else{
+						luat_fs_fwrite(ctrl->packet_data, LenEnd, 1, ctrl->fd);
+					}
 					ctrl->write_size += LenEnd;
 					goto DATA_RECIEVE_OK;
 					break;
