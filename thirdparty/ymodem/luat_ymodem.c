@@ -112,15 +112,35 @@ int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack
 			*ack = XMODEM_FLAG;
 			return 0;
 		}else{
-			if ((ctrl->data_pos + len) >= (XMODEM_SOH_DATA_LEN + 5)){
-				memcpy(&ctrl->packet_data[ctrl->data_pos], data, (XMODEM_SOH_DATA_LEN + 5) - ctrl->data_pos);
-				if (ctrl->packet_data[0] != XMODEM_SOH || ctrl->packet_data[1] != 0x00 || ctrl->packet_data[2] != 0xff){
+			if (ctrl->data_pos > 0){
+			}else{
+				switch(data[0])
+				{
+				case XMODEM_STX:
+					ctrl->data_max = XMODEM_STX_DATA_LEN;
+					break;
+				case XMODEM_SOH:
+					ctrl->data_max = XMODEM_SOH_DATA_LEN;
+					break;
+				default:
+					goto DATA_RECIEVE_ERROR;
+					break;
+				}
+			}
+			if ((ctrl->data_pos + len) >= (ctrl->data_max + 5)){
+				// memcpy(&ctrl->packet_data[ctrl->data_pos], data, (XMODEM_SOH_DATA_LEN + 5) - ctrl->data_pos);
+				memcpy(&ctrl->packet_data[ctrl->data_pos], data, (ctrl->data_max + 5) - ctrl->data_pos);
+				// if (ctrl->packet_data[0] != XMODEM_SOH || ctrl->packet_data[1] != 0x00 || ctrl->packet_data[2] != 0xff){
+				if (ctrl->packet_data[1] != 0x00 || ctrl->packet_data[2] != 0xff){
 					LUAT_DEBUG_PRINT("head %x %x %x", ctrl->packet_data[0], ctrl->packet_data[1], ctrl->packet_data[2]);
 					goto DATA_RECIEVE_ERROR;
 				}
-				crc16_org = ctrl->packet_data[XMODEM_SOH_DATA_LEN + 3];
-				crc16_org = (crc16_org << 8) + ctrl->packet_data[XMODEM_SOH_DATA_LEN + 4];
-				crc16 = CRC16_Cal(&ctrl->packet_data[XMODEM_DATA_POS], XMODEM_SOH_DATA_LEN, 0);
+				// crc16_org = ctrl->packet_data[XMODEM_SOH_DATA_LEN + 3];
+				// crc16_org = (crc16_org << 8) + ctrl->packet_data[XMODEM_SOH_DATA_LEN + 4];
+				// crc16 = CRC16_Cal(&ctrl->packet_data[XMODEM_DATA_POS], XMODEM_SOH_DATA_LEN, 0);
+				crc16_org = ctrl->packet_data[ctrl->data_max + 3];
+				crc16_org = (crc16_org << 8) + ctrl->packet_data[ctrl->data_max + 4];
+				crc16 = CRC16_Cal(&ctrl->packet_data[XMODEM_DATA_POS], ctrl->data_max, 0);
 				if (crc16 != crc16_org){
 					LUAT_DEBUG_PRINT("crc16 %x %x ", crc16, crc16_org);
 					goto DATA_RECIEVE_ERROR;
@@ -133,7 +153,8 @@ int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack
 						return 0;
 					}
 					NameEnd = NULL;
-					for(i = XMODEM_DATA_POS; i < (XMODEM_SOH_DATA_LEN + 5); i++){
+					// for(i = XMODEM_DATA_POS; i < (XMODEM_SOH_DATA_LEN + 5); i++){
+					for(i = XMODEM_DATA_POS; i < (ctrl->data_max + 5); i++){
 						if (!ctrl->packet_data[i]){
 							NameEnd = i;
 							break;
@@ -144,7 +165,8 @@ int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack
 						goto DATA_RECIEVE_ERROR;
 					}
 					LenEnd = NULL;
-					for(i = (NameEnd + 1); i < (XMODEM_SOH_DATA_LEN + 5); i++){
+					// for(i = (NameEnd + 1); i < (XMODEM_SOH_DATA_LEN + 5); i++){
+					for(i = (NameEnd + 1); i < (ctrl->data_max + 5); i++){
 						if (!ctrl->packet_data[i]){
 							LenEnd = i;
 							break;
@@ -158,7 +180,7 @@ int luat_ymodem_receive(void *handler, uint8_t *data, uint32_t len, uint8_t *ack
 					ctrl->write_size = 0;
 					if (ctrl->sfud_flash){
 						LUAT_DEBUG_PRINT(" sfud_flash offset:%d %u", ctrl->sfud_offset,ctrl->file_size);
-						// sfud_erase(ctrl->sfud_flash, ctrl->sfud_offset, ctrl->file_size);
+						sfud_erase(ctrl->sfud_flash, ctrl->sfud_offset, ctrl->file_size);
 					}else if (ctrl->force_save_path){
 						ctrl->fd = luat_fs_fopen(ctrl->force_save_path, "w");
 						LUAT_DEBUG_PRINT("%s,%u,%x", ctrl->force_save_path, ctrl->file_size, ctrl->fd);
@@ -215,7 +237,7 @@ YMODEM_DATA_CHECK:
 					LenEnd = ((ctrl->file_size - ctrl->write_size) > XMODEM_SOH_DATA_LEN)?XMODEM_SOH_DATA_LEN:(ctrl->file_size - ctrl->write_size);
 					if (ctrl->sfud_flash){
 						// LUAT_DEBUG_PRINT(" sfud_write addr:%d", ctrl->write_size);
-						sfud_erase_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data+3);
+						sfud_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data+3);
 					}else{
 						luat_fs_fwrite(ctrl->packet_data+3, LenEnd, 1, ctrl->fd);
 					}
@@ -238,7 +260,7 @@ YMODEM_DATA_CHECK:
 					LenEnd = ((ctrl->file_size - ctrl->write_size) > XMODEM_STX_DATA_LEN)?XMODEM_STX_DATA_LEN:(ctrl->file_size - ctrl->write_size);
 					if (ctrl->sfud_flash){
 						// LUAT_DEBUG_PRINT(" sfud_write addr:%d", ctrl->write_size);
-						sfud_erase_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data+3);
+						sfud_write(ctrl->sfud_flash, ctrl->write_size, LenEnd, ctrl->packet_data+3);
 					}else{
 						luat_fs_fwrite(ctrl->packet_data+3, LenEnd, 1, ctrl->fd);
 					}
