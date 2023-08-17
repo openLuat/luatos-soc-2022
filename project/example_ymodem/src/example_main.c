@@ -42,7 +42,7 @@
 
 */
 
-#define UART_ID LUAT_VUART_ID_0
+#define UART_ID 1
 
 luat_rtos_task_handle ymodem_task_handle;
 void *ymodem_handler = NULL;
@@ -98,49 +98,8 @@ void ymodem_timer_cb(uint32_t arg){
         luat_ymodem_reset(ymodem_handler);
     }
 }
-static int recur_fs(const char* dir_path)
-{
-    luat_fs_dirent_t *fs_dirent = LUAT_MEM_MALLOC(sizeof(luat_fs_dirent_t)*100);
-    memset(fs_dirent, 0, sizeof(luat_fs_dirent_t)*100);
-
-    int lsdir_cnt = luat_fs_lsdir(dir_path, fs_dirent, 0, 100);
-
-    if (lsdir_cnt > 0)
-    {
-        char path[255] = {0};
-
-        LUAT_DEBUG_PRINT("dir_path=%s, lsdir_cnt=%d", dir_path, lsdir_cnt);
-
-        for (size_t i = 0; i < lsdir_cnt; i++)
-        {
-            memset(path, 0, sizeof(path));            
-
-            switch ((fs_dirent+i)->d_type)
-            {
-            // 文件类型
-            case 0:   
-                snprintf(path, sizeof(path)-1, "%s%s", dir_path, (fs_dirent+i)->d_name);             
-                LUAT_DEBUG_PRINT("\tfile=%s, size=%d", path, luat_fs_fsize(path));
-                break;
-            case 1:
-                snprintf(path, sizeof(path)-1, "%s/%s/", dir_path, (fs_dirent+i)->d_name);
-                recur_fs(path);
-                break;
-
-            default:
-                break;
-            }
-        }        
-    }
-
-    LUAT_MEM_FREE(fs_dirent);
-    fs_dirent = NULL;
-    
-    return lsdir_cnt;
-}
 
 static void task_test_ymodem(void *param){
-    luat_rtos_task_sleep(1000);
     int re = -1;
     luat_uart_t uart = {
         .id = UART_ID,
@@ -160,7 +119,7 @@ static void task_test_ymodem(void *param){
 
 if(1){//    此为向文件系统传输文件
     luat_fs_init();
-    lfs_t* lfs = flash_lfs_sfud(flash, 0, 16*1024);
+    lfs_t* lfs = flash_lfs_sfud(flash, 0, 0);
     if (lfs) {
 	    luat_fs_conf_t conf = {
 		    .busname = (char*)lfs,
@@ -174,7 +133,7 @@ if(1){//    此为向文件系统传输文件
     else {
         LUAT_DEBUG_PRINT("flash_lfs_sfud error");
     }
-    recur_fs("/sfud");
+
     ymodem_handler = luat_ymodem_create_handler("/sfud", NULL);
 }else{//    此为直接向flash写数据
     ymodem_handler = luat_ymodem_create_handler_sfud(flash, 0);
@@ -192,18 +151,18 @@ if(1){//    此为向文件系统传输文件
 }
 
 // 合宙云喇叭开发板打开下面注释使能flash
-#define FLASH_EN	HAL_GPIO_26
-#define FLASH_EN_ALT_FUN	0
+// #define FLASH_EN	HAL_GPIO_26
+// #define FLASH_EN_ALT_FUN	0
 
 static void task_demo_ymodem(void)
 {
-    luat_gpio_cfg_t gpio_cfg;
-	luat_gpio_set_default_cfg(&gpio_cfg);
+    // luat_gpio_cfg_t gpio_cfg;
+	// luat_gpio_set_default_cfg(&gpio_cfg);
 
-	gpio_cfg.pin = FLASH_EN;
-	gpio_cfg.alt_fun = FLASH_EN_ALT_FUN;
-	luat_gpio_open(&gpio_cfg);
-	luat_gpio_set(FLASH_EN, LUAT_GPIO_HIGH);
+	// gpio_cfg.pin = FLASH_EN;
+	// gpio_cfg.alt_fun = FLASH_EN_ALT_FUN;
+	// luat_gpio_open(&gpio_cfg);
+	// luat_gpio_set(FLASH_EN, LUAT_GPIO_HIGH);
 
     luat_rtos_task_create(&ymodem_task_handle, 4096, 20, "ymodem", task_test_ymodem, NULL, NULL);
 }
