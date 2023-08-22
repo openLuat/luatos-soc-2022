@@ -453,6 +453,7 @@ uint8_t luat_mobile_rssi_to_csq(int8_t rssi)
 
 static void ec618_cell_to_luat_cell(BasicCellListInfo *bcListInfo, luat_mobile_cell_info_t *info)
 {
+	memset(info, 0, sizeof(luat_mobile_cell_info_t));
 	info->gsm_info_valid = 0;
 	if (!bcListInfo->sCellPresent && !bcListInfo->nCellNum)
 	{
