@@ -137,7 +137,7 @@ static void demo_task(void *arg)
 	//16K英文用下面的
 //	ivCStrA sdk_id = AISOUND_SDK_USERID_16K_ENG;
 	//中文测试用下面的
-	char tts_string[] = "支付宝到账123.45元,微信收款9876.12元ABC";
+	char tts_string[] = "支付宝到账123.45元,微信收款9876.12元ABC,支付宝到账123.45元,微信收款9876.12元ABC,支付宝到账123.45元,微信收款9876.12元ABC,支付宝到账123.45元,微信收款9876.12元ABC";
 	//英文测试用下面的
 //	char tts_string[] = "hello world, now test once";
 	luat_audio_play_info_t info[5];
@@ -191,7 +191,7 @@ static void demo_task(void *arg)
     	luat_meminfo_sys(&total, &used, &max_used);
     	LUAT_DEBUG_PRINT("meminfo total %d, used %d, max_used%d",total, used, max_used);
     	luat_audio_play_tts_text(0, tts_string, sizeof(tts_string));
-    	luat_rtos_task_sleep(10000);
+    	luat_rtos_task_sleep(35000);
     	luat_meminfo_sys(&total, &used, &max_used);
     	LUAT_DEBUG_PRINT("meminfo total %d, used %d, max_used%d",total, used, max_used);
     	memset(info, 0, sizeof(info));
