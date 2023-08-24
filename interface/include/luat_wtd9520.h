@@ -47,4 +47,10 @@ int luat_wtd9520_close(void);
  */
 void luat_wtd9520_cfg_init(int wtd_feed_pin);
 
+/**
+ * @brief 设置看门狗喂狗次数
+ * @param timeout 次数以4的倍数，例如 8 就是喂狗2次
+ */
+int luat_wtd9520_set_timeout(size_t timeout);
+
 #endif
