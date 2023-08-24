@@ -22,6 +22,10 @@
 #include "luat_rtos.h"
 #include "luat_debug.h"
 #include "luat_wtd9520.h"
+#include "luat_pm.h"
+#include "luat_uart.h"
+#include "luat_gpio.h"
+#include "plat_config.h"
 
 /*
     外部看门狗芯片实现看门狗
@@ -37,8 +41,21 @@
 
 static luat_rtos_task_handle feed_wdt_task_handle;
 
+void soc_get_unilog_br(uint32_t *baudrate)
+{
+	*baudrate = 3000000; //UART0做log口输出12M波特率，必须用高性能USB转TTL
+}
+
 static void task_feed_wdt_run(void *param)
 {   
+    LUAT_DEBUG_PRINT("[DIO] ------------");
+    
+	if (BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL) != PLAT_CFG_ULG_PORT_UART)
+	{
+		BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL, PLAT_CFG_ULG_PORT_UART);
+		BSP_SavePlatConfigToRawFlash();
+	}
+
     luat_wtd9520_cfg_init(28);//初始化看门狗，设置喂狗管脚
 
     

@@ -61,6 +61,19 @@ int luat_wtd9520_close(void)
 }
 
 
+//设置看门狗喂狗次数
+int luat_wtd9520_set_timeout(size_t timeout)
+{
+    s_time_set = 0;
+    if ((timeout % 4 != 0) || !timeout || timeout > 24)
+        return 1;
+
+    s_time_set = timeout / 4;
+    luat_wtd9520_feed_wtd();
+    return 0;
+}
+
+
 int luat_wtd9520_setup(void)
 {
     return luat_wtd9520_feed_wtd();
