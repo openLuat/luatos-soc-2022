@@ -283,12 +283,29 @@ void luat_i2c_set_global_timeout(uint32_t time)
 	luat_i2c_global_timeout = time;
 }
 
+static void i2c_failed(int id, int addr, int code)
+{
+	GPR_swResetModule(&g_i2cResetVectors[id]);
+	switch(code)
+	{
+	case -ERROR_OPERATION_FAILED:
+		DBG("i2c%d 从机地址%x 无应答", id, addr);
+		break;
+	case -ERROR_TIMEOUT:
+		DBG("i2c%d 从机地址%x 传输超时", id, addr);
+		break;
+	default:
+		DBG("i2c%d 从机地址%x 传输失败，错误码%d", id, addr, code);
+		break;
+	}
+}
+
 int luat_i2c_send(int id, int addr, void* buff, size_t len, uint8_t stop) {
 	if (!luat_i2c_exist(id)) return -1;
 	int result = I2C_BlockWrite(id, addr, (const uint8_t *)buff, len, luat_i2c_global_timeout, NULL, NULL);
 	if (result)
 	{
-		GPR_swResetModule(&g_i2cResetVectors[id]);
+		i2c_failed(id, addr, result);
 	}
 	return result;
 }
@@ -298,7 +315,7 @@ int luat_i2c_recv(int id, int addr, void* buff, size_t len) {
 	int result = I2C_BlockRead(id, addr, 0, 0, (uint8_t *)buff, len, luat_i2c_global_timeout, NULL, NULL);
 	if (result)
 	{
-		GPR_swResetModule(&g_i2cResetVectors[id]);
+		i2c_failed(id, addr, result);
 	}
 	return result;
 }
@@ -313,7 +330,7 @@ int luat_i2c_transfer(int id, int addr, uint8_t *reg, size_t reg_len, uint8_t *b
 	}
 	if (result)
 	{
-		GPR_swResetModule(&g_i2cResetVectors[id]);
+		i2c_failed(id, addr, result);
 	}
 	return result;
 }
