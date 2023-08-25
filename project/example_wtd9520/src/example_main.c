@@ -41,20 +41,23 @@
 
 static luat_rtos_task_handle feed_wdt_task_handle;
 
-void soc_get_unilog_br(uint32_t *baudrate)
-{
-	*baudrate = 3000000; //UART0做log口输出12M波特率，必须用高性能USB转TTL
-}
+// void soc_get_unilog_br(uint32_t *baudrate)
+// {
+// 	*baudrate = 3000000; //UART0做log口输出12M波特率，必须用高性能USB转TTL
+// }
 
 static void task_feed_wdt_run(void *param)
 {   
     LUAT_DEBUG_PRINT("[DIO] ------------");
-    
-	if (BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL) != PLAT_CFG_ULG_PORT_UART)
-	{
-		BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL, PLAT_CFG_ULG_PORT_UART);
-		BSP_SavePlatConfigToRawFlash();
-	}
+
+    /*
+        以下 if 的代码是使用 UART 进行 LOG 调试
+    */    
+	// if (BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL) != PLAT_CFG_ULG_PORT_UART)
+	// {
+	// 	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL, PLAT_CFG_ULG_PORT_UART);
+	// 	BSP_SavePlatConfigToRawFlash();
+	// }
 
     luat_wtd9520_cfg_init(28);//初始化看门狗，设置喂狗管脚
 
@@ -70,7 +73,7 @@ static void task_feed_wdt_run(void *param)
         {
             count++;
             LUAT_DEBUG_PRINT("[DIO]Eat Dog Time [%d]", count);
-            luat_rtos_task_sleep(10000);
+            luat_rtos_task_sleep(1000);
         }
     #endif
 
@@ -131,6 +134,7 @@ static void task_feed_wdt_run(void *param)
             luat_wtd9520_feed_wtd();
         }
         luat_rtos_task_sleep(10000);
+        LUAT_DEBUG_PRINT("[DIO] Time count [%d]", flag);
     }
 #endif
 
@@ -157,6 +161,7 @@ static void task_feed_wdt_run(void *param)
         }
         count++;
         luat_rtos_task_sleep(1000);
+        LUAT_DEBUG_PRINT("[DIO] time run [%d]", count);
     }
 #endif
 
