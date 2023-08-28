@@ -741,7 +741,7 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
             d1 = va_arg(va, uint32_t);
             d2 = va_arg(va, uint32_t);
             long long value2 = d2;
-            long long value2 = (value2 << 32) | d1;
+            value2 = (value2 << 32) | d1;
 #else
             const long long value2 = va_arg(va, long long);
 #endif
