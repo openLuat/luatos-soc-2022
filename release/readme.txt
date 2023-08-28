@@ -4,6 +4,8 @@ LuatOS-SoC_Vxxxx_EC618_XXX.soc 这是固件文件, 可使用luatools刷机
 
 如果默认固件无法满足你的需求, 请使用云编译, 可任意定制你需要的功能,完全免费,点点鼠标就行
 
+固件文件不同后缀的说明: https://wiki.luatos.com/chips/air780e/firmware.html
+
 云编译参考文档: https://wiki.luatos.com/develop/compile/Cloud_compilation.html
 论坛: https://chat.openluat.com
 luatools下载地址: https://wiki.luatos.com/pages/tools.html
