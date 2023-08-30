@@ -72,8 +72,8 @@ static void task_feed_wdt_run(void *param)
         while (1)
         {
             count++;
-            LUAT_DEBUG_PRINT("[DIO]Eat Dog Time [%d]", count);
             luat_rtos_task_sleep(1000);
+            LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", count);
         }
     #endif
 
@@ -106,8 +106,8 @@ static void task_feed_wdt_run(void *param)
             luat_wtd9520_close();
         }
         flag++;
-        LUAT_DEBUG_PRINT("[DIO] Close Feed WTD Test [%d]", flag);
-        luat_rtos_task_sleep(5000);
+        LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", flag);
+        luat_rtos_task_sleep(1000);
     }
 #endif
 
@@ -126,15 +126,15 @@ static void task_feed_wdt_run(void *param)
             flag = 1;
             LUAT_DEBUG_PRINT("[DIO] Close Feed WTD!");
             luat_wtd9520_close();
-            luat_rtos_task_sleep(10000);//方便观察设置的时间长一点
+            luat_rtos_task_sleep(1000);//方便观察设置的时间长一点
         }
         flag++;
-        if (flag == 28){
+        if (flag == 280){
             LUAT_DEBUG_PRINT("[DIO] Open Feed WTD!");
             luat_wtd9520_feed_wtd();
         }
-        luat_rtos_task_sleep(10000);
-        LUAT_DEBUG_PRINT("[DIO] Time count [%d]", flag);
+        luat_rtos_task_sleep(1000);
+        LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", flag);
     }
 #endif
 
@@ -161,7 +161,7 @@ static void task_feed_wdt_run(void *param)
         }
         count++;
         luat_rtos_task_sleep(1000);
-        LUAT_DEBUG_PRINT("[DIO] time run [%d]", count);
+        LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", count);
     }
 #endif
 
