@@ -873,6 +873,15 @@ static void luat_mobile_set_attach_type_ec618(UINT16 paramSize, void *pParam)
 	}
 }
 
+static void luat_mobile_sim_write_mode(UINT16 paramSize, void *pParam) {
+	CmiSimSetSimWriteCounterReq req2 = {0};
+	uint32_t value = 0;
+	memcpy(&value, pParam, 4);
+	req2.mode = (uint8_t)value;
+	//DBG("luat_mobile_sim_write_mode %d", value);
+	psCamCmiReq(CMS_REQ_HANDLER, CAM_SIM, CMI_SIM_SET_SIM_WRITE_COUNTER_REQ, sizeof(CmiSimSetSimWriteCounterReq), &req2);
+}
+
 int luat_mobile_config(uint8_t item, uint32_t value)
 {
 	EcCfgSetParamsReq req = {0};
@@ -908,6 +917,10 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 		cmsNonBlockApiCall(luat_mobile_set_attach_type_ec618, 4, &value);
 		return 0;
 		break;
+	case MOBILE_CONF_SIM_WC_MODE:
+		// DBG("CALL psCamCmiReq");
+		cmsNonBlockApiCall(luat_mobile_sim_write_mode, 4, &value);
+		return 0;
 	default:
 		return -1;
 	}
@@ -943,4 +956,3 @@ void luat_mobile_rf_test_mode(uint8_t uart_id, uint8_t on_off)
 {
 	soc_mobile_rf_test_mode(uart_id, on_off);
 }
-
