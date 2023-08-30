@@ -68,6 +68,8 @@
 //#define LUAT_USE_FATFS_CHINESE
 
 // #define LUAT_USE_PROFILER 1
+// #define LUAT_USE_MQTTCORE 1
+// #define LUAT_USE_LIBCOAP 1
 
 #define LUAT_USE_YMODEM 1
 

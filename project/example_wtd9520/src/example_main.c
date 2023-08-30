@@ -41,20 +41,23 @@
 
 static luat_rtos_task_handle feed_wdt_task_handle;
 
-void soc_get_unilog_br(uint32_t *baudrate)
-{
-	*baudrate = 3000000; //UART0做log口输出12M波特率，必须用高性能USB转TTL
-}
+// void soc_get_unilog_br(uint32_t *baudrate)
+// {
+// 	*baudrate = 3000000; //UART0做log口输出12M波特率，必须用高性能USB转TTL
+// }
 
 static void task_feed_wdt_run(void *param)
 {   
     LUAT_DEBUG_PRINT("[DIO] ------------");
-    
-	if (BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL) != PLAT_CFG_ULG_PORT_UART)
-	{
-		BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL, PLAT_CFG_ULG_PORT_UART);
-		BSP_SavePlatConfigToRawFlash();
-	}
+
+    /*
+        以下 if 的代码是使用 UART 进行 LOG 调试
+    */    
+	// if (BSP_GetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL) != PLAT_CFG_ULG_PORT_UART)
+	// {
+	// 	BSP_SetPlatConfigItemValue(PLAT_CONFIG_ITEM_LOG_PORT_SEL, PLAT_CFG_ULG_PORT_UART);
+	// 	BSP_SavePlatConfigToRawFlash();
+	// }
 
     luat_wtd9520_cfg_init(28);//初始化看门狗，设置喂狗管脚
 
@@ -69,8 +72,8 @@ static void task_feed_wdt_run(void *param)
         while (1)
         {
             count++;
-            LUAT_DEBUG_PRINT("[DIO]Eat Dog Time [%d]", count);
-            luat_rtos_task_sleep(10000);
+            luat_rtos_task_sleep(1000);
+            LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", count);
         }
     #endif
 
@@ -103,8 +106,8 @@ static void task_feed_wdt_run(void *param)
             luat_wtd9520_close();
         }
         flag++;
-        LUAT_DEBUG_PRINT("[DIO] Close Feed WTD Test [%d]", flag);
-        luat_rtos_task_sleep(5000);
+        LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", flag);
+        luat_rtos_task_sleep(1000);
     }
 #endif
 
@@ -123,14 +126,15 @@ static void task_feed_wdt_run(void *param)
             flag = 1;
             LUAT_DEBUG_PRINT("[DIO] Close Feed WTD!");
             luat_wtd9520_close();
-            luat_rtos_task_sleep(10000);//方便观察设置的时间长一点
+            luat_rtos_task_sleep(1000);//方便观察设置的时间长一点
         }
         flag++;
-        if (flag == 28){
+        if (flag == 280){
             LUAT_DEBUG_PRINT("[DIO] Open Feed WTD!");
             luat_wtd9520_feed_wtd();
         }
-        luat_rtos_task_sleep(10000);
+        luat_rtos_task_sleep(1000);
+        LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", flag);
     }
 #endif
 
@@ -157,6 +161,7 @@ static void task_feed_wdt_run(void *param)
         }
         count++;
         luat_rtos_task_sleep(1000);
+        LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", count);
     }
 #endif
 
