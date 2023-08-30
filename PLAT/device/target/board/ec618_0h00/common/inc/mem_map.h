@@ -150,6 +150,8 @@ flash xip address(from ap view): 0x08800000---0x08900000
 
 #define FLASH_EXCEP_DUMP_ADDR           (0x80000)
 #define FLASH_EXCEP_DUMP_SECTOR_NUM     (77)
+#define FLASH_EXCEP_KEY_INFO_ADDR       (0x3fe000)  //(AP_FLASH_XIP_ADDR+0x3fe000)
+#define FLASH_EXCEP_KEY_INFO_LEN        (0x1000)//4KB
 
 
 

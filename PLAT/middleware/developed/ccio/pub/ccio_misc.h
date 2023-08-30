@@ -87,6 +87,9 @@ extern "C" {
  */
 #define CCIO_RBUF_NPT_HDR_SIZE   (sizeof(UldpHdrInfo_t) + sizeof(UlPduBlock_t))
 
+/* dlpdu maxCnt threshold */
+#define CCIO_DLPDU_PEND_MAXNUM   64
+
 #define CCIO_ALIGN_UP(x,sz)      (((size_t)(x) + ((sz) - 1)) & (~((sz) - 1)))
 #define CCIO_ALIGN_DOWN(x,sz)    ((size_t)(x) & (~((sz) - 1)))
 

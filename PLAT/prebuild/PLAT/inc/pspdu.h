@@ -34,6 +34,7 @@ typedef enum UlPduMemType_Tag
     UL_LWIP_PKG_MEM,    // LwipFreeUlIpPkgMem() free it
     UL_STACK_MEM,       // stack memory, don't need to free
     UL_RBUF_MEM,        // uldp rbuf memory, uldpRbufDequeue
+    UL_RBUF2_MEM,       // uldp rbuf memory with a ctrl block of heap type, uldpRbufDequeue
     UL_AFC_MEM,         // ulfc memory, OsaUlfcFreeMem
 
     UL_MEM_TYPE_MAX = 15
@@ -143,8 +144,9 @@ typedef struct UlPduBlock_Tag
     UINT32      fastPathNextAction :2; /*the ul pdu hase process by fastpath. and the next action is rohc process*/ /*UlPduNextActType*/
     UINT32      rsvd0       :1;
 
+    UINT32      refCnt      :4;     /* refered count for a certain rbuf block */
     UINT32      chanNo      :5;     /* for uldp UL_RBUF_MEM */
-    UINT32      rsvd        :11;
+    UINT32      rsvd        :7;
 
     /*
     * Note:
@@ -165,6 +167,7 @@ typedef struct UlPduBlock_Tag
              do\
              {\
                  ((UlPduBlock*)(ulpdu))->chanNo      = (chno);\
+                 ((UlPduBlock*)(ulpdu))->refCnt      = 1;\
                  ((UlPduBlock*)(ulpdu))->memType     = (mtype);\
                  ((UlPduBlock*)(ulpdu))->bSameMem    = (bsame);\
                  ((UlPduBlock*)(ulpdu))->ptr         = (buf);\

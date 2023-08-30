@@ -545,7 +545,11 @@ typedef struct CmiDevSetExtCfgReq_Tag
     UINT8   reselToWeakNcellOpt;
 
     BOOL    qualityFirstPresent;
-    BOOL    qualityFirst;
+    //range(0,1,2)
+    //0-disable qualityFirst
+    //1-enable qualityFirst mode 1, UE could find a best cell to camp on
+    //2-enable qualityFirst mode 2, UE could find a best cell to camp on faster, but power consumption will be increased
+    UINT8   qualityFirst;
 
     BOOL    staticConfigPresent;
     BOOL    staticConfig;
@@ -623,7 +627,7 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     INT16   qRxLevMinWeakCell;
 
     UINT8   reselToWeakNcellOpt;
-    BOOL    bQualityFirst;
+    UINT8   qualityFirst;              //range(0,1,2)
     BOOL    bStaticConfig;
     BOOL    bDisableCDRX;
 

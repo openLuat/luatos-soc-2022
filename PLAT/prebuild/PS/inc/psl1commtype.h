@@ -67,6 +67,19 @@ typedef enum _EPAT_UeCategoryType_Tag
 }UeCategoryType;
 
 /*
+* AT+ECMEASCFG
+*/
+typedef struct CerrcCcmMeasAdjustConfig_Tag
+{
+    INT16   rsrpThreshAdjust;       //range (-388..388), unit in 1/4dB
+    INT16   rsrqThreshAdjust;       //range (-124..124), unit in 1/4dB
+    INT16   rsrpRptAdjust;          //range (-388..388), unit in 1/4dB
+    INT16   rsrqRptAdjust;          //range (-124..124), unit in 1/4dB
+    INT16   rsrpMeasAdjust;         //range (-388..388), unit in 1/4dB
+    INT16   rsrqMeasAdjust;         //range (-124..124), unit in 1/4dB
+}CerrcCcmMeasAdjustConfig;
+
+/*
  * As Release, start from Rel-13
 */
 typedef UINT8 AsReleaseType_t;

@@ -37,6 +37,7 @@
 #define EC_EXCEP_MAGIC_NUMBER           (0x00ec00ec)
 
 #define EC_EXCEP_FLASH_SECTOR_BASE      EC_EXCEPTION_FLASH_BASE
+#define EC_EXCEP_FLASH_BLOCK_NUMBS      EC_EXCEPTION_FLASH_BLOCK_NUMBS
 #define EC_EXCEP_TASK_NAME_LEN          12
 
 #define EC_SP_PSP_FLAG                   0x4
@@ -96,8 +97,8 @@
 #define EC_CP_125M_RAM_RW_LEN                  (EC_CP_125M_RAM_RW_END_ADDR - EC_CP_125M_RAM_RW_START_ADDR)
 
 #define EC_EXCEPTION_FLASH_BASE                   FLASH_EXCEP_DUMP_ADDR
-#define EC_EXCEPTION_FLASH_BLOCK_NUMBS            FLASH_EXCEP_DUMP_SECTOR_NUM        // (420KB/105 sectors) 
-#define EC_EXCEPTION_FLASH_MAX_LEN                (EC_EXCEPTION_FLASH_BLOCK_NUMBS*EC_EXCEP_COMPRESS_SIZE)        // (424KB) 
+#define EC_EXCEPTION_FLASH_BLOCK_NUMBS            FLASH_EXCEP_DUMP_SECTOR_NUM        // (308KB/77 sectors) 
+#define EC_EXCEPTION_FLASH_MAX_LEN                (EC_EXCEPTION_FLASH_BLOCK_NUMBS*EC_EXCEP_COMPRESS_SIZE)        // (308KB) 
 
 #define EC_EXCEPTION_AP_RAM_BASE            (0x00000)
 #define EC_EXCEPTION_AP_RAM_END             (0x10000)
@@ -112,6 +113,9 @@
 #define EC_EXCEPTION_APCP_RAM_LEN             (EC_EXCEPTION_APCP_RAM_END - EC_EXCEPTION_APCP_RAM_BASE)
 
 #define EC_EXCEPTION_CP_SHARED_RAM_LEN        (0x14000)
+
+#define EC_EXCEPTION_KEY_INFO_FLASH_BASE                   FLASH_EXCEP_DUMP_ADDR
+
 
 #define EC_SHAREDINFO_RAM_END_ADDR            (0x53F000)
 
@@ -163,6 +167,13 @@
 #define EC_EXCEPTION_END_FLAG        0xEC990129
 
 #define EC_EXCEP_ASSERT_BUFF_LEN        120
+
+#define EXCEP_INFO_GAP                 0x20
+#define EXCEP_INFO_STACK_BUFF          0x600 //1536
+#define EXCEP_INFO_TRACE_NODE_MAX      128
+#define EXCEP_INFO_TOTAL_MAX_LEN       0x20000
+
+#define EXCEP_RESET_REASON_WDT_FLAG  0xECAAEE  // should be the same with "RESET_REASON_WDT_FLAG" in bsp_custom.c
 
 /*----------------------------------------------------------------------------*
  *                   DATA TYPE DEFINITION                                     *
@@ -352,8 +363,11 @@ typedef struct _ec_exception_store
     uint32_t func_call_stack[EC_FUNC_CALL_ADDR_DEPTH];
     uint32_t curr_time;
     uint32_t excep_step;
+    uint32_t TCB_Handle;
     uint8_t curr_task_name[EC_EXCEP_TASK_NAME_LEN];
     uint8_t ec_assert_buff[EC_EXCEP_ASSERT_BUFF_LEN];
+    uint32_t trace_node;
+    uint32_t trace_node_numb;
     uint32_t ec_end_flag;
 }ec_exception_store;
 
@@ -371,11 +385,13 @@ enum
 
 typedef enum EXCEPTION_CONFIG_OPTION
 { 
-    EXCEP_OPTION_DUMP_FLASH_EPAT_LOOP,      /*0 -- dump full exception info to flash and EPAT tool then trapped in endless loop(while(1))*/
-    EXCEP_OPTION_PRINT_RESET,               /*print necessary exception info, and then reset*/   
-    EXCEP_OPTION_DUMP_FLASH_RESET,          /*dump full exception info to flash, and then reset*/
-    EXCEP_OPTION_DUMP_FLASH_EPAT_RESET,     /*dump full exception info to flash and EPAT tool, and then reset*/  
-    EXCEP_OPTION_SILENT_RESET,              /*reset directly*/ 
+    EXCEP_OPTION_DUMP_FLASH_EPAT_LOOP,                    /*0 -- dump full exception info to flash and EPAT tool then trapped in endless loop(while(1))*/
+    EXCEP_OPTION_PRINT_RESET,                             /*print necessary exception info, and then reset*/   
+    EXCEP_OPTION_DUMP_FLASH_RESET,                        /*dump full exception info to flash, and then reset*/
+    EXCEP_OPTION_DUMP_FLASH_EPAT_RESET,                   /*dump full exception info to flash and EPAT tool, and then reset*/  
+    EXCEP_OPTION_SILENT_RESET,                            /*reset directly*/ 
+    EXCEP_OPTION_DUMP_KEY_INFO_SILENT_RESET,              /*dump key info to flash and reset directly*/ 
+    
     EXCEP_OPTION_DUMP_FLASH_EPAT_LOOP_AND_UART_HELP_DUMP = 10,      /*10 -- enable uart help dump and dump full exception info to flash and EPAT tool then trapped in endless loop(while(1))*/
     EXCEP_OPTION_DUMP_FLASH_EPAT_RESET_AND_UART_HELP_DUMP = 13,     /*13 -- enable uart help dump and dump full exception info to flash and EPAT tool, and then reset*/  
  

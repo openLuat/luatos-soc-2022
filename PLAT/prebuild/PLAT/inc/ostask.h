@@ -25,6 +25,7 @@
  *
 ******************************************************************************/
 #define PS_TASK_STACK_SIZE              1536
+#define UP_TASK_STACK_SIZE              2048
 
 #define UICC_CTRL_TASK_STACK_SIZE       2048
 #define UICC_DRV_TASK_STACK_SIZE        1536

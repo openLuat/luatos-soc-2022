@@ -32,6 +32,17 @@ void update_ecm_mac(void)
 }
 #endif
 
+//#define USBD_EMAC_MAXSEGSZ_CONFIG
+#ifdef USBD_EMAC_MAXSEGSZ_CONFIG
+#define CDC_ETH_CUST_MAX_SEG_SZ 1514
+uint16_t get_ecm_maxseg_sz(void) {
+    return CDC_ETH_CUST_MAX_SEG_SZ;
+}
+
+#endif
+
+
+
 #if  (VCOM_CCINST_SUBTP0_INHERENT_CNT>0)
 extern usb_func_ccinst_st t_vcom_func_custp0_inhrnt_arr[VCOM_CCINST_SUBTP0_INHERENT_CNT];
 #endif

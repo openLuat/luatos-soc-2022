@@ -102,6 +102,7 @@ void tlsf_show_block_detail(tlsf_t tlsf);
 #ifdef HEAP_MEM_DEBUG
 size_t tlsf_mem_size_free(tlsf_t tlsf);
 size_t tlsf_mem_size_ever_min(tlsf_t tlsf);
+size_t tlsf_mem_max_block_size(tlsf_t tlsf);
 int tlsf_show_mem_record(tlsf_t tlsf);
 int tlsf_clear_mem_record(tlsf_t tlsf);
 void tlsf_show_hist_min_max_free_block(tlsf_t tlsf, int *range);

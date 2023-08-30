@@ -136,8 +136,12 @@ void *pvPortMallocEC( size_t xWantedSize, unsigned int funcPtr ) PRIVILEGED_FUNC
 void *pvPortReallocEC( void *pv, size_t xWantedSize, unsigned int funcPtr ) PRIVILEGED_FUNCTION;
 void vPortFree( void *pv ) PRIVILEGED_FUNCTION;
 void vPortInitialiseBlocks( void ) PRIVILEGED_FUNCTION;
+size_t xPortGetTotalHeapSize( void ) PRIVILEGED_FUNCTION;
 size_t xPortGetFreeHeapSize( void ) PRIVILEGED_FUNCTION;
 size_t xPortGetMinimumEverFreeHeapSize( void ) PRIVILEGED_FUNCTION;
+size_t xPortGetMaximumFreeBlockSize( void ) PRIVILEGED_FUNCTION;
+uint8_t xPortGetFreeHeapPct( void ) PRIVILEGED_FUNCTION;
+uint8_t xPortIsFreeHeapOnAlert( void ) PRIVILEGED_FUNCTION;
 
 /*
  * Setup the hardware ready for the scheduler to take control.  This generally
