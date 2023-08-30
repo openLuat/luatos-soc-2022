@@ -41,6 +41,8 @@
 #endif
 #include "luat_errdump.h"
 
+#include "cmisim.h"
+
 extern int luat_main(void);
 extern void luat_heap_init(void);
 extern void luat_pm_init(void);
@@ -170,7 +172,7 @@ static void luatos_task(void *param)
 	}
 }
 
-void luat_mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status);
+void luat_mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status, void* ptr);
 void luat_sms_recv_cb(uint32_t event, void *param);
 
 void soc_service_misc_callback(uint8_t *data, uint32_t len)
@@ -187,6 +189,13 @@ void soc_service_misc_callback(uint8_t *data, uint32_t len)
 			break;
 		}
 		break;
+	case CAM_SIM:
+		switch (prim_id)
+		{
+		case CMI_SIM_SET_SIM_WRITE_COUNTER_CNF:
+			luat_mobile_event_cb(LUAT_MOBILE_EVENT_SIM, 0, LUAT_MOBILE_SIM_WC, (void*)data);
+			break;
+		}
 	}
 }
 
@@ -229,7 +238,7 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 			net_lwip_set_link_state(NW_ADAPTER_INDEX_LWIP_GPRS, 1);
 		}
 	}
-	luat_mobile_event_cb(event, index, status);
+	luat_mobile_event_cb(event, index, status, NULL);
 }
 
 static void luatos_task_init(void)
