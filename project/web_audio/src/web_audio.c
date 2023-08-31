@@ -102,19 +102,6 @@ static void task_test_https(CHAR *getUrl, uint32_t *buf, UINT32 len)
     }
 }
 
-void change_to_http(char* url) {
-    char* https = "https://";
-    char* http = "http://";
-    
-    if(strstr(url, https) == url) {
-        int length = strlen(url);
-        int http_length = strlen(http);
-        int https_length = strlen(https);
-        memmove(url + http_length, url + https_length, length - https_length + 1);
-        memcpy(url, http, http_length);
-    }
-}
-
 void messageArrived(uint8_t payloadlen, uint8_t *data) // 对MQTT的负载消息进行处理，解析数据
 {
     int payload_array[60];
@@ -158,7 +145,6 @@ void messageArrived(uint8_t payloadlen, uint8_t *data) // 对MQTT的负载消息进行处
             CHAR *URL = malloc(payload_array[i + 1] * sizeof(int));
             memset(URL, '\0', payload_array[i + 1] * sizeof(int));
             memcpy(URL, payload_array[i + 2] + 1, payload_array[i + 1]);
-            change_to_http(URL);
             task_test_https(URL, tmpbuff, HTTP_RECV_BUF_SIZE);
             LUAT_DEBUG_PRINT("name%c",URL[payload_array[i + 1]-1]);
             if (URL[payload_array[i + 1]-1]=='3')
