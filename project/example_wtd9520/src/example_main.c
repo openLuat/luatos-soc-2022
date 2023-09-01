@@ -61,7 +61,7 @@ static void task_feed_wdt_run(void *param)
 
     luat_wtd9520_cfg_init(28);//初始化看门狗，设置喂狗管脚
     luat_wtd9520_feed_wtd();//模块开机第一步需要喂狗一次
-    luat_rtos_task_sleep(500);
+    luat_rtos_task_sleep(1000);//此处延时1s，防止1s内喂狗2次导致进入测试模式
 
     
     /*
@@ -142,6 +142,7 @@ static void task_feed_wdt_run(void *param)
 
 /*
     测试模式复位
+    测试模式： 1s内喂狗2次，会使模块复位重启
 */
 #if TEST_MODE_RESET_TEST
     int count = 0;
