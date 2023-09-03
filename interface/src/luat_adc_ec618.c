@@ -212,6 +212,7 @@ int luat_adc_read(int id, int* val, int* val2) {
     switch (id)
     {
     case 0:
+        adc_state[0] = 0;
         ADC_startConversion(ADC_CHANNEL_AIO3, ADC_USER_APP);
         while(adc_state[0] == 0 && t > 0) {
             delay_us(10);
@@ -220,6 +221,7 @@ int luat_adc_read(int id, int* val, int* val2) {
         if (adc_state[0] == 0) return -1;
         break;
     case 1:
+        adc_state[1] = 0;
         ADC_startConversion(ADC_CHANNEL_AIO4, ADC_USER_APP);
         while(adc_state[1] == 0 && t > 0) {
             delay_us(10);
@@ -229,6 +231,7 @@ int luat_adc_read(int id, int* val, int* val2) {
         break;
     case LUAT_ADC_CH_VBAT:
     case ADC_CH_VBAT_OLD:
+        adc_state[2] = 0;
         ADC_startConversion(ADC_CHANNEL_VBAT, ADC_USER_APP);
         while(adc_state[2] == 0 && t > 0) {
             delay_us(10);
@@ -238,6 +241,7 @@ int luat_adc_read(int id, int* val, int* val2) {
         break;
     case LUAT_ADC_CH_CPU:
     case ADC_CH_CPU_OLD:
+        adc_state[3] = 0;
         ADC_startConversion(ADC_CHANNEL_THERMAL, ADC_USER_APP);
         while(adc_state[3] == 0 && t > 0) {
             delay_us(10);

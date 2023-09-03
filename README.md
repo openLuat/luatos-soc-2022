@@ -116,13 +116,20 @@ set GCC_PATH=D:\gcc-arm-none-eabi-10.3-2021.10
 
 ## Linux下编译的额外的说明
 
+安装Xmake可以使用官方提供的一键脚本
+
+```shell
+curl -fsSL https://xmake.io/shget.text | bash #使用curl进行安装
+wget https://xmake.io/shget.text -O - | bash #使用wget进行安装
+```
+
 当前仅测试了 Ubuntu 16.04 和 Ubuntu 20.04 amd64版本
 
 需要安装额外的32位支持, 否则执行fcelf时报文件不存. 后续可能会有64bit fcelf提供
 
 ```shell
 dpkg --add-architecture i386 && apt update
-apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386 libstdc++6:i386
+apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386 libstdc++6:i386 p7zip-full
 ```
 
 ## 应用文档
