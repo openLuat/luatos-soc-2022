@@ -153,7 +153,7 @@ int luat_fs_rename(const char *old_filename, const char *new_filename);
 /**
  * @brief 文件大小,类似于fsize
  * @param filename[IN] 文件路径
- * @return int >=0文件大小, <0文件存在或者不可访问
+ * @return int >=0文件大小, 如果文件不存在也是返回0
  */
 size_t luat_fs_fsize(const char *filename);
 /**
