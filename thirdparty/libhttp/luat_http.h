@@ -33,6 +33,12 @@ enum
 
 #define HTTP_RE_REQUEST_MAX (3)
 
+
+/**
+ * @defgroup luatos_HTTP  HTTP(S)相关接口
+ * @{
+ */
+
 /*
  * http运行过程的回调函数
  * status >=0 表示运行状态，看HTTP_STATE_XXX <0说明出错停止了，==0表示结束了
@@ -43,26 +49,26 @@ enum
 typedef void (*luat_http_cb)(int status, void *data, uint32_t data_len, void *user_param);
 
 typedef struct{
-	network_ctrl_t *netc;		// http netc
-	uint8_t is_tls;             // 是否SSL
-	const char *host; 			// http host，需要释放
-	uint16_t remote_port; 		// 远程端口号
-	const char* request_line;	// 需要释放，http请求的首行数据
-	Buffer_Struct request_head_buffer;	//存放用户自定义的请求head数据
-	uint8_t custom_host;        // 是否自定义Host了
-	luat_http_cb http_cb;				// http lua回调函数
-	void *http_cb_userdata;				// http lua回调函数用户传参
+	network_ctrl_t *netc;		/**< http netc*/
+	uint8_t is_tls;             /**< 是否SSL */
+	const char *host; 			/**< http host，需要释放 */
+	uint16_t remote_port; 		/**< 远程端口号 */
+	const char* request_line;	/**< 需要释放，http请求的首行数据*/
+	Buffer_Struct request_head_buffer;	/**<存放用户自定义的请求head数据*/
+	uint8_t custom_host;        /**< 是否自定义Host了*/
+	luat_http_cb http_cb;				/**< http lua回调函数 */
+	void *http_cb_userdata;				/**< http lua回调函数用户传参*/
 	//解析相关
 	http_parser  parser;
-	Buffer_Struct response_head_buffer;	//接收到的head数据缓存，回调给客户后就销毁了
+	Buffer_Struct response_head_buffer;	/**<接收到的head数据缓存，回调给客户后就销毁了*/
 	uint32_t timeout;
-	void* timeout_timer;			// timeout_timer 定时器
+	void* timeout_timer;			/**< timeout_timer 定时器*/
 	int error_code;
 	Buffer_Struct response_cache;
 	uint32_t total_len;
 	uint32_t done_len;
 	uint32_t offset;
-	uint8_t retry_cnt_max;		//最大重试次数
+	uint8_t retry_cnt_max;		/**<最大重试次数*/
 	uint8_t retry_cnt;
 	uint8_t state;
 	uint8_t data_mode;
@@ -71,6 +77,7 @@ typedef struct{
 	uint8_t new_data;
 	uint8_t is_post;
 }luat_http_ctrl_t;
+
 
 
 /**
@@ -180,4 +187,5 @@ int luat_http_client_pause(luat_http_ctrl_t *http_ctrl, uint8_t is_pause);
  * @return 成功返回0，其他值失败
  */
 int luat_http_client_set_get_offset(luat_http_ctrl_t *http_ctrl, uint32_t offset);
+/** @}*/
 #endif

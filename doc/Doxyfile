@@ -915,7 +915,8 @@ INPUT                  = ../interface/include \
                          ../thirdparty/libemqtt \
                          ../thirdparty/libemqtt/luat_mqtt.h \
                          ../interface/include \
-                         ../thirdparty/libemqtt/libemqtt.h
+                         ../thirdparty/libemqtt/libemqtt.h \
+                         ../thirdparty/libhttp/luat_http.h
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
