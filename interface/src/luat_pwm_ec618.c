@@ -489,6 +489,15 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
         XIC_SuppressOvfIRQ(g_s_pwm_table[instance].irq_line);
     }
 //    DBG("%x,%x,%x,%x", EIGEN_TIMER(instance)->TCTLR, EIGEN_TIMER(instance)->TMR[0], EIGEN_TIMER(instance)->TMR[1], EIGEN_TIMER(instance)->TMR[2]);
+    if (pulse >= 1000)
+    {
+    	GPIO_Config(g_s_pwm_table[instance].pin[alt].gpio, 0, 1);
+    	GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_pwm_table[instance].pin[alt].gpio, g_s_pwm_table[instance].pin[alt].gpio_alt), g_s_pwm_table[instance].pin[alt].gpio_alt, 0, 0);
+    	TIMER_start(instance);
+    	delay_us(100);
+    	GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_pwm_table[instance].pin[alt].gpio, g_s_pwm_table[instance].pin[alt].gpio_alt), 5, 1, 0);
+    	return 0;
+    }
     GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_pwm_table[instance].pin[alt].gpio, g_s_pwm_table[instance].pin[alt].gpio_alt), 5, 1, 0);
     TIMER_start(instance);
     return 0;
