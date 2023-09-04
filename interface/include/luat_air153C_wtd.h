@@ -19,38 +19,38 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef LUAT_WTD9527_H
-#define LUAT_WTD9527_H
+#ifndef LUAT_AIR153C_WTD_H
+#define LUAT_AIR153C_WTD_H
 
 #include "luat_base.h"
 /**
  * @brief 开启看门狗
  * @return int =0成功，其他失败
  */
-int luat_wtd9520_setup(void);
+int luat_air153C_wtd_setup(void);
 
 /**
  * @brief 喂狗
  * @return int =0成功，其他失败
  */
-int luat_wtd9520_feed_wtd(void);
+int luat_air153C_wtd_feed_wtd(void);
 
 /**
  * @brief 关闭看门狗喂狗
  * @return int =0成功，其他失败
  */
-int luat_wtd9520_close(void);
+int luat_air153C_wtd_close(void);
 
 /**
  * @brief 看门狗初始化设置
  * @param wtd_feed_pin 模块的喂狗管脚
  */
-void luat_wtd9520_cfg_init(int wtd_feed_pin);
+void luat_air153C_wtd_cfg_init(int wtd_feed_pin);
 
 /**
  * @brief 设置看门狗喂狗次数
  * @param timeout 次数以4的倍数，例如 8 就是喂狗2次
  */
-int luat_wtd9520_set_timeout(size_t timeout);
+int luat_air153C_wtd_set_timeout(size_t timeout);
 
 #endif

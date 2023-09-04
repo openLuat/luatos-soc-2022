@@ -21,7 +21,7 @@
 #include "common_api.h"
 #include "luat_rtos.h"
 #include "luat_debug.h"
-#include "luat_wtd9520.h"
+#include "luat_air153C_wtd.h"
 #include "luat_pm.h"
 #include "luat_uart.h"
 #include "luat_gpio.h"
@@ -31,13 +31,11 @@
     外部看门狗芯片实现看门狗
 */
 
-#define WTD_NOT_FEED_TEST       1       //测试不喂狗
+#define WTD_NOT_FEED_TEST       0       //测试不喂狗
 #define WTD_FEED_TEST           0       //测试喂狗
 #define WTD_CLOSE_FEED          0       //关闭喂狗
 #define CLOSE_FEED_AND_FEED     0       //关闭喂狗然后又打开
-#define TEST_MODE_RESET_TEST    0       //测试模式复位
-#define SETTING_TIME            0       //定时器模式设定时间定时开机
-#define POWER_ON_HAND           0       //定时器模式关机状态下下拉INT主动开机
+#define TEST_MODE_RESET_TEST    1       //测试模式复位
 
 static luat_rtos_task_handle feed_wdt_task_handle;
 
@@ -59,8 +57,8 @@ static void task_feed_wdt_run(void *param)
 	// 	BSP_SavePlatConfigToRawFlash();
 	// }
 
-    luat_wtd9520_cfg_init(28);//初始化看门狗，设置喂狗管脚
-    luat_wtd9520_feed_wtd();//模块开机第一步需要喂狗一次
+    luat_air153C_wtd_cfg_init(28);//初始化看门狗，设置喂狗管脚
+    luat_air153C_wtd_feed_wtd();//模块开机第一步需要喂狗一次
     luat_rtos_task_sleep(1000);//此处延时1s，防止1s内喂狗2次导致进入测试模式
 
     
@@ -87,7 +85,7 @@ static void task_feed_wdt_run(void *param)
     luat_rtos_task_sleep(3000);
     while (1)
     {
-        luat_wtd9520_feed_wtd();
+        luat_air153C_wtd_feed_wtd();
         LUAT_DEBUG_PRINT("[DIO]Eat Dog");
         luat_rtos_task_sleep(120000);
     }
@@ -105,7 +103,7 @@ static void task_feed_wdt_run(void *param)
         if (!flag)
         {
             flag = 1;
-            luat_wtd9520_close();
+            luat_air153C_wtd_close();
         }
         flag++;
         LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", flag);
@@ -127,13 +125,13 @@ static void task_feed_wdt_run(void *param)
         {
             flag = 1;
             LUAT_DEBUG_PRINT("[DIO] Close Feed WTD!");
-            luat_wtd9520_close();
+            luat_air153C_wtd_close();
             luat_rtos_task_sleep(1000);//方便观察设置的时间长一点
         }
         flag++;
         if (flag == 280){
             LUAT_DEBUG_PRINT("[DIO] Open Feed WTD!");
-            luat_wtd9520_feed_wtd();
+            luat_air153C_wtd_feed_wtd();
         }
         luat_rtos_task_sleep(1000);
         LUAT_DEBUG_PRINT("[DIO]Timer count(1s):[%d]", flag);
@@ -154,7 +152,7 @@ static void task_feed_wdt_run(void *param)
         {
             LUAT_DEBUG_PRINT("[DIO] Rrset Module");
             //设定时间实际需要时间，每次喂狗需要500ms，所以也要依次等待相应的时间
-            luat_wtd9520_set_timeout(8);
+            luat_air153C_wtd_set_timeout(8);
             /*
                 等待时间可以举例：
                 time = 8 / 4 * 500
