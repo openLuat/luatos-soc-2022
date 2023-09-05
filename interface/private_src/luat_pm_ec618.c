@@ -267,6 +267,7 @@ int luat_pm_wakeup_pad_set(uint8_t enable, LUAT_PM_WAKEUP_PAD_E source_id, luat_
         luat_gpio_close(pin);
     }
 #else
+    GPIO_GlobalInit(NULL);
     if (enable)
     {
     	GPIO_WakeupPadConfig(HAL_WAKEUP_0 + source_id, cfg->pos_edge_enable, cfg->neg_edge_enable, cfg->pull_up_enable, cfg->pull_down_enable);
