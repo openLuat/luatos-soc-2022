@@ -14,7 +14,6 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #define WAIT_PLAY_FLAG (0x1)
-#include "HTTPClient.h"
 #include "osasys.h"
 #include "luat_fs.h"
 #define HOST "lbsmqtt.airm2m.com"
@@ -29,5 +28,10 @@ typedef struct mqtt_payload
     uint8_t* payload_data;
 }payloaddata;
 
+typedef struct 
+{
+    char * url;
+    int url_len;
+}http_down;
 
 #endif
