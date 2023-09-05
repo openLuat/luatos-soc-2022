@@ -88,15 +88,13 @@ int luat_mqtt_set_connopts(luat_mqtt_ctrl_t *mqtt_ctrl, luat_mqtt_connopts_t *op
 		network_deinit_tls(mqtt_ctrl->netc);
 	}
 
+	if (opts->is_ipv6) {
+		network_connect_ipv6_domain(mqtt_ctrl->netc, 1);
+	}
+
     mqtt_ctrl->broker.socket_info = mqtt_ctrl;
     mqtt_ctrl->broker.send = luat_mqtt_send_packet;
     return 0;
-}
-
-static void mqtt_reconnect(luat_mqtt_ctrl_t *mqtt_ctrl){
-	DBG("reconnect after %dms", mqtt_ctrl->reconnect_time);
-	mqtt_ctrl->buffer_offset = 0;
-	luat_start_rtos_timer(mqtt_ctrl->reconnect_timer, mqtt_ctrl->reconnect_time, 0);
 }
 
 void luat_mqtt_close_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
@@ -106,9 +104,10 @@ void luat_mqtt_close_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
 		network_force_close_socket(mqtt_ctrl->netc);
 	}
 	luat_stop_rtos_timer(mqtt_ctrl->ping_timer);
+	mqtt_ctrl->buffer_offset = 0;
 	mqtt_ctrl->mqtt_state = 0;
 	if (mqtt_ctrl->reconnect && mqtt_ctrl->reconnect_time > 0){
-		mqtt_reconnect(mqtt_ctrl);
+		luat_start_rtos_timer(mqtt_ctrl->reconnect_timer, mqtt_ctrl->reconnect_time, 0);
 	}else{
 		l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_CLOSE, 0);
 	}
@@ -319,30 +318,12 @@ static int luat_mqtt_msg_cb(luat_mqtt_ctrl_t *mqtt_ctrl) {
     return 0;
 }
 
-static const char* event2str(uint32_t id) {
-	switch (id)
-	{
-	case EV_NW_RESULT_LINK:
-		return "EV_NW_RESULT_LINK";
-	case EV_NW_RESULT_CONNECT:
-		return "EV_NW_RESULT_CONNECT";
-	case EV_NW_RESULT_EVENT:
-		return "EV_NW_RESULT_EVENT";
-	case EV_NW_RESULT_TX:
-		return "EV_NW_RESULT_TX";
-	case EV_NW_RESULT_CLOSE:
-		return "EV_NW_RESULT_CLOSE";
-	default:
-		return "UNKOWN";
-	}
-}
-
 int32_t luat_mqtt_callback(void *data, void *param) {
 	OS_EVENT *event = (OS_EVENT *)data;
 	luat_mqtt_ctrl_t *mqtt_ctrl =(luat_mqtt_ctrl_t *)param;
 	int ret = 0;
-	// DBG("LINK %d ON_LINE %d EVENT %d TX_OK %d CLOSED %d",EV_NW_RESULT_LINK & 0x0fffffff,EV_NW_RESULT_CONNECT & 0x0fffffff,EV_NW_RESULT_EVENT & 0x0fffffff,EV_NW_RESULT_TX & 0x0fffffff,EV_NW_RESULT_CLOSE & 0x0fffffff);
-	DBG("network mqtt cb %8X %s %8X",event->ID & 0x0ffffffff, event2str(event->ID & 0x0ffffffff) ,event->Param1);
+	// DBG("LINK %08X ON_LINE %08X EVENT %08X TX_OK %08X CLOSED %d",EV_NW_RESULT_LINK & 0x0fffffff,EV_NW_RESULT_CONNECT & 0x0fffffff,EV_NW_RESULT_EVENT & 0x0fffffff,EV_NW_RESULT_TX & 0x0fffffff,EV_NW_RESULT_CLOSE & 0x0fffffff);
+	DBG("network mqtt cb %8X %08X",event->ID & 0x0ffffffff, event->Param1);
 	if (event->ID == EV_NW_RESULT_LINK){
 		return 0; // 这里应该直接返回, 不能往下调用network_wait_event
 	}else if(event->ID == EV_NW_RESULT_CONNECT){

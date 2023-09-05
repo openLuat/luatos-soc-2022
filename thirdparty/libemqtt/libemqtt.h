@@ -38,11 +38,11 @@
 #endif
 
 #ifndef MQTT_CONF_USERNAME_LENGTH
-	#define MQTT_CONF_USERNAME_LENGTH 192 
+	#define MQTT_CONF_USERNAME_LENGTH 192 // Recommended by MQTT Specification (12 + '\0')
 #endif
 
 #ifndef MQTT_CONF_PASSWORD_LENGTH
-	#define MQTT_CONF_PASSWORD_LENGTH 192 
+	#define MQTT_CONF_PASSWORD_LENGTH 192 // Recommended by MQTT Specification (12 + '\0')
 #endif
 
 
