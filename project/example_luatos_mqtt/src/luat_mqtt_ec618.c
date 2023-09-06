@@ -9,7 +9,8 @@
 #include "luat_mqtt.h"
 
 
-#define MQTT_DEMO_SSL 		0
+#define MQTT_DEMO_SSL 			0
+#define MQTT_DEMO_AUTOCON 		1
 
 #if (MQTT_DEMO_SSL == 1)
 #define MQTT_HOST    	"airtest.openluat.com"   				// MQTTS服务器的地址和端口号
@@ -120,6 +121,7 @@ static const char *testclientPk= \
 static luat_rtos_task_handle mqtt_task_handle;
 
 static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
+	int ret;
 	switch (event)
 	{
 	case MQTT_MSG_CONNACK:{
@@ -149,6 +151,18 @@ static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
 	}
 	case MQTT_MSG_RELEASE : {
 		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt release");
+		break;
+	}
+	case MQTT_MSG_CLOSE : {
+		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt close");
+if (MQTT_DEMO_AUTOCON == 0){
+	ret = luat_mqtt_connect(luat_mqtt_ctrl);
+	if (ret) {
+		LUAT_DEBUG_PRINT("mqtt connect ret=%d\n", ret);
+		luat_mqtt_close_socket(luat_mqtt_ctrl);
+		return;
+	}
+}
 		break;
 	}
 	default:
@@ -199,8 +213,11 @@ static void luat_mqtt_task(void *param)
 	luat_mqtt_ctrl->broker.clean_session = 1;
 	luat_mqtt_ctrl->keepalive = 240;
 
+if (MQTT_DEMO_AUTOCON == 1)
+{
 	luat_mqtt_ctrl->reconnect = 1;
 	luat_mqtt_ctrl->reconnect_time = 3000;
+}
 
 	// luat_mqtt_set_will(luat_mqtt_ctrl, mqtt_will_topic, mqtt_will_payload, strlen(mqtt_will_payload), 0, 0); // 测试遗嘱
 	
