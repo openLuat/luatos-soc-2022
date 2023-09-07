@@ -277,6 +277,9 @@ else
     if os.getenv("LUAT_USE_TTS") == "1" then
         add_defines("LUAT_USE_TTS")
     end
+    if os.getenv("LUAT_USE_TTS_ONCHIP") == "1" then
+        add_defines("LUAT_USE_TTS_ONCHIP")
+    end
     add_defines("__LUATOS__","LWIP_NUM_SOCKETS=8")
     add_defines("MBEDTLS_CONFIG_FILE=\"mbedtls_ec618_config.h\"")
 end
@@ -387,10 +390,14 @@ target(USER_PROJECT_NAME..".elf")
             local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
             USER_PROJECT_NAME_VERSION = conf_data:match("#define LUAT_BSP_VERSION \"(%w+)\"")
             VM_64BIT = conf_data:find("\r#define LUAT_CONF_VM_64bit") or conf_data:find("\n#define LUAT_CONF_VM_64bit")
+            local TTS_ONCHIP = conf_data:find("\r#define LUAT_USE_TTS_ONCHIP") or conf_data:find("\n#define LUAT_USE_TTS_ONCHIP")
 
             local mem_map_data = io.readfile("$(projectdir)/PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h")
             FLASH_FOTA_REGION_START = tonumber(mem_map_data:match("#define FLASH_FOTA_REGION_START%s+%((%g+)%)"))
-            if os.getenv("LUAT_EC618_LITE_MODE") == "1" then
+            if TTS_ONCHIP or os.getenv("LUAT_USE_TTS_ONCHIP") == "1" then
+                LUAT_SCRIPT_SIZE = 64
+                LUAT_SCRIPT_OTA_SIZE = 48
+            elseif os.getenv("LUAT_EC618_LITE_MODE") == "1" then
                 LUAT_SCRIPT_SIZE = 448
                 LUAT_SCRIPT_OTA_SIZE = 284
             else
@@ -506,6 +513,9 @@ target(USER_PROJECT_NAME..".elf")
                 end
                 if os.getenv("LUAT_USE_TTS") == "1" then
                     ver = "_TTS"
+                    if os.getenv("LUAT_USE_TTS_ONCHIP") == "1" then
+                        ver = "_TTS_ONCHIP"
+                    end
                 end
                 os.mv("LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z", OUT_PATH.."/LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618"..ver..".soc")
                 os.rm(OUT_PATH.."/pack")
