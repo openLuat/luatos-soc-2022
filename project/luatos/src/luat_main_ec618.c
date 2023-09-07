@@ -179,6 +179,7 @@ void soc_service_misc_callback(uint8_t *data, uint32_t len)
 {
 	uint8_t sg_id = (((len)>>12)&0x000F);
 	uint16_t prim_id = ((len)&0x0FFF);
+	PV_Union uPV;
 	switch(sg_id)
 	{
 	case CAM_DEV:
@@ -193,7 +194,8 @@ void soc_service_misc_callback(uint8_t *data, uint32_t len)
 		switch (prim_id)
 		{
 		case CMI_SIM_SET_SIM_WRITE_COUNTER_CNF:
-			luat_mobile_event_cb(LUAT_MOBILE_EVENT_SIM, 0, LUAT_MOBILE_SIM_WC, (void*)data);
+			memcpy(uPV.u8, data, 4);
+			luat_mobile_event_cb(LUAT_MOBILE_EVENT_SIM, 0, LUAT_MOBILE_SIM_WC, (void*)uPV.u32);
 			break;
 		}
 	}
