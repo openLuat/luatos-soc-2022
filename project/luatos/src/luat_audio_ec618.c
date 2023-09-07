@@ -424,12 +424,20 @@ int luat_audio_play_tts_text(uint32_t multimedia_id, void *text, uint32_t text_b
 		if (LUAT_TYPE_SPI == luat_sfud.luat_spi)
 		{
 			luat_spi_t *spi = (luat_spi_t *)luat_sfud.user_data;
+			if (spi == NULL) {
+				DBG("本固件支持TTS功能但未包含TTS资源,需要外挂SPI Flash才能正常工作");
+				return -1;
+			}
 			g_s_spi_config.u8[0] = spi->id;
 			g_s_spi_config.u8[1] = spi->cs;
 		}
 		else if (LUAT_TYPE_SPI_DEVICE == luat_sfud.luat_spi)
 		{
 			luat_spi_device_t* spi_device = (luat_spi_t *)luat_sfud.user_data;
+			if (spi_device == NULL) {
+				DBG("本固件支持TTS功能但未包含TTS资源,需要外挂SPI Flash才能正常工作");
+				return -1;
+			}
 			g_s_spi_config.u8[0] = spi_device->bus_id;
 			g_s_spi_config.u8[1] = spi_device->spi_config.cs;
 		}
