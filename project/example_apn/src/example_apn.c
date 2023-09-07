@@ -190,6 +190,7 @@ static void task_run(void *param)
 {
 	int i;
 	luat_mobile_cell_info_t  cell_info;
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
 #ifndef AUTO_APN_TEST
 	luat_mobile_user_ctrl_apn();
 #endif
@@ -209,23 +210,23 @@ static void task_run(void *param)
 //	luat_mobile_del_apn(0,1,0);
 	luat_mobile_user_apn_auto_active(0, 1, 3,3, "CMIOTTQJ",8,"ceshi",5,"tqj123456",9);
 #endif
+
 	char imei[20] = {0};
 	luat_mobile_get_imei(0, imei, sizeof(imei));
 	LUAT_DEBUG_PRINT("IMEI %s", imei);
-
 	luat_mobile_set_sn("1234567890abcdefghijklmnopqrstuv",32);
 	char sn[33] = {0};
 	luat_mobile_get_sn(sn, sizeof(sn));
 	LUAT_DEBUG_PRINT("SN %s", sn);
-
 	char muid[64] = {0};
 	luat_mobile_get_muid(muid, sizeof(muid));
 	LUAT_DEBUG_PRINT("MUID %s", muid);
-
-
+	char apn[64] = {0};
 	while(1)
 	{
 		luat_rtos_task_sleep(10000);
+		luat_mobile_get_apn(0, 0, apn, 10);	//这里故意不获取完整的
+		DBG("%s", apn);
 	}
 }
 

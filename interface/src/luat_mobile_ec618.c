@@ -89,8 +89,9 @@ int luat_mobile_get_imei(int sim_id, char* buff, size_t buf_len)
 int luat_mobile_get_sn(char* buff, size_t buf_len)
 {
 	char temp[32] = {0};
-	int result = appGetSNNumSync(temp);
-	if (result)
+//	int result = appGetSNNumSync(temp);
+	uint32_t result = nvramRead(0,temp,32,32);
+	if (result > 0)
 	{
 		memcpy(buff, temp, (buf_len > sizeof(temp))?sizeof(temp):buf_len);
 		return (buf_len > sizeof(temp))?sizeof(temp):buf_len;
