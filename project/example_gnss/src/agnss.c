@@ -1,11 +1,6 @@
 #include "luat_mobile.h"
-#include "HTTPClient.h"
-
 #include "common_api.h"
-#include "sockets.h"
-#include "dns.h"
-#include "lwip/ip4_addr.h"
-#include "netdb.h"
+#include "luat_network_adapter.h"
 #include "luat_debug.h"
 #include "luat_rtos.h"
 #include "lbsLoc.h"
@@ -16,13 +11,14 @@
 #include "luat_fs.h"
 #include "agnss.h"
 #include "luat_rtc.h"
+#include "luat_http.h"
 #define LBSLOC_SERVER_UDP_IP "bs.openluat.com" // 基站定位网址
 #define LBSLOC_SERVER_UDP_PORT 12411           // 端口
 #define UART_ID 2
+
 /// @brief 合宙IOT 项目productkey ，必须加上，否则定位失败
 static char *productKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 static luat_rtos_task_handle lbsloc_task_handle = NULL;
-
 static uint8_t lbsloc_task_tatus = 0;
 
 static bool ddddtoddmm(char *location, char *test)
@@ -111,12 +107,18 @@ static uint32_t location_service_bcd_to_str(uint8_t *pOutBuffer, uint8_t *pInBuf
     return len;
 }
 
+static int32_t luat_test_socket_callback(void *pdata, void *param)
+{
+    OS_EVENT *event = (OS_EVENT *)pdata;
+    DBG("%x", event->ID);
+    return 0;
+}
 static bool location_service_parse_response(struct am_location_service_rsp_data_t *response, uint8_t *latitude, uint8_t *longitude,
                                             uint16_t *year, uint8_t *month, uint8_t *day, uint8_t *hour, uint8_t *minute, uint8_t *second)
 {
     uint8_t loc[20] = {0};
     uint32_t len = 0;
-
+    struct am_location_service_rsp_data_t locationServiceResponse;
     if (response == NULL || latitude == NULL || longitude == NULL || year == NULL || month == NULL || day == NULL || hour == NULL || minute == NULL || second == NULL)
     {
         LUAT_DEBUG_PRINT("location_service_parse_response: invalid parameter");
@@ -161,17 +163,24 @@ static bool location_service_parse_response(struct am_location_service_rsp_data_
 static void lbsloc_task(void *arg)
 {
     lbsloc_task_tatus = 1;
-    ip_addr_t remote_ip;
-    struct sockaddr_in name;
-    socklen_t sockaddr_t_size = sizeof(name);
-    int ret;
-    struct timeval to;
-    int socket_id = -1;
-    struct hostent dns_result;
-    struct hostent *p_result;
-    int h_errnop, read_len;
+    network_ctrl_t *g_s_network_ctrl = NULL;
+    g_s_network_ctrl = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
+    network_init_ctrl(g_s_network_ctrl, luat_rtos_get_current_handle(), luat_test_socket_callback, NULL);
+    network_set_base_mode(g_s_network_ctrl, 0, 15000, 0, 0, 0, 0);
+    int result;
+    while (1)
+    {
+        result = network_wait_link_up(g_s_network_ctrl, 5000);
+        if (result)
+        {
+            continue;
+        }
+        else
+        {
+            break;
+        }
+    }
     struct am_location_service_rsp_data_t locationServiceResponse;
-
     uint8_t latitude[20] = {0};  // 经度
     uint8_t longitude[20] = {0}; // 维度
     uint16_t year = 0;           // 年
@@ -241,79 +250,68 @@ static void lbsloc_task(void *arg)
     lbsLocReqBuf[sendLen++] = (cell_info.lte_service_info.cid >> 8) & 0xFF;
     lbsLocReqBuf[sendLen++] = cell_info.lte_service_info.cid & 0xFF;
 
-    char hostname[128] = {0};
-    ret = lwip_gethostbyname_r(LBSLOC_SERVER_UDP_IP, &dns_result, hostname, 128, &p_result, &h_errnop);
-    if (!ret)
-    {
-        remote_ip = *((ip_addr_t *)dns_result.h_addr_list[0]);
-    }
-    else
-    {
-        luat_rtos_task_sleep(1000);
-        LUAT_DEBUG_PRINT("dns fail");
-        lbsloc_task_tatus = 0;
-        luat_rtos_task_delete(lbsloc_task_handle);
-        return;
-    }
+    uint32_t tx_len, rx_len;
 
-    socket_id = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    struct timeval timeout;
-    timeout.tv_sec = AM_LOCATION_SERVICE_RCV_TIMEOUT;
-    timeout.tv_usec = 0;
-    setsockopt(socket_id, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-    memset(&name, 0, sizeof(name));
-    name.sin_family = AF_INET;
-    name.sin_addr.s_addr = remote_ip.u_addr.ip4.addr;
-    name.sin_port = htons(LBSLOC_SERVER_UDP_PORT);
-    ret = sendto(socket_id, lbsLocReqBuf, sendLen, 0, (const struct sockaddr *)&name, sockaddr_t_size);
-    if (ret == sendLen)
+    uint8_t is_break, is_timeout;
+
+    result = network_connect(g_s_network_ctrl, LBSLOC_SERVER_UDP_IP, sizeof(LBSLOC_SERVER_UDP_IP), NULL, LBSLOC_SERVER_UDP_PORT, 5000);
+    LUAT_DEBUG_PRINT("%d", result);
+    if (!result)
     {
-        LUAT_DEBUG_PRINT("location_service_task send lbsLoc request success");
-        ret = recv(socket_id, &locationServiceResponse, sizeof(struct am_location_service_rsp_data_t), 0);
-        if (ret > 0)
+        result = network_tx(g_s_network_ctrl, lbsLocReqBuf, sendLen, 0, NULL, 0, &tx_len, 5000);
+        if (!result)
         {
-            LUAT_DEBUG_PRINT("location_service_task recv lbsLoc success %d", ret);
-            if (sizeof(struct am_location_service_rsp_data_t) == ret)
+            result = network_wait_rx(g_s_network_ctrl, 15000, &is_break, &is_timeout);
+            LUAT_DEBUG_PRINT("%d", result);
+            if (!result)
             {
-                if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == TRUE)
+                if (!is_timeout && !is_break)
                 {
-                    LUAT_DEBUG_PRINT("location_service_task: rcv response, process success");
-                    LUAT_DEBUG_PRINT("latitude:%s,longitude:%s,year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n", latitude, longitude, year, month, day, hour, minute, second);
-                    char data_buf[60] = {0};
-                    struct tm tblock = {0};
-                    luat_rtc_get(&tblock);
-                    snprintf(data_buf, 60, "$AIDTIME,%d,%d,%d,%d,%d,%d,000\r\n", tblock.tm_year + 1900, tblock.tm_mon + 1, tblock.tm_mday, tblock.tm_hour, tblock.tm_min,tblock.tm_sec);
-                    LUAT_DEBUG_PRINT("location_service_task: AIDTIME %s", data_buf);
-                    if (tblock.tm_year + 1900 > 2022) {
-                        luat_uart_write(UART_ID, data_buf, strlen(data_buf));
+                    result = network_rx(g_s_network_ctrl, &locationServiceResponse, sizeof(struct am_location_service_rsp_data_t), 0, NULL, NULL, &rx_len);
+                    if (!result && (sizeof(struct am_location_service_rsp_data_t) == rx_len))
+                    {
+                        if (location_service_parse_response(&locationServiceResponse, latitude, longitude, &year, &month, &day, &hour, &minute, &second) == true)
+                        {
+                            LUAT_DEBUG_PRINT("rcv response, process success");
+                            LUAT_DEBUG_PRINT("latitude:%s,longitude:%s,year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n", latitude, longitude, year, month, day, hour, minute, second);
+                            char data_buf[60] = {0};
+                            struct tm tblock = {0};
+                            luat_rtc_get(&tblock);
+                            snprintf(data_buf, 60, "$AIDTIME,%d,%d,%d,%d,%d,%d,000\r\n", tblock.tm_year + 1900, tblock.tm_mon + 1, tblock.tm_mday, tblock.tm_hour, tblock.tm_min, tblock.tm_sec);
+                            LUAT_DEBUG_PRINT("AIDTIME %s", data_buf);
+                            if (tblock.tm_year + 1900 > 2022)
+                            {
+                                luat_uart_write(UART_ID, data_buf, strlen(data_buf));
+                            }
+                            luat_rtos_task_sleep(200);
+                            memset(data_buf, 0x00, 60);
+                            char lat[20] = {0};
+                            char lng[20] = {0};
+                            ddddtoddmm(latitude, lat);
+                            ddddtoddmm(longitude, lng);
+                            snprintf(data_buf, 60, "$AIDPOS,%s,N,%s,E,1.0\r\n", lat, lng);
+                            LUAT_DEBUG_PRINT("AIDPOS %s", data_buf);
+                            luat_uart_write(UART_ID, data_buf, strlen(data_buf));
+                        }
+                        else
+                        {
+                            LUAT_DEBUG_PRINT("rcv response, but process fail");
+                        }
                     }
-                    
-
-                    luat_rtos_task_sleep(200);
-                    memset(data_buf, 0x00, 60);
-                    char lat[20] = {0};
-                    char lng[20] = {0};
-                    ddddtoddmm(latitude, lat);
-                    ddddtoddmm(longitude, lng);
-                    snprintf(data_buf, 60, "$AIDPOS,%s,N,%s,E,1.0\r\n", lat, lng);
-                    LUAT_DEBUG_PRINT("location_service_task: AIDPOS %s", data_buf);
-                    luat_uart_write(UART_ID, data_buf, strlen(data_buf));
-                }
-                else
-                {
-                    LUAT_DEBUG_PRINT("location_service_task: rcv response, but process fail");
                 }
             }
-        }
-        else
-        {
-            LUAT_DEBUG_PRINT("location_service_task recv lbsLoc fail %d", ret);
+            else
+            {
+                LUAT_DEBUG_PRINT("tx fil");
+            }
         }
     }
     else
     {
-        LUAT_DEBUG_PRINT("location_service_task send lbsLoc request fail");
+        LUAT_DEBUG_PRINT("connect fil");
     }
+    network_close(g_s_network_ctrl, 5000);
+    network_release_ctrl(g_s_network_ctrl);
     memset(latitude, 0, 20);
     memset(longitude, 0, 20);
     year = 0;
@@ -323,145 +321,95 @@ static void lbsloc_task(void *arg)
     minute = 0;
     second = 0;
     LUAT_DEBUG_PRINT("socket quit");
-    close(socket_id);
-    socket_id = -1;
     lbsloc_task_tatus = 0;
-    luat_rtos_task_delete(lbsloc_task_handle);
+    luat_rtos_task_delete(luat_rtos_get_current_handle());
 }
 
 void lbsloc_request(void)
 {
     if (lbsloc_task_handle == NULL || lbsloc_task_tatus == 0)
-        luat_rtos_task_create(&lbsloc_task_handle, 4 * 2048, 80, "lbsloc", lbsloc_task, NULL, NULL);
+        luat_rtos_task_create(&lbsloc_task_handle, 4 * 2048, 15, "lbsloc", lbsloc_task, NULL, NULL);
     else
         LUAT_DEBUG_PRINT("lbsloc task create fail");
 }
-
-#define HTTP_RECV_BUF_SIZE (1500)
-#define HTTP_HEAD_BUF_SIZE (800)
 #define EPH_HOST "http://download.openluat.com/9501-xingli/HXXT_GPS_BDS_AGNSS_DATA.dat"
 
 static g_s_network_status = 0;
-static HttpClientContext gHttpClient = {0};
 static luat_rtos_task_handle http_task_handle;
 
-void mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
+static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
 {
-    if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_ON)
+    if (LUAT_MOBILE_EVENT_NETIF == event)
     {
-        LUAT_DEBUG_PRINT("network ready");
-        g_s_network_status = 1;
-    }
-    else if (event == LUAT_MOBILE_EVENT_NETIF && status == LUAT_MOBILE_NETIF_LINK_OFF)
-    {
-        LUAT_DEBUG_PRINT("network no ready");
-        g_s_network_status = 0;
-    }
-}
-
-static INT32 httpGetData(CHAR *getUrl, CHAR *buf, UINT32 len)
-{
-    HTTPResult result = HTTP_INTERNAL;
-    HttpClientData clientData = {0};
-    UINT32 count = 0;
-    FILE *fp1 = NULL;
-    uint16_t headerLen = 0;
-
-    LUAT_DEBUG_ASSERT(buf != NULL, 0, 0, 0);
-
-    clientData.headerBuf = malloc(HTTP_HEAD_BUF_SIZE);
-    clientData.headerBufLen = HTTP_HEAD_BUF_SIZE;
-    clientData.respBuf = buf;
-    clientData.respBufLen = len;
-
-    result = httpSendRequest(&gHttpClient, getUrl, HTTP_GET, &clientData);
-    LUAT_DEBUG_PRINT("send request result=%d", result);
-    if (result != HTTP_OK)
-        goto exit;
-    do
-    {
-        LUAT_DEBUG_PRINT("recvResponse loop.");
-        memset(clientData.headerBuf, 0, clientData.headerBufLen);
-        memset(clientData.respBuf, 0, clientData.respBufLen);
-        result = httpRecvResponse(&gHttpClient, &clientData);
-        if (result == HTTP_OK || result == HTTP_MOREDATA)
+        if (LUAT_MOBILE_NETIF_LINK_ON == status)
         {
-            headerLen = strlen(clientData.headerBuf);
-            if (headerLen > 0)
-            {
-                fp1 = luat_fs_fopen(EPH_FILE_PATH, "w+");
-                LUAT_DEBUG_PRINT("total content length=%d", clientData.recvContentLength);
-            }
-
-            if (clientData.blockContentLen > 0)
-            {
-                LUAT_DEBUG_PRINT("response content:{%s}", (uint8_t *)clientData.respBuf);
-                luat_fs_fwrite((uint8_t *)clientData.respBuf, clientData.blockContentLen, 1, fp1);
-            }
-            count += clientData.blockContentLen;
-            LUAT_DEBUG_PRINT("has recv=%d", count);
-        }
-    } while (result == HTTP_MOREDATA || result == HTTP_CONN);
-    luat_fs_fclose(fp1);
-    LUAT_DEBUG_PRINT("result=%d", result);
-    if (gHttpClient.httpResponseCode < 200 || gHttpClient.httpResponseCode > 404)
-    {
-        LUAT_DEBUG_PRINT("invalid http response code=%d", gHttpClient.httpResponseCode);
-    }
-    else if (count == 0 || count != clientData.recvContentLength)
-    {
-        LUAT_DEBUG_PRINT("data not receive complete");
-    }
-    else
-    {
-        LUAT_DEBUG_PRINT("receive success");
-    }
-exit:
-    free(clientData.headerBuf);
-    return result;
-}
-
-static bool update_eph()
-{
-    char *recvBuf = malloc(HTTP_RECV_BUF_SIZE);
-    HTTPResult result = HTTP_INTERNAL;
-    gHttpClient.timeout_s = 2;
-    gHttpClient.timeout_r = 20;
-    FILE *fp = NULL;
-    result = httpConnect(&gHttpClient, EPH_HOST);
-    if (result == HTTP_OK)
-    {
-        result = httpGetData(EPH_HOST, recvBuf, HTTP_RECV_BUF_SIZE);
-        httpClose(&gHttpClient);
-        if (result == HTTP_OK)
-        {
-            time_t nowtime;
-            time(&nowtime);
-            LUAT_DEBUG_PRINT("http client get data success %d", nowtime);
+            g_s_network_status = 1;
+            luat_socket_check_ready(index, NULL);
         }
         else
         {
-            luat_fs_remove(EPH_FILE_PATH);
+            g_s_network_status = 0;
         }
     }
-    else
-    {
-        LUAT_DEBUG_PRINT("http client connect error");
-    }
-    memset(recvBuf, 0x00, HTTP_RECV_BUF_SIZE);
-    free(recvBuf);
-
-    if (result != HTTP_OK)
-    {
-        return false;
-    }
-    return true;
 }
 
+enum
+{
+    EPH_HTTP_GET_HEAD_DONE = 1,
+    EPH_HTTP_GET_DATA,
+    EPH_HTTP_GET_DATA_DONE,
+    EPH_HTTP_FAILED,
+};
+
+static void luatos_http_cb(int status, void *data, uint32_t len, void *param)
+{
+    uint8_t *eph_data;
+    if (status < 0)
+    {
+        LUAT_DEBUG_PRINT("http failed! %d", status);
+        luat_rtos_event_send(param, EPH_HTTP_FAILED, 0, 0, 0, 0);
+        return;
+    }
+    switch (status)
+    {
+    case HTTP_STATE_GET_BODY:
+        if (data)
+        {
+            eph_data = malloc(len);
+            memcpy(eph_data, data, len);
+            luat_rtos_event_send(param, EPH_HTTP_GET_DATA, eph_data, len, 0, 0);
+        }
+        else
+        {
+            luat_rtos_event_send(param, EPH_HTTP_GET_DATA_DONE, 0, 0, 0, 0);
+        }
+        break;
+    case HTTP_STATE_GET_HEAD:
+        if (data)
+        {
+            LUAT_DEBUG_PRINT("%s", data);
+        }
+        else
+        {
+            luat_rtos_event_send(param, EPH_HTTP_GET_HEAD_DONE, 0, 0, 0, 0);
+        }
+        break;
+    case HTTP_STATE_IDLE:
+        break;
+    case HTTP_STATE_SEND_BODY_START:
+        // 如果是POST，在这里发送POST的body数据，如果一次发送不完，可以在HTTP_STATE_SEND_BODY回调里继续发送
+        break;
+    case HTTP_STATE_SEND_BODY:
+        // 如果是POST，可以在这里发送POST剩余的body数据
+        break;
+    default:
+        break;
+    }
+}
 
 static bool check_eph_time()
 {
-    if(luat_fs_fexist(EPH_TIME_FILE) == 0)
+    if (luat_fs_fexist(EPH_TIME_FILE) == 0)
         return false;
     FILE *fp = luat_fs_fopen(EPH_TIME_FILE, "r");
     time_t history_time;
@@ -471,7 +419,7 @@ static bool check_eph_time()
     time_t now_time;
     time(&now_time);
     LUAT_DEBUG_PRINT("this is interval time %d", now_time - history_time);
-    if((now_time - history_time) > 4 * 60 * 60)
+    if ((now_time - history_time) > 4 * 60 * 60)
     {
         return false;
     }
@@ -480,6 +428,10 @@ static bool check_eph_time()
 
 static void ephemeris_get_task(void *param)
 {
+    luat_event_t event;
+    int result, is_error, eph_download_end;
+    uint32_t all, now_free_block, min_free_block, done_len;
+    FILE *fp1 = NULL;
     while (1)
     {
         while (g_s_network_status != 1)
@@ -487,6 +439,7 @@ static void ephemeris_get_task(void *param)
             LUAT_DEBUG_PRINT("http wait network ready");
             luat_rtos_task_sleep(1000);
         }
+
         if (luat_fs_fexist(EPH_FILE_PATH) != 0 && check_eph_time() == true)
         {
             size_t size = luat_fs_fsize(EPH_FILE_PATH);
@@ -502,14 +455,54 @@ static void ephemeris_get_task(void *param)
                 else
                     luat_uart_write(UART_ID, (uint8_t *)&data[i], size - i);
                 luat_rtos_task_sleep(100);
+                LUAT_DEBUG_PRINT("http wait network ready aaaaaa");
             }
+            luat_heap_free(data);
             lbsloc_request();
             luat_rtos_task_sleep(4 * 60 * 60 * 1000);
         }
         else
         {
-            bool result = update_eph();
-            if (result)
+            is_error = 0;
+            eph_download_end = 0;
+            luat_http_ctrl_t *http = luat_http_client_create(luatos_http_cb, luat_rtos_get_current_handle(), -1);
+            luat_http_client_start(http, EPH_HOST, 0, 0, 1);
+            fp1 = luat_fs_fopen(EPH_FILE_PATH, "w+");
+            while (!eph_download_end)
+            {
+                luat_rtos_event_recv(luat_rtos_get_current_handle(), 0, &event, NULL, LUAT_WAIT_FOREVER);
+                DBG("this is result %d", event.id);
+                switch (event.id)
+                {
+                case EPH_HTTP_GET_HEAD_DONE:
+                    done_len = 0;
+                    int status = luat_http_client_get_status_code(http);
+                    if (status != 200 && status != 206)
+                    {
+                        is_error = 1;
+                        eph_download_end = 1;
+                    }
+                    DBG("status %d total %u", status, http->total_len);
+
+                    break;
+                case EPH_HTTP_GET_DATA:
+                    done_len += event.param2;
+                    luat_fs_fwrite((uint8_t *)event.param1, event.param2, 1, fp1);
+                    free(event.param1);
+                    break;
+                case EPH_HTTP_GET_DATA_DONE:
+                    eph_download_end = 1;
+                    break;
+                case EPH_HTTP_FAILED:
+                    is_error = 1;
+                    eph_download_end = 1;
+                    break;
+                }
+            }
+            luat_fs_fclose(fp1);
+            luat_http_client_close(http);
+            luat_http_client_destroy(&http);
+            if (eph_download_end && !is_error)
             {
                 FILE *fp = luat_fs_fopen(EPH_TIME_FILE, "w+");
                 time_t now_time;
@@ -531,23 +524,28 @@ static void ephemeris_get_task(void *param)
                         luat_uart_write(UART_ID, (uint8_t *)&data[i], size - i);
                     luat_rtos_task_sleep(100);
                 }
+                luat_heap_free(data);
                 lbsloc_request();
                 luat_rtos_task_sleep(4 * 60 * 60 * 1000);
             }
             else
             {
-                luat_rtos_task_sleep(30000);
+                LUAT_DEBUG_PRINT("download error");
+                luat_fs_remove(EPH_FILE_PATH);
+                luat_rtos_task_sleep(30 * 1000);            //星历获取失败，30s后重试
             }
         }
-        luat_rtos_task_delete(http_task_handle);
     }
 }
 void task_ephemeris(void)
 {
-    luat_rtos_task_create(&http_task_handle, 10 * 1024, 20, "http", ephemeris_get_task, NULL, NULL);
+    luat_rtos_task_create(&http_task_handle, 10 * 1024, 20, "http", ephemeris_get_task, NULL, 10);
 }
 
 void network_init(void)
 {
-    luat_mobile_event_register_handler(mobile_event_callback);
+    luat_mobile_event_register_handler(luatos_mobile_event_callback);
+    net_lwip_init();
+    net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
+    network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
 }
