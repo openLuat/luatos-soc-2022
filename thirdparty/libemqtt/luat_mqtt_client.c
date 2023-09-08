@@ -100,6 +100,8 @@ int luat_mqtt_set_connopts(luat_mqtt_ctrl_t *mqtt_ctrl, luat_mqtt_connopts_t *op
 void luat_mqtt_close_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
 	DBG("mqtt closing socket netc:%p mqtt_state:%d",mqtt_ctrl->netc,mqtt_ctrl->mqtt_state);
 	if (mqtt_ctrl->mqtt_state){
+		mqtt_ctrl->mqtt_state = 0;
+		mqtt_ctrl->buffer_offset = 0;
 		if (mqtt_ctrl->netc){
 			network_force_close_socket(mqtt_ctrl->netc);
 			l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_DISCONNECT, 0);
@@ -112,7 +114,6 @@ void luat_mqtt_close_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
 		}
 	}
 	mqtt_ctrl->buffer_offset = 0;
-	mqtt_ctrl->mqtt_state = 0;
 }
 
 void luat_mqtt_release_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
