@@ -238,7 +238,7 @@ if (MQTT_DEMO_AUTOCON == 1)
 	LUAT_DEBUG_PRINT("wait mqtt_state ...");
 
 	while(1){
-		if (luat_mqtt_ctrl->mqtt_state){
+		if (luat_mqtt_state_get(luat_mqtt_ctrl) == MQTT_STATE_READY){
 			uint16_t message_id  = 0;
 			mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_pub_topic, mqtt_send_payload, strlen(mqtt_send_payload), 0, 1, &message_id);
 		}
