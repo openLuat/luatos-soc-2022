@@ -25,6 +25,7 @@
 #include "time.h"
 #include "osasys.h"
 #include "luat_debug.h"
+#include "mw_aon_info.h"
 static uint32_t g_s_local_tz = 32;
 int luat_rtc_set(struct tm *tblock){
     uint32_t Timer1 = (((tblock->tm_year+1900)<<16)&0xfff0000) | (((tblock->tm_mon+1)<<8)&0xff00) | ((tblock->tm_mday)&0xff);
@@ -63,10 +64,14 @@ void luat_rtc_set_tamp32(uint32_t tamp) {
 }
 
 int luat_rtc_timer_start(int id, struct tm *tblock){
+    (void)id;
+    (void)tblock;
+    DBG("rtc timer isn't support");
     return -1;
 }
 
 int luat_rtc_timer_stop(int id){
+    (void)id;
     return -1;
 }
 
