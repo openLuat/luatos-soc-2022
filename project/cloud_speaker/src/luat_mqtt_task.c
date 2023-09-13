@@ -633,7 +633,7 @@ static void luat_mqtt_publish_task(void *args)
             {
                 if (1 == g_s_is_link_up)
                 {
-                    if (luat_mqtt_ctrl->mqtt_state)
+                    if (luat_mqtt_ctrl->mqtt_state == MQTT_STATE_READY)
                     {
                         int ret = -2;
                         uint32_t message_id = 0;

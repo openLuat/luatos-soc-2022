@@ -153,7 +153,11 @@ static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
 		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt release");
 		break;
 	}
-	case MQTT_MSG_CLOSE : {
+	case MQTT_MSG_DISCONNECT : { // mqtt 断开(只要有断开就会上报,无论是否重连)
+		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt disconnect");
+		break;
+	}
+	case MQTT_MSG_CLOSE : { // mqtt 关闭(不会再重连)  注意：一定注意和MQTT_MSG_DISCONNECT区别，如果要做手动重连处理推荐在这里 */
 		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt close");
 if (MQTT_DEMO_AUTOCON == 0){
 	ret = luat_mqtt_connect(luat_mqtt_ctrl);
@@ -234,7 +238,7 @@ if (MQTT_DEMO_AUTOCON == 1)
 	LUAT_DEBUG_PRINT("wait mqtt_state ...");
 
 	while(1){
-		if (luat_mqtt_ctrl->mqtt_state){
+		if (luat_mqtt_state_get(luat_mqtt_ctrl) == MQTT_STATE_READY){
 			uint16_t message_id  = 0;
 			mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_pub_topic, mqtt_send_payload, strlen(mqtt_send_payload), 0, 1, &message_id);
 		}

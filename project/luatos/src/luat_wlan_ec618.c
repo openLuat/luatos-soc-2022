@@ -21,6 +21,7 @@ static const CmiDevSetWifiSacnReq wifiscanreq = {
 static CmiDevSetWifiScanCnf *pWifiScanInfo = NULL;
 
 static int l_wlan_handler(lua_State *L, void* ptr) {
+    (void)ptr;
     rtos_msg_t* msg = (rtos_msg_t*)lua_topointer(L, -1);
     int32_t event_id = msg->arg1;
     lua_getglobal(L, "sys_pub");
@@ -39,12 +40,14 @@ static int l_wlan_handler(lua_State *L, void* ptr) {
 }
 
 int luat_wlan_init(luat_wlan_config_t *conf){
+    (void)conf;
     DBG("only wifi-scan supported");
     return 0;
 }
 
 void luat_wlan_scan_ec618(UINT16 paramSize, void *pParam)
 {
+    (void)paramSize;
 	devSetWIFISCAN(PS_DIAL_REQ_HANDLER, pParam);
 }
 
@@ -67,7 +70,7 @@ void luat_wlan_done_callback_ec618(void *param)
     }
 }
 
-int luat_wlan_scan_get_result(luat_wlan_scan_result_t *results, int ap_limit){
+int luat_wlan_scan_get_result(luat_wlan_scan_result_t *results, size_t ap_limit){
     if (pWifiScanInfo == NULL) {
         return 0;
     }

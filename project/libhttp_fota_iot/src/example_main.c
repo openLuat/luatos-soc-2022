@@ -13,12 +13,22 @@ FOTA应用开发可以参考：https://doc.openluat.com/wiki/37?wiki_page_id=472
 */
 
 
+#define USE_CUSTOM_URL 0
+
 luat_fota_img_proc_ctx_ptr test_luat_fota_handle = NULL;
+
+#if USE_CUSTOM_URL == 0
 
 #define IOT_FOTA_URL "http://iot.openluat.com"
 #define PROJECT_VERSION  "1.0.1"                  			//使用合宙iot升级的话此字段必须存在，并且强制固定格式为x.x.x, x可以为任意的数字
 #define PROJECT_KEY "ABCDEFGHIJKLMNOPQRSTUVWXYZ"  			//修改为自己iot上面的PRODUCT_KEY，这里是一个错误的，使用合宙iot升级的话此字段必须存在
 #define PROJECT_NAME "TEST_FOTA"                  			//使用合宙iot升级的话此字段必须存在，可以任意修改，但和升级包的必须一致
+
+#else
+
+#define OTA_URL        "http://airtest.openluat.com:2900/download/csdk_delta_test.par"	//使用自定义url升级的话修改此字段即可
+
+#endif
 
 /*
     注意事项！！！！！！！！！！！！！
@@ -154,6 +164,7 @@ static void luat_test_task(void *param)
 {
 	luat_event_t event;
 	int result, is_error;
+	uint8_t is_end = 0;
 	/* 
 		出现异常后默认为死机重启
 		demo这里设置为LUAT_DEBUG_FAULT_HANG_RESET出现异常后尝试上传死机信息给PC工具，上传成功或者超时后重启
@@ -164,26 +175,30 @@ static void luat_test_task(void *param)
 	uint32_t all,now_free_block,min_free_block,done_len;
 	luat_http_ctrl_t *http = luat_http_client_create(luatos_http_cb, luat_rtos_get_current_handle(), -1);
 	const char remote_domain[200];
-    char imei[16] = {0};
-    luat_mobile_get_imei(0, imei, 15);
-    // 第一种升级方式
-    snprintf(remote_domain, 200, "%s/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_%s_%s_%s&version=%s", IOT_FOTA_URL, PROJECT_KEY, imei, PROJECT_VERSION, PROJECT_NAME, soc_get_sdk_type(), "EC618", PROJECT_VERSION);
+#if USE_CUSTOM_URL == 0
+	char imei[16] = {0};
+	luat_mobile_get_imei(0, imei, 15);
+	// 第一种升级方式
+	snprintf(remote_domain, 200, "%s/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_%s_%s_%s&version=%s", IOT_FOTA_URL, PROJECT_KEY, imei, PROJECT_VERSION, PROJECT_NAME, soc_get_sdk_type(), "EC618", PROJECT_VERSION);
 
-    // 第二种升级方式
-    // snprintf(remote_domain, 200, "%s/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_%s_%s&version=%s", IOT_FOTA_URL, PROJECT_KEY, imei, PROJECT_NAME, soc_get_sdk_type(), "EC618", PROJECT_VERSION);
+	// 第二种升级方式
+ 	// snprintf(remote_domain, 200, "%s/api/site/firmware_upgrade?project_key=%s&imei=%s&device_key=&firmware_name=%s_%s_%s&version=%s", IOT_FOTA_URL, PROJECT_KEY, imei, PROJECT_NAME, soc_get_sdk_type(), "EC618", PROJECT_VERSION);
+#else
+	snprintf(remote_domain, 200, "%s", OTA_URL);
+#endif
+	
     LUAT_DEBUG_PRINT("print url %s", remote_domain);
-
-
 	test_luat_fota_handle = luat_fota_init();
 	luat_http_client_start(http, remote_domain, 0, 0, 1);
-	while (1)
+
+	while (!is_end)
 	{
 		luat_rtos_event_recv(g_s_task_handle, 0, &event, NULL, LUAT_WAIT_FOREVER);
 		switch(event.id)
 		{
 		case OTA_HTTP_GET_HEAD_DONE:
 			done_len = 0;
-			DBG("status %d total %u", luat_http_client_get_status_code(http), http->total_len);
+			LUAT_DEBUG_PRINT("status %d total %u", luat_http_client_get_status_code(http), http->total_len);
 			break;
 		case OTA_HTTP_GET_DATA:
 			done_len += event.param2;
@@ -191,25 +206,26 @@ static void luat_test_task(void *param)
 			free(event.param1);
 			break;
 		case OTA_HTTP_GET_DATA_DONE:
-			is_error = luat_fota_done(test_luat_fota_handle);
-            if(is_error != 0)
-            {
-                LUAT_DEBUG_PRINT("image_verify error");
-                goto OTA_DOWNLOAD_END;
-            }
-			else
-			{
-				LUAT_DEBUG_PRINT("image_verify ok");
-            	luat_pm_reboot();
-			}
+			is_end = 1;
 			break;
 		case OTA_HTTP_FAILED:
+			is_end = 1;
+			break;
+		default:
 			break;
 		}
 	}
 
-OTA_DOWNLOAD_END:
-	LUAT_DEBUG_PRINT("ota 测试失败");
+	is_error = luat_fota_done(test_luat_fota_handle);
+    if(is_error != 0)
+    {
+        LUAT_DEBUG_PRINT("image_verify error");
+		LUAT_DEBUG_PRINT("ota 测试失败");
+    }
+	else
+	{
+    	luat_pm_reboot();
+	}
 	luat_http_client_close(http);
 	luat_http_client_destroy(&http);
 	luat_meminfo_sys(&all, &now_free_block, &min_free_block);

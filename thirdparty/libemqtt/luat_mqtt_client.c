@@ -32,6 +32,7 @@ LUAT_RT_RET_TYPE luat_mqtt_timer_callback(LUAT_RT_CB_PARAM){
 }
 
 int luat_mqtt_reconnect(luat_mqtt_ctrl_t *mqtt_ctrl) {
+	DBG("luat_mqtt_reconnect \n");
 	int ret = luat_mqtt_connect(mqtt_ctrl);
 	if(ret){
 		DBG("reconnect init socket ret=%d\n", ret);
@@ -40,6 +41,7 @@ int luat_mqtt_reconnect(luat_mqtt_ctrl_t *mqtt_ctrl) {
 }
 
 static LUAT_RT_RET_TYPE reconnect_timer_cb(LUAT_RT_CB_PARAM){
+	DBG("reconnect_timer_cb \n");
 	luat_mqtt_ctrl_t * mqtt_ctrl = (luat_mqtt_ctrl_t *)param;
 	l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_RECONNECT, 0);
 	luat_mqtt_reconnect(mqtt_ctrl);
@@ -60,7 +62,7 @@ int luat_mqtt_init(luat_mqtt_ctrl_t *mqtt_ctrl, int adapter_index) {
 	}
 	network_init_ctrl(mqtt_ctrl->netc, NULL, luat_mqtt_callback, mqtt_ctrl);
 
-	mqtt_ctrl->mqtt_state = 0;
+	mqtt_ctrl->mqtt_state = MQTT_STATE_DISCONNECT;
 	mqtt_ctrl->netc->is_debug = 0;
 	mqtt_ctrl->keepalive = 240;
 	network_set_base_mode(mqtt_ctrl->netc, 1, 10000, 0, 0, 0, 0);
@@ -99,7 +101,9 @@ int luat_mqtt_set_connopts(luat_mqtt_ctrl_t *mqtt_ctrl, luat_mqtt_connopts_t *op
 
 void luat_mqtt_close_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
 	DBG("mqtt closing socket netc:%p mqtt_state:%d",mqtt_ctrl->netc,mqtt_ctrl->mqtt_state);
-	if (mqtt_ctrl->mqtt_state){
+	if (mqtt_ctrl->mqtt_state != MQTT_STATE_DISCONNECT){
+		mqtt_ctrl->mqtt_state = MQTT_STATE_DISCONNECT;
+		mqtt_ctrl->buffer_offset = 0;
 		if (mqtt_ctrl->netc){
 			network_force_close_socket(mqtt_ctrl->netc);
 			l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_DISCONNECT, 0);
@@ -112,7 +116,6 @@ void luat_mqtt_close_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
 		}
 	}
 	mqtt_ctrl->buffer_offset = 0;
-	mqtt_ctrl->mqtt_state = 0;
 }
 
 void luat_mqtt_release_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
@@ -249,13 +252,12 @@ static int luat_mqtt_msg_cb(luat_mqtt_ctrl_t *mqtt_ctrl) {
     switch (msg_tp) {
 		case MQTT_MSG_CONNACK: {
 			// DBG("MQTT_MSG_CONNACK");
-			mqtt_ctrl->mqtt_state = 1;
 			if(mqtt_ctrl->mqtt_packet_buffer[3] != 0x00){
 				DBG("CONACK 0x%02x",mqtt_ctrl->mqtt_packet_buffer[3]);
                 luat_mqtt_close_socket(mqtt_ctrl);
                 return -1;
             }
-
+			mqtt_ctrl->mqtt_state = MQTT_STATE_READY;
             l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_CONNACK, 0);
             break;
         }
@@ -324,11 +326,17 @@ int32_t luat_mqtt_callback(void *data, void *param) {
 	OS_EVENT *event = (OS_EVENT *)data;
 	luat_mqtt_ctrl_t *mqtt_ctrl =(luat_mqtt_ctrl_t *)param;
 	int ret = 0;
-	// DBG("LINK %08X ON_LINE %08X EVENT %08X TX_OK %08X CLOSED %d",EV_NW_RESULT_LINK & 0x0fffffff,EV_NW_RESULT_CONNECT & 0x0fffffff,EV_NW_RESULT_EVENT & 0x0fffffff,EV_NW_RESULT_TX & 0x0fffffff,EV_NW_RESULT_CLOSE & 0x0fffffff);
+	DBG("LINK %08X ON_LINE %08X EVENT %08X TX_OK %08X CLOSED %d",EV_NW_RESULT_LINK & 0x0fffffff,EV_NW_RESULT_CONNECT & 0x0fffffff,EV_NW_RESULT_EVENT & 0x0fffffff,EV_NW_RESULT_TX & 0x0fffffff,EV_NW_RESULT_CLOSE & 0x0fffffff);
 	DBG("network mqtt cb %8X %08X",event->ID & 0x0ffffffff, event->Param1);
+	if (event->Param1){
+		DBG("mqtt_callback param1 %d, closing socket", event->Param1);
+		luat_mqtt_close_socket(mqtt_ctrl);
+		return -1;
+	}
 	if (event->ID == EV_NW_RESULT_LINK){
 		return 0; // 这里应该直接返回, 不能往下调用network_wait_event
 	}else if(event->ID == EV_NW_RESULT_CONNECT){
+		mqtt_ctrl->mqtt_state = MQTT_STATE_MQTT;
 		ret = mqtt_connect(&(mqtt_ctrl->broker));
 		if(ret==1){
 			luat_start_rtos_timer(mqtt_ctrl->ping_timer, mqtt_ctrl->keepalive*1000*0.75, 1);
@@ -349,10 +357,7 @@ int32_t luat_mqtt_callback(void *data, void *param) {
 	}else if(event->ID == EV_NW_RESULT_CLOSE){
 
 	}
-	if (event->Param1){
-		DBG("mqtt_callback param1 %d, closing socket", event->Param1);
-		luat_mqtt_close_socket(mqtt_ctrl);
-	}
+
 	ret = network_wait_event(mqtt_ctrl->netc, NULL, 0, NULL);
 	if (ret < 0){
 		DBG("network_wait_event ret %d, closing socket", ret);
@@ -390,6 +395,7 @@ int luat_mqtt_connect(luat_mqtt_ctrl_t *mqtt_ctrl) {
         network_close(mqtt_ctrl->netc, 0);
         return -1;
     }
+	mqtt_ctrl->mqtt_state = MQTT_STATE_SCONNECT;
     return 0;
 }
 
@@ -406,4 +412,8 @@ int luat_mqtt_set_cb(luat_mqtt_ctrl_t *mqtt_ctrl, luat_mqtt_cb_t mqtt_cb){
 		return -1;
 	mqtt_ctrl->mqtt_cb = mqtt_cb;
 	return 0;
+}
+
+LUAT_MQTT_STATE_E luat_mqtt_state_get(luat_mqtt_ctrl_t *mqtt_ctrl){
+	return mqtt_ctrl->mqtt_state;
 }
