@@ -152,10 +152,7 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 		LUAT_DEBUG_PRINT("RRC状态 %d", status);
 		break;
 	case LUAT_MOBILE_EVENT_FATAL_ERROR:
-		LUAT_DEBUG_PRINT("网络需要严重故障，建议重启协议栈");
-		//如果有计划需要进入飞行模式的，可以忽略该错误。
-		//如果没有通过luat_mobile_fatal_error_auto_reset_stack设置自动恢复的，需要手动恢复
-		luat_mobile_reset_stack();
+		LUAT_DEBUG_PRINT("网络需要严重故障，建议在5秒后重启协议栈");
 		break;
 	default:
 		break;
@@ -254,7 +251,7 @@ void task_init(void)
 {
 	luat_mobile_event_register_handler(mobile_event_cb);
 	luat_mobile_sms_event_register_handler(sms_event_cb);
-	luat_mobile_set_period_work(90000, 0, 4);
+	luat_mobile_set_period_work(90000, 5000, 4);
 	luat_mobile_set_check_network_period(120000);
 	luat_mobile_set_sim_id(2);
 	luat_mobile_set_sim_detect_sim0_first();
