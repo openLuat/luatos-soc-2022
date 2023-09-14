@@ -121,6 +121,13 @@ int luat_pwm_update_dutycycle(int channel,size_t pulse);
 int luat_pwm_set_callback(int channel, CBFuncEx_t callback, void *param);
 /** @}*/
 
+/**
+ * @brief 是否启用快速更新占空比
+ * @param channel: 选择pwm通道 可选通道为 0 / 1 / 2 / 4 总计4个通道
+ *        on_off  ：0不启用，其他启用。默认不启用，启用后，将不再选择合适的时机更新占空比，而是立刻更新。EC618的平台限制，如果在错误的时机更新占空比，可能会导致1个周期的PWM占空比异常
+ * @return void
+ */
+void luat_pwm_config_update_no_delay(int channel, uint8_t on_off);
 /** @}*/
 /** @}*/
 #endif
