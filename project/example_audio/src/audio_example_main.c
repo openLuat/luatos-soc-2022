@@ -127,7 +127,7 @@ void audio_data_cb(uint8_t *data, uint32_t len, uint8_t bits, uint8_t channels)
 
 static void demo_task(void *arg)
 {
-	size_t total, used, max_used;
+	size_t total = 0, used = 0, max_used = 0;
 //	luat_rtos_task_sleep(3000);
 	ivCStrA sdk_id = AISOUND_SDK_USERID_16K;
 	//8K用下面的
@@ -140,7 +140,7 @@ static void demo_task(void *arg)
 	char tts_string[] = "支付宝到账123.45元,微信收款9876.12元ABC,支付宝到账123.45元,微信收款9876.12元ABC,支付宝到账123.45元,微信收款9876.12元ABC,支付宝到账123.45元,微信收款9876.12元ABC";
 	//英文测试用下面的
 //	char tts_string[] = "hello world, now test once";
-	luat_audio_play_info_t info[5];
+	luat_audio_play_info_t info[5] = {0};
 
 	download_file();
 	luat_rtos_timer_create(&g_s_delay_timer);
