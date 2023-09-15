@@ -515,7 +515,7 @@ int luat_pwm_update_dutycycle(int channel,size_t pulse)
 	uint64_t temp = period;
 	temp *= pulse;
 	uint32_t low_cnt = period - temp / 1000;
-	if (!g_s_pwm_table[instance].no_delay_mode)
+	if (!g_s_pwm_table[instance].no_delay_mode && pulse != 1000)
 	{
 		while (EIGEN_TIMER(instance)->TCAR > 5) {;}
 	}
