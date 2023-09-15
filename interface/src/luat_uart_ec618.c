@@ -242,8 +242,10 @@ int luat_uart_setup(luat_uart_t* uart) {
      else if (uart->parity == 2)parity = UART_PARITY_EVEN;
      int stop_bits = (uart->stop_bits)==1?UART_STOP_BIT1:UART_STOP_BIT2;
      {
-    	 uart_cb[uart->id].recv_callback_fun = luat_uart_recv_dummy_cb;
-    	 uart_cb[uart->id].sent_callback_fun = luat_uart_sent_dummy_cb;
+    	 if (!uart_cb[uart->id].recv_callback_fun)
+    		 uart_cb[uart->id].recv_callback_fun = luat_uart_recv_dummy_cb;
+    	 if (!uart_cb[uart->id].sent_callback_fun)
+    		 uart_cb[uart->id].sent_callback_fun = luat_uart_sent_dummy_cb;
     	 g_s_serials[uart->id].rx_buf_size = buffsize;
          Uart_BaseInitEx(uart->id, uart->baud_rate, 1024, buffsize, (uart->data_bits), parity, stop_bits, luat_uart_cb);
 #ifdef __LUATOS__
