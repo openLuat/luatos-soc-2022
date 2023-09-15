@@ -58,7 +58,8 @@ uint32_t luat_msgbus_get(rtos_msg_t* msg, size_t timeout) {
 }
 
 uint32_t luat_msgbus_freesize(void) {
-    return 1;
+    return 1024 - get_event_cnt(prvTaskHandle);
 }
 
+uint8_t luat_msgbus_is_empty(void) {return !get_event_cnt(prvTaskHandle);}
 #endif
