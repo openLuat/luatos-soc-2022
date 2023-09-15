@@ -270,19 +270,19 @@ int luat_adc_read(int id, int* val, int* val2) {
     switch (id)
     {
     case 0:
-        *val2 = aio3ChannelResult;
+        *val = aio3ChannelResult;
 #ifdef __LUATOS__
-        *val = (int)HAL_ADC_CalibrateRawCode(aio3ChannelResult) * ratio /1000;
+        *val2 = (int)HAL_ADC_CalibrateRawCode(aio3ChannelResult) * ratio /1000;
 #else
-        *val = (int)HAL_ADC_CalibrateRawCode(aio3ChannelResult) * ratio ;
+        *val2 = (int)HAL_ADC_CalibrateRawCode(aio3ChannelResult) * ratio ;
 #endif
         break;
     case 1:
-        *val2 = aio4ChannelResult;
+        *val = aio4ChannelResult;
 #ifdef __LUATOS__
-        *val = (int)HAL_ADC_CalibrateRawCode(aio4ChannelResult) * ratio /1000;
+        *val2 = (int)HAL_ADC_CalibrateRawCode(aio4ChannelResult) * ratio /1000;
 #else
-        *val = (int)HAL_ADC_CalibrateRawCode(aio4ChannelResult) * ratio ;
+        *val2 = (int)HAL_ADC_CalibrateRawCode(aio4ChannelResult) * ratio ;
 #endif
         break;
     case LUAT_ADC_CH_VBAT:
