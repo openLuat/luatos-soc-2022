@@ -30,6 +30,16 @@ typedef struct PsifDlDataHeader_Tag
 
 typedef UINT8   PsIfRet;
 
+
+/*
+ *
+ * process the DL IP PKG,run within lwip task
+ *you can define your dl ip pkg process function by set the external global var.  NetifRecvDlIpPkg gPsDlIpPkgProcFunc;(deault value is PNULL)
+ *and you must free the dl pdu block by PsifFreeDlIpPkgBlockList
+*/
+typedef void ( *NetifRecvDlIpPkg)(UINT8 cid, DlPduBlock *pPduHdr);
+
+
 /******************************************************************************
  *                           DL, NW -> UE, PS -> LWIP                        *
 ******************************************************************************/

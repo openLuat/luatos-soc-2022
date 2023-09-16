@@ -1,8 +1,8 @@
 DbVersion
-738753040,100
+1586103936,100
 <end>
 BuildInfo
-The current data file was built by the Application Ver. 2.2.73.199, Thu Jul  6 10:55:48 2023
+The current data file was built by the Application Ver. 2.2.73.199, Thu Aug 31 17:23:08 2023
 <end>
 EnumVals
 0,2048,0,0,PHY_ONLINE,PHY_ICS_MODULE,PhyIcsMeasMainEntrance_0,P_INFO,swLogPrintf("ICS MEAS of euArfcn %d will be started ");
@@ -2291,48 +2291,50 @@ EnumVals
 300032,615145728,0,0,PLAT_AP,TCPIP_NETADPT,PsifTcpIpRohcInput_3,P_VALUE,swLogPrintf("PSIF , CID : %d , DL PKG need to ignore ROHC decomp , pkg len : %d ");
 300032,615147776,0,0,PLAT_AP,TCPIP_NETADPT,PsifTcpipDlInput_1,P_WARNING,swLogPrintf("Can not find correct netif , cid %u , pdu 0x%x ");
 300032,615149568,0,0,PLAT_AP,TCPIP_NETADPT,PsSuspendIndCallback_1,P_VALUE,swLogPrintf("PsGetNetInfoCallback is suspend : %u ");
-300032,615151616,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_1,P_WARNING,swLogPrintf("CID : %d , configed ROHC , but not ROCH COMP channel ");
-300032,615155711,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_2,P_VALUE,swLogDump("ROHC , PKG before compress : ");
-300032,615155712,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_3,P_WARNING,swLogPrintf("CID : %d , configed ROHC , no more memory allo from compressed header ");
-300032,615157760,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_4,P_WARNING,swLogPrintf("CID : %d , ROHC compress PKG fail , UL pkg send fail ");
-300032,615160832,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_5,P_WARNING,swLogPrintf("CID : %d , ROHC compress PKG , RAW PKG len : %d , compressed offset : %d , payload size : %d , compressed header size : %d ");
-300032,615161856,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_6,P_WARNING,swLogPrintf("CID : %d , ROHC compress output is not right , discard this UL pkg ");
-300032,615164672,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_7,P_VALUE,swLogPrintf("PS UL new pdu esmRai %u , bexceptdata %u , ticktype %u , systick %u ");
-300032,615166464,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_8,P_VALUE,swLogPrintf("PS UL rohc process fail , cid %u , pdu list hdr 0x%x , total len %u ");
-300032,615168256,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocUlPkgMem_1,P_WARNING,swLogPrintf("PS IF UL PKG high water : %u , can ' t alloc this new len : %d ");
-300032,615170048,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocUlPkgMem_2,P_VALUE,swLogPrintf("PsifAllocUlPkgMem alloc success , address 0x%x ");
-300032,615172096,0,0,PLAT_AP,TCPIP_NETADPT,PsifFreeUlPkgMem_1,P_VALUE,swLogPrintf("PsifFreeUlPkgMem free address 0x%x ");
-300032,615174400,0,0,PLAT_AP,TCPIP_NETADPT,PsNetifSyncRohcChannel_1,P_VALUE,swLogPrintf("PsNetifSyncRohcChannel sync netif 0x%x with cid %u rohc channel ");
-300032,615176192,0,0,PLAT_AP,TCPIP_NETADPT,PsifSuspendInd_1,P_SIG,swLogPrintf("PSIF , suspend ( 1 ) / resume ( 0 ) : %u LWIP ");
-300032,615178240,0,0,PLAT_AP,TCPIP_NETADPT,PsifSuspendInd_2,P_WARNING,swLogPrintf("PSIF , suspend ( 1 ) / resume ( 0 ) : %u , LWIP FAIL ");
-300032,615181056,0,0,PLAT_AP,TCPIP_NETADPT,PsifNetifTftConfig_cid_w_1,P_ERROR,swLogPrintf("PSIF , netif TFT cfg , pfNum : %d , idx : %x , cid : %d ! = %d ");
-300032,615182336,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocDlRamBlockMem_1,P_WARNING,swLogPrintf("ps dl ram alloc high water , %u ");
-300032,615184384,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocDlRamBlockMem_2,P_WARNING,swLogPrintf("ps dl ram alloc FAIL , %u ");
-300032,615186688,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocDlRamBlockMem_3,P_VALUE,swLogPrintf("ps dl ram alloc 0x%x success , data len %u ");
-300032,615190527,0,0,PLAT_AP,TCPIP_NETADPT,PsifTcpipDlHighWaterChkInput_1,P_VALUE,swLogPrintf("PS DL BUFFER high water ");
-300032,615192575,0,0,PLAT_AP,TCPIP_NETADPT,PsifFreeDlRamBlockMem_1,P_WARNING,swLogPrintf("ps dl ram free , invalid pbuf ");
-300032,615192576,0,0,PLAT_AP,TCPIP_NETADPT,PsifFreeDlRamBlockMem_2,P_WARNING,swLogPrintf("ps dl ram free , invalid dl data header point , 0x%x ");
-300032,615194880,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_down_1,P_VALUE,swLogPrintf("Netif linkdown , ipv4Cid : %d , ipv6Cid : %d ");
-300032,615196928,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_ipv4_down_1,P_VALUE,swLogPrintf("Netif only ipv4 linkdown , ipv4Cid : %d , ipv6Cid : %d ");
-300032,615198720,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_ipv4_down_2,P_WARNING,swLogPrintf("Netif only ipv4 linkdown , but no ipv6 exist , iptype : %d ");
-300032,615201024,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_ipv6_down_1,P_VALUE,swLogPrintf("Netif only ipv6 linkdown , ipv4Cid : %d , ipv6Cid : %d ");
-300032,615202816,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_ipv6_down_2,P_WARNING,swLogPrintf("Netif only ipv6 linkdown , but no ipv4 exist , iptype : %d ");
-300032,615205376,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_notify_1,P_SIG,swLogPrintf("Netif change cause : %e<NmNetifStatusChangeCause> , net status : %e<NmNetifStatus> , ipType %e<NmNetIpType> ");
-300032,615206912,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrAllocateMappingTable_1,P_INFO,swLogPrintf("PortMgrAllocateMappingTable allocate tcpip port mgr table 0x%x ");
-300032,615209984,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrFreeMappingTable_1,P_INFO,swLogPrintf("PortMgrAllocateMappingTable free tcpip port mgr table 0x%x , conn source %u , original port %u , mapping port %u , cid %u ");
-300032,615211520,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrInit_1,P_WARNING,swLogPrintf("PortMgrInit local port num > %u or < %u , reset to default %u ");
-300032,615213056,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrMappingTableHighWaterProcess_1,P_INFO,swLogPrintf("PortMgrMappingTableHighWaterProcess context num %u ");
-300032,615216128,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrGetMappingTableByOriginalPort_1,P_INFO,swLogPrintf("PortMgrGetMappingTableByOriginalPort get tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
-300032,615218176,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrGetMappingTableByOriginalPort_2,P_INFO,swLogPrintf("PortMgrGetMappingTableByOriginalPort get tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
-300032,615220224,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrGetMappingTableByMappingPort_1,P_INFO,swLogPrintf("PortMgrGetMappingTableByMappingPort get tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
-300032,615222272,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrGetMappingTableByMappingPort_2,P_INFO,swLogPrintf("PortMgrGetMappingTableByMappingPort get tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
-300032,615223296,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUpdateUeLocalDynamicPortInfo_1,P_INFO,swLogPrintf("PortMgrUpdateUeLocalDynamicPortInfo CID %u ");
-300032,615225344,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUpdateUeLocalDynamicPortInfo_2,P_INFO,swLogPrintf("PortMgrUpdateUeLocalDynamicPortInfo add tcp port %u ");
-300032,615227392,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUpdateUeLocalDynamicPortInfo_3,P_INFO,swLogPrintf("PortMgrUpdateUeLocalDynamicPortInfo add udp port %u ");
-300032,615229952,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUpdateUeLocalDynamicPortInfo_4,P_INFO,swLogPrintf("PortMgrUpdateUeLocalDynamicPortInfo update cid %u , num %u , bitmap %u ");
-300032,615232512,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUlProcess_1,P_INFO,swLogPrintf("PortMgrUlProcess add new tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
-300032,615235583,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUlProcess_2,P_INFO,swLogPrintf("PortMgrUlProcess allocate mapping table fail ");
-300032,615237631,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUlProcess_3,P_INFO,swLogPrintf("PortMgrUlProcess get new mapping port fail ");
+300032,615153663,0,0,PLAT_AP,TCPIP_NETADPT,PsifRawUlOutput_1,P_WARNING,swLogPrintf("PS UL highwater , busy ");
+300032,615154432,0,0,PLAT_AP,TCPIP_NETADPT,PsifRawUlOutput_2,P_INFO,swLogPrintf("PS UL PDU , esmRai : %u , bExceptData : %u , ticktype : %u ( 0 -NO / 1 -DISCARD / 2 -START ) , systick : %u ");
+300032,615155712,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_1,P_WARNING,swLogPrintf("CID : %d , configed ROHC , but not ROCH COMP channel ");
+300032,615159807,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_2,P_VALUE,swLogDump("ROHC , PKG before compress : ");
+300032,615159808,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_3,P_WARNING,swLogPrintf("CID : %d , configed ROHC , no more memory allo from compressed header ");
+300032,615161856,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_4,P_WARNING,swLogPrintf("CID : %d , ROHC compress PKG fail , UL pkg send fail ");
+300032,615164928,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_5,P_WARNING,swLogPrintf("CID : %d , ROHC compress PKG , RAW PKG len : %d , compressed offset : %d , payload size : %d , compressed header size : %d ");
+300032,615165952,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_6,P_WARNING,swLogPrintf("CID : %d , ROHC compress output is not right , discard this UL pkg ");
+300032,615168768,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_7,P_VALUE,swLogPrintf("PS UL new pdu esmRai %u , bexceptdata %u , ticktype %u , systick %u ");
+300032,615170560,0,0,PLAT_AP,TCPIP_NETADPT,PsifUlRohcOutput_8,P_VALUE,swLogPrintf("PS UL rohc process fail , cid %u , pdu list hdr 0x%x , total len %u ");
+300032,615172352,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocUlPkgMem_1,P_WARNING,swLogPrintf("PS IF UL PKG high water : %u , can ' t alloc this new len : %d ");
+300032,615174144,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocUlPkgMem_2,P_VALUE,swLogPrintf("PsifAllocUlPkgMem alloc success , address 0x%x ");
+300032,615176192,0,0,PLAT_AP,TCPIP_NETADPT,PsifFreeUlPkgMem_1,P_VALUE,swLogPrintf("PsifFreeUlPkgMem free address 0x%x ");
+300032,615178496,0,0,PLAT_AP,TCPIP_NETADPT,PsNetifSyncRohcChannel_1,P_VALUE,swLogPrintf("PsNetifSyncRohcChannel sync netif 0x%x with cid %u rohc channel ");
+300032,615180288,0,0,PLAT_AP,TCPIP_NETADPT,PsifSuspendInd_1,P_SIG,swLogPrintf("PSIF , suspend ( 1 ) / resume ( 0 ) : %u LWIP ");
+300032,615182336,0,0,PLAT_AP,TCPIP_NETADPT,PsifSuspendInd_2,P_WARNING,swLogPrintf("PSIF , suspend ( 1 ) / resume ( 0 ) : %u , LWIP FAIL ");
+300032,615185152,0,0,PLAT_AP,TCPIP_NETADPT,PsifNetifTftConfig_cid_w_1,P_ERROR,swLogPrintf("PSIF , netif TFT cfg , pfNum : %d , idx : %x , cid : %d ! = %d ");
+300032,615186432,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocDlRamBlockMem_1,P_WARNING,swLogPrintf("ps dl ram alloc high water , %u ");
+300032,615188480,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocDlRamBlockMem_2,P_WARNING,swLogPrintf("ps dl ram alloc FAIL , %u ");
+300032,615190784,0,0,PLAT_AP,TCPIP_NETADPT,PsifAllocDlRamBlockMem_3,P_VALUE,swLogPrintf("ps dl ram alloc 0x%x success , data len %u ");
+300032,615194623,0,0,PLAT_AP,TCPIP_NETADPT,PsifTcpipDlHighWaterChkInput_1,P_VALUE,swLogPrintf("PS DL BUFFER high water ");
+300032,615196671,0,0,PLAT_AP,TCPIP_NETADPT,PsifFreeDlRamBlockMem_1,P_WARNING,swLogPrintf("ps dl ram free , invalid pbuf ");
+300032,615196672,0,0,PLAT_AP,TCPIP_NETADPT,PsifFreeDlRamBlockMem_2,P_WARNING,swLogPrintf("ps dl ram free , invalid dl data header point , 0x%x ");
+300032,615198976,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_down_1,P_VALUE,swLogPrintf("Netif linkdown , ipv4Cid : %d , ipv6Cid : %d ");
+300032,615201024,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_ipv4_down_1,P_VALUE,swLogPrintf("Netif only ipv4 linkdown , ipv4Cid : %d , ipv6Cid : %d ");
+300032,615202816,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_ipv4_down_2,P_WARNING,swLogPrintf("Netif only ipv4 linkdown , but no ipv6 exist , iptype : %d ");
+300032,615205120,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_ipv6_down_1,P_VALUE,swLogPrintf("Netif only ipv6 linkdown , ipv4Cid : %d , ipv6Cid : %d ");
+300032,615206912,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_ipv6_down_2,P_WARNING,swLogPrintf("Netif only ipv6 linkdown , but no ipv4 exist , iptype : %d ");
+300032,615209472,0,0,PLAT_AP,TCPIP_NETADPT,PsifSendNetifInfoInd_notify_1,P_SIG,swLogPrintf("Netif change cause : %e<NmNetifStatusChangeCause> , net status : %e<NmNetifStatus> , ipType %e<NmNetIpType> ");
+300032,615211008,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrAllocateMappingTable_1,P_INFO,swLogPrintf("PortMgrAllocateMappingTable allocate tcpip port mgr table 0x%x ");
+300032,615214080,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrFreeMappingTable_1,P_INFO,swLogPrintf("PortMgrAllocateMappingTable free tcpip port mgr table 0x%x , conn source %u , original port %u , mapping port %u , cid %u ");
+300032,615215616,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrInit_1,P_WARNING,swLogPrintf("PortMgrInit local port num > %u or < %u , reset to default %u ");
+300032,615217152,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrMappingTableHighWaterProcess_1,P_INFO,swLogPrintf("PortMgrMappingTableHighWaterProcess context num %u ");
+300032,615220224,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrGetMappingTableByOriginalPort_1,P_INFO,swLogPrintf("PortMgrGetMappingTableByOriginalPort get tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
+300032,615222272,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrGetMappingTableByOriginalPort_2,P_INFO,swLogPrintf("PortMgrGetMappingTableByOriginalPort get tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
+300032,615224320,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrGetMappingTableByMappingPort_1,P_INFO,swLogPrintf("PortMgrGetMappingTableByMappingPort get tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
+300032,615226368,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrGetMappingTableByMappingPort_2,P_INFO,swLogPrintf("PortMgrGetMappingTableByMappingPort get tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
+300032,615227392,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUpdateUeLocalDynamicPortInfo_1,P_INFO,swLogPrintf("PortMgrUpdateUeLocalDynamicPortInfo CID %u ");
+300032,615229440,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUpdateUeLocalDynamicPortInfo_2,P_INFO,swLogPrintf("PortMgrUpdateUeLocalDynamicPortInfo add tcp port %u ");
+300032,615231488,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUpdateUeLocalDynamicPortInfo_3,P_INFO,swLogPrintf("PortMgrUpdateUeLocalDynamicPortInfo add udp port %u ");
+300032,615234048,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUpdateUeLocalDynamicPortInfo_4,P_INFO,swLogPrintf("PortMgrUpdateUeLocalDynamicPortInfo update cid %u , num %u , bitmap %u ");
+300032,615236608,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUlProcess_1,P_INFO,swLogPrintf("PortMgrUlProcess add new tcpip port mgr table 0x%x , source %u , original port %u , mapping port %u , cid %u ");
+300032,615239679,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUlProcess_2,P_INFO,swLogPrintf("PortMgrUlProcess allocate mapping table fail ");
+300032,615241727,0,0,PLAT_AP,TCPIP_NETADPT,PortMgrUlProcess_3,P_INFO,swLogPrintf("PortMgrUlProcess get new mapping port fail ");
 303104,620759040,0,0,PLAT_AP,CERRC,CerrcSendCephyWifiScanReq_channelId,P_VALUE,swLogPrintf("Current Scanning channelId ( %d ) ");
 303104,620763135,0,0,PLAT_AP,TCPIP_DHCPD,DhcpsScanOptions_1,P_ERROR,swLogPrintf("bad packet , malformed option field ");
 303104,620763136,0,0,PLAT_AP,TCPIP_DHCPD,DhcpsAddBinaryOption_1,P_ERROR,swLogPrintf("option 0x%x did not fit into the packet ");
@@ -6680,5 +6682,5 @@ MW_INFO_PHY_EDRX_PARAM,midWareNvmInfoPhyEdrxParam
 plat_config,plat_config_fs_t
 <end>
 OptionalSegment
-optional_sk_01,27931C2F64DE1C502844D0EDA187F39235B13115ACB5E97DB3C3E718DEEDFFE4
+optional_sk_01,C9667C5969F8C8102BECE57531F4C1D74CB5C3AA5413F173550DE3F56BB0519B
 <end>
