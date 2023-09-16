@@ -9,6 +9,7 @@ extern "C" {
 #include "ec618.h"
 #include "bsp.h"
 
+#define SPI_RX_FIFO_TRIG_LVL          8
 
 // SPI flags
 #define SPI_FLAG_INITIALIZED          (1UL << 0)     // SPI initialized
