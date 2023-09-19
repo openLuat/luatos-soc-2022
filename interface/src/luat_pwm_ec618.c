@@ -316,8 +316,7 @@ typedef struct
 	uint32_t pulse_cnt;
 	uint32_t freq;
 	uint32_t last_pulse_rate;
-
-	uint8_t no_delay_mode;
+	uint8_t update_period;
 }luat_pwm_ctrl_t;
 
 static luat_pwm_ctrl_t g_s_pwm_table[PWM_CH_MAX] =
@@ -491,7 +490,7 @@ int luat_pwm_open(int channel, size_t freq,  size_t pulse, int pnum) {
         XIC_SuppressOvfIRQ(g_s_pwm_table[instance].irq_line);
     }
 //    DBG("%x,%x,%x,%x", EIGEN_TIMER(instance)->TCTLR, EIGEN_TIMER(instance)->TMR[0], EIGEN_TIMER(instance)->TMR[1], EIGEN_TIMER(instance)->TMR[2]);
-    if (pulse >= 1000 && !g_s_pwm_table[instance].no_delay_mode)
+    if (pulse >= 1000)
     {
     	GPIO_Config(g_s_pwm_table[instance].pin[alt].gpio, 0, 1);
     	GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_pwm_table[instance].pin[alt].gpio, g_s_pwm_table[instance].pin[alt].gpio_alt), g_s_pwm_table[instance].pin[alt].gpio_alt, 0, 0);
@@ -515,11 +514,15 @@ int luat_pwm_update_dutycycle(int channel,size_t pulse)
 	uint64_t temp = period;
 	temp *= pulse;
 	uint32_t low_cnt = period - temp / 1000;
-	if (!g_s_pwm_table[instance].no_delay_mode && pulse != 1000)
+	if (g_s_pwm_table[instance].update_period)
 	{
 		while (EIGEN_TIMER(instance)->TCAR > 5) {;}
+		EIGEN_TIMER(instance)->TMR[1] = period - 1;
 	}
-	EIGEN_TIMER(instance)->TMR[1] = period - 1;
+	if (pulse && (g_s_pwm_table[instance].last_pulse_rate != 1000) && (low_cnt < EIGEN_TIMER(instance)->TMR[0]))
+	{
+		while (EIGEN_TIMER(instance)->TCAR <= EIGEN_TIMER(instance)->TMR[0]) {;}
+	}
 	switch(pulse)
 	{
 	case 0:
@@ -563,8 +566,13 @@ int luat_pwm_setup(luat_pwm_conf_t* conf)
 				return 0;
 			}
 //			DBG("update pwm period %u->%u rate %u->%u", g_s_pwm_table[instance].freq, conf->period, g_s_pwm_table[instance].last_pulse_rate, conf->pulse);
-			g_s_pwm_table[instance].freq = conf->period;
+			if (g_s_pwm_table[instance].freq != conf->period)
+			{
+				g_s_pwm_table[instance].update_period = 1;
+				g_s_pwm_table[instance].freq = conf->period;
+			}
 			luat_pwm_update_dutycycle(channel, conf->pulse);
+			g_s_pwm_table[instance].update_period = 0;
 			return 0;
 		}
 	}
@@ -591,11 +599,5 @@ int luat_pwm_close(int channel)
     return 0;
 }
 
-void luat_pwm_config_update_no_delay(int channel, uint8_t on_off)
-{
-	uint8_t instance = channel % 10;
-	uint8_t alt = channel / 10;
-	if ((instance >= PWM_CH_MAX) || (instance == 3)) return;
-	g_s_pwm_table[instance].no_delay_mode = on_off;
-}
+
 #endif
