@@ -11,6 +11,7 @@
 #include "platform_define.h"
 
 #include "bsp_spi.h"
+#include "bsp_common.h"
 #include "slpman.h"
 #include "ostask.h"
 #include "plat_config.h"
@@ -626,6 +627,16 @@ u8_t ip4_filter(struct pbuf *p, struct netif *inp)
 
 static void SPI_ExampleEntry(void *arg)
 {
+    luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET);
+
+    STAILQ_INIT(&dq);
+
+    luat_rtos_semaphore_create(&done_sema, 1);
+    luat_rtos_semaphore_take(done_sema, 0);
+
+    luat_rtos_semaphore_create(&hrdy_high_sema, 1);
+    luat_rtos_semaphore_take(hrdy_high_sema, 0);
+
     uint8_t state = 0;
     uint16_t crc = 0;
     uint16_t dataCrc = 0;
@@ -712,7 +723,7 @@ static void SPI_ExampleEntry(void *arg)
                 spi_error = false;
 
                 LUAT_DEBUG_PRINT("Wait main_msgq");
-                status = luat_rtos_message_recv(&main_msgq, &id, &tick, LUAT_WAIT_FOREVER);
+                status = luat_rtos_message_recv(main_msgq, &id, &tick, LUAT_WAIT_FOREVER);
             } while (0);
 
             if (!skip)
@@ -877,14 +888,6 @@ DECODE:
 
 void spiTaskInit(void)
 {
-    STAILQ_INIT(&dq);
-
-    luat_rtos_semaphore_create(&done_sema, 1);
-    luat_rtos_semaphore_take(done_sema, 0);
-
-    luat_rtos_semaphore_create(&hrdy_high_sema, 1);
-    luat_rtos_semaphore_take(hrdy_high_sema, 0);
-
     luat_rtos_task_create(&main_msgq, 4096, 40, "spi", SPI_ExampleEntry, NULL, 256);
 }
 
