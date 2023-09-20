@@ -519,7 +519,8 @@ int luat_pwm_update_dutycycle(int channel,size_t pulse)
 		while (EIGEN_TIMER(instance)->TCAR > 5) {;}
 		EIGEN_TIMER(instance)->TMR[1] = period - 1;
 	}
-	if (pulse && (g_s_pwm_table[instance].last_pulse_rate != 1000) && (low_cnt < EIGEN_TIMER(instance)->TMR[0]))
+	//DBG("%u,%u,%u,%u,%u", pulse, g_s_pwm_table[instance].last_pulse_rate, low_cnt, EIGEN_TIMER(instance)->TMR[0], EIGEN_TIMER(instance)->TCAR);
+	if (pulse && g_s_pwm_table[instance].last_pulse_rate && (g_s_pwm_table[instance].last_pulse_rate != 1000) && (low_cnt < EIGEN_TIMER(instance)->TMR[0]))
 	{
 		while (EIGEN_TIMER(instance)->TCAR <= EIGEN_TIMER(instance)->TMR[0]) {;}
 	}
