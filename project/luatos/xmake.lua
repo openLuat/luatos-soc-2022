@@ -82,6 +82,7 @@ target(TARGET_NAME)
     --                 {public = true})
     add_files("./src/*.c",{public = true})
     add_files(SDK_TOP .. "/interface/src/*.c",{public = true})
+	add_files(SDK_TOP .. "/thirdparty/littlefs/**.c",{public = true})
 	
     add_includedirs(LUATOS_ROOT .. "lua/include")
     add_includedirs(LUATOS_ROOT .. "luat/include")
