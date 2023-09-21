@@ -148,10 +148,10 @@ static void SPI_ExitLowPowerStateRestore(void* pdata, slpManLpState state)
             {
                 if(g_spiDataBase[i].isInited == true)
                 {
-                    GPR_clockEnable(g_spiClocks[2*i]);
-                    GPR_clockEnable(g_spiClocks[2*i+1]);
                     GPR_clockEnable(CLK_HF51M);
                     GPR_setClockSrc(g_spiClocks[2*i+1], FCLK_SPI0_SEL_51M);
+                    GPR_clockEnable(g_spiClocks[2*i]);
+                    GPR_clockEnable(g_spiClocks[2*i+1]);
 
                     g_spiBases[i]->CR0 = g_spiDataBase[i].backup_registers.CR0;
                     g_spiBases[i]->CPSR = g_spiDataBase[i].backup_registers.CPSR;
@@ -620,9 +620,9 @@ int32_t SPI_PowerControl(ARM_POWER_STATE state, SPI_RESOURCES *spi)
             spi->reg->ICR   = (SPI_ICR_RTIC_Msk | SPI_ICR_RORIC_Msk);
 
             // Disable SPI clock
+            CLOCK_clockDisable(CLK_HF51M);
             CLOCK_clockDisable(g_spiClocks[instance*2]);
             CLOCK_clockDisable(g_spiClocks[instance*2+1]);
-            CLOCK_clockDisable(CLK_HF51M);
 
             // Clear SPI run-time resources
             spi->info->status.busy       = 0;
@@ -649,10 +649,10 @@ int32_t SPI_PowerControl(ARM_POWER_STATE state, SPI_RESOURCES *spi)
                 return ARM_DRIVER_OK;
 
             // Enable spi clock
-            CLOCK_clockEnable(g_spiClocks[instance*2]);
-            CLOCK_clockEnable(g_spiClocks[instance*2+1]);
             CLOCK_clockEnable(CLK_HF51M);
             CLOCK_setClockSrc(g_spiClocks[instance*2+1], FCLK_SPI0_SEL_51M);
+            CLOCK_clockEnable(g_spiClocks[instance*2]);
+            CLOCK_clockEnable(g_spiClocks[instance*2+1]);
 
             GPR_swResetModule(&g_spiResetVectors[instance]);
 

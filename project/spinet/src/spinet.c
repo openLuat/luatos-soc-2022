@@ -8,6 +8,7 @@
 #include "luat_gpio.h"
 #include "luat_mcu.h"
 #include "luat_pm.h"
+#include "luat_mobile.h"
 #include "platform_define.h"
 
 #include "bsp_spi.h"
@@ -317,7 +318,9 @@ static void initGpio()
     luat_gpio_set_default_cfg(&gpio_cfg);
 
     gpio_cfg.pin = HRDY_GPIO_PIN;
-    gpio_cfg.mode = LUAT_GPIO_INPUT;
+    gpio_cfg.mode = LUAT_GPIO_IRQ;
+    gpio_cfg.irq_type = LUAT_GPIO_NO_IRQ;
+    gpio_cfg.irq_cb = GPIO_ISR;
     luat_gpio_open(&gpio_cfg);
 
     // NOT
@@ -411,14 +414,7 @@ static uint32_t spiTransfer(void *out, void *in, uint32_t len)
     }
 
     hrdy_debounce_edge = LUAT_GPIO_HIGH_IRQ;
-    luat_gpio_cfg_t gpio_cfg;
-    luat_gpio_set_default_cfg(&gpio_cfg);
-
-    gpio_cfg.pin = HRDY_GPIO_PIN;
-    gpio_cfg.mode = LUAT_GPIO_IRQ;
-    gpio_cfg.irq_type = hrdy_debounce_edge;
-    gpio_cfg.irq_cb = GPIO_ISR;
-    luat_gpio_open(&gpio_cfg);
+    luat_gpio_ctrl(HRDY_GPIO_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, hrdy_debounce_edge);
 
     luat_rtos_exit_critical(cr);
 
@@ -700,14 +696,7 @@ static void SPI_ExampleEntry(void *arg)
                 }
 
                 hrdy_debounce_edge = spi_error ? LUAT_GPIO_FALLING_IRQ : LUAT_GPIO_LOW_IRQ;
-                luat_gpio_cfg_t gpio_cfg;
-                luat_gpio_set_default_cfg(&gpio_cfg);
-
-                gpio_cfg.pin = HRDY_GPIO_PIN;
-                gpio_cfg.mode = LUAT_GPIO_IRQ;
-                gpio_cfg.irq_type = hrdy_debounce_edge;
-                gpio_cfg.irq_cb = GPIO_ISR;
-                luat_gpio_open(&gpio_cfg);
+                luat_gpio_ctrl(HRDY_GPIO_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, hrdy_debounce_edge);
 
                 luat_rtos_exit_critical(cr);
 
@@ -886,8 +875,39 @@ DECODE:
     }
 }
 
+static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
+{
+    ip_addr_t ipv4;
+    ip_addr_t ipv6;
+    switch(event)
+    {
+    case LUAT_MOBILE_EVENT_NETIF:
+        switch (status)
+        {
+        case LUAT_MOBILE_NETIF_LINK_ON:
+            luat_mobile_get_local_ip(0, 1, &ipv4, &ipv6);
+            if (ipv4.type != 0xff)
+            {
+                LUAT_DEBUG_PRINT("IPV4 %s", ip4addr_ntoa(&ipv4.u_addr.ip4));
+            }
+            if (ipv6.type != 0xff)
+            {
+                LUAT_DEBUG_PRINT("IPV6 %s", ip6addr_ntoa(&ipv4.u_addr.ip6));
+            }
+            break;
+        default:
+            LUAT_DEBUG_PRINT("不能上网");
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 void spiTaskInit(void)
 {
+    luat_mobile_event_register_handler(mobile_event_cb);
     luat_rtos_task_create(&main_msgq, 4096, 40, "spi", SPI_ExampleEntry, NULL, 256);
 }
 

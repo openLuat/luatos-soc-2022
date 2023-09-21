@@ -22,7 +22,7 @@
 #define RTE_UART2_TX_IO_MODE    POLLING_MODE
 #define RTE_UART2_RX_IO_MODE    DMA_MODE
 
-#define RTE_SPI0_IO_MODE        POLLING_MODE
+#define RTE_SPI0_IO_MODE        DMA_MODE
 
 #define RTE_SPI1_IO_MODE        POLLING_MODE
 
@@ -163,17 +163,17 @@
 // { PAD_PIN22},  // 0 : gpio11 / 1 : UART1 CTS / 2 : SPI0 MOSI
 // { PAD_PIN23},  // 0 : gpio14 / 1 : UART1 RXD / 2 : SPI0 MISO
 // { PAD_PIN24},  // 0 : gpio15 / 1 : UART1 TXD / 2 : SPI0 SCLK
-#define RTE_SPI0_SSN_BIT                21
-#define RTE_SPI0_SSN_FUNC               PAD_MUX_ALT2
+#define RTE_SPI0_SSN_BIT                23
+#define RTE_SPI0_SSN_FUNC               PAD_MUX_ALT1
 
-#define RTE_SPI0_MOSI_BIT               22
-#define RTE_SPI0_MOSI_FUNC              PAD_MUX_ALT2
+#define RTE_SPI0_MOSI_BIT               24
+#define RTE_SPI0_MOSI_FUNC              PAD_MUX_ALT1
 
-#define RTE_SPI0_MISO_BIT               23
-#define RTE_SPI0_MISO_FUNC              PAD_MUX_ALT2
+#define RTE_SPI0_MISO_BIT               25
+#define RTE_SPI0_MISO_FUNC              PAD_MUX_ALT1
 
-#define RTE_SPI0_SCLK_BIT               24
-#define RTE_SPI0_SCLK_FUNC              PAD_MUX_ALT2
+#define RTE_SPI0_SCLK_BIT               26
+#define RTE_SPI0_SCLK_FUNC              PAD_MUX_ALT1
 
 #define RTE_SPI0_SSN_GPIO_INSTANCE      1
 #define RTE_SPI0_SSN_GPIO_INDEX         0
