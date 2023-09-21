@@ -1,4 +1,4 @@
-local TARGET_NAME = "example_luatos_http"
+local TARGET_NAME = "example_luatos_http_post"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 includes(SDK_TOP.."/luatos_lwip_socket")
