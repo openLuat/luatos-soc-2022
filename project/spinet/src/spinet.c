@@ -186,7 +186,16 @@ static inline uint32_t initMsgBuf(void *buf, uint16_t buf_len, uint8_t type, voi
 {
     LUAT_DEBUG_PRINT("type %s, head_len %d, data_len %d", msgType2Str(type), head_len, data_len);
 
-    uint32_t length = sizeof(msgHdr_t) + head_len + data_len + sizeof(uint16_t);
+    uint32_t length = 0;
+    if (type != MSG_TYPE_GET_LEN)
+    {
+        uint16_t len = head_len + data_len;
+        len = initMsgBuf(buf, buf_len, MSG_TYPE_GET_LEN, NULL, 0, &len, sizeof(len));
+        buf += len;
+        length += len;
+    }
+
+    length += (sizeof(msgHdr_t) + head_len + data_len + sizeof(uint16_t));
     EC_ASSERT(buf_len >= length, buf_len, head_len, data_len);
 
     msgHdr_t *hdr = (msgHdr_t *)buf;
