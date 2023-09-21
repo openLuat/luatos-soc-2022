@@ -863,6 +863,13 @@ DECODE:
                         memcpy(pkt, &in_buf[sizeof(msgHdr_t)], dataLen);
                         sendIp2Ps(pkt, dataLen);
                         sendAckMsg(slave_buffer_out, MAX_TRANSFER_SIZE, MSG_ERROR_NONE);
+
+                        transSize -= (sizeof(msgHdr_t) + dataLen + sizeof(uint16_t));
+                        if (transSize)
+                        {
+                            in_buf = &in_buf[sizeof(msgHdr_t) + dataLen + sizeof(uint16_t)];
+                            goto DECODE;
+                        }
                         break;
                     }
 
