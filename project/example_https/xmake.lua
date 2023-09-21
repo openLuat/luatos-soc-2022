@@ -1,13 +1,12 @@
 local TARGET_NAME = "example_https"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
-
+includes(SDK_TOP.."/thirdparty/libhttp")
+includes(SDK_TOP.."/luatos_lwip_socket")
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)
-    --使用第三方的httpclient
-    includes(SDK_TOP .. "/thirdparty/httpclient")
-    add_deps("httpclient")
+    add_deps("libhttp") --加入HTTP客户端支持，自动加载了socket依赖
     --加入代码和头文件
     add_includedirs("./inc",{public = true})
     add_files("./src/*.c",{public = true})
