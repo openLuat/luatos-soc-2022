@@ -99,6 +99,10 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT .. "components/cjson/*.c")
     add_files(LUATOS_ROOT .. "components/crypto/*.c")
 
+    -- printf
+    add_files(LUATOS_ROOT .. "components/printf/*.c")
+    add_includedirs(LUATOS_ROOT .. "components/printf")
+
     -- gtfont
     add_includedirs(LUATOS_ROOT.."components/gtfont")
     add_files(LUATOS_ROOT.."components/gtfont/*.c")
