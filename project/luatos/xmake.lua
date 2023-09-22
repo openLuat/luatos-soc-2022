@@ -59,7 +59,7 @@ target("fastlz")
     add_files(LUATOS_ROOT.."components/fastlz/**.c")
     LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. "libfastlz.a "
 target_end()
-
+add_includedirs(LUATOS_ROOT.."components/printf",{public = true})
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)
@@ -100,8 +100,8 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT .. "components/crypto/*.c")
 
     -- printf
-    add_files(LUATOS_ROOT .. "components/printf/*.c")
-    add_includedirs(LUATOS_ROOT .. "components/printf")
+    add_includedirs(LUATOS_ROOT.."components/printf",{public = true})
+    add_files(LUATOS_ROOT.."components/printf/*.c")
 
     -- gtfont
     add_includedirs(LUATOS_ROOT.."components/gtfont")
