@@ -235,7 +235,7 @@ static void sendPrivMsg(uint8_t type, uint32_t tick)
     {
         status = luat_rtos_message_send(main_msgq, type, 0);
     }
-    EC_ASSERT(status == 0, 0, 0, 0);
+    EC_ASSERT(status == 0, status, type, 0);
 }
 
 static void newMsg(uint8_t type, void *data, uint32_t len)
@@ -262,10 +262,9 @@ static void newMsg(uint8_t type, void *data, uint32_t len)
     STAILQ_INSERT_TAIL(&dq, pd, iter);
     luat_rtos_exit_critical(cr);
 
-    LUAT_DEBUG_PRINT("dirty");
-
     if (empty)
     {
+        LUAT_DEBUG_PRINT("empty");
         sendPrivMsg(PRIV_MSG_NEW_DATA, luat_mcu_ticks());
     }
 }
@@ -814,6 +813,8 @@ DECODE:
             // Wait flag
             case 0:
             {
+                LUAT_DEBUG_PRINT("decode, %x %x %x %x", in_buf[0], in_buf[1], in_buf[2], in_buf[3]);
+
                 if (in_buf[0] == MSG_FLAG)
                 {
                     pHdr = (msgHdr_t *)&in_buf[0];
@@ -924,7 +925,7 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 void spiTaskInit(void)
 {
     luat_mobile_event_register_handler(mobile_event_cb);
-    luat_rtos_task_create(&main_msgq, 4096, 40, "spi", SPI_ExampleEntry, NULL, 256);
+    luat_rtos_task_create(&main_msgq, 4096, 200, "spi", SPI_ExampleEntry, NULL, 256);
 }
 
 
