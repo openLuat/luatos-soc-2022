@@ -18,6 +18,8 @@
 #include "plat_config.h"
 #include "osadlfcmem.h"
 #include "pad.h"
+#include "gpio.h"
+#include "ec618.h"
 #include "cmips.h"
 #include "tcpip.h"
 #include "psifapi.h"
@@ -34,10 +36,40 @@
 
 #define ARM_SPI_FRAME_FROMAT             ARM_SPI_CPOL1_CPHA1
 
+#if 0
 #define DIRE_GPIO_PIN          HAL_GPIO_1
 #define HRDY_GPIO_PIN          HAL_GPIO_27
 #define DRDY_GPIO_PIN          HAL_GPIO_22
 #define NOT_GPIO_PIN           HAL_GPIO_24
+#else
+/** \brief GPIO01
+ */
+#define DIRE_GPIO_INSTANCE     (0)
+#define DIRE_GPIO_PIN          (1)
+#define DIRE_PAD_INDEX         (16)
+#define DIRE_PAD_ALT_FUNC      (PAD_MUX_ALT0)
+
+/** \brief GPIO27
+ */
+#define HRDY_GPIO_INSTANCE     (1)
+#define HRDY_GPIO_PIN          (11)
+#define HRDY_PAD_INDEX         (47)
+#define HRDY_PAD_ALT_FUNC      (PAD_MUX_ALT0)
+
+/** \brief GPIO22
+ */
+#define DRDY_GPIO_INSTANCE     (1)
+#define DRDY_GPIO_PIN          (6)
+#define DRDY_PAD_INDEX         (42)
+#define DRDY_PAD_ALT_FUNC      (PAD_MUX_ALT0)
+
+/** \brief GPIO24
+ */
+#define NOT_GPIO_INSTANCE      (1)
+#define NOT_GPIO_PIN           (8)
+#define NOT_PAD_INDEX          (44)
+#define NOT_PAD_ALT_FUNC       (PAD_MUX_ALT0)
+#endif
 
 #define MSG_FLAG                 (0xF9)
 
@@ -269,6 +301,7 @@ static void newMsg(uint8_t type, void *data, uint32_t len)
     }
 }
 
+#if 0
 static void GPIO_ISR(int pin, void *arg)
 {
     //Save current irq mask and diable whole port interrupts to get rid of interrupt overflow
@@ -288,6 +321,36 @@ static void GPIO_ISR(int pin, void *arg)
         luat_gpio_ctrl(HRDY_GPIO_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, LUAT_GPIO_NO_IRQ);
     }
 }
+#else
+static void GPIO_ISR()
+{
+    //Save current irq mask and diable whole port interrupts to get rid of interrupt overflow
+    int expectLevel = (hrdy_debounce_edge == GPIO_INTERRUPT_LOW_LEVEL || hrdy_debounce_edge == GPIO_INTERRUPT_FALLING_EDGE) ? 0 : 1;
+    uint16_t portIrqMask = GPIO_saveAndSetIrqMask(HRDY_GPIO_INSTANCE);
+
+    if (GPIO_getInterruptFlags(HRDY_GPIO_INSTANCE) & (1 << HRDY_GPIO_PIN))
+    {
+        GPIO_clearInterruptFlags(HRDY_GPIO_INSTANCE, 1 << HRDY_GPIO_PIN);
+
+        int level = GPIO_pinRead(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN);
+        if (level == expectLevel)
+        {
+            if (level == 0)
+            {
+                sendPrivMsg(PRIV_MSG_HRDY, osKernelGetTickCount());
+            }
+            else
+            {
+                osSemaphoreRelease(hrdy_high_sema);
+            }
+
+            portIrqMask &= ~(1 << HRDY_GPIO_PIN);
+        }
+    }
+
+    GPIO_restoreIrqMask(HRDY_GPIO_INSTANCE, portIrqMask);
+}
+#endif
 
 static inline void drdy(bool isHigh)
 {
@@ -313,7 +376,7 @@ static void initGpio()
     slpManAONIOPowerOn();
     slpManNormalIOVoltSet(IOVOLT_1_80V);
     slpManAONIOVoltSet(IOVOLT_1_80V);
-
+#if 0
     // DRDY
     luat_gpio_cfg_t gpio_cfg;
     luat_gpio_set_default_cfg(&gpio_cfg);
@@ -344,6 +407,47 @@ static void initGpio()
     gpio_cfg.pin = DIRE_GPIO_PIN;
     gpio_cfg.mode = LUAT_GPIO_INPUT;
     luat_gpio_open(&gpio_cfg);
+#else
+    // DRDY
+    PadConfig_t padConfig;
+    PAD_getDefaultConfig(&padConfig);
+    padConfig.mux = DRDY_PAD_ALT_FUNC;
+    PAD_setPinConfig(DRDY_PAD_INDEX, &padConfig);
+
+    GpioPinConfig_t config;
+    config.pinDirection = GPIO_DIRECTION_OUTPUT;
+    config.misc.initOutput = 0;
+    GPIO_pinConfig(DRDY_GPIO_INSTANCE, DRDY_GPIO_PIN, &config);
+
+    // HRDY
+    padConfig.mux = HRDY_PAD_ALT_FUNC;
+    PAD_setPinConfig(HRDY_PAD_INDEX, &padConfig);
+
+    config.pinDirection = GPIO_DIRECTION_INPUT;
+    config.misc.interruptConfig = GPIO_INTERRUPT_DISABLED;
+    GPIO_pinConfig(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN, &config);
+
+    // NOT
+    padConfig.mux = NOT_PAD_ALT_FUNC;
+    PAD_setPinConfig(NOT_PAD_INDEX, &padConfig);
+
+    config.pinDirection = GPIO_DIRECTION_OUTPUT;
+    config.misc.initOutput = 0;
+    GPIO_pinConfig(NOT_GPIO_INSTANCE, NOT_GPIO_PIN, &config);
+
+    // DIRE
+    padConfig.mux = DIRE_PAD_ALT_FUNC;
+    PAD_setPinConfig(DIRE_PAD_INDEX, &padConfig);
+
+    config.pinDirection = GPIO_DIRECTION_INPUT;
+    config.misc.interruptConfig = GPIO_INTERRUPT_DISABLED;
+    GPIO_pinConfig(DIRE_GPIO_INSTANCE, DIRE_GPIO_PIN, &config);
+
+    // Enable IRQ
+    XIC_DisableIRQ(PXIC1_GPIO_IRQn);
+    XIC_SetVector(PXIC1_GPIO_IRQn, GPIO_ISR);
+    XIC_EnableIRQ(PXIC1_GPIO_IRQn);
+#endif
 }
 
 /**
@@ -413,7 +517,7 @@ static uint32_t spiTransfer(void *out, void *in, uint32_t len)
     luat_rtos_semaphore_take(hrdy_high_sema, 0);
 
     uint32_t cr = luat_rtos_entry_critical();
-
+#if 0
     if (luat_gpio_get(HRDY_GPIO_PIN) == 1)
     {
         luat_rtos_exit_critical(cr);
@@ -423,7 +527,20 @@ static uint32_t spiTransfer(void *out, void *in, uint32_t len)
 
     hrdy_debounce_edge = LUAT_GPIO_HIGH_IRQ;
     luat_gpio_ctrl(HRDY_GPIO_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, hrdy_debounce_edge);
+#else
+    if (GPIO_pinRead(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN) == 1)
+    {
+        luat_rtos_exit_critical(cr);
+        LUAT_DEBUG_PRINT("hrdy high");
+        return 0;
+    }
 
+    hrdy_debounce_edge = GPIO_INTERRUPT_HIGH_LEVEL;
+    GpioPinConfig_t config;
+    config.pinDirection = GPIO_DIRECTION_INPUT;
+    config.misc.interruptConfig = hrdy_debounce_edge;
+    GPIO_pinConfig(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN, &config);
+#endif
     luat_rtos_exit_critical(cr);
 
     spiOn();
@@ -677,7 +794,11 @@ static void SPI_ExampleEntry(void *arg)
         last_tick = luat_mcu_ticks();
 
         int l;
+    #if 0
         if ((l = luat_gpio_get(HRDY_GPIO_PIN)) == 1 || spi_error)
+    #else
+        if ((l = GPIO_pinRead(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN)) == 1 || spi_error)
+    #endif
         {
             LUAT_DEBUG_PRINT("low", spi_error);
 
@@ -694,7 +815,7 @@ static void SPI_ExampleEntry(void *arg)
             do
             {
                 cr = luat_rtos_entry_critical();
-
+            #if 0
                 if (luat_gpio_get(HRDY_GPIO_PIN) == 0 && !spi_error)
                 {
                     luat_rtos_exit_critical(cr);
@@ -705,7 +826,21 @@ static void SPI_ExampleEntry(void *arg)
 
                 hrdy_debounce_edge = spi_error ? LUAT_GPIO_FALLING_IRQ : LUAT_GPIO_LOW_IRQ;
                 luat_gpio_ctrl(HRDY_GPIO_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, hrdy_debounce_edge);
+            #else
+                if (GPIO_pinRead(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN) == 0 && !spi_error)
+                {
+                    luat_rtos_exit_critical(cr);
+                    skip = true;
+                    LUAT_DEBUG_PRINT("hrdy low");
+                    break;
+                }
 
+                hrdy_debounce_edge = spi_error ? GPIO_INTERRUPT_FALLING_EDGE : GPIO_INTERRUPT_LOW_LEVEL;
+                GpioPinConfig_t config;
+                config.pinDirection = GPIO_DIRECTION_INPUT;
+                config.misc.interruptConfig = hrdy_debounce_edge;
+                GPIO_pinConfig(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN, &config);
+            #endif
                 luat_rtos_exit_critical(cr);
 
                 if (queueDirty && pData == NULL)
@@ -739,8 +874,11 @@ static void SPI_ExampleEntry(void *arg)
                     LUAT_DEBUG_PRINT("HRDY");
 
                     LUAT_DEBUG_PRINT("last %x, curr %x", last_tick, tick);
-
+                #if 0
                     if (luat_gpio_get(HRDY_GPIO_PIN) == 1
+                #else
+                    if (GPIO_pinRead(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN) == 1
+                #endif
                         || tick < last_tick)
                     {
                         continue;
@@ -757,7 +895,11 @@ static void SPI_ExampleEntry(void *arg)
         dnot = true;
 
         // Recv head
+    #if 0
         if (luat_gpio_get(DIRE_GPIO_PIN) == 1)
+    #else
+        if (GPIO_pinRead(DIRE_GPIO_INSTANCE, DIRE_GPIO_PIN) == 1)
+    #endif
         {
             transSize = spiTransfer(slave_buffer_out, slave_buffer_in, 9);
             if (transSize == 0)
