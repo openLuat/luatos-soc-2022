@@ -341,7 +341,7 @@ static void GPIO_ISR()
             }
             else
             {
-                osSemaphoreRelease(hrdy_high_sema);
+                luat_rtos_semaphore_release(hrdy_high_sema);
             }
 
             portIrqMask &= ~(1 << HRDY_GPIO_PIN);
