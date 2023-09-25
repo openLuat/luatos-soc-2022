@@ -41,6 +41,8 @@
 #define HRDY_GPIO_PIN          HAL_GPIO_27
 #define DRDY_GPIO_PIN          HAL_GPIO_22
 #define NOT_GPIO_PIN           HAL_GPIO_24
+#define HRDY_DBG_PIN           HAL_GPIO_14
+#define LOOP_DBG_PIN           HAL_GPIO_15
 #else
 /** \brief GPIO01
  */
@@ -69,6 +71,20 @@
 #define NOT_GPIO_PIN           (8)
 #define NOT_PAD_INDEX          (44)
 #define NOT_PAD_ALT_FUNC       (PAD_MUX_ALT0)
+
+/** \brief GPIO14
+ */
+#define G12_GPIO_INSTANCE      (0)
+#define G12_GPIO_PIN           (14)
+#define G12_PAD_INDEX          (13)
+#define G12_PAD_ALT_FUNC       (PAD_MUX_ALT4)
+
+/** \brief GPIO15
+ */
+#define G13_GPIO_INSTANCE      (0)
+#define G13_GPIO_PIN           (15)
+#define G13_PAD_INDEX          (14)
+#define G13_PAD_ALT_FUNC       (PAD_MUX_ALT4)
 #endif
 
 #define MSG_FLAG                 (0xF9)
@@ -156,6 +172,30 @@ void RetCheck(int32_t cond, char * v1)
     } else {
         LUAT_DEBUG_PRINT("SPI %s Failed !!, %d", (v1), cond);;
     }
+}
+
+void g12toggle()
+{
+    static int lvl = 0;
+
+    lvl = !lvl;
+#if 0
+    luat_gpio_set(HRDY_DBG_PIN, lvl);
+#else
+    GPIO_pinWrite(G12_GPIO_INSTANCE, 1 << G12_GPIO_PIN, lvl << G12_GPIO_PIN);
+#endif
+}
+
+void g13toggle()
+{
+    static int lvl = 0;
+
+    lvl = !lvl;
+#if 0
+    luat_gpio_set(LOOP_DBG_PIN, lvl);
+#else
+    GPIO_pinWrite(G13_GPIO_INSTANCE, 1 << G13_GPIO_PIN, lvl << G13_GPIO_PIN);
+#endif
 }
 
 /** \brief transaction buffer */
@@ -304,7 +344,7 @@ static void newMsg(uint8_t type, void *data, uint32_t len)
 #if 0
 static void GPIO_ISR(int pin, void *arg)
 {
-    //Save current irq mask and diable whole port interrupts to get rid of interrupt overflow
+    g12toggle();
     int expectLevel = (hrdy_debounce_edge == LUAT_GPIO_LOW_IRQ || hrdy_debounce_edge == LUAT_GPIO_FALLING_IRQ) ? 0 : 1;
     int level = luat_gpio_get(HRDY_GPIO_PIN);
     if (level == expectLevel)
@@ -324,7 +364,7 @@ static void GPIO_ISR(int pin, void *arg)
 #else
 static void GPIO_ISR()
 {
-    //Save current irq mask and diable whole port interrupts to get rid of interrupt overflow
+    g12toggle();
     int expectLevel = (hrdy_debounce_edge == GPIO_INTERRUPT_LOW_LEVEL || hrdy_debounce_edge == GPIO_INTERRUPT_FALLING_EDGE) ? 0 : 1;
     uint16_t portIrqMask = GPIO_saveAndSetIrqMask(HRDY_GPIO_INSTANCE);
 
@@ -394,26 +434,6 @@ static void initGpio()
     slpManNormalIOVoltSet(IOVOLT_1_80V);
     slpManAONIOVoltSet(IOVOLT_1_80V);
 
-    APmuWakeupPadSettings_t wakeupPadSetting;
-    wakeupPadSetting.negEdgeEn = false;
-    wakeupPadSetting.posEdgeEn = false;
-    wakeupPadSetting.pullDownEn = false;
-    wakeupPadSetting.pullUpEn = false;
-
-    slpManSetWakeupPadCfg(WAKEUP_PAD_0, false, &wakeupPadSetting);
-    slpManSetWakeupPadCfg(WAKEUP_PAD_1, false, &wakeupPadSetting);
-    slpManSetWakeupPadCfg(WAKEUP_PAD_2, false, &wakeupPadSetting);
-    slpManSetWakeupPadCfg(WAKEUP_PAD_3, false, &wakeupPadSetting);
-    slpManSetWakeupPadCfg(WAKEUP_PAD_4, false, &wakeupPadSetting);
-    slpManSetWakeupPadCfg(WAKEUP_PAD_5, false, &wakeupPadSetting);
-
-    NVIC_DisableIRQ(PadWakeup0_IRQn);
-    NVIC_DisableIRQ(PadWakeup1_IRQn);
-    NVIC_DisableIRQ(PadWakeup2_IRQn);
-    NVIC_DisableIRQ(PadWakeup3_IRQn);
-    NVIC_DisableIRQ(PadWakeup4_IRQn);
-    NVIC_DisableIRQ(PadWakeup5_IRQn);
-
 #if 0
     // DRDY
     luat_gpio_cfg_t gpio_cfg;
@@ -445,7 +465,40 @@ static void initGpio()
     gpio_cfg.pin = DIRE_GPIO_PIN;
     gpio_cfg.mode = LUAT_GPIO_INPUT;
     luat_gpio_open(&gpio_cfg);
+
+    //
+    luat_gpio_set_default_cfg(&gpio_cfg);
+
+    gpio_cfg.pin = HRDY_DBG_PIN;
+    gpio_cfg.mode = LUAT_GPIO_OUTPUT;
+    luat_gpio_open(&gpio_cfg);
+
+    luat_gpio_set_default_cfg(&gpio_cfg);
+
+    gpio_cfg.pin = LOOP_DBG_PIN;
+    gpio_cfg.mode = LUAT_GPIO_OUTPUT;
+    luat_gpio_open(&gpio_cfg);
 #else
+    APmuWakeupPadSettings_t wakeupPadSetting;
+    wakeupPadSetting.negEdgeEn = false;
+    wakeupPadSetting.posEdgeEn = false;
+    wakeupPadSetting.pullDownEn = false;
+    wakeupPadSetting.pullUpEn = false;
+
+    slpManSetWakeupPadCfg(WAKEUP_PAD_0, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_1, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_2, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_3, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_4, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_5, false, &wakeupPadSetting);
+
+    NVIC_DisableIRQ(PadWakeup0_IRQn);
+    NVIC_DisableIRQ(PadWakeup1_IRQn);
+    NVIC_DisableIRQ(PadWakeup2_IRQn);
+    NVIC_DisableIRQ(PadWakeup3_IRQn);
+    NVIC_DisableIRQ(PadWakeup4_IRQn);
+    NVIC_DisableIRQ(PadWakeup5_IRQn);
+
     // DRDY
     PadConfig_t padConfig;
     PAD_getDefaultConfig(&padConfig);
@@ -480,6 +533,22 @@ static void initGpio()
     config.pinDirection = GPIO_DIRECTION_INPUT;
     config.misc.interruptConfig = GPIO_INTERRUPT_DISABLED;
     GPIO_pinConfig(DIRE_GPIO_INSTANCE, DIRE_GPIO_PIN, &config);
+
+    // G12
+    padConfig.mux = G12_PAD_ALT_FUNC;
+    PAD_setPinConfig(G12_PAD_INDEX, &padConfig);
+
+    config.pinDirection = GPIO_DIRECTION_OUTPUT;
+    config.misc.initOutput = 0;
+    GPIO_pinConfig(G12_GPIO_INSTANCE, G12_GPIO_PIN, &config);
+
+    // G13
+    padConfig.mux = G13_PAD_ALT_FUNC;
+    PAD_setPinConfig(G13_PAD_INDEX, &padConfig);
+
+    config.pinDirection = GPIO_DIRECTION_OUTPUT;
+    config.misc.initOutput = 0;
+    GPIO_pinConfig(G13_GPIO_INSTANCE, G13_GPIO_PIN, &config);
 
     // Enable IRQ
     XIC_DisableIRQ(PXIC1_GPIO_IRQn);
@@ -803,7 +872,6 @@ static void SPI_ExampleEntry(void *arg)
     uint32_t devDataLen = 0;
     msgHdr_t *pHdr = NULL;
 
-    char *at = NULL;
     uint32_t transSize = 0;
     privData_t *pData = NULL;
     uint8_t *pkt = NULL;
@@ -825,6 +893,8 @@ static void SPI_ExampleEntry(void *arg)
 
     while (1)
     {
+        g13toggle();
+
         uint32_t cr = luat_rtos_entry_critical();
         queueDirty = (STAILQ_FIRST(&dq) != NULL);
         luat_rtos_exit_critical(cr);
