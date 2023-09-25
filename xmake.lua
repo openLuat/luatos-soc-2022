@@ -355,19 +355,18 @@ target("driver")
 	)
 
     set_targetdir("$(buildir)/libdriver_" .. USER_PROJECT_NAME)
-
 target_end()
 
 includes(USER_PROJECT_DIR)
-add_includedirs(USER_PROJECT_DIR.."/inc")
 
 target(USER_PROJECT_NAME..".elf")
 	set_kind("binary")
+    -- add_deps(USER_PROJECT_NAME)
     set_targetdir("$(buildir)/"..USER_PROJECT_NAME)
-    
-    add_linkdirs("$(buildir)/libdriver_" .. USER_PROJECT_NAME)
-    add_deps(USER_PROJECT_NAME, {inherit = false})
-    add_deps("driver", {inherit = false})
+    add_deps("driver")
+	-- if os.getenv("GCC_PATH") then
+	-- 	LD_BASE_FLAGS = " --specs=nano.specs " .. LD_BASE_FLAGS
+	-- end
 
     if USER_PROJECT_NAME ~= 'luatos' then
         add_files(SDK_TOP .. "/interface/private_src/*.c",{public = true})
