@@ -309,6 +309,7 @@ target(TARGET_NAME)
     -- iconv
     add_includedirs(LUATOS_ROOT.."components/iconv")
     add_files(LUATOS_ROOT.."components/iconv/*.c")
+    remove_files(LUATOS_ROOT.."components/iconv/luat_iconv.c")
 
     add_files(LUATOS_ROOT.."components/max30102/*.c")
     add_includedirs(LUATOS_ROOT.."components/max30102")
