@@ -354,6 +354,7 @@ static void GPIO_ISR()
 
 static inline void drdy(bool isHigh)
 {
+#if 0
     if (isHigh)
     {
         luat_gpio_set(DRDY_GPIO_PIN, 1);
@@ -362,13 +363,29 @@ static inline void drdy(bool isHigh)
     {
         luat_gpio_set(DRDY_GPIO_PIN, 0);
     }
+#else
+    if (isHigh)
+    {
+        GPIO_pinWrite(DRDY_GPIO_INSTANCE, 1 << DRDY_GPIO_PIN, 1 << DRDY_GPIO_PIN);
+    }
+    else
+    {
+        GPIO_pinWrite(DRDY_GPIO_INSTANCE, 1 << DRDY_GPIO_PIN, 0);
+    }
+#endif
 }
 
 static inline void notify(uint32_t us)
 {
+#if 0
     luat_gpio_set(NOT_GPIO_PIN, 1);
     delay_us(us);
     luat_gpio_set(NOT_GPIO_PIN, 0);
+#else
+    GPIO_pinWrite(NOT_GPIO_INSTANCE, 1 << NOT_GPIO_PIN, 1 << NOT_GPIO_PIN);
+    delay_us(us);
+    GPIO_pinWrite(NOT_GPIO_INSTANCE, 1 << NOT_GPIO_PIN, 0);
+#endif
 }
 
 static void initGpio()
@@ -376,6 +393,27 @@ static void initGpio()
     slpManAONIOPowerOn();
     slpManNormalIOVoltSet(IOVOLT_1_80V);
     slpManAONIOVoltSet(IOVOLT_1_80V);
+
+    APmuWakeupPadSettings_t wakeupPadSetting;
+    wakeupPadSetting.negEdgeEn = false;
+    wakeupPadSetting.posEdgeEn = false;
+    wakeupPadSetting.pullDownEn = false;
+    wakeupPadSetting.pullUpEn = false;
+
+    slpManSetWakeupPadCfg(WAKEUP_PAD_0, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_1, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_2, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_3, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_4, false, &wakeupPadSetting);
+    slpManSetWakeupPadCfg(WAKEUP_PAD_5, false, &wakeupPadSetting);
+
+    NVIC_DisableIRQ(PadWakeup0_IRQn);
+    NVIC_DisableIRQ(PadWakeup1_IRQn);
+    NVIC_DisableIRQ(PadWakeup2_IRQn);
+    NVIC_DisableIRQ(PadWakeup3_IRQn);
+    NVIC_DisableIRQ(PadWakeup4_IRQn);
+    NVIC_DisableIRQ(PadWakeup5_IRQn);
+
 #if 0
     // DRDY
     luat_gpio_cfg_t gpio_cfg;
