@@ -392,4 +392,8 @@
 
 #define __LUAT_C_CODE_IN_RAM__ __attribute__((__section__(".platFMRamcode")))
 
+#ifdef LUAT_USE_SHELL
+#undef LUAT_USE_REPL
+#endif
+
 #endif
