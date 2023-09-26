@@ -82,3 +82,10 @@ void luat_i2s_pause(uint8_t bus_id)
 {
 	I2S_TxPause(bus_id);
 }
+
+int luat_i2s_tx_stat(uint8_t id, size_t *buffsize, size_t* remain) {
+    (void)id;
+    (void)buffsize;
+    (void)remain;
+    return -1;
+}
