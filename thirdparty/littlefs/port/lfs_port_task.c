@@ -10,7 +10,6 @@
 #include DEBUG_LOG_HEADER_FILE
 #include "osasys.h"
 #include "plat_config.h"
-#include "common_api.h"
 
 /***************************************************
  ***************       MACRO      ******************
@@ -225,17 +224,11 @@ static int block_device_prog(const struct lfs_config *cfg, lfs_block_t block,
 #ifdef LFS_DEBUG_TRACE
     //ECPLAT_PRINTF(UNILOG_LFS, block_device_prog, P_DEBUG, "LFS prog, block: 0x%x, off: 0x%x, size: 0x%x", block, off, size);
 #endif
-    for(int i = 0; i < 3; i++)
-    {
-    	retValue = BSP_QSPI_Write_Safe((uint8_t *)buffer, (FLASH_FS_REGION_START + block * cfg->block_size + off), size);
-    	if (retValue == QSPI_OK) {break;}
-    	DBG("write %x %x %u %u %u failed %d", buffer, FLASH_FS_REGION_START, block, off, size, retValue);
-    	luat_rtos_task_sleep(1);
-    }
+
     // Program data
+    retValue = BSP_QSPI_Write_Safe((uint8_t *)buffer, (FLASH_FS_REGION_START + block * cfg->block_size + off), size);
 
-
-//    LFS_ASSERT(retValue == QSPI_OK);
+    LFS_ASSERT(retValue == QSPI_OK);
 
     return (retValue == QSPI_OK) ? LFS_ERR_OK: LFS_ERR_IO;
 }
@@ -255,17 +248,11 @@ static int block_device_erase(const struct lfs_config *cfg, lfs_block_t block)
 #ifdef LFS_DEBUG_TRACE
     //ECPLAT_PRINTF(UNILOG_LFS, block_device_erase, P_DEBUG, "LFS erase block 0x%x", block);
 #endif
-    for(int i = 0; i < 3; i++)
-    {
-    	// Erase the block
-    	retValue = BSP_QSPI_Erase_Safe(FLASH_FS_REGION_START + block * cfg->block_size, LFS_BLOCK_DEVICE_ERASE_SIZE);
-    	if (retValue == QSPI_OK) {break;}
-    	DBG("erase %x %u failed %d", FLASH_FS_REGION_START, block,  retValue);
-    	luat_rtos_task_sleep(1);
-    }
 
+    // Erase the block
+    retValue = BSP_QSPI_Erase_Safe(FLASH_FS_REGION_START + block * cfg->block_size, LFS_BLOCK_DEVICE_ERASE_SIZE);
 
-    //LFS_ASSERT(retValue == QSPI_OK);
+    LFS_ASSERT(retValue == QSPI_OK);
 
     return (retValue == QSPI_OK) ? LFS_ERR_OK: LFS_ERR_IO;
 }
