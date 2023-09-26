@@ -309,6 +309,7 @@ static void luat_test_task(void *param)
 
     g_s_http_client = luat_http_client_create(luatos_http_cb, luat_rtos_get_current_handle(), -1);
 	const char remote_domain[] = "http://www.air32.cn/test_44K.mp3";
+    //const char remote_domain[] = "https://cloridge-hardware.oss-cn-shanghai.aliyuncs.com/music/test1.mp3";
 	uint8_t *mp3_data;
 	uint32_t start, i;
 	uint8_t get_mp3_head = 0;
@@ -316,6 +317,8 @@ static void luat_test_task(void *param)
 	uint8_t mp3_head_data[12];
 	uint8_t mp3_head_len;
 	luat_http_client_base_config(g_s_http_client, 5000, 0, 3);
+	//https下载额外打开ssl配置
+	//luat_http_client_ssl_config(g_s_http_client, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0);
 	g_s_http_client->debug_onoff = 1;
 	while(1)
 	{
