@@ -1,5 +1,4 @@
 
-
 #include <string.h>
 #include <sys/queue.h>
 #include "common_api.h"
@@ -11,15 +10,20 @@
 #include "luat_mobile.h"
 #include "platform_define.h"
 
+#include <string.h>
+#include <sys/queue.h>
+#include "bsp.h"
+#include "bsp_custom.h"
 #include "bsp_spi.h"
-#include "bsp_common.h"
-#include "slpman.h"
 #include "ostask.h"
 #include "plat_config.h"
+#include "FreeRTOS.h"
+#include "slpman.h"
+#include "queue.h"
+#include "task.h"
+#include "pspdu.h"
 #include "osadlfcmem.h"
 #include "pad.h"
-#include "gpio.h"
-#include "ec618.h"
 #include "cmips.h"
 #include "tcpip.h"
 #include "psifapi.h"
@@ -30,20 +34,19 @@
 
 #include "eth.h"
 
+/** \brief transfer data size in one transaction
+    \note size shall be greater than DMA request level(8)
+ */
 #define MAX_TRANSFER_SIZE                (4 * 1024)
 
-#define MAX_TRSNSFER_TIMEOUT             5
+#define MAX_TRSNSFER_TIMEOUT             8
+
+#define MAX_GPIO_DEBOUNCE_US             1
+
+#define MAX_RETRY_TIMEOUT                50
 
 #define ARM_SPI_FRAME_FROMAT             ARM_SPI_CPOL1_CPHA1
 
-#if 0
-#define DIRE_GPIO_PIN          HAL_GPIO_1
-#define HRDY_GPIO_PIN          HAL_GPIO_27
-#define DRDY_GPIO_PIN          HAL_GPIO_22
-#define NOT_GPIO_PIN           HAL_GPIO_24
-#define HRDY_DBG_PIN           HAL_GPIO_14
-#define LOOP_DBG_PIN           HAL_GPIO_15
-#else
 /** \brief GPIO01
  */
 #define DIRE_GPIO_INSTANCE     (0)
@@ -85,9 +88,8 @@
 #define G13_GPIO_PIN           (15)
 #define G13_PAD_INDEX          (14)
 #define G13_PAD_ALT_FUNC       (PAD_MUX_ALT4)
-#endif
 
-#define MSG_FLAG                 (0xF9)
+#define MSG_FLAG             (0xF9)
 
 /** \brief DEVICE
  */
@@ -126,6 +128,19 @@ enum
 {
     PRIV_MSG_HRDY,
     PRIV_MSG_NEW_DATA,
+    PRIV_MSG_WAKEUP,
+};
+
+typedef struct
+{
+    uint8_t type;
+    uint32_t ts;
+} privMsg_t;
+
+enum
+{
+    PRIV_DATA_AT,
+    PRIV_DATA_IP,
 };
 
 typedef struct privData privData_t;
@@ -134,10 +149,18 @@ typedef STAILQ_HEAD(, privData) privDataHead_t;
 struct privData
 {
     uint8_t type;
-    uint32_t len;
-    void *data;
+    DlPduBlock *pPdu;
+    DlPduBlock *pCurPdu;
     privDataIter_t iter;
 };
+
+typedef struct
+{
+    uint32_t type;
+    void *data;
+} atMsg_t;
+
+extern NetifRecvDlIpPkg gPsDlIpPkgProcFunc;
 
 /** \brief driver instance declare */
 extern ARM_DRIVER_SPI Driver_SPI0;
@@ -148,9 +171,10 @@ extern void netif_dump_dl_packet(u8_t *data, u16_t len, u8_t type);
 
 static ARM_DRIVER_SPI *spiSlaveDrv = &CREATE_SYMBOL(Driver_SPI, 0);
 
-static luat_rtos_task_handle main_msgq;
-static luat_rtos_semaphore_t done_sema;
-static luat_rtos_semaphore_t hrdy_high_sema;
+static osMessageQueueId_t main_msgq;
+static osMessageQueueId_t atp_msgq;
+static osSemaphoreId_t done_sema;
+static osSemaphoreId_t hrdy_high_sema;
 
 static privDataHead_t dq;
 
@@ -158,9 +182,17 @@ static uint8_t hrdy_debounce_edge;
 
 static int seq = 0;
 
-static bool spi_error = true;
+static int ims_cid = 2;
+
+static int voice_cid = 0;
 
 static int default_cid = 1;
+
+static bool spi_error = true;
+
+// static netif_input_fn input_cpy[CMI_PS_MAX_VALID_CID];
+
+// static int slp_count = 0;
 
 const uint8_t host_mac[ETH_HWADDR_LEN] = {0xf0, 0x4b, 0xb3, 0xb9, 0xeb, 0xe5};
 const uint8_t dev_mac[ETH_HWADDR_LEN] = {0xfa, 0x32, 0x47, 0x15, 0xe1, 0x88};
@@ -170,7 +202,7 @@ void RetCheck(int32_t cond, char * v1)
     if (cond == ARM_DRIVER_OK) {
         // LUAT_DEBUG_PRINT("SPI %s OK", (v1));
     } else {
-        LUAT_DEBUG_PRINT("SPI %s Failed !!, %d", (v1), cond);;
+        LUAT_DEBUG_PRINT("SPI %s Failed !!, %d", (v1), cond);
     }
 }
 
@@ -179,11 +211,7 @@ void g12toggle()
     static int lvl = 0;
 
     lvl = !lvl;
-#if 0
-    luat_gpio_set(HRDY_DBG_PIN, lvl);
-#else
     GPIO_pinWrite(G12_GPIO_INSTANCE, 1 << G12_GPIO_PIN, lvl << G12_GPIO_PIN);
-#endif
 }
 
 void g13toggle()
@@ -191,11 +219,7 @@ void g13toggle()
     static int lvl = 0;
 
     lvl = !lvl;
-#if 0
-    luat_gpio_set(LOOP_DBG_PIN, lvl);
-#else
     GPIO_pinWrite(G13_GPIO_INSTANCE, 1 << G13_GPIO_PIN, lvl << G13_GPIO_PIN);
-#endif
 }
 
 /** \brief transaction buffer */
@@ -298,75 +322,166 @@ static inline uint32_t initAckMsg(void *buf, uint16_t buf_len, uint8_t code)
 
 static void sendPrivMsg(uint8_t type, uint32_t tick)
 {
-    int status;
+    privMsg_t m;
+    m.type = type;
+    m.ts = tick;
+
+    osStatus_t status;
     if (type == PRIV_MSG_HRDY)
     {
-        status = luat_rtos_message_send(main_msgq, type, (void *)tick);
+        status = osMessageQueuePutToFront(main_msgq, &m, 0, 0);
     }
     else
     {
-        status = luat_rtos_message_send(main_msgq, type, 0);
+        status = osMessageQueuePut(main_msgq, &m, 0, 0);
     }
-    EC_ASSERT(status == 0, status, type, 0);
+    EC_ASSERT(status == osOK, 0, 0, 0);
 }
 
-static void newMsg(uint8_t type, void *data, uint32_t len)
+static void newMsg(uint8_t type, DlPduBlock *pdu)
 {
     if (type == MSG_TYPE_DEVICE_DATA)
     {
-        netif_dump_dl_packet(data, len, 5 /*LWIP_NETIF_TYPE_WAN_INTERNET*/);
+        netif_dump_dl_packet(pdu->pPdu, pdu->length, 5 /*LWIP_NETIF_TYPE_WAN_INTERNET*/);
     }
 
     privData_t *pd = malloc(sizeof(privData_t));
     if (pd == NULL)
     {
         LUAT_DEBUG_PRINT("Discard new msg");
-        free(data);
+        OsaDlfcFreeMem(pdu);
         return;
     }
 
     pd->type = type;
-    pd->data = data;
-    pd->len = len;
+    pd->pPdu = pdu;
+    pd->pCurPdu = pdu;
 
-    uint32_t cr = luat_rtos_entry_critical();
+    ostaskENTER_CRITICAL();
     bool empty = STAILQ_EMPTY(&dq);
     STAILQ_INSERT_TAIL(&dq, pd, iter);
-    luat_rtos_exit_critical(cr);
+    ostaskEXIT_CRITICAL();
 
     if (empty)
     {
         LUAT_DEBUG_PRINT("empty");
-        sendPrivMsg(PRIV_MSG_NEW_DATA, luat_mcu_ticks());
+        sendPrivMsg(PRIV_MSG_NEW_DATA, osKernelGetTickCount());
     }
 }
 
-#if 0
-static void GPIO_ISR(int pin, void *arg)
+static void rilMsg(const char *pStr, UINT32 strLen)
 {
-    g12toggle();
-    int expectLevel = (hrdy_debounce_edge == LUAT_GPIO_LOW_IRQ || hrdy_debounce_edge == LUAT_GPIO_FALLING_IRQ) ? 0 : 1;
-    int level = luat_gpio_get(HRDY_GPIO_PIN);
-    if (level == expectLevel)
+    DlPduBlock *pdu = (DlPduBlock *)OsaDlfcAllocDlPduNonBlocking(strLen);
+    if (pdu != NULL)
     {
-        if (level == 0)
-        {
-            sendPrivMsg(PRIV_MSG_HRDY, luat_mcu_ticks());
-        }
-        else
-        {
-            luat_rtos_semaphore_release(hrdy_high_sema);
-        }
-
-        luat_gpio_ctrl(HRDY_GPIO_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, LUAT_GPIO_NO_IRQ);
+        memcpy(pdu->pPdu, pStr, strLen);
+        newMsg(MSG_TYPE_CMD_RSP, pdu);
     }
 }
-#else
+
+static INT32 rilRspCallback(UINT8 chanId, const char *pStr, UINT32 strLen, void *pArg)
+{
+    rilMsg(pStr, strLen);
+    return strLen;
+}
+
+static INT32 rilUrcCallback(UINT8 chanId, const char *pStr, UINT32 strLen)
+{
+    static char *nwAct = "+CGEV: NW ACT ";
+
+    char *s;
+    if ((s = strstr(pStr, nwAct)) != NULL)
+    {
+        int copyLen = strlen(s) - strlen(nwAct) + 1;
+        char *copy = malloc(copyLen);
+        memcpy(copy, &s[strlen(nwAct)], copyLen - 1);
+        copy[copyLen - 1] = '\0';
+
+        LUAT_DEBUG_PRINT("copy %s", copy);
+
+        int i = 0;
+        char *tok = strtok(copy, ",");
+        while (tok != NULL)
+        {
+            if (i == 0)
+            {
+                if (atoi(tok) != ims_cid)
+                {
+                    LUAT_DEBUG_PRINT("not ims_cid %d", ims_cid);
+                    break;
+                }
+            }
+            else if (i == 1)
+            {
+                voice_cid = atoi(tok);
+
+                LUAT_DEBUG_PRINT("voice_cid %d", voice_cid);
+
+                break;
+            }
+
+            i++;
+            tok = strtok(NULL, ",");
+        }
+
+        free(copy);
+    }
+
+    rilMsg(pStr, strLen);
+    return strLen;
+}
+
+static void newTask(const char *name, osThreadFunc_t entry, uint32_t stack_size, uint32_t priority)
+{
+    osThreadAttr_t task_attr;
+    memset(&task_attr, 0, sizeof(task_attr));
+
+    task_attr.name = name;
+    task_attr.stack_size = stack_size;
+    task_attr.priority = priority;
+
+    osThreadNew(entry, NULL, &task_attr);
+}
+
+static uint32_t enter_sc(void)
+{
+    if (osIsInISRContext())
+    {
+        return ostaskENTER_CRITICAL_ISR();
+    }
+    else
+    {
+        ostaskENTER_CRITICAL();
+        return 0;
+    }
+
+    return 0;
+}
+
+static void exit_sc(uint32_t isrm)
+{
+    if (osIsInISRContext())
+    {
+        ostaskEXIT_CRITICAL_ISR(isrm);
+    }
+    else
+    {
+        ostaskEXIT_CRITICAL();
+    }
+}
+
+/**
+  \fn          void GPIO_ISR()
+  \brief       GPIO interrupt service routine
+  \return
+*/
 static void GPIO_ISR()
 {
-    g12toggle();
+    //Save current irq mask and diable whole port interrupts to get rid of interrupt overflow
     int expectLevel = (hrdy_debounce_edge == GPIO_INTERRUPT_LOW_LEVEL || hrdy_debounce_edge == GPIO_INTERRUPT_FALLING_EDGE) ? 0 : 1;
     uint16_t portIrqMask = GPIO_saveAndSetIrqMask(HRDY_GPIO_INSTANCE);
+
+    g12toggle();
 
     if (GPIO_getInterruptFlags(HRDY_GPIO_INSTANCE) & (1 << HRDY_GPIO_PIN))
     {
@@ -381,7 +496,7 @@ static void GPIO_ISR()
             }
             else
             {
-                luat_rtos_semaphore_release(hrdy_high_sema);
+                osSemaphoreRelease(hrdy_high_sema);
             }
 
             portIrqMask &= ~(1 << HRDY_GPIO_PIN);
@@ -390,20 +505,9 @@ static void GPIO_ISR()
 
     GPIO_restoreIrqMask(HRDY_GPIO_INSTANCE, portIrqMask);
 }
-#endif
 
 static inline void drdy(bool isHigh)
 {
-#if 0
-    if (isHigh)
-    {
-        luat_gpio_set(DRDY_GPIO_PIN, 1);
-    }
-    else
-    {
-        luat_gpio_set(DRDY_GPIO_PIN, 0);
-    }
-#else
     if (isHigh)
     {
         GPIO_pinWrite(DRDY_GPIO_INSTANCE, 1 << DRDY_GPIO_PIN, 1 << DRDY_GPIO_PIN);
@@ -412,73 +516,24 @@ static inline void drdy(bool isHigh)
     {
         GPIO_pinWrite(DRDY_GPIO_INSTANCE, 1 << DRDY_GPIO_PIN, 0);
     }
-#endif
 }
 
 static inline void notify(uint32_t us)
 {
-#if 0
-    luat_gpio_set(NOT_GPIO_PIN, 1);
-    delay_us(us);
-    luat_gpio_set(NOT_GPIO_PIN, 0);
-#else
     GPIO_pinWrite(NOT_GPIO_INSTANCE, 1 << NOT_GPIO_PIN, 1 << NOT_GPIO_PIN);
     delay_us(us);
     GPIO_pinWrite(NOT_GPIO_INSTANCE, 1 << NOT_GPIO_PIN, 0);
-#endif
 }
 
-static void initGpio()
+static void initGpio(bool sleep1)
 {
-    slpManAONIOPowerOn();
-    slpManNormalIOVoltSet(IOVOLT_1_80V);
-    slpManAONIOVoltSet(IOVOLT_1_80V);
+    if (!sleep1)
+    {
+        slpManAONIOPowerOn();
+        slpManNormalIOVoltSet(IOVOLT_1_80V);
+        slpManAONIOVoltSet(IOVOLT_1_80V);
+    }
 
-#if 0
-    // DRDY
-    luat_gpio_cfg_t gpio_cfg;
-    luat_gpio_set_default_cfg(&gpio_cfg);
-
-    gpio_cfg.pin = DRDY_GPIO_PIN;
-    gpio_cfg.mode = LUAT_GPIO_OUTPUT;
-    luat_gpio_open(&gpio_cfg);
-
-    // HRDY
-    luat_gpio_set_default_cfg(&gpio_cfg);
-
-    gpio_cfg.pin = HRDY_GPIO_PIN;
-    gpio_cfg.mode = LUAT_GPIO_IRQ;
-    gpio_cfg.irq_type = LUAT_GPIO_NO_IRQ;
-    gpio_cfg.irq_cb = GPIO_ISR;
-    luat_gpio_open(&gpio_cfg);
-
-    // NOT
-    luat_gpio_set_default_cfg(&gpio_cfg);
-
-    gpio_cfg.pin = NOT_GPIO_PIN;
-    gpio_cfg.mode = LUAT_GPIO_OUTPUT;
-    luat_gpio_open(&gpio_cfg);
-
-    // DIRE
-    luat_gpio_set_default_cfg(&gpio_cfg);
-
-    gpio_cfg.pin = DIRE_GPIO_PIN;
-    gpio_cfg.mode = LUAT_GPIO_INPUT;
-    luat_gpio_open(&gpio_cfg);
-
-    //
-    luat_gpio_set_default_cfg(&gpio_cfg);
-
-    gpio_cfg.pin = HRDY_DBG_PIN;
-    gpio_cfg.mode = LUAT_GPIO_OUTPUT;
-    luat_gpio_open(&gpio_cfg);
-
-    luat_gpio_set_default_cfg(&gpio_cfg);
-
-    gpio_cfg.pin = LOOP_DBG_PIN;
-    gpio_cfg.mode = LUAT_GPIO_OUTPUT;
-    luat_gpio_open(&gpio_cfg);
-#else
     APmuWakeupPadSettings_t wakeupPadSetting;
     wakeupPadSetting.negEdgeEn = false;
     wakeupPadSetting.posEdgeEn = false;
@@ -550,11 +605,24 @@ static void initGpio()
     config.misc.initOutput = 0;
     GPIO_pinConfig(G13_GPIO_INSTANCE, G13_GPIO_PIN, &config);
 
-    // Enable IRQ
-    XIC_DisableIRQ(PXIC1_GPIO_IRQn);
-    XIC_SetVector(PXIC1_GPIO_IRQn, GPIO_ISR);
-    XIC_EnableIRQ(PXIC1_GPIO_IRQn);
-#endif
+    if (!sleep1)
+    {
+        hrdy_high_sema = osSemaphoreNew(1, 0, NULL);
+
+        // Enable IRQ
+        XIC_DisableIRQ(PXIC1_GPIO_IRQn);
+        XIC_SetVector(PXIC1_GPIO_IRQn, GPIO_ISR);
+        XIC_EnableIRQ(PXIC1_GPIO_IRQn);
+    }
+}
+
+void sendAtMsg(uint32_t type, void *data)
+{
+    atMsg_t msg;
+    msg.type = type;
+    msg.data = data;
+
+    EC_ASSERT(osMessageQueuePut(atp_msgq, &msg, 0, 0) == osOK, 0, 0, 0);
 }
 
 /**
@@ -565,7 +633,7 @@ static void initGpio()
 static bool overflow = false;
 static void SPI_Callback(uint32_t event)
 {
-    luat_rtos_semaphore_release(done_sema);
+    osSemaphoreRelease(done_sema);
 }
 
 static void spiOff()
@@ -589,12 +657,14 @@ static void spiOn()
                                 ARM_SPI_MSB_LSB, 0);
     RetCheck(ret, "Control");
 
-    // ret = spiSlaveDrv->Control(ARM_SPI_SET_BUS_SPEED, 10000000);
+    // ret = spiSlaveDrv->Control(ARM_SPI_SET_BUS_SPEED, 6000000);
     // RetCheck(ret, "Bus speed");
 }
 
 static uint32_t spiTransfer(void *out, void *in, uint32_t len)
 {
+    //EC_ASSERT(len >= 4, 0, 0, 0);
+
     bool dir_out = false;
     if (out && !in)
     {
@@ -620,24 +690,14 @@ static uint32_t spiTransfer(void *out, void *in, uint32_t len)
     __DSB();
     __DMB();
 
-    luat_rtos_semaphore_take(done_sema, 0);
-    luat_rtos_semaphore_take(hrdy_high_sema, 0);
+    osSemaphoreAcquire(done_sema, 0);
+    osSemaphoreAcquire(hrdy_high_sema, 0);
 
-    uint32_t cr = luat_rtos_entry_critical();
-#if 0
-    if (luat_gpio_get(HRDY_GPIO_PIN) == 1)
-    {
-        luat_rtos_exit_critical(cr);
-        LUAT_DEBUG_PRINT("hrdy high");
-        return 0;
-    }
+    uint32_t sc = enter_sc();
 
-    hrdy_debounce_edge = LUAT_GPIO_HIGH_IRQ;
-    luat_gpio_ctrl(HRDY_GPIO_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, hrdy_debounce_edge);
-#else
     if (GPIO_pinRead(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN) == 1)
     {
-        luat_rtos_exit_critical(cr);
+        exit_sc(sc);
         LUAT_DEBUG_PRINT("hrdy high");
         return 0;
     }
@@ -647,8 +707,8 @@ static uint32_t spiTransfer(void *out, void *in, uint32_t len)
     config.pinDirection = GPIO_DIRECTION_INPUT;
     config.misc.interruptConfig = hrdy_debounce_edge;
     GPIO_pinConfig(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN, &config);
-#endif
-    luat_rtos_exit_critical(cr);
+
+    exit_sc(sc);
 
     spiOn();
 
@@ -668,17 +728,17 @@ static uint32_t spiTransfer(void *out, void *in, uint32_t len)
 
     int trans = 0;
     bool timeout = false; //(ret != ARM_DRIVER_OK);
-    uint32_t preWaitTime = luat_mcu_ticks();
-    if (luat_rtos_semaphore_take(hrdy_high_sema, MAX_TRSNSFER_TIMEOUT) == osOK)
+    uint32_t preWaitTime = osKernelGetTickCount();
+    if (osSemaphoreAcquire(hrdy_high_sema, MAX_TRSNSFER_TIMEOUT) == osOK)
     {
         LUAT_DEBUG_PRINT("Acquire hrdy_high_sema");
 
-        uint32_t passedTime = (luat_mcu_ticks() - preWaitTime) > 0 ? (luat_mcu_ticks() - preWaitTime) : (0xFFFFFFFF - preWaitTime + luat_mcu_ticks());
+        uint32_t passedTime = (osKernelGetTickCount() - preWaitTime) > 0 ? (osKernelGetTickCount() - preWaitTime) : (0xFFFFFFFF - preWaitTime + osKernelGetTickCount());
 
         if (dir_out)
         {
             int wait = MAX_TRSNSFER_TIMEOUT - passedTime;
-            if (luat_rtos_semaphore_take(done_sema, wait < 0 ? 0 : wait) != osOK)
+            if (osSemaphoreAcquire(done_sema, wait < 0 ? 0 : wait) != osOK)
             {
                 LUAT_DEBUG_PRINT("Acquire done_sema timeout");
             }
@@ -749,9 +809,20 @@ static uint32_t sendAckMsg(void *buf, uint16_t buf_len, uint8_t code)
     if (code != MSG_ERROR_NONE)
     {
         LUAT_DEBUG_PRINT("rsp code %s", msgCode2Str(code));
+
+        //GPIO_pinWrite(DIRE_GPIO_INSTANCE, 1 << DIRE_GPIO_PIN, 1 << DIRE_GPIO_PIN);
+
+        //delay_us(100);
+
+        //GPIO_pinWrite(DIRE_GPIO_INSTANCE, 1 << DIRE_GPIO_PIN, 0);
     }
 
     return 1;
+
+#if 0
+    uint32_t len = initAckMsg(slave_buffer_out, MAX_TRANSFER_SIZE, code);
+    return 1; //spiTransfer(slave_buffer_out, slave_buffer_in, len);
+#endif
 }
 
 static uint32_t sendDataMsg(void *buf, uint16_t buf_len, uint8_t type, void *msg, uint16_t msg_len)
@@ -794,11 +865,11 @@ static void toPs(void *ctx)
         if (reply)
         {
             LUAT_DEBUG_PRINT("arp reply");
-            void *arp = malloc(sizeof(struct etharp_hdr));
-            if (arp != NULL)
+            DlPduBlock *pdu = OsaDlfcAllocDlPduBlocking(sizeof(struct etharp_hdr));
+            if (pdu != NULL)
             {
-                memcpy(arp, reply, sizeof(struct etharp_hdr));
-                newMsg(MSG_TYPE_DEVICE_DATA, arp, sizeof(struct etharp_hdr));
+                memcpy(pdu->pPdu, reply, sizeof(struct etharp_hdr));
+                newMsg(MSG_TYPE_DEVICE_DATA, pdu);
             }
         }
     }
@@ -824,7 +895,22 @@ static void sendIp2Ps(uint8_t *pkt, uint32_t len)
     tcpip_callback(toPs, param);
 }
 
-u8_t ip4_filter(struct pbuf *p, struct netif *inp)
+void dlIpPkgCb(UINT8 cid, DlPduBlock *pPduHdr)
+{
+    LUAT_DEBUG_PRINT("cid %d pkt len %d", cid, pPduHdr->length);
+    DlPduBlock *pNext = pPduHdr;
+    while (pNext)
+    {
+        DlPduBlock *pdu = OsaDlfcAllocDlPduBlocking(pNext->length);
+        memcpy(pdu->pPdu, pNext->pPdu, pNext->length);
+        newMsg(MSG_TYPE_DEVICE_DATA, pdu);
+        pNext = pNext->pNext;
+    }
+
+    PsifFreeDlIpPkgBlockList(pPduHdr);
+}
+
+u8_t input_filter(struct pbuf *p, struct netif *inp)
 {
     LUAT_DEBUG_PRINT("inpkt");
 
@@ -833,19 +919,21 @@ u8_t ip4_filter(struct pbuf *p, struct netif *inp)
 
     do
     {
-        void *data = malloc(p->tot_len);
-        if (data == NULL)
+        DlPduBlock *pdu = OsaDlfcAllocDlPduBlocking(p->tot_len);
+        if (pdu == NULL)
         {
             break;
         }
 
+        uint8_t *pData = (uint8_t *)pdu->pPdu;
+
         for (q = p; q != NULL; q = q->next)
         {
-            memcpy(&data[offset], q->payload, q->len);
+            memcpy(&pData[offset], q->payload, q->len);
             offset += q->len;
         }
 
-        newMsg(MSG_TYPE_DEVICE_DATA, data, p->tot_len);
+        newMsg(MSG_TYPE_DEVICE_DATA, pdu);
     } while (0);
 
     pbuf_free(p);
@@ -853,18 +941,129 @@ u8_t ip4_filter(struct pbuf *p, struct netif *inp)
     return 1 /* eaten */;
 }
 
+// static err_t netifInput(struct pbuf *p, struct netif *inp)
+// {
+//     LUAT_DEBUG_PRINT("inpkt");
+
+//     pbuf_free(p);
+
+//     return ERR_OK;
+// }
+
+// static void hookNetifInput(void *ctx)
+// {
+//     uint8_t cid = (uint32_t)ctx;
+//     struct netif *netif = netif_find_by_ip4_cid(cid);
+//     if (netif)
+//     {
+//         LUAT_DEBUG_PRINT("cid %d, hook", cid);
+
+//         input_cpy[cid] = netif->input;
+//         netif->input = netifInput;
+//     }
+// }
+
+INT32 psUrcCallback(PsEventID eventID, void *param, UINT32 paramLen)
+{
+    // uint32_t cid;
+    NmAtiNetInfoInd *netif = NULL;
+
+    switch(eventID)
+    {
+        case PS_URC_ID_PS_NETINFO:
+        {
+            netif = (NmAtiNetInfoInd *)param;
+            if (netif->netifInfo.netStatus == NM_NETIF_ACTIVATED){
+                LUAT_DEBUG_PRINT("netif acivated");
+
+                LUAT_DEBUG_PRINT("ip type %d netifType %d", netif->netifInfo.ipType, netif->netifInfo.netifType);
+
+                if (netif->netifInfo.ipType == NM_NET_TYPE_IPV6
+                    && netif->netifInfo.netifType == NM_OTHER_NETIF)
+                {
+                    // if (netif->netifInfo.ipv6Cid == 2)
+                    //     gPsDlIpPkgProcFunc = dlIpPkgCb;
+
+                    // ims_cid = netif->netifInfo.ipv6Cid;
+                }
+
+                // if (netif->netifInfo.ipType == NM_NET_TYPE_IPV4 || netif->netifInfo.ipType == NM_NET_TYPE_IPV4V6)
+                // {
+                //     cid = netif->netifInfo.ipv4Cid;
+                //     tcpip_callback(hookNetifInput, (void *)cid);
+                // }
+            }
+            else if (netif->netifInfo.netStatus == NM_NETIF_OOS)
+            {
+                LUAT_DEBUG_PRINT("PSIF network OOS");
+            }
+            else if (netif->netifInfo.netStatus == NM_NO_NETIF_OR_DEACTIVATED ||
+                     netif->netifInfo.netStatus == NM_NO_NETIF_NOT_DIAL)
+            {
+                LUAT_DEBUG_PRINT("PSIF network deactive");
+            }
+            break;
+        }
+        default:
+            break;
+
+    }
+    return 0;
+}
+
+static void beforeSleep(void *pdata, slpManLpState state)
+{
+    APmuWakeupPadSettings_t wakeupPadSetting;
+    wakeupPadSetting.negEdgeEn = true;
+    wakeupPadSetting.posEdgeEn = false;
+    wakeupPadSetting.pullDownEn = false;
+    wakeupPadSetting.pullUpEn = true;
+
+    switch(state)
+    {
+        case SLPMAN_SLEEP1_STATE:
+        case SLPMAN_SLEEP2_STATE:
+        case SLPMAN_HIBERNATE_STATE:
+            slpManSetWakeupPadCfg(WAKEUP_PAD_5, true, &wakeupPadSetting);
+            NVIC_EnableIRQ(PadWakeup5_IRQn);
+            break;
+        default:
+            break;
+    }
+}
+
+static void afterSleep(void *pdata, slpManLpState state)
+{
+    switch(state)
+    {
+        case SLPMAN_SLEEP1_STATE:
+        case SLPMAN_SLEEP2_STATE:
+        case SLPMAN_HIBERNATE_STATE:
+            //initGpio(true);
+            sendPrivMsg(PRIV_MSG_WAKEUP, osKernelGetTickCount());
+            break;
+        default:
+            break;
+    }
+}
+
+void _NOT(void *arg)
+{
+    while (1)
+    {
+        GPIO_pinWrite(NOT_GPIO_INSTANCE, 1 << NOT_GPIO_PIN, 1 << NOT_GPIO_PIN);
+        osDelay(10);
+        GPIO_pinWrite(NOT_GPIO_INSTANCE, 1 << NOT_GPIO_PIN, 0);
+        osDelay(10);
+    }
+}
+
 static void SPI_ExampleEntry(void *arg)
 {
-    luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG_RESET);
+    //osDelay(1000 * 5);
 
-    STAILQ_INIT(&dq);
-
-    luat_rtos_semaphore_create(&done_sema, 1);
-    luat_rtos_semaphore_take(done_sema, 0);
-
-    luat_rtos_semaphore_create(&hrdy_high_sema, 1);
-    luat_rtos_semaphore_take(hrdy_high_sema, 0);
-
+    //int i;
+    //int ret;
     uint8_t state = 0;
     uint16_t crc = 0;
     uint16_t dataCrc = 0;
@@ -872,6 +1071,7 @@ static void SPI_ExampleEntry(void *arg)
     uint32_t devDataLen = 0;
     msgHdr_t *pHdr = NULL;
 
+    char *at = NULL;
     uint32_t transSize = 0;
     privData_t *pData = NULL;
     uint8_t *pkt = NULL;
@@ -882,12 +1082,30 @@ static void SPI_ExampleEntry(void *arg)
 
     uint8_t *in_buf = NULL;
 
+    slpManRegisterUsrdefinedBackupCb(beforeSleep, NULL);
+    slpManRegisterUsrdefinedRestoreCb(afterSleep, NULL);
+
+    slpManWakeSrc_e wakeSrc = slpManGetWakeupSrc();
+    slpManSlpState_t slpState = slpManGetLastSlpState();
+    if ((slpState == SLP_ACTIVE_STATE)
+        || ((slpState == SLP_SLP2_STATE || slpState == SLP_HIB_STATE) && wakeSrc == WAKEUP_FROM_PAD))
+    {
+        apmuSetDeepestSleepMode(AP_STATE_IDLE);
+    }
+
+    LUAT_DEBUG_PRINT("wakeSrc %d, slpState %d", wakeSrc, slpState);
+
     memset(slave_buffer_out, 0, sizeof(slave_buffer_out));
     memset(slave_buffer_in, 0, sizeof(slave_buffer_in));
 
-    luat_pm_set_power_mode(LUAT_PM_SLEEP_MODE_IDLE, 0);
+    initGpio(false);
 
-    initGpio();
+    //newTask("spi", _NOT, 4096, osPriorityAboveNormal);
+
+    registerPSEventCallback(PS_GROUP_ALL_MASK, psUrcCallback);
+    //gPsDlIpPkgProcFunc = dlIpPkgCb;
+
+    LUAT_DEBUG_PRINT("SPI Example Start");
 
     LUAT_DEBUG_PRINT("Wait for master to trigger transfer");
 
@@ -895,49 +1113,35 @@ static void SPI_ExampleEntry(void *arg)
     {
         g13toggle();
 
-        uint32_t cr = luat_rtos_entry_critical();
+        ostaskENTER_CRITICAL();
         queueDirty = (STAILQ_FIRST(&dq) != NULL);
-        luat_rtos_exit_critical(cr);
+        ostaskEXIT_CRITICAL();
 
-        last_tick = luat_mcu_ticks();
+        last_tick = osKernelGetTickCount();
 
         int l;
-    #if 0
-        if ((l = luat_gpio_get(HRDY_GPIO_PIN)) == 1 || spi_error)
-    #else
         if ((l = GPIO_pinRead(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN)) == 1 || spi_error)
-    #endif
         {
-            LUAT_DEBUG_PRINT("low", spi_error);
+            LUAT_DEBUG_PRINT("hrdy %s, %d", l == 1 ? "high" : "low", spi_error);
 
             if (spi_error)
             {
                 pData = NULL;
             }
 
+            privMsg_t m;
+            memset(&m, 0, sizeof(m));
+
             bool skip = false;
-            int status = 0;
-            uint32_t id;
-            uint32_t tick;
+            osStatus_t status = osOK;
 
             do
             {
-                cr = luat_rtos_entry_critical();
-            #if 0
-                if (luat_gpio_get(HRDY_GPIO_PIN) == 0 && !spi_error)
-                {
-                    luat_rtos_exit_critical(cr);
-                    skip = true;
-                    LUAT_DEBUG_PRINT("hrdy low");
-                    break;
-                }
+                uint32_t sc = enter_sc();
 
-                hrdy_debounce_edge = spi_error ? LUAT_GPIO_FALLING_IRQ : LUAT_GPIO_LOW_IRQ;
-                luat_gpio_ctrl(HRDY_GPIO_PIN, LUAT_GPIO_CMD_SET_IRQ_MODE, hrdy_debounce_edge);
-            #else
                 if (GPIO_pinRead(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN) == 0 && !spi_error)
                 {
-                    luat_rtos_exit_critical(cr);
+                    exit_sc(sc);
                     skip = true;
                     LUAT_DEBUG_PRINT("hrdy low");
                     break;
@@ -948,11 +1152,12 @@ static void SPI_ExampleEntry(void *arg)
                 config.pinDirection = GPIO_DIRECTION_INPUT;
                 config.misc.interruptConfig = hrdy_debounce_edge;
                 GPIO_pinConfig(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN, &config);
-            #endif
-                luat_rtos_exit_critical(cr);
+
+                exit_sc(sc);
 
                 if (queueDirty && pData == NULL)
                 {
+                    apmuSetDeepestSleepMode(AP_STATE_IDLE);
                     if (dnot)
                     {
                         notify(20);
@@ -963,34 +1168,51 @@ static void SPI_ExampleEntry(void *arg)
                 spi_error = false;
 
                 LUAT_DEBUG_PRINT("Wait main_msgq");
-                status = luat_rtos_message_recv(main_msgq, &id, &tick, LUAT_WAIT_FOREVER);
+                status = osMessageQueueGet(main_msgq, &m, NULL, osWaitForever);
             } while (0);
 
             if (!skip)
             {
-                if (status != 0)
+                if (status != osOK)
                 {
                     EC_ASSERT(pData != NULL, 0, 0, 0);
                 }
-                else if (id == PRIV_MSG_NEW_DATA)
+                else if (m.type == PRIV_MSG_NEW_DATA)
                 {
                     LUAT_DEBUG_PRINT("NEW DATA");
                     continue;
                 }
-                else
+                else if (m.type == PRIV_MSG_HRDY)
                 {
                     LUAT_DEBUG_PRINT("HRDY");
 
-                    LUAT_DEBUG_PRINT("last %x, curr %x", last_tick, tick);
-                #if 0
-                    if (luat_gpio_get(HRDY_GPIO_PIN) == 1
-                #else
+                    LUAT_DEBUG_PRINT("last %x, curr %x", last_tick, m.ts);
+
                     if (GPIO_pinRead(HRDY_GPIO_INSTANCE, HRDY_GPIO_PIN) == 1
-                #endif
-                        || tick < last_tick)
+                        || m.ts < last_tick)
                     {
                         continue;
                     }
+                }
+                else if (m.type == PRIV_MSG_WAKEUP)
+                {
+                    wakeSrc = slpManGetWakeupSrc();
+                    if (wakeSrc == WAKEUP_FROM_PAD)
+                    {
+                        apmuSetDeepestSleepMode(AP_STATE_IDLE);
+                    }
+
+                    APmuWakeupPadSettings_t wakeupPadSetting;
+                    wakeupPadSetting.negEdgeEn = false;
+                    wakeupPadSetting.posEdgeEn = false;
+                    wakeupPadSetting.pullDownEn = false;
+                    wakeupPadSetting.pullUpEn = false;
+
+                    slpManSetWakeupPadCfg(WAKEUP_PAD_5, false, &wakeupPadSetting);
+                    NVIC_DisableIRQ(PadWakeup5_IRQn);
+                    initGpio(true);
+
+                    continue;
                 }
             }
         }
@@ -1003,11 +1225,7 @@ static void SPI_ExampleEntry(void *arg)
         dnot = true;
 
         // Recv head
-    #if 0
-        if (luat_gpio_get(DIRE_GPIO_PIN) == 1)
-    #else
         if (GPIO_pinRead(DIRE_GPIO_INSTANCE, DIRE_GPIO_PIN) == 1)
-    #endif
         {
             transSize = spiTransfer(slave_buffer_out, slave_buffer_in, 9);
             if (transSize == 0)
@@ -1020,12 +1238,16 @@ static void SPI_ExampleEntry(void *arg)
             pData = STAILQ_FIRST(&dq);
             if (pData != NULL)
             {
-                if (pData->type == MSG_TYPE_DEVICE_DATA)
+                if (pData->type == MSG_TYPE_CMD_RSP)
+                {
+                    sendDataMsg(slave_buffer_out, MAX_TRANSFER_SIZE, pData->type, pData->pCurPdu->pPdu, pData->pCurPdu->length);
+                }
+                else if (pData->type == MSG_TYPE_DEVICE_DATA)
                 {
                     struct eth_hdr eth_hdr;
                     memcpy(&eth_hdr.dest, host_mac, ETH_HWADDR_LEN);
                     memcpy(&eth_hdr.src, dev_mac, ETH_HWADDR_LEN);
-                    uint8_t *ipdata = (uint8_t *)pData->data;
+                    uint8_t *ipdata = (uint8_t *)pData->pCurPdu->pPdu;
                     if ((ipdata[0] & 0xF0) == 0x40)
                         eth_hdr.type = __htons(ETHTYPE_IP);
                     else if ((ipdata[0] & 0xF0) == 0x60)
@@ -1036,14 +1258,21 @@ static void SPI_ExampleEntry(void *arg)
                     else
                         EC_ASSERT(0, 0, 0, 0);
 
-                    sendEthDataMsg(slave_buffer_out, MAX_TRANSFER_SIZE, &eth_hdr, pData->data, pData->len);
+                    sendEthDataMsg(slave_buffer_out, MAX_TRANSFER_SIZE, &eth_hdr, pData->pCurPdu->pPdu, pData->pCurPdu->length);
                 }
 
-                cr = luat_rtos_entry_critical();
-                STAILQ_REMOVE_HEAD(&dq, iter);
-                luat_rtos_exit_critical(cr);
-                free(pData->data);
-                free(pData);
+                if (pData->pCurPdu->pNext == NULL)
+                {
+                    ostaskENTER_CRITICAL();
+                    STAILQ_REMOVE_HEAD(&dq, iter);
+                    ostaskEXIT_CRITICAL();
+                    OsaDlfcFreeMem(pData->pPdu);
+                    free(pData);
+                }
+                else
+                {
+                    pData->pCurPdu = pData->pCurPdu->pNext;
+                }
 
                 pData = NULL; //notify
             }
@@ -1063,8 +1292,6 @@ DECODE:
             // Wait flag
             case 0:
             {
-                LUAT_DEBUG_PRINT("decode, %x %x %x %x", in_buf[0], in_buf[1], in_buf[2], in_buf[3]);
-
                 if (in_buf[0] == MSG_FLAG)
                 {
                     pHdr = (msgHdr_t *)&in_buf[0];
@@ -1077,6 +1304,13 @@ DECODE:
                             sendAckMsg(slave_buffer_out, MAX_TRANSFER_SIZE, MSG_ERROR_LEN);
                             break;
                         }
+#if 0
+                        transSize = spiTransfer(slave_buffer_out, &in_buf[sizeof(msgHdr_t)], dataLen + sizeof(uint16_t));
+                        if (transSize == 0)
+                        {
+                            break;
+                        }
+#endif
                     }
 
                     state = 1;
@@ -1094,6 +1328,51 @@ DECODE:
             {
                 state = 0;
 
+                if (pHdr->type == MSG_TYPE_GET_DATA)
+                {
+                    pData = STAILQ_FIRST(&dq);
+
+                    if (pData->type == MSG_TYPE_CMD_RSP)
+                    {
+                        sendDataMsg(slave_buffer_out, MAX_TRANSFER_SIZE, pData->type, pData->pCurPdu->pPdu, pData->pCurPdu->length);
+                    }
+                    else if (pData->type == MSG_TYPE_DEVICE_DATA)
+                    {
+                        struct eth_hdr eth_hdr;
+                        memcpy(&eth_hdr.dest, host_mac, ETH_HWADDR_LEN);
+                        memcpy(&eth_hdr.src, dev_mac, ETH_HWADDR_LEN);
+                        uint8_t *ipdata = (uint8_t *)pData->pCurPdu->pPdu;
+                        if ((ipdata[0] & 0xF0) == 0x40)
+                            eth_hdr.type = __htons(ETHTYPE_IP);
+                        else if ((ipdata[0] & 0xF0) == 0x60)
+                            eth_hdr.type = __htons(ETHTYPE_IPV6);
+                        else if (ipdata[0] == 0x00 && ipdata[1] == 0x01 &&
+                                ipdata[2] == 0x08 && ipdata[3] == 0x00)
+                            eth_hdr.type = __htons(ETHTYPE_ARP);
+                        else
+                            EC_ASSERT(0, 0, 0, 0);
+
+                        sendEthDataMsg(slave_buffer_out, MAX_TRANSFER_SIZE, &eth_hdr, pData->pCurPdu->pPdu, pData->pCurPdu->length);
+                    }
+
+                    if (pData->pCurPdu->pNext == NULL)
+                    {
+                        ostaskENTER_CRITICAL();
+                        STAILQ_REMOVE_HEAD(&dq, iter);
+                        ostaskEXIT_CRITICAL();
+                        OsaDlfcFreeMem(pData->pPdu);
+                        free(pData);
+                    }
+                    else
+                    {
+                        pData->pCurPdu = pData->pCurPdu->pNext;
+                    }
+
+                    pData = NULL;//notify
+
+                    break;
+                }
+
                 crc = 0xFFFF;
                 crc = crc16ccitt(crc, in_buf, 0, sizeof(msgHdr_t) + dataLen);
                 dataCrc = in_buf[sizeof(msgHdr_t) + dataLen];
@@ -1108,6 +1387,24 @@ DECODE:
 
                 switch (pHdr->type)
                 {
+                    case MSG_TYPE_GET_LEN:
+                    {
+                        pData = STAILQ_FIRST(&dq);
+                        devDataLen = pData == NULL ? 0 : pData->pPdu->length;
+                        sendLenMsg(devDataLen);
+                        break;
+                    }
+
+                    case MSG_TYPE_AT_CMD:
+                    {
+                        at = malloc(dataLen + 1);
+                        memcpy(at, &in_buf[sizeof(msgHdr_t)], dataLen);
+                        at[dataLen] = '\0';
+                        sendAtMsg(0, at);
+                        sendAckMsg(slave_buffer_out, MAX_TRANSFER_SIZE, MSG_ERROR_NONE);
+                        break;
+                    }
+
                     case MSG_TYPE_HOST_DATA:
                     {
                         pkt = malloc(dataLen);
@@ -1175,8 +1472,14 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 void spiTaskInit(void)
 {
     luat_mobile_event_register_handler(mobile_event_cb);
-    luat_rtos_task_create(&main_msgq, 4096, 200, "spi", SPI_ExampleEntry, NULL, 256);
-}
 
+    STAILQ_INIT(&dq);
+
+    done_sema = osSemaphoreNew(1U, 0, PNULL);
+
+    main_msgq = osMessageQueueNew(256, sizeof(privMsg_t), NULL);
+
+    newTask("spi", SPI_ExampleEntry, 4096, osPriorityHigh);
+}
 
 INIT_TASK_EXPORT(spiTaskInit, "0");
