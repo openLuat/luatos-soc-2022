@@ -910,7 +910,7 @@ void dlIpPkgCb(UINT8 cid, DlPduBlock *pPduHdr)
     PsifFreeDlIpPkgBlockList(pPduHdr);
 }
 
-u8_t input_filter(struct pbuf *p, struct netif *inp)
+u8_t ip4_filter(struct pbuf *p, struct netif *inp)
 {
     LUAT_DEBUG_PRINT("inpkt");
 
