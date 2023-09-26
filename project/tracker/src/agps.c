@@ -183,6 +183,7 @@ static void agps_https_task(void *param)
                     luat_rtos_task_sleep(100);
                 }
                 luat_fs_fclose(fp1);
+                luat_heap_free(data);
             }
             luat_fs_fclose(fp);
         }
