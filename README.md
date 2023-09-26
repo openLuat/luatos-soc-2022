@@ -132,6 +132,14 @@ dpkg --add-architecture i386 && apt update
 apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386 libstdc++6:i386 p7zip-full
 ```
 
+## macos 下编译的额外的说明
+
+编译 wine 环境的 docker
+
+```shell
+./build-wine-docker.sh
+```
+
 ## 应用文档
 
 1. 添加自定义数据到指定区域并[合成binpkg](project/example_flash), 用于量产刷机
