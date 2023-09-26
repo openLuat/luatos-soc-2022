@@ -32,8 +32,13 @@ package("gnu_rm")
 			return version_map[tostring(version)]
 		end})
 		add_versions("2021.10", "97dbb4f019ad1650b732faffcc881689cedc14e2b7ee863d390e0a41ef16c9a3")
+    elseif is_host("macosx") then
+        set_urls("https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-$(version)-mac.tar.bz2", {version = function (version)
+			return version_map[tostring(version)]
+		end})
+		add_versions("2021.10", "fb613dacb25149f140f73fe9ff6c380bb43328e6bf813473986e9127e2bc283b")
 	end
-	on_install("@windows", "@linux", function (package)
+	on_install("@windows", "@linux", "@macosx", function (package)
 		os.vcp("*", package:installdir())
 	end)
 package_end()
@@ -461,6 +466,8 @@ target(USER_PROJECT_NAME..".elf")
         else
             if is_plat("windows") then
                 cmd = "./PLAT/tools/fcelf.exe " .. cmd
+            elseif is_plat("macosx") then
+                cmd = "bash ./fcelf-docker.sh " .. cmd
             else
                 cmd = "./fcelf " .. cmd
             end
@@ -477,8 +484,8 @@ target(USER_PROJECT_NAME..".elf")
             local path7z = nil
             if is_plat("windows") then
                 path7z = "\"$(programdir)/winenv/bin/7z.exe\""
-            elseif is_plat("linux") then
-                path7z = find_file("7z", { "/usr/bin/"})
+            elseif is_plat("linux") or is_plat("macosx") then
+                path7z = find_file("7z", { "/usr/bin/", "/usr/local/bin/" })
                 if not path7z then
                     path7z = find_file("7zr", { "/usr/bin/"})
                 end
