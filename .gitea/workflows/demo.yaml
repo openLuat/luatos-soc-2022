@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:    
       matrix:
-        csdk_project: ["example", "luatos", "example_gpio", "example_adc", "example_socket", "libhttp_fota_iot", "example_cjson", "example_psm", "example_record", "web_audio", "tracker", "example_ntp", "example_crypto", "example_audio_flash"]
+        csdk_project: ["example", "luatos", "example_gpio", "example_adc", "example_socket", "libhttp_fota_iot", "example_psm", "example_record", "web_audio", "tracker", "example_ntp", "example_crypto", "example_audio_flash"]
     steps:
       - name: 克隆 LuatOS 代码库
         if: matrix.csdk_project == 'luatos'
