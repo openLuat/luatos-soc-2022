@@ -125,6 +125,7 @@ typedef enum {
     ATECQIREQ_GETDATAACCMODE,
 
     ATECQIREQ_CONNIDSTATUS,
+    ATECQIREQ_KEEPALIVE,
     ATECQIREQ_MAX= 50,
 
 /**********AT EC SOC**********************************/
@@ -190,6 +191,7 @@ typedef enum applSockPrimId_Enum
     APPL_QISOCKET_RCV_IND,
     APPL_QISOCKET_CREATE_IND,
     APPL_QISOCKET_CLOSE_IND,
+    APPL_QISOCKET_SERVER_ACCEPT_CLIENT_IND,
 
     APPL_ECSOC_CREATE_CNF,
     APPL_ECSOC_UDPSEND_CNF,
@@ -947,6 +949,14 @@ typedef struct AtRefSocGetDataAccModeReq_Tag{
     UINT32 reqSource;
 }AtRefSocGetDataAccModeReq;
 
+typedef struct AtRefSocKeepAliveCfgReq_Tag{
+    BOOL    bKeepAlive;
+    UINT8   intervalTime;
+    UINT16  idleTime;
+    UINT8   probeCnt;
+    UINT8   rsvd0;
+    UINT16  rsvd1;
+}AtRefSocKeepAliveCfgReq;
 typedef struct AtRefSocGetDataAccModeCnf_Tag{
     UINT8  mode;
     UINT8  connectId;
@@ -1054,6 +1064,12 @@ typedef struct AtRefSocGetCurConIdResp_Tag
     UINT8 resv0 ;
 }AtRefSocGetCurConIdResp;
 
+typedef struct AtRefTcpAcceptClientReaultInd_Tag{
+    UINT8 clientConnectId;
+    UINT8 serverConnectId;
+    UINT16 clientPort;
+    ip_addr_t clientAddr;
+}AtRefTcpAcceptClientReaultInd;
 
 /******************************SDKAPI related**********************************/
 

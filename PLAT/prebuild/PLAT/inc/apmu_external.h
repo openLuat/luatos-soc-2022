@@ -266,6 +266,7 @@ bool apmuGetSleepedFlag(void);
 void apmuPrintPostPagingSlowCnt(void);
 uint16_t apmuGetLatchExternalInt(void);
 void ApmuWakeupProc(uint8_t wakeupEvent, uint8_t branchFlag);
+uint32_t apmuGetHibSecondCount(void);
 
 /**
 * @brief apmuGetAPBootFlag

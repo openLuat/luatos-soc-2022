@@ -39,6 +39,15 @@ extern "C" {
 /*----------------------------------------------------------------------------*
  *                   DATA TYPE DEFINITION                                     *
  *----------------------------------------------------------------------------*/
+/* some charger IC support three state: 
+    strong pull-down: CHARGING
+    weak pull-down: FINISH
+    floating(Hi-Z): disconnect
+   some charger IC support two state:
+    strong pull-down: CHARGING
+    floating(Hi-Z): disconnect or FINISH
+    treat DISCONNECT/FINISH as the same state.
+*/
 typedef enum
 {
     CHARGE_STATUS_DISCONNECT = 0,

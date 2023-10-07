@@ -100,6 +100,9 @@ typedef enum _EPAT_CMI_MM_PRIM_ID_TAG
     CMI_MM_TRIGGER_RRC_RELEASE_REQ,                 //CmiMmTriggerRrcReleaseReq
     CMI_MM_TRIGGER_RRC_RELEASE_CNF,                 //CmiMmTriggerRrcReleaseCnf
 
+    CMI_MM_GET_ECMMER_REQ,                          //CmiMmGetEcmmerReq
+    CMI_MM_GET_ECMMER_CNF,                          //CmiMmGetEcmmerCnf
+
     CMI_MM_PRIM_END = 0x0fff
 }CMI_MM_PRIM_ID;
 
@@ -1360,6 +1363,22 @@ typedef struct CmiMmTriggerRrcReleaseCnf_Tag
                                 //FALSE: RRC connection local release is not triggered
     UINT8   rsvd0[3];
 }CmiMmTriggerRrcReleaseCnf;
+
+
+/*
+ * CMI_MM_GET_ECMMER_REQ,
+*/
+typedef CamCmiEmptySig CmiMmGetEcmmerReq;
+
+/*
+ * CMI_MM_GET_ECMMER_CNF,
+*/
+typedef struct CmiMmGetEcmmerCnf_Tag
+{
+    BOOL        bCausePresent;
+    UINT8       rsvd;
+    UINT16      emmCause;        /* CmiEmmCause */
+}CmiMmGetEcmmerCnf;
 
 #endif
 

@@ -252,6 +252,8 @@ CmsRetId  mmECEMMTIME(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  mmECPLMNRESELECT(const AtCmdInputContext *pAtCmdReq);
 AtcCopsInfo  *mmGetCopsInfo(void);
 CmsRetId  mmGetPlmnNumericStr(UINT8 plmnFormat, UINT8 *plmnName, UINT8 *plmnNumericStr);
+CmsRetId  mmECCONNREL(const AtCmdInputContext *pAtCmdReq);
+CmsRetId  mmECMMER(const AtCmdInputContext *pAtCmdReq);
 
 #endif
 

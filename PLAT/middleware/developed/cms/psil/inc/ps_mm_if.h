@@ -41,6 +41,7 @@ CmsRetId mmGetCurrOperatorName(UINT32 atHandle);
 CmsRetId mmSetTriggerRrcRelease(UINT32 atHandle);
 CmsRetId mmSetTriggerTau(UINT32 atHandle, UINT8 epsUpdateType);
 BOOL OperatorStringToNumericPlmn(const UINT8 *pPlmnStr, CmiNumericPlmn *pOutPlmn);
+CmsRetId mmGetECMMER(UINT32 atHandle);
 
 
 #endif

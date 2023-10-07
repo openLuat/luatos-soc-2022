@@ -46,8 +46,7 @@ typedef struct
 typedef struct
 {
     uint8_t  mode;
-    uint8_t  atCid;
-    uint8_t  rsvd[2];
+    uint8_t  rsvd[3];
     void    *chdev;
 }AtCmdPwOffSystem_t;
 

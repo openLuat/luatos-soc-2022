@@ -59,7 +59,7 @@
 
 #define CMS_SOCK_MGR_DATA_HEADER_LENGTH_MAX 64
 
-#define CMS_SOCK_ONE_MGR_DL_LENGTH_MAX 1460
+#define CMS_SOCK_ONE_MGR_DL_LENGTH_MAX 1500
 
 #ifdef   CMS_LIMIT_DL_BUFFER_OPT
 #define  CMS_SOCK_TOTAL_MGR_DL_LENGTH_MAX  (12*1024)   //max 12K DL PDU buffer
@@ -576,6 +576,11 @@ INT32 cmsSockMgrBindSocket(INT32 fd, UINT8 domain, UINT16 localPort, ip_addr_t *
 INT32 cmsSockMgrConnectSocket(INT32 fd, UINT8 domain, UINT16 remotePort, ip_addr_t *remoteAddr, BOOL withTimeout);
 INT32 cmsSockMgrCloseSocket(INT32 fd);
 INT32 cmsSockMgrCreateTcpSrvSocket(INT32 domain, UINT16 listenPort, ip_addr_t *bindAddr, UINT8 listenNum, INT32 expect_fd);
+/**
+  \fn           INT32  cmsSockMgrEnableTcpKeepAlive(INT32 sockId, BOOL bKeepAlive, UINT16 idleTime, UINT8 intervalTime, UINT8 probeCnt)
+  \brief        enable the tcp socket keepalive feature
+*/
+INT32  cmsSockMgrEnableTcpKeepAlive(INT32 sockId, BOOL bKeepAlive, UINT16 idleTime, UINT8 intervalTime, UINT8 probeCnt);
 
 CmsSockMgrConnStatus cmsSockMgrRebuildSocket(INT32 fd, ip_addr_t *localAddr, ip_addr_t *remoteAddr, UINT16 *localPort, UINT16 *remotePort, INT32 type);
 

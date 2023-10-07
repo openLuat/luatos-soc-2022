@@ -265,7 +265,20 @@
 #define ATC_ECCFG_1_CFUN_CLEAR_BARCELL_VAL_MAX       (1)
 #define ATC_ECCFG_1_CFUN_CLEAR_BARCELL_VAL_DEFAULT   (0)
 
-#define ATEC_ECCFG_GET_RSP_STR_LEN   512
+#define ATEC_ECCFG_GET_RSP_STR_LEN           512
+
+/* AT+ECMEASCFG */
+#define ATC_ECMEASCFG_MAX_SET_PARAMS_NUM     12
+#define ATC_ECMEASCFG_0_MAX_PARM_STR_LEN     32
+#define ATC_ECMEASCFG_0_MAX_PARM_STR_DEFAULT NULL
+
+#define ATC_ECMEASCFG_1_RSRP_VAL_MIN          (-388)
+#define ATC_ECMEASCFG_1_RSRP_VAL_MAX          388
+#define ATC_ECMEASCFG_1_RSRP_VAL_DEF          0
+
+#define ATC_ECMEASCFG_1_RSRQ_VAL_MIN          (-124)
+#define ATC_ECMEASCFG_1_RSRQ_VAL_MAX          124
+#define ATC_ECMEASCFG_1_RSRQ_VAL_DEF          0
 
 /* AT+ECSTATUS */
 #define ATC_ECSTATUS_0_MAX_PARM_STR_LEN              16
@@ -440,17 +453,18 @@
 #define ATC_ECWIFISCAN_CHANNELID_MAX_NUM         14
 
 /* AT+ECBARCELL */
-#define ATC_ECBARCELL_0_MODE_VAL_MIN            (0)
-#define ATC_ECBARCELL_0_MODE_VAL_MAX            (1)         //0:remove barred cell, 1:add new cell into barred-list
-#define ATC_ECBARCELL_0_MODE_VAL_DEF            (0)
+#define ATC_ECBARCELL_0_EARFCN_VAL_MIN          (1)
+#define ATC_ECBARCELL_0_EARFCN_VAL_MAX          (262143)    //support maxEarfcn2
+#define ATC_ECBARCELL_0_EARFCN_VAL_DEF          (0)
 
-#define ATC_ECBARCELL_1_EARFCN_VAL_MIN          (1)
-#define ATC_ECBARCELL_1_EARFCN_VAL_MAX          (262143)    //support maxEarfcn2
-#define ATC_ECBARCELL_1_EARFCN_VAL_DEF          (0)
+#define ATC_ECBARCELL_1_PCI_VAL_MIN             (0)
+#define ATC_ECBARCELL_1_PCI_VAL_MAX             (503)       //physcellid (0..503)
+#define ATC_ECBARCELL_1_PCI_VAL_DEF             (0)
 
-#define ATC_ECBARCELL_2_PCI_VAL_MIN             (0)
-#define ATC_ECBARCELL_2_PCI_VAL_MAX             (503)       //physcellid (0..503)
-#define ATC_ECBARCELL_2_PCI_VAL_DEF             (0)
+#define ATC_ECBARCELL_2_BAR_TIME_VAL_MIN        (0)         //unbar cell
+#define ATC_ECBARCELL_2_BAR_TIME_VAL_MAX        (65535)     //bar cell inifinity
+#define ATC_ECBARCELL_2_BAR_TIME_VAL_DEF        (0)
+
 CmsRetId  devCFUN(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devECBAND(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devECFREQ(const AtCmdInputContext *pAtCmdReq);
@@ -458,6 +472,7 @@ CmsRetId  devECFREQ(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devECCGSN(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devECCGSNLOCK(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devECCFG(const AtCmdInputContext *pAtCmdReq);
+CmsRetId  devECMEASCFG(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devECRMFPLMN(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devCMAR(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  devCMOLR(const AtCmdInputContext *pAtCmdReq);

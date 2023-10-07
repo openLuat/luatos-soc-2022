@@ -24,6 +24,7 @@ History:        - 08/09/2020, Originated by Jason
 #define CMI_PDN_MAX_NW_ADDR_NUM     4
 #define CMI_PS_MAX_BEARER_NUM       11
 #define CMI_PCSCF_MAX_NW_ADDR_NUM      6
+#define CMI_PS_LAST_ESM_CAUSE_NUM      3    //For easy, should same with CCM_MAX_ESM_LAST_REJ_CAUSE_NUM
 
 #define CMI_PS_CHECK_CID_VALID(cid) ((UINT32)(cid) <= CMI_PS_MAX_VALID_CID)
 
@@ -250,6 +251,7 @@ typedef enum _EPAT_CMI_PS_PRIM_ID_TAG
     CMI_PS_GET_CONN_STATUS_CNF,     //CmiPsGetConnStatusCnf
 
     CMI_PS_CONN_STATUS_IND,   //CmiPsConnStatusInd, +CSCON: <mode>
+    CMI_PS_CNEC_ERROR_CODE_REPORT_IND,              //CmiPsCnecErrorCodeReportInd, +CNEC: <error_code>[,<cid>]
 
     CMI_PS_SET_UE_OPERATION_MODE_REQ  = 0xc0,    //AT+CEMODE, CmiPsSetUeOperationModeReq
     CMI_PS_SET_UE_OPERATION_MODE_CNF,    //CmiPsSetUeOperationModeCnf
@@ -281,8 +283,8 @@ typedef enum _EPAT_CMI_PS_PRIM_ID_TAG
 
     //AT+CABTSR / AT+CABTRDP, -TBD
 
-    CMI_PS_GET_CEER_REQ ,             //CmiPsGetCeerReq, AT+CEER
-    CMI_PS_GET_CEER_CNF,              //CmiPsGetCeerCnf
+    //CMI_PS_GET_CEER_REQ ,                           //CmiPsGetCeerReq, AT+CEER
+    //CMI_PS_GET_CEER_CNF,                            //CmiPsGetCeerCnf
 
     CMI_PS_GET_DATA_COUNTER_REQ,      //CmiPsGetDataCounterReq
     CMI_PS_GET_DATA_COUNTER_CNF,      //CmiPsGetDataCounterCnf
@@ -305,6 +307,10 @@ typedef enum _EPAT_CMI_PS_PRIM_ID_TAG
     CMI_PS_SET_TRAFFIC_IDLE_MONITOR_CNF,      //CmiPsSetTrafficIdleMonitorCnf
     CMI_PS_TRAFFIC_IDLE_MONITOR_IND,         //CmiPsTrafficIdleMonitorInd
 
+    CMI_PS_GET_ECSMER_REQ ,                         //CmiPsGetEcsmerReq, AT+ECSMER
+    CMI_PS_GET_ECSMER_CNF,                          //CmiPsGetEcsmerCnf
+    CMI_PS_DEL_ECSMER_REQ,                          //CmiPsDelEcsmerReq
+    CMI_PS_DEL_ECSMER_CNF,                          //CmiPsDelEcsmerCnf
     CMI_PS_PRIM_END = 0x0fff
 }CMI_PS_PRIM_ID;
 
@@ -2055,7 +2061,7 @@ typedef struct CmiPsGetDefineAuthCtxCnf_Tag
     UINT8   authPassword[CMI_PS_MAX_AUTH_STR_LEN +1];//auth password string
 }CmiPsGetDefineAuthCtxCnf;
 
-
+#if 0
 typedef enum CmiEmmCauseTag
 {
     CMI_EMM_CAUSE_IMSI_UNKNOWN_IN_HSS                                  = 0x02,
@@ -2096,6 +2102,78 @@ typedef enum CmiEmmCauseTag
     CMI_EMM_CAUSE_PROTOCOL_ERROR_UNSPECIFIED                           = 0X6F,
 }CmiEmmCause;
 
+typedef enum CmiEsmCauseTag
+{
+    CMI_ESM_CAUSE_SUCC                                                          =  0x00,
+
+    /*
+     * ref: 24.301, 9.9.4.4
+    */
+    CMI_ESM_OPERATOR_DETERMINED_BARRING                                         =  0x08,
+    CMI_ESM_INSUFFICIENT_RESOURCES                                              =  0x1a,
+    CMI_ESM_UNKNOWN_OR_MISSING_APN                                              =  0x1b,
+    CMI_ESM_UNKNOWN_PDN_TYPE                                                    =  0x1c,
+    CMI_ESM_USER_AUTHENTICATION_FAILED                                          =  0x1d,
+    CMI_ESM_REQUEST_REJECTED_BY_SERVING_GW_OR_PDN_GW                            =  0x1e,
+    CMI_ESM_REQUEST_REJECTED_UNSPECIFIED                                        =  0x1f,
+    CMI_ESM_SERVICE_OPTION_NOT_SUPPORTED                                        =  0x20,
+    CMI_ESM_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED                             =  0x21,
+    CMI_ESM_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER                             =  0x22,
+    CMI_ESM_PTI_ALREADY_IN_USE                                                  =  0x23,
+    CMI_ESM_REGULAR_DEACTIVATION                                                =  0x24,
+    CMI_ESM_EPS_QOS_NOT_ACCEPTED                                                =  0x25,
+    CMI_ESM_NETWORK_FAILURE                                                     =  0x26,
+    CMI_ESM_REACTIVATION_REQUESTED                                              =  0x27,
+    CMI_ESM_SEMANTIC_ERROR_IN_THE_TFT_OPERATION                                 =  0x29,
+    CMI_ESM_SYNTACTICAL_ERROR_IN_THE_TFT_OPERATION                              =  0x2a,
+    CMI_ESM_INVALID_EPS_BEARER_IDENTITY                                         =  0x2b,
+    CMI_ESM_SEMANTIC_ERRORS_IN_PACKET_FILTER                                    =  0x2c,
+    CMI_ESM_SYNTACTICAL_ERRORS_IN_PACKET_FILTER                                 =  0x2d,
+    CMI_ESM_EPS_BEARER_CONTEXT_WITHOUT_TFT_ALREADY_ACTIVATED                    =  0x2e,
+    CMI_ESM_PTI_MISMATCH                                                        =  0x2f,
+    CMI_ESM_LAST_PDN_DISCONNECTION_NOT_ALLOWED                                  =  0x31,
+    CMI_ESM_PDN_TYPE_IPV4_ONLY_ALLOWED                                          =  0x32,
+    CMI_ESM_PDN_TYPE_IPV6_ONLY_ALLOWED                                          =  0x33,
+    CMI_ESM_SINGLE_ADDRESS_BEARERS_ONLY_ALLOWED                                 =  0x34,
+    CMI_ESM_ESM_INFORMATION_NOT_RECEIVED                                        =  0x35,
+    CMI_ESM_PDN_CONNECTION_DOES_NOT_EXIST                                       =  0x36,
+    CMI_ESM_MULTIPLE_PDN_CONNECTIONS_FOR_A_GIVEN_APN_NOT_ALLOWED                =  0x37,
+    CMI_ESM_COLLISION_WITH_NETWORK_INITIATED_REQUEST                            =  0x38,
+    CMI_ESM_PDN_TYPE_IPV4V6_ONLY_ALLOW                                          =  0x39,
+    CMI_ESM_PDN_TYPE_NON_IP_ONLY_ALLOW                                          =  0x3a,
+    CMI_ESM_UNSUPPORTED_QCI_VALUE                                               =  0x3b,
+    CMI_ESM_INVALID_PTI_VALUE                                                   =  0x51,
+    CMI_ESM_SEMANTICALLY_INCORRECT_MESSAGE                                      =  0x5f,
+    CMI_ESM_INVALID_MANDATORY_INFORMATION                                       =  0x60,
+    CMI_ESM_MESSAGE_TYPE_NONEXISTENT_OR_NOT_IMPLEMENTED                         =  0x61,
+    CMI_ESM_MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE                 =  0x62,
+    CMI_ESM_INFORMATION_ELEMENT_NONEXISTENT_OR_NOT_IMPLEMENTED                  =  0x63,
+    CMI_ESM_CONDITIONAL_IE_ERROR                                                =  0x64,
+    CMI_ESM_MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE                      =  0x65,
+    CMI_ESM_PROTOCOL_ERROR_OR_UNSPECIFIED                                       =  0x6f,
+    CMI_ESM_APN_RESTRICTION_VALUE_INCOMPATIBLE_WITH_ACTIVE_EPS_BEARER_CONTEXT   =  0x70,
+    CMI_ESM_MUTIPLE_ACCESSES_TO_A_PDN_CONNECTION_NOT_ALLOWED                    =  0x71,
+
+    /*
+     * ESM internal cause, out of 3GPP defined values
+    */
+    CMI_ESM_INTERNAL_CAUSE_LOCAL_USED_BASE                                      =  0xE0,
+    CMI_ESM_TIMER_EXPIRIED_FIVE_TIMES                                           =  0xE1,
+    CMI_ESM_EPS_SERVICE_NOT_AVAILABLE                                           =  0xE2,
+    CMI_ESM_UNKNOWN_BEARER_CONTEXT                                              =  0xE3,
+    CMI_ESM_BEARER_CONTEXT_OPERATION_NOT_ALLOWED                                =  0xE4,
+    CMI_ESM_APN_CONGESTION_CONTROL_BARRED                                       =  0xE5,
+    CMI_ESM_ESTABLISH_REQ_TIMEOUT                                               =  0xE6,
+    CMI_ESM_APN_AND_PDN_TYPE_DUPLICATE_USED                                     =  0xE7,
+    CMI_ESM_LINKED_EPS_NOT_ACT                                                  =  0xE8,
+    CMI_ESM_CAUSE_BEARER_REMAP                                                  =  0xE9,    /* ESM bearer is remapped to other CID */
+    CMI_ESM_EMC_BR_ESTABLISH_FAILURE                                            =  0xEA,    /* ESM emergency bearer establish failure*/
+
+    /* internal add here */
+    CMI_ESM_CAUSE_UNKNOWN                                                       =  0xFF     /* Save memory, cause limited in one byte */
+
+}CmiEsmCause;
+
 /*
  * CMI_PS_GET_CEER_REQ,
 */
@@ -2112,6 +2190,8 @@ typedef struct CmiPsGetCeerCnf_Tag
     UINT16     esmCause;
  }
 CmiPsGetCeerCnf;
+
+#endif
 
 /*
  * CMI_PS_SET_UE_OPERATION_MODE_REQ,
@@ -2354,5 +2434,86 @@ typedef CamCmiEmptySig CmiPsSetTrafficIdleMonitorCnf;
 typedef CamCmiEmptySig CmiPsTrafficIdleMonitorInd;
 
 
+/**
+ * CMI_PS_ROHC_ERROR_REPORT_IND     //CmiPsRohcErrorReportInd
+*/
+typedef struct CmiPsRohcErrorReportInd_Tag
+{
+    UINT8   cidNum;         /*valid CID number in "cidList" & "rohcErrInfo" */
+    UINT8   rsvd0;
+    UINT16  rsvd1;
+
+    UINT8   cidList[CMI_PS_CID_NUM];
+    struct {
+        UINT32  ulErrCount; /* all these count reset to 0, when reported */
+        UINT32  ulAllCount;
+
+        UINT32  dlErrCount;
+        UINT32  dlAllCount;
+    }rohcErrInfo[CMI_PS_CID_NUM];   //16*16 = 256 bytes
+}CmiPsRohcErrorReportInd;   //276 bytes
+
+/**
+ * CMI_PS_CNEC_ERROR_CODE_REPORT_IND     //CmiPsCnecErrorCodeReportInd
+*/
+/*
+ * EMM/ESM/5GSM/5GMM report error code
+*/
+typedef enum
+{
+    CMI_PS_EMM  = 0,
+    CMI_PS_ESM,
+    CMI_PS_5GMM,
+    CMI_PS_5GSM
+}CmiPsCnecSrcModule;
+
+/*
+ * CMI_PS_CNEC_ERROR_CODE_REPORT_IND
+ *  +CNEC: <error_code>[,<cid>]
+*/
+typedef struct CmiPsCnecErrorCodeReportInd_Tag
+{
+    UINT8   srcModule; //CmiPsCnecSrcModule
+    UINT8   errorCode; //ESM/EMM/5GSM/5GMM unsolicited reporting of error codes sent by the network
+    BOOL    cidPst;
+    UINT8   cid;
+}CmiPsCnecErrorCodeReportInd;
+
+/*
+ * CMI_PS_GET_ECSMER_REQ
+ * Request to get last esm cause
+*/
+typedef struct CmiPsGetEcsmerReq_Tag
+{
+    BOOL        getAll;
+    UINT8       cid;
+    UINT16      rsvd;
+}CmiPsGetEcsmerReq;
+
+/*
+ * CMI_PS_GET_ECSMER_CNF,
+*/
+typedef struct CmiPsGetEcsmerCnf_Tag
+{
+    struct {
+        BOOL        valid;
+        UINT8       cid;
+        UINT16      esmCause; //EsmCause
+    } lastCause[CMI_PS_LAST_ESM_CAUSE_NUM];
+
+ }CmiPsGetEcsmerCnf;// 12 bytes
+
+ /*
+ * CMI_PS_DEL_ECSMER_REQ
+ * Request to get last esm cause
+*/
+typedef struct CmiPsDelEcsmerReq_Tag
+{
+    UINT8       cid;
+    UINT8       rsvd0;
+    UINT16      rsvd1;
+}CmiPsDelEcsmerReq;
+
+typedef CamCmiEmptySig CmiPsDelEcsmerCnf;
 #endif
 

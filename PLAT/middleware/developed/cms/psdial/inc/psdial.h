@@ -80,14 +80,9 @@ typedef struct PsDialContext_Tag
     UINT32      rsvd0 : 3;
 
     UINT32      actingCid : 8;      /* current activating CID */
-    UINT32      actingCidCgevReason: 4;     /* CmiPsPdnTypeReason, 1> psdail need it decide whether need to init another PDP, 2> netif also need it */
+    UINT32      actingCidCgevReason : 4;     /* CmiPsPdnTypeReason, 1> psdail need it decide whether need to init another PDP, 2> netif also need it */
     UINT32      psConnStatus : 1;   /* 0 - RRC IDLE, 1- RRC connected */
-    UINT32      bTrafficIdleTriggerTau:1; /* When Pdcp monitor traffic idle after a <idle_time> (set by AT+ECSCLKEX), notify psDial, then do as follows:
-                                           * 1> Trigger UE to force to go idle
-                                           * 2> After UE go idle, trigger a TAU to sync with NW.
-                                           * 3> False: no need to trigger TAU after go idle as above.
-                                           *    True : need to trigger TAU after go idle as above.
-                                          */
+    UINT32      bTriggerConnRel : 1;    /* whether trigger rrc conn rel */
     UINT32      rsvd1 : 10;
 
     CmiSimImsiStr   ueImsi;     //20 bytes
@@ -190,6 +185,8 @@ UINT8 psDialGetCfunState(void);
  * return current RRC connection state: 0 - IDLE state, 1 - connected state
 */
 UINT8 psDialGetPsConnStatus(void);
+
+UINT8 psDialGetTriggerConnRelFlag(void);
 
 /*
  * return CEREG state: CmiCeregStateEnum

@@ -640,16 +640,16 @@ typedef CmiDevSetTxPowerReq   TxPowerSettingReq;
 /******************************************************************************
  *Set bar cell Params
 ******************************************************************************/
-#define ECBARCELL_0_MODE_VAL_MIN            (0)
-#define ECBARCELL_0_MODE_VAL_MAX            (1)         //0:remove barred cell, 1:add new cell into barred-list
+#define ECBARCELL_0_EARFCN_VAL_MIN          (1)
+#define ECBARCELL_0_EARFCN_VAL_MAX          (262143)    //max support maxEarfcn2
 
-#define ECBARCELL_1_EARFCN_VAL_MIN          (1)
-#define ECBARCELL_1_EARFCN_VAL_MAX          (262143)    //max support maxEarfcn2
+#define ECBARCELL_1_PCI_VAL_MIN             (0)
+#define ECBARCELL_1_PCI_VAL_MAX             (503)       //physcellid (0..503)
 
-#define ECBARCELL_2_PCI_VAL_MIN             (0)
-#define ECBARCELL_2_PCI_VAL_MAX             (503)       //physcellid (0..503)
+#define ECBARCELL_2_BAR_TIME_VAL_MIN        (0)         //unbar cell
+#define ECBARCELL_2_BAR_TIME_VAL_MAX        (65535)     //bar cell inifinity
 
-typedef CmiDevSetBarCellReq   SetBarCellParams;
+typedef CmiDevSetBarCellReq   SetBarCellParamsReq;
 
 /******************************************************************************
  *****************************************************************************
@@ -1060,12 +1060,12 @@ CmsRetId appGetAuthParamSync(const UINT8  cid, GetPsAuthCtxParams *pGetAuthParam
   \fn          CmsRetId appSetTxPowerSetting
   \brief       Send cmi request to set Tx Power while UE in connnection state
   \param[in]   TxPowerSettingReq *pTxPowerSettingReq
-  \param[out]  
+  \param[out]
   \returns     CmsRetId
 */
 CmsRetId appSetTxPowerSetting(TxPowerSettingReq *pTxPowerSettingReq);
 
-CmsRetId appSetECBarCell(SetBarCellParams *pSetBarCellReq);
+CmsRetId appSetECBarCell(SetBarCellParamsReq *pSetBarCellReq);
 
 #endif
 

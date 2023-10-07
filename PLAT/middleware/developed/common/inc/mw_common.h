@@ -130,6 +130,10 @@ typedef enum MidWareATChanCfgEnum_Tag
     MID_WARE_AT_CHAN_DCD_MODE_CFG,          //AT&C[value] DCD mode
     MID_WARE_AT_CHAN_DTR_MODE_CFG,          //AT&D[value] DTR mode
     MID_WARE_AT_CHAN_ECSMSFULL_RPT_CFG,     //ECSMSFULL
+    MID_WARE_AT_CHAN_CNEC_RPT_CFG,         /*+CNEC=[<n>], enabled unsolicited reporting of error code sent by the network for different management:
+                                            * Total 4 bit: bit-0: EMM management/bit-1 : ESM /bit-2 bit: 5G_MM /bit-3: 5G_SM
+                                            * Note: The other 3 bits on the head are not used on CAT1: CS_MM/GPRS_MM/GPRS_SM
+                                            */
 
     MID_WARE_AT_CHAN_CFG_MAX
 }MidWareATChanCfgEnum;
@@ -180,7 +184,11 @@ typedef struct _SIG_EPAT_MW_CFG_AT_CHAN_1_CONFIG
     UINT32  dcdMode          : 1;       //AT&C[value] Circuit 109 (Received line signal detector) behaviour
     UINT32  dtrMode          : 2;       //AT&D[value] Circuit 108 (Data terminal ready) behaviour
     UINT32  ecsmsfullRptMode : 1;       //+ECSMSFULL, 0: not report; 1: report when SMS memfull after bootup/+CMGW/+CMTI
-    UINT32  rsvd0            : 19;      //VALUE is 0
+    UINT32  cnecRptMode      : 4;       /*+CNEC=[<n>], enabled unsolicited reporting of error code sent by the network for different management:
+                                        * Total 4 bit: bit-0: EMM management/bit-1 : ESM /bit-2 :5G_MM /bit-3: 5G_SM
+                                        * Note: The other 3 bits on the head are not used on CAT1: CS_MM/GPRS_MM/GPRS_SM
+                                        */
+    UINT32  rsvd0            : 15;      //VALUE is 0
 }MWCfgAtChanConfig;   // 8 bytes
 
 /******************************************************************************

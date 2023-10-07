@@ -66,7 +66,7 @@
 #define AT_QIRD_0_CONNECTID_DEF          (-1)
 
 #define AT_QIRD_1_READ_LENGTH_MIN            (0)
-#define AT_QIRD_1_READ_LENGTH_MAX            (1500)
+#define AT_QIRD_1_READ_LENGTH_MAX            (CMS_SOCK_ONE_MGR_DL_LENGTH_MAX)
 #define AT_QIRD_1_READ_LENGTH_DEF            (0)
 
 /* AT+QICFG */

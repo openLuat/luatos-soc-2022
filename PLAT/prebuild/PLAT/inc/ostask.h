@@ -31,7 +31,7 @@
 #define UICC_DRV_TASK_STACK_SIZE        1536
 
 //#define TCPIP_THREAD_STACKSIZE          2048
-#define LWIP_TASK_STACK_SIZE            1536
+#define LWIP_TASK_STACK_SIZE            1792
 
 
 /******************************************************************************

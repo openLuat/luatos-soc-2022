@@ -228,7 +228,7 @@ void mwAonSaveConfig(void);
  * used for SOCK task
 */
 MidWareSockAonInfo* mwGetSockAonInfo(void);
-void mwSetSockAonInfo(MidWareSockAonInfo *pSockAonInfo);
+void mwSetSockAonInfo(MidWareSockAonInfo *pSockAonInfo, BOOL  bSockContext);
 void mwAonSockInfoChanged(void);
 
 /**

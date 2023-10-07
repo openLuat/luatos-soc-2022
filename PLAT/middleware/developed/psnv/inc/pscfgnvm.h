@@ -133,6 +133,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CERRC_CFG_DISABLE_CDRX_CONFIG,                  /* TV,  BOOL disableCDRX */
     CERRC_CFG_USER_DRX_CYCLE,                       /* TV,  UINT8 userDrxCycle */
 
+    CERRC_CFG_MEAS_ADJUST_SETTING,                  /* TLV, CerrcCcmMeasAdjustConfig, AT+ECMEASCFG */
     CERRC_CFG_CFUN_CLEAR_BARCELL,                   /* TV,  BOOL cfunClrBarCell */
     /*
      * !!!!  PARAM ID !!!!

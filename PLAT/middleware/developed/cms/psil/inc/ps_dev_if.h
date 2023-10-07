@@ -38,6 +38,7 @@ CmsRetId devSetCMTLRA(UINT32 atHandle,INT32 allow, INT32 handleId);
 #endif
 CmsRetId devGetESTATUS(UINT32 atHandle, UINT8 statusType);
 CmsRetId devSetESTATIS(UINT32 atHandle, UINT16 periodS);
+CmsRetId devSetECMEASCFG(UINT32 atHandle, CmiDevSetMeasAdjustCfgReq *pMeasCfgReq);
 CmsRetId devGetECBCINFO(UINT32 atHandle, CmiDevGetBasicCellListInfoReq *pGetBcInfoReq);
 
 CmsRetId devGetECPSTEST(UINT32 atHandle);
@@ -55,6 +56,7 @@ CmsRetId devSetWIFISCAN(UINT32 atHandle, CmiDevSetWifiSacnReq *wifiScanReq);
 
 CmiRcCode devSetExCfgParaSync(CmiDevSetExtCfgReq *pSetExCfgReq);
 CmiRcCode devGetExCfgParaSync(CmiDevGetExtCfgCnf *pGetExCfgCnf);
+CmiRcCode devGetMeasAdjustCfgParaSync(CmiDevGetMeasAdjustCfgCnf *pGetMeasAdjustCfgCnf);
 
 /**
   \fn            CmiRcCode devGetNasTimerParaReqSync

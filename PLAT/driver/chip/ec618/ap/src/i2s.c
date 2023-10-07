@@ -597,17 +597,6 @@ static int32_t i2sSetSampleRate(uint32_t bps, i2sResources_t *i2s, i2sRole_e i2s
 
     if (instance == 0) // i2s0
     {
-        CLOCK_clockEnable(FCLK_I2S0);
-    }
-    else // i2s1
-    {
-        CLOCK_clockEnable(FCLK_I2S1);
-    }
-
-    CLOCK_setClockSrc(CLK_CC, CLK_CC_SEL_204M); // Core clk selects 204M
-
-    if (instance == 0) // i2s0
-    {
         CLOCK_fracDivOutCLkEnable(FRACDIV0_OUT0); // Fracdiv0 out0 enable       
         CLOCK_setMclkSrc(MCLK0, MCLK_SRC_FRACDIV0_OUT0); // Choose Fracdiv0 out0 as MClk source
         CLOCK_mclkEnable(MCLK0); // Mclk enable

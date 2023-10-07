@@ -138,16 +138,23 @@ typedef enum _EPAT_CMI_DEV_PRIM_ID_TAG
 
 
     CMI_DEV_GET_NAS_TIMER_PARA_REQ,         /*AT+ECNASTCFG?*/
-    CMI_DEV_GET_NAS_TIMER_PARA_CNF,         /* CmiDevGetNasTimerParaCnf */
+    CMI_DEV_GET_NAS_TIMER_PARA_CNF  = 90,   /* CmiDevGetNasTimerParaCnf */
     CMI_DEV_SET_NAS_TIMER_PARA_REQ,         /* CmiDevSetNasTimerParaReq, AT+ECNASTCFG = <timer_id>,[<timer_val>,[<try_count>]] */
     CMI_DEV_SET_NAS_TIMER_PARA_CNF,
 
     CMI_DEV_SET_TX_POWER_REQ,              //CmiDevSetTxPowerReq
     CMI_DEV_SET_TX_POWER_CNF,
+    CMI_DEV_SET_MEAS_CFG_REQ,               //CmiDevSetMeasAdjustCfgReq, AT+ECMEASCFG=<rsrpThreshAdjust>,[<rsrqThreshAdjust>,[<rsrpRptAdjust>,[<rsrqRptAdjust>,[<rsrpMeasAdjust>,[<rsrqMeasAdjust>]]]]]
+    CMI_DEV_SET_MEAS_CFG_CNF,
+    CMI_DEV_GET_MEAS_CFG_REQ,
+    CMI_DEV_GET_MEAS_CFG_CNF,
     CMI_DEV_SET_BAR_CELL_REQ,               //CmiDevSetBarCellReq
     CMI_DEV_SET_BAR_CELL_CNF,
     CMI_DEV_GET_BAR_CELL_REQ,
     CMI_DEV_GET_BAR_CELL_CNF,               //CmiDevGetBarCellCnf
+
+    CMI_DEV_NAS_EVENT_IND,                  //CmiDevNasEventInd
+    CMI_DEV_RRC_EVENT_IND,                  //CmiDevErrcEventInd
 
     CMI_DEV_PRIM_END = 0x0fff
 }CMI_DEV_PRIM_ID;
@@ -563,6 +570,39 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    cfunClrBarCell;     //True: clear bar cell (except cell barred by ATCMD) when perform cfun0/cfun4
 }CmiDevSetExtCfgReq;    // 64 bytes
 
+typedef struct CmiDevSetMeasAdjustCfgReq_Tag
+{
+    BOOL    rsrpThreshAdjustPresent;
+    BOOL    rsrqThreshAdjustPresent;
+    BOOL    rsrpMeasAdjustPresent;
+    BOOL    rsrqMeasAdjustPresent;
+    BOOL    rsrpRptAdjustPresent;
+    BOOL    rsrqRptAdjustPresent;
+    INT16   reserved0;
+
+    //rsrpThreshAdjust, rsrqThreshAdjust: effect UE reselect evaluation
+    INT16   rsrqRptAdjust;      //range (-124..124), unit in 1/4dB
+    INT16   rsrpThreshAdjust;   //range (-388..388), unit in 1/4dB
+
+    //rsrpMeasAdjust, rsrqMeasAdjust: effect UE Idle measurement threshold
+    INT16   rsrqThreshAdjust;   //range (-124..124), unit in 1/4dB
+    INT16   rsrpMeasAdjust;     //range (-388..388), unit in 1/4dB
+
+    //rsrpRptAdjust, rsrqRptAdjust: effect UE Connection MR
+    INT16   rsrqMeasAdjust;     //range (-124..124), unit in 1/4dB
+    INT16   rsrpRptAdjust;      //range (-388..388), unit in 1/4dB
+}CmiDevSetMeasAdjustCfgReq; //20 bytes
+
+typedef struct CmiDevGetMeasAdjustCfgCnf_Tag
+{
+    INT16   rsrpThreshAdjust;       //range (-388..388), unit in 1/4dB
+    INT16   rsrqThreshAdjust;       //range (-124..124), unit in 1/4dB
+    INT16   rsrpMeasAdjust;         //range (-388..388), unit in 1/4dB
+    INT16   rsrqMeasAdjust;         //range (-124..124), unit in 1/4dB
+    INT16   rsrpRptAdjust;          //range (-388..388), unit in 1/4dB
+    INT16   rsrqRptAdjust;          //range (-124..124), unit in 1/4dB
+}CmiDevGetMeasAdjustCfgCnf; //12 bytes
+
 typedef CamCmiEmptySig CmiDevSetExtCfgCnf;
 
 /******************************************************************************
@@ -571,6 +611,7 @@ typedef CamCmiEmptySig CmiDevSetExtCfgCnf;
  *  +ECCFG="GCFTEST", 0, "AUTOAPN", 0, "SUPPORTSMS", 0, "SIMTEST", 0
 ******************************************************************************/
 typedef CamCmiEmptySig CmiDevGetExtCfgReq;
+typedef CamCmiEmptySig CmiDevGetMeasAdjustCfgReq;
 
 
 typedef struct CmiDevGetExtCfgCnf_Tag
@@ -631,7 +672,7 @@ typedef struct CmiDevGetExtCfgCnf_Tag
     BOOL    bStaticConfig;
     BOOL    bDisableCDRX;
 
-    UINT8   userDrxCycle;          //CmiUserDrxCycle
+    UINT8   userDrxCycle;              //CmiUserDrxCycle
     BOOL    cfunClrBarCell;
     UINT8   rsvd3[2];
 }CmiDevGetExtCfgCnf;    // 36 bytes
@@ -2266,7 +2307,7 @@ typedef struct CmiDevSetExtStatisModeReq_Tag
 }CmiDevSetExtStatisModeReq;
 
 typedef CamCmiEmptySig  CmiDevSetExtStatisModeCnf;
-
+typedef CamCmiEmptySig  CmiDevSetMeasAdjustCfgCnf;
 
 /*
  * CMI_DEV_EXT_STATIS_IND
@@ -2687,16 +2728,13 @@ typedef CamCmiEmptySig CmiDevSetTxPowerCnf;
 /******************************************************************************
  * CMI_DEV_SET_BAR_CELL_REQ
 ******************************************************************************/
-typedef enum CmiDevBarCellMode_enum
-{
-    CMI_REMOVE_BAR_CELL     = 0,    //remove an existed barred cell from NVM
-    CMI_ADD_BAR_CELL        = 1,    //add a new cell into barred list of NVM
-}CmiDevBarCellMode;
 
+/******************************************************************************
+ * CMI_DEV_SET_BAR_CELL_REQ
+******************************************************************************/
 typedef struct CmiDevSetBarCellReq_Tag
 {
-    UINT8       mode;       //CmiDevBarCellMode
-    UINT8       rsvd;
+    UINT16      cellBarTimeS; //0: unbar cell; 1-65534: bar time(S); 65535: bar cell inifinity
     UINT16      phyCellId;
     UINT32      earfcn;
 }CmiDevSetBarCellReq;
@@ -2720,13 +2758,93 @@ typedef CamCmiEmptySig CmiDevGetBarCellReq;
 ******************************************************************************/
 #define     CMI_MAX_BAR_CELL_NUM    8
 
+typedef struct CmiDevBarCellList_Tag
+{
+    //total bartime, which set by AT+ECBARCELL
+    UINT16                  barTimeS;
+    //seconds, the remaining valid time of the bar cell
+    //1-65534: remaining vaild time; 65535 - inifinity
+    UINT16                  remainBarTimeS;
+    UINT16                  phyCellId;
+    UINT16                  rsvd;
+    UINT32                  earfcn;
+}CmiDevBarCellList;
+
 typedef struct CmiDevGetBarCellCnf_Tag
 {
-    UINT8       barCellNum;
-    UINT8       rsvd[3];
-    UINT32      earfcn[CMI_MAX_BAR_CELL_NUM];
-    UINT16      phyCellId[CMI_MAX_BAR_CELL_NUM];
+    UINT8               barCellNum;
+    UINT8               rsvd[3];
+    CmiDevBarCellList   barCellList[CMI_MAX_BAR_CELL_NUM];
 }CmiDevGetBarCellCnf;
+
+
+/******************************************************************************
+ * CMI_DEV_RRC_EVENT_IND
+******************************************************************************/
+typedef enum CmiDevRrcEventTypeEnum_Tag
+{
+    CMI_DEV_RRC_NONE = 0,
+    CMI_DEV_RRC_CELL_CHANGED = 1,       /* UE reselect/handover/reestablish to another cell and success */
+}CmiDevRrcEventTypeEnum;
+
+typedef struct CmiDevErrcCellChangedInd_Tag
+{
+    //the EARFCN defined in 36.101, 5.7.3
+    UINT32                  earfcnOfSourceCell;
+    //the physical cell identity, range (0..503)
+    UINT16                  pciOfSourceCell;
+        //value in units of dBm, value range: -156 ~ -44
+    INT16                   rsrpOfSourceCell;
+    //value in units of dB, value range: -34 ~ 25
+    INT16                   rsrqOfSourceCell;
+    UINT16                  rsvd1;
+
+    //the EARFCN defined in 36.101, 5.7.3
+    UINT32                  earfcnOfCurrentCell;
+    //the physical cell identity, range (0..503)
+    UINT16                  pciOfCurrentCell;
+    //value in units of dBm, value range: -156 ~ -44
+    INT16                   rsrpOfCurrentCell;
+    //value in units of dB, value range: -34 ~ 25
+    INT16                   rsrqOfCurrentCell;
+    UINT16                  rsvd2;
+}CmiDevErrcCellChangedInd;
+
+typedef struct CmiDevErrcEventInd_Tag
+{
+    UINT8   eventType;          // CmiDevRrcEventTypeEnum
+    UINT8   rsvd[3];
+
+    CmiDevErrcCellChangedInd    cellChangedInd;
+}CmiDevErrcEventInd;
+
+/******************************************************************************
+ * CMI_DEV_NAS_EVENT_IND
+******************************************************************************/
+typedef enum CmiDevNasEventTypeEnum_Tag
+{
+    CMI_DEV_NAS_RRC_REL_DURING_ATTACH = 0,  /* RRC release, without ATTACH ACCEPT/REJECT */
+    CMI_DEV_NAS_RRC_REL_DURING_TAU,         /* RRC release, without TAU ACCEPT/REJECT */
+    CMI_DEV_NAS_NO_RSP_DURING_ATTACH,       /* No response for ATTACH REQUEST */
+    CMI_DEV_NAS_NO_RSP_DURING_TAU,          /* No response for TAU REQUEST */
+    CMI_DEV_NAS_NO_RSP_DURING_SR,           /* No response for SERVICE REQUEST */
+    CMI_DEV_NAS_NO_RSP_DURING_DETACH,       /* No response for DETACH REQUEST */
+    CMI_DEV_NAS_ATTACH_REJECT,              /* ATTACH REJECT */
+    CMI_DEV_NAS_TAU_REJECT,                 /* TAU REJECT */
+    CMI_DEV_NAS_SERVICE_REJECT              /* SERVICE REJECT */
+}CmiDevNasEventTypeEnum;
+
+typedef struct CmiDevNasEventInd_Tag
+{
+    UINT8   eventType;      // CmiDevEmmEventTypeEnum
+    UINT8   rsvd[3];
+
+    UINT16  rejectCause;    // EMM CAUSE
+    UINT16  phyCellId;
+
+    UINT32  carrierFreq;
+}CmiDevNasEventInd;
+
 #endif
 
 
