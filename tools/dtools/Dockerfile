@@ -26,3 +26,11 @@ RUN dpkg --add-architecture i386 &&\
 
 # 调用一次FotaToolkit,这样才能初始化wine环境,不然启动耗时会很长
 RUN wine FotaToolkit.exe -h || date
+
+RUN apt update && apt install -y python3-pip && pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple oss2 && apt clean -y
+
+COPY main.py /opt/
+
+EXPOSE 9000
+
+CMD [ "/usr/bin/python3", "main.py", "web"]
