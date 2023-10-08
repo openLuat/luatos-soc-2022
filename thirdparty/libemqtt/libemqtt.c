@@ -583,8 +583,8 @@ int mqtt_set_will(mqtt_broker_handle_t* broker, const char* topic,
 		luat_heap_free(broker->will_data);
 		broker->will_data = NULL;
 	}
-	if (topic == NULL || payload == NULL || payload_len == 0) {
-		DBG("will topic/payload is NULL");
+	if (topic == NULL ) {
+		DBG("will topic is NULL");
 		return 0;
 	}
 	size_t topic_len = strlen(topic);

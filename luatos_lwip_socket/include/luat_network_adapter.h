@@ -341,6 +341,7 @@ void network_set_base_mode(network_ctrl_t *ctrl, uint8_t is_tcp, uint32_t tcp_ti
  * 使用域名时是否选择IPV6地址
  */
 void network_connect_ipv6_domain(network_ctrl_t *ctrl, uint8_t onoff);
+
 /*
  * 检查网络是否已经连接，注意不是socket
  * 如果ctrl为0，则会根据adapter_index去返回
@@ -433,7 +434,7 @@ int network_cert_verify_result(network_ctrl_t *ctrl);
  * 初始化加密传输
  * verify_mode参考MBEDTLS_SSL_VERIFY_XXX
  */
-void network_init_tls(network_ctrl_t *ctrl, int verify_mode);
+int network_init_tls(network_ctrl_t *ctrl, int verify_mode);
 /*
  * 结束加密传输模式，恢复成正常模式
  */

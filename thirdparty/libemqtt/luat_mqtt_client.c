@@ -15,15 +15,29 @@
 
 static int luat_mqtt_msg_cb(luat_mqtt_ctrl_t *mqtt_ctrl);
 
+#ifdef __LUATOS__
+#include "luat_msgbus.h"
+int32_t luatos_mqtt_callback(lua_State *L, void* ptr);
+#endif
+
 int l_luat_mqtt_msg_cb(luat_mqtt_ctrl_t * ptr, int arg1, int arg2) {
+#ifdef __LUATOS__
+	rtos_msg_t msg = {
+		.handler = luatos_mqtt_callback,
+		.ptr = ptr,
+		.arg1 = arg1,
+		.arg2 = arg2
+	};
+	luat_msgbus_put(&msg, 0);
+#else
 	luat_mqtt_ctrl_t *mqtt_ctrl =(luat_mqtt_ctrl_t *)ptr;
 	if (mqtt_ctrl->mqtt_cb){
 		luat_mqtt_cb_t mqtt_cb = mqtt_ctrl->mqtt_cb;
 		mqtt_cb(mqtt_ctrl, arg1);
 	}
+#endif
 	return 0;
 }
-
 
 LUAT_RT_RET_TYPE luat_mqtt_timer_callback(LUAT_RT_CB_PARAM){
 	luat_mqtt_ctrl_t * mqtt_ctrl = (luat_mqtt_ctrl_t *)param;
@@ -31,21 +45,23 @@ LUAT_RT_RET_TYPE luat_mqtt_timer_callback(LUAT_RT_CB_PARAM){
 	luat_mqtt_ping(mqtt_ctrl);
 }
 
+static LUAT_RT_RET_TYPE reconnect_timer_cb(LUAT_RT_CB_PARAM){
+	luat_mqtt_ctrl_t * mqtt_ctrl = (luat_mqtt_ctrl_t *)param;
+	l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_RECONNECT, 0);
+	luat_mqtt_reconnect(mqtt_ctrl);
+}
+
 int luat_mqtt_reconnect(luat_mqtt_ctrl_t *mqtt_ctrl) {
-	DBG("luat_mqtt_reconnect \n");
+	mqtt_ctrl->buffer_offset = 0;
 	int ret = luat_mqtt_connect(mqtt_ctrl);
 	if(ret){
 		DBG("reconnect init socket ret=%d\n", ret);
 		luat_mqtt_close_socket(mqtt_ctrl);
 	}
+	return ret;
 }
 
-static LUAT_RT_RET_TYPE reconnect_timer_cb(LUAT_RT_CB_PARAM){
-	DBG("reconnect_timer_cb \n");
-	luat_mqtt_ctrl_t * mqtt_ctrl = (luat_mqtt_ctrl_t *)param;
-	l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_RECONNECT, 0);
-	luat_mqtt_reconnect(mqtt_ctrl);
-}
+
 
 int luat_mqtt_ping(luat_mqtt_ctrl_t *mqtt_ctrl) {
 	mqtt_ping(&mqtt_ctrl->broker);
@@ -76,15 +92,23 @@ int luat_mqtt_set_connopts(luat_mqtt_ctrl_t *mqtt_ctrl, luat_mqtt_connopts_t *op
     memcpy(mqtt_ctrl->host, opts->host, strlen(opts->host) + 1);
     mqtt_ctrl->remote_port = opts->port;
 	if (opts->is_tls){
-		network_init_tls(mqtt_ctrl->netc, (opts->server_cert || opts->client_cert)?2:0);
+		if (network_init_tls(mqtt_ctrl->netc, opts->verify)){
+			DBG("初始化tls失败");
+			return -1;
+		}
 		if (opts->server_cert){
-			network_set_server_cert(mqtt_ctrl->netc, (const unsigned char *)opts->server_cert, opts->server_cert_len+1);
+			if (network_set_server_cert(mqtt_ctrl->netc, (const unsigned char *)opts->server_cert, opts->server_cert_len+1)){
+				DBG("network_set_server_cert error");
+				return -1;
+			}
 		}
 		if (opts->client_cert){
-			
-			network_set_client_cert(mqtt_ctrl->netc, (const unsigned char*)opts->client_cert, opts->client_cert_len+1,
+			if (network_set_client_cert(mqtt_ctrl->netc, (const unsigned char*)opts->client_cert, opts->client_cert_len+1,
 					(const unsigned char*)opts->client_key, opts->client_key_len+1,
-					(const unsigned char*)opts->client_password, opts->client_password_len+1);
+					(const unsigned char*)opts->client_password, opts->client_password_len+1)){
+				DBG("network_set_client_cert error");
+				return -1;
+			}
 		}
 	} else {
 		network_deinit_tls(mqtt_ctrl->netc);
@@ -106,7 +130,7 @@ void luat_mqtt_close_socket(luat_mqtt_ctrl_t *mqtt_ctrl){
 		mqtt_ctrl->buffer_offset = 0;
 		if (mqtt_ctrl->netc){
 			network_force_close_socket(mqtt_ctrl->netc);
-			l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_DISCONNECT, 0);
+			l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_DISCONNECT, mqtt_ctrl->error_state==0?MQTT_ERROR_STATE_SOCKET:mqtt_ctrl->error_state);
 		}
 		luat_stop_rtos_timer(mqtt_ctrl->ping_timer);
 		if (mqtt_ctrl->reconnect && mqtt_ctrl->reconnect_time > 0){
@@ -146,7 +170,7 @@ static int mqtt_parse(luat_mqtt_ctrl_t *mqtt_ctrl) {
 		return 0;
 	}
 	// 判断数据长度, 前几个字节能判断出够不够读出mqtt的头
-	char* buf = mqtt_ctrl->mqtt_packet_buffer;
+	char* buf = (char*)mqtt_ctrl->mqtt_packet_buffer;
 	int num_bytes = 1;
 	if ((buf[1] & 0x80) == 0x80) {
 		num_bytes++;
@@ -185,8 +209,6 @@ static int mqtt_parse(luat_mqtt_ctrl_t *mqtt_ctrl) {
 
 int luat_mqtt_read_packet(luat_mqtt_ctrl_t *mqtt_ctrl){
 	// DBG("luat_mqtt_read_packet mqtt_ctrl->buffer_offset:%d",mqtt_ctrl->buffer_offset);
-	int ret = -1;
-	uint8_t *read_buff = NULL;
 	uint32_t total_len = 0;
 	uint32_t rx_len = 0;
 	int result = network_rx(mqtt_ctrl->netc, NULL, 0, 0, NULL, NULL, &total_len);
@@ -236,9 +258,9 @@ further:
 			}
 		}
 		else {
-			DBG("mqtt_parse ret %d, closing socket");
+			DBG("mqtt_parse ret %d, closing socket",result);
 			luat_mqtt_close_socket(mqtt_ctrl);
-			break;
+			return -1;
 		}
 	}
 	return 0;
@@ -254,6 +276,7 @@ static int luat_mqtt_msg_cb(luat_mqtt_ctrl_t *mqtt_ctrl) {
 			// DBG("MQTT_MSG_CONNACK");
 			if(mqtt_ctrl->mqtt_packet_buffer[3] != 0x00){
 				DBG("CONACK 0x%02x",mqtt_ctrl->mqtt_packet_buffer[3]);
+				mqtt_ctrl->error_state = mqtt_ctrl->mqtt_packet_buffer[3];
                 luat_mqtt_close_socket(mqtt_ctrl);
                 return -1;
             }
@@ -267,6 +290,7 @@ static int luat_mqtt_msg_cb(luat_mqtt_ctrl_t *mqtt_ctrl) {
 			qos = MQTTParseMessageQos(mqtt_ctrl->mqtt_packet_buffer);
 			l_luat_mqtt_msg_cb(mqtt_ctrl, MQTT_MSG_PUBLISH, 0);
 			msg_id = mqtt_parse_msg_id(mqtt_ctrl->mqtt_packet_buffer);
+			DBG("msg %d qos %d", msg_id, qos);
 			// 还要回复puback
 			if (qos == 1) {
 				mqtt_puback(&(mqtt_ctrl->broker), msg_id);
@@ -312,6 +336,7 @@ static int luat_mqtt_msg_cb(luat_mqtt_ctrl_t *mqtt_ctrl) {
         }
 		case MQTT_MSG_DISCONNECT : {
 			// DBG("MQTT_MSG_DISCONNECT");
+			mqtt_ctrl->error_state = MQTT_ERROR_STATE_DISCONNECT;
             break;
         }
         default : {
@@ -357,39 +382,42 @@ int32_t luat_mqtt_callback(void *data, void *param) {
 	}else if(event->ID == EV_NW_RESULT_CLOSE){
 
 	}
-
 	ret = network_wait_event(mqtt_ctrl->netc, NULL, 0, NULL);
 	if (ret < 0){
 		DBG("network_wait_event ret %d, closing socket", ret);
 		luat_mqtt_close_socket(mqtt_ctrl);
 		return -1;
 	}
+	
     return 0;
 }
 
 int luat_mqtt_send_packet(void* socket_info, const void* buf, unsigned int count){
     luat_mqtt_ctrl_t * mqtt_ctrl = (luat_mqtt_ctrl_t *)socket_info;
 	uint32_t tx_len = 0;
-	DBG("luat_mqtt_send_packet buf %*.s count:%d", count,buf, count);
 	int ret = network_tx(mqtt_ctrl->netc, buf, count, 0, NULL, 0, &tx_len, 0);
-	DBG("luat_mqtt_send_packet ret %d tx_len:%d", ret,tx_len);
-	if (ret < 0)
+	if (ret < 0) {
+		DBG("network_tx ret %d, closing socket", ret);
+		luat_mqtt_close_socket(mqtt_ctrl);
 		return 0;
-	return tx_len;
+	}
+	if (tx_len != count) {
+		DBG("network_tx expect %d but %d", count, tx_len);
+		luat_mqtt_close_socket(mqtt_ctrl);
+		return 0;
+	}
+	return count;
 }
 
 int luat_mqtt_connect(luat_mqtt_ctrl_t *mqtt_ctrl) {
 	int ret = 0;
+	mqtt_ctrl->error_state=0;
     const char *hostname = mqtt_ctrl->host;
     uint16_t port = mqtt_ctrl->remote_port;
     uint16_t keepalive = mqtt_ctrl->keepalive;
     DBG("host %s port %d keepalive %d", hostname, port, keepalive);
     mqtt_set_alive(&(mqtt_ctrl->broker), keepalive);
-#ifdef LUAT_USE_LWIP
-	ret = network_connect(mqtt_ctrl->netc, hostname, strlen(hostname), (0xff == mqtt_ctrl->ip_addr.type)?NULL:&(mqtt_ctrl->ip_addr), port, 0) < 0;
-#else
-	ret = network_connect(mqtt_ctrl->netc, hostname, strlen(hostname), (0xff == mqtt_ctrl->ip_addr.is_ipv6)?NULL:&(mqtt_ctrl->ip_addr), port, 0) < 0;
-#endif
+	ret = network_connect(mqtt_ctrl->netc, hostname, strlen(hostname), NULL, port, 0) < 0;
 	DBG("network_connect ret %d", ret);
 	if (ret < 0) {
         network_close(mqtt_ctrl->netc, 0);
