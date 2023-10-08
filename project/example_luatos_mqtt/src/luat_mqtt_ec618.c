@@ -119,65 +119,25 @@ static const char *testclientPk= \
 #endif
 
 static luat_rtos_task_handle mqtt_task_handle;
+static luat_rtos_queue_t mqtt_queue_handle;
+#define MQTT_QUEUE_SIZE 128
+
+typedef struct{
+	luat_mqtt_ctrl_t *luat_mqtt_ctrl;
+	uint16_t event;
+} mqttQueueData;
 
 static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
-	int ret;
-	switch (event)
-	{
-	case MQTT_MSG_CONNACK:{
-		LUAT_DEBUG_PRINT("mqtt_connect ok");
-
-		LUAT_DEBUG_PRINT("mqtt_subscribe");
-		uint16_t msgid = 0;
-		mqtt_subscribe(&(luat_mqtt_ctrl->broker), mqtt_sub_topic, &msgid, 1);
-
-		LUAT_DEBUG_PRINT("publish");
-		uint16_t message_id  = 0;
-		mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_pub_topic, mqtt_send_payload, strlen(mqtt_send_payload), 0, 1, &message_id);
-		break;
-	}
-	case MQTT_MSG_PUBLISH : {
-		const uint8_t* ptr;
-		uint16_t topic_len = mqtt_parse_pub_topic_ptr(luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
-		LUAT_DEBUG_PRINT("pub_topic: %.*s",topic_len,ptr);
-		uint16_t payload_len = mqtt_parse_pub_msg_ptr(luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
-		LUAT_DEBUG_PRINT("pub_msg: %.*s",payload_len,ptr);
-		break;
-	}
-	case MQTT_MSG_PUBACK : 
-	case MQTT_MSG_PUBCOMP : {
-		LUAT_DEBUG_PRINT("msg_id: %d",mqtt_parse_msg_id(luat_mqtt_ctrl->mqtt_packet_buffer));
-		break;
-	}
-	case MQTT_MSG_RELEASE : {
-		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt release");
-		break;
-	}
-	case MQTT_MSG_DISCONNECT : { // mqtt 断开(只要有断开就会上报,无论是否重连)
-		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt disconnect");
-		break;
-	}
-	case MQTT_MSG_CLOSE : { // mqtt 关闭(不会再重连)  注意：一定注意和MQTT_MSG_DISCONNECT区别，如果要做手动重连处理推荐在这里 */
-		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt close");
-if (MQTT_DEMO_AUTOCON == 0){
-	ret = luat_mqtt_connect(luat_mqtt_ctrl);
-	if (ret) {
-		LUAT_DEBUG_PRINT("mqtt connect ret=%d\n", ret);
-		luat_mqtt_close_socket(luat_mqtt_ctrl);
-		return;
-	}
-}
-		break;
-	}
-	default:
-		break;
-	}
+	mqttQueueData mqtt_cb_event = {.luat_mqtt_ctrl = luat_mqtt_ctrl,.event = event};
+	luat_rtos_queue_send(mqtt_queue_handle, &mqtt_cb_event, NULL, 0);
 	return;
 }
 
 static void luat_mqtt_task(void *param)
 {
 	int ret = -1;
+	mqttQueueData mqttQueueRecv = {0};
+	luat_rtos_queue_create(&mqtt_queue_handle, MQTT_QUEUE_SIZE, sizeof(mqttQueueData));
 	luat_mqtt_ctrl_t *luat_mqtt_ctrl = (luat_mqtt_ctrl_t *)luat_heap_malloc(sizeof(luat_mqtt_ctrl_t));
 	ret = luat_mqtt_init(luat_mqtt_ctrl, NW_ADAPTER_INDEX_LWIP_GPRS);
 	if (ret) {
@@ -238,11 +198,63 @@ if (MQTT_DEMO_AUTOCON == 1)
 	LUAT_DEBUG_PRINT("wait mqtt_state ...");
 
 	while(1){
-		if (luat_mqtt_state_get(luat_mqtt_ctrl) == MQTT_STATE_READY){
-			uint16_t message_id  = 0;
-			mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_pub_topic, mqtt_send_payload, strlen(mqtt_send_payload), 0, 1, &message_id);
+        if (luat_rtos_queue_recv(mqtt_queue_handle, &mqttQueueRecv, NULL, 5000) == 0){
+			switch (mqttQueueRecv.event)
+			{
+			case MQTT_MSG_CONNACK:{
+				LUAT_DEBUG_PRINT("mqtt_connect ok");
+
+				LUAT_DEBUG_PRINT("mqtt_subscribe");
+				uint16_t msgid = 0;
+				mqtt_subscribe(&(mqttQueueRecv.luat_mqtt_ctrl->broker), mqtt_sub_topic, &msgid, 1);
+
+				LUAT_DEBUG_PRINT("publish");
+				uint16_t message_id  = 0;
+				mqtt_publish_with_qos(&(mqttQueueRecv.luat_mqtt_ctrl->broker), mqtt_pub_topic, mqtt_send_payload, strlen(mqtt_send_payload), 0, 1, &message_id);
+				break;
+			}
+			case MQTT_MSG_PUBLISH : {
+				const uint8_t* ptr;
+				uint16_t topic_len = mqtt_parse_pub_topic_ptr(mqttQueueRecv.luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
+				LUAT_DEBUG_PRINT("pub_topic: %.*s",topic_len,ptr);
+				uint16_t payload_len = mqtt_parse_pub_msg_ptr(mqttQueueRecv.luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
+				LUAT_DEBUG_PRINT("pub_msg: %.*s",payload_len,ptr);
+				break;
+			}
+			case MQTT_MSG_PUBACK : 
+			case MQTT_MSG_PUBCOMP : {
+				LUAT_DEBUG_PRINT("msg_id: %d",mqtt_parse_msg_id(mqttQueueRecv.luat_mqtt_ctrl->mqtt_packet_buffer));
+				break;
+			}
+			case MQTT_MSG_RELEASE : {
+				LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt release");
+				break;
+			}
+			case MQTT_MSG_DISCONNECT : { // mqtt 断开(只要有断开就会上报,无论是否重连)
+				LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt disconnect");
+				break;
+			}
+			case MQTT_MSG_CLOSE : { // mqtt 关闭(不会再重连)  注意：一定注意和MQTT_MSG_DISCONNECT区别，如果要做手动重连处理推荐在这里 */
+				LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt close");
+				if (MQTT_DEMO_AUTOCON == 0){
+					ret = luat_mqtt_connect(mqttQueueRecv.luat_mqtt_ctrl);
+					if (ret) {
+						LUAT_DEBUG_PRINT("mqtt connect ret=%d\n", ret);
+						luat_mqtt_close_socket(mqttQueueRecv.luat_mqtt_ctrl);
+						return;
+					}
+				}
+				break;
+			}
+			default:
+				break;
+			}
+        }else{
+			if (luat_mqtt_state_get(luat_mqtt_ctrl) == MQTT_STATE_READY){
+				uint16_t message_id  = 0;
+				mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), mqtt_pub_topic, mqtt_send_payload, strlen(mqtt_send_payload), 0, 1, &message_id);
+			}
 		}
-		luat_rtos_task_sleep(5000);
 	}
 }
 
@@ -252,8 +264,13 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 	{
 		if (LUAT_MOBILE_NETIF_LINK_ON == status)
 		{
+			LUAT_DEBUG_PRINT("luatos_mobile_event_callback  link ...");
 			luat_socket_check_ready(index, NULL);
 		}
+        else if(LUAT_MOBILE_NETIF_LINK_OFF == status || LUAT_MOBILE_NETIF_LINK_OOS == status)
+        {
+            LUAT_DEBUG_PRINT("luatos_mobile_event_callback  error ...");
+        }
 	}
 }
 
