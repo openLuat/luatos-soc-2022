@@ -22,7 +22,7 @@
 #include "luat_rtos.h"
 #include "luat_debug.h"
 #include "luat_gpio.h"
-#define TEST_PIN 	HAL_GPIO_27
+#define TEST_PIN 	HAL_GPIO_24
 
 static void task_test_ws2812(void *param)
 {
