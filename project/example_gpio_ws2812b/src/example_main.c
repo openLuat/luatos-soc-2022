@@ -22,7 +22,7 @@
 #include "luat_rtos.h"
 #include "luat_debug.h"
 #include "luat_gpio.h"
-#define TEST_PIN 	HAL_GPIO_1
+#define TEST_PIN 	HAL_GPIO_27
 
 static void task_test_ws2812(void *param)
 {
@@ -44,7 +44,7 @@ static void task_test_ws2812(void *param)
     	{
     		color[i * 3 + cnt] = 0xff;
     	}
-    	luat_gpio_driver_ws2812b(HAL_GPIO_1, color, sizeof(color), 8, 10, 0, 10, 0); //如果不稳定，就把8改成0，但是会关闭中断时间较长
+    	luat_gpio_driver_ws2812b(TEST_PIN, color, sizeof(color), 0, 10, 0, 10, 0); //如果不稳定，就把frame_cnt改成0，但是会关闭中断时间较长
     	luat_rtos_task_sleep(1000);
     	cnt = (cnt + 1) % 3;
 
@@ -59,7 +59,7 @@ static void task_demo_ws2812b(void)
 	gpio_cfg.pin = TEST_PIN;
 	gpio_cfg.output_level = 0;
 	luat_gpio_open(&gpio_cfg);
-    luat_rtos_task_create(&task_handle, 2048, 20, "pwm", task_test_ws2812, NULL, NULL);
+    luat_rtos_task_create(&task_handle, 2048, 20, "ws2812b", task_test_ws2812, NULL, NULL);
 }
 
 INIT_TASK_EXPORT(task_demo_ws2812b,"1");
