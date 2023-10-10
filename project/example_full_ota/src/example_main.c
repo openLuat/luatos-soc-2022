@@ -78,7 +78,7 @@ static void luatos_http_cb(int status, void *data, uint32_t len, void *param)
 }
 
 #define PROJECT_VERSION  "1.0.0"                  //使用合宙iot升级的话此字段必须存在，并且强制固定格式为x.x.x, x可以为任意的数字
-#define PROJECT_KEY "AABBCCDDEEDDFFF110123"  //修改为自己iot上面的PRODUCT_KEY，这里是一个错误的，使用合宙iot升级的话此字段必须存在
+#define PROJECT_KEY "AABBCCDDEEFF"  //修改为自己iot上面的PRODUCT_KEY，这里是一个错误的，使用合宙iot升级的话此字段必须存在
 #define PROJECT_NAME "example_full_ota"                  //使用合宙iot升级的话此字段必须存在，可以任意修改，但和升级包的必须一致
 
 
@@ -117,6 +117,24 @@ static void luat_test_task(void *param)
 			DBG("status %d total %u", luat_http_client_get_status_code(http), http->total_len);
 			break;
 		case OTA_HTTP_GET_DATA:
+			//对下载速度进行控制，如果下载速度过快，会导致ram耗尽出错
+			luat_meminfo_sys(&all, &now_free_block, &min_free_block);
+			if ((all - now_free_block) < 120 * 1024 )
+			{
+				if (!http->is_pause)
+				{
+					luat_http_client_pause(http, 1);
+				}
+				LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
+			}
+			else if ((all - now_free_block) > 180 * 1024 )
+			{
+				if (http->is_pause)
+				{
+					luat_http_client_pause(http, 0);
+				}
+			}
+//			LUAT_DEBUG_PRINT("meminfo %d,%d,%d",all,now_free_block,min_free_block);
 			done_len += event.param2;
 			result = luat_full_ota_write(fota, event.param1, event.param2);
 			free(event.param1);
