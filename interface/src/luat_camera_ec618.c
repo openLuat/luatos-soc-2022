@@ -19,9 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "luat_base.h"
-#include "luat_camera.h"
 #include "luat_rtos.h"
 #include "common_api.h"
+#include "luat_camera.h"
 extern int32_t CSPI_Setup(uint8_t I2SID, uint32_t BusSpeed, uint8_t SpiMode, uint8_t IsMSB, uint8_t Is2RxWire, uint8_t OnlyY, uint8_t SeqType, uint8_t rowScaleRatio, uint8_t colScaleRatio, uint8_t scaleBytes);
 extern void CSPI_Rx(uint8_t I2SID, uint32_t ByteLen, CBFuncEx_t cb, void *param);
 extern void CSPI_RxStop(uint8_t I2SID);
@@ -45,7 +45,7 @@ static int luat_camera_dummy_callback(void *pdata, void *param)
 
 
 
-int luat_camera_setup(int id, luat_spi_camera_t *conf, CBFuncEx_t callback, void *param)
+int luat_camera_setup(int id, luat_spi_camera_t *conf, void * callback, void *param)
 {
 	if (id < 0 || id >= I2S_MAX || !conf || !callback) return -ERROR_PARAM_INVALID;
 	if (g_s_camera[id].is_init) return -ERROR_OPERATION_FAILED;
