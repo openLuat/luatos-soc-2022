@@ -38,7 +38,9 @@
 
 */
 
-
+// 云喇叭开发板的Flash VCC供电是受控的,默认没有电!!!
+// 其他开发板不需要关注这个
+#define SPI_FLASH_VCC_PIN (HAL_GPIO_26)
 
 luat_rtos_task_handle sfud_task_handle;
 
@@ -263,6 +265,15 @@ static void task_test_sfud(void *param)
 {
 
     int re = -1;
+    // 云喇叭的Flash供电, 其他开发板是直连3.3V, 就不需要这段
+    luat_gpio_cfg_t gpio_cfg;
+	luat_gpio_set_default_cfg(&gpio_cfg);
+	gpio_cfg.pin = SPI_FLASH_VCC_PIN;
+	gpio_cfg.alt_fun = 0;
+	gpio_cfg.mode = LUAT_GPIO_OUTPUT;
+	gpio_cfg.output_level = 1;
+	luat_gpio_open(&gpio_cfg);
+
     luat_spi_setup(&sfud_spi_flash);
 
     if (re = sfud_init()!=0){
