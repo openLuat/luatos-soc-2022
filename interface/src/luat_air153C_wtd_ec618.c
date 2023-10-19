@@ -30,10 +30,27 @@ static void wtd_feed_count_cb(uint32_t arg)
     luat_air153C_wtd_feed_wtd();
 }
 
+/*
+    op  1: 开启喂狗GPIO
+        0: 关闭喂狗GPIO
+*/
+static void luat_air153C_wtd_op(int op)
+{
+    if (op){
+        luat_gpio_set_default_cfg(&feed_gpio_cfg);
+        feed_gpio_cfg.pin = s_wtd_feed_pin;
+        luat_gpio_open(&feed_gpio_cfg);
+	    luat_gpio_set(s_wtd_feed_pin, 1);
+    }else{
+	    luat_gpio_set(s_wtd_feed_pin, 0);
+        luat_gpio_close(s_wtd_feed_pin);
+    }
+}
+
 //喂狗回调
 static void feed_wtd_cb(uint32_t arg)
 {
-	luat_gpio_set(s_wtd_feed_pin, 0);
+    luat_air153C_wtd_op(0);
     LUAT_DEBUG_PRINT("Feed Over");
     if (s_time_set)
         s_time_set--;
@@ -47,7 +64,7 @@ static void feed_wtd_cb(uint32_t arg)
 //喂狗
 int luat_air153C_wtd_feed_wtd(void)
 {
-	luat_gpio_set(s_wtd_feed_pin, 1);
+    luat_air153C_wtd_op(1);
     luat_start_rtos_timer(feed_timer, 400, 0);
     return 0;
 }
@@ -55,7 +72,7 @@ int luat_air153C_wtd_feed_wtd(void)
 //关闭喂狗
 int luat_air153C_wtd_close(void)
 {
-	luat_gpio_set(s_wtd_feed_pin, 1);
+    luat_air153C_wtd_op(1);
     luat_start_rtos_timer(feed_timer, 700, 0);
     return 0;
 }
@@ -85,16 +102,7 @@ int luat_air153C_wtd_setup(void)
 void luat_air153C_wtd_cfg_init(int wtd_feed_pin)
 {
     slpManAONIOPowerOn();
-    luat_gpio_set_default_cfg(&feed_gpio_cfg);
-
     s_wtd_feed_pin = wtd_feed_pin;
-
-	feed_gpio_cfg.pin = wtd_feed_pin;//对应喂狗管脚
-    
-	luat_gpio_open(&feed_gpio_cfg);
-
     feed_timer = luat_create_rtos_timer(feed_wtd_cb, NULL, NULL);
     feed_count_timer = luat_create_rtos_timer(wtd_feed_count_cb, NULL, NULL);
-
-	luat_gpio_set(s_wtd_feed_pin, 0);
 }

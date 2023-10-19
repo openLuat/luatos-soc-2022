@@ -32,10 +32,10 @@
 */
 
 #define WTD_NOT_FEED_TEST       0       //测试不喂狗
-#define WTD_FEED_TEST           0       //测试喂狗
+#define WTD_FEED_TEST           1       //测试喂狗
 #define WTD_CLOSE_FEED          0       //关闭喂狗
 #define CLOSE_FEED_AND_FEED     0       //关闭喂狗然后又打开
-#define TEST_MODE_RESET_TEST    1       //测试模式复位
+#define TEST_MODE_RESET_TEST    0       //测试模式复位
 
 static luat_rtos_task_handle feed_wdt_task_handle;
 
@@ -58,9 +58,11 @@ static void task_feed_wdt_run(void *param)
 	// }
 
     luat_air153C_wtd_cfg_init(28);//初始化看门狗，设置喂狗管脚
-    luat_air153C_wtd_feed_wtd();//模块开机第一步需要喂狗一次
-    luat_rtos_task_sleep(1000);//此处延时1s，防止1s内喂狗2次导致进入测试模式
-
+    luat_pm_set_sleep_mode(LUAT_PM_SLEEP_MODE_LIGHT, "test");
+    luat_mobile_set_rrc_auto_release_time(1);
+    luat_pm_set_usb_power(0);
+    luat_rtos_task_sleep(2000);
+    luat_air153C_wtd_feed_wtd();//喂狗后需要注意不能1s内喂狗2次，不然会导致进入测试模式，复位输出高电平
     
     /*
         测试不喂狗
@@ -85,9 +87,9 @@ static void task_feed_wdt_run(void *param)
     luat_rtos_task_sleep(3000);
     while (1)
     {
+        luat_rtos_task_sleep(60000);
         luat_air153C_wtd_feed_wtd();
         LUAT_DEBUG_PRINT("[DIO]Eat Dog");
-        luat_rtos_task_sleep(120000);
     }
 #endif
 
