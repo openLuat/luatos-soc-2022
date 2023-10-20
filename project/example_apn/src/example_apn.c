@@ -222,6 +222,16 @@ static void task_run(void *param)
 	luat_mobile_get_muid(muid, sizeof(muid));
 	LUAT_DEBUG_PRINT("MUID %s", muid);
 	char apn[64] = {0};
+	luat_rtos_task_sleep(10000);
+	//这里演示删掉已经设置的APN
+	luat_mobile_user_apn_auto_active(0, 0, 0,0, NULL, 0, NULL, 0, NULL, 0);	//删掉RAM里缓存的
+	luat_mobile_user_ctrl_apn_stop();//变回自动配置
+	luat_mobile_set_flymode(0, 1);//删除系统保存的要先进飞行模式
+	luat_rtos_task_sleep(100);
+	luat_mobile_del_apn(0,1,0);//删除系统保存的
+	luat_mobile_set_flymode(0, 0);//退出飞行模式
+
+	//luat_mobile_reset_stack();
 	while(1)
 	{
 		luat_rtos_task_sleep(10000);
