@@ -1,5 +1,7 @@
 # CSDK for ABCDEGF
 
+[![Github Actions](https://github.com/openLuat/luatos-soc-2022/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/openLuat/luatos-soc-2022/actions/workflows/ci.yaml)
+
 ## 使用前须知
 
 1. **强烈推荐使用git来下载本代码库**, 不会命令行操作git可以用 [tortoiseGit](https://tortoisegit.org/download/)
@@ -23,7 +25,6 @@ CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型�
 2. [脱离本csdk编译无依赖的库文件](doc/build_lib_by_gcc.md)
 3. CSDK调试指南 https://doc.openluat.com/article/4984
 4. Linux/Mac刷机工具(测试版) https://github.com/openLuat/ectool2py
-5. CI状态 http://gitea.wendal.cn/openLuat/luatos-soc-2022/actions
 6. [差分升级所需要工具,支持docker](tools/dtools)
 
 ## 目录说明

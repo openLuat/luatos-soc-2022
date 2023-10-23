@@ -3,7 +3,7 @@ run-name: GoGoGo 🚀
 on: [push]
 
 jobs:
-  EC7xx:
+  EC6xx:
     runs-on: ubuntu-latest
     strategy:    
       matrix:
@@ -19,7 +19,7 @@ jobs:
         if: matrix.csdk_project == 'luatos'
         run:  git clone --depth=1 https://github.com/openLuat/LuatOS.git
       - name: 克隆 ec7xx-csdk 代码库
-        run:  git clone --depth=1 https://github.com/openLuat/luatos-soc-2023.git
+        run:  git clone --depth=1 https://github.com/openLuat/luatos-soc-2022.git
       - name: 下载Gcc
         run: |
           mkdir tools
