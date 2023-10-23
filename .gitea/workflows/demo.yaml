@@ -20,7 +20,7 @@ jobs:
         run: |
           mkdir tools
           cd tools
-          wget http://cdndownload.openluat.com/xmake/toolchains/gcc-arm/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
+          wget -q http://192.168.1.231:18089/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
           tar xf gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
           ls -l
           cd ..
