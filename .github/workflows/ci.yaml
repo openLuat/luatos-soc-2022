@@ -100,7 +100,6 @@ jobs:
           export GCC_PATH=`pwd`/tools/gcc-arm-none-eabi-10.3-2021.10
           export XMAKE_MAIN_REPO=https://gitee.com/tboox/xmake-repo.git
           export LSPD_MODE=enable
-          source ~/.xmake/profile
           cd luatos-soc-2022
           xmake -y --root
           rm -fr build
