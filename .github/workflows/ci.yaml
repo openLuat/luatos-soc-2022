@@ -5,17 +5,16 @@ on: [push]
 jobs:
   download-gcc:
     runs-on: ubuntu-latest
-  steps:
-    - name: 下载Gcc
-      run: |
-        mkdir tools
-        cd tools
-        wget -q https://github.com/wendal/xmake-docker/releases/download/dev-gcc/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
-    - name: 上传GCC
-      uses: actions/upload-artifact@v2
-      with:
-        name: gcc
-        path: tools/
+    steps:
+      - name: 下载Gcc
+        run: |
+          mkdir tools
+          cd tools
+          wget -q https://github.com/wendal/xmake-docker/releases/download/dev-gcc/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
+      - uses: actions/upload-artifact@v2
+        with:
+          name: gcc
+          path: tools/
 
   EC6xx:
     runs-on: ubuntu-latest
