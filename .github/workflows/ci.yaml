@@ -36,7 +36,6 @@ jobs:
           - example_lcd
           - example_linksdk
           - example_link_speech1
-          - example_link_speech2
           - example_low_power
           - example_lpuart
           - example_luatos_http_post
@@ -71,7 +70,6 @@ jobs:
           - libhttp_fota_iot
           - luatos
           - lvgl_demo
-          - targets
           - tracker
           - web_audio
     steps:
