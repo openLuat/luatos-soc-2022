@@ -45,7 +45,6 @@ jobs:
           - example_mobile
           - example_ntp
           - example_otp
-          - example_outside
           - example_pm
           - example_protobuf
           - example_psm
