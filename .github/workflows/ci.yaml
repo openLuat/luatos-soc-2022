@@ -3,8 +3,23 @@ run-name: GoGoGo 🚀
 on: [push]
 
 jobs:
+  download-gcc:
+    runs-on: ubuntu-latest
+  steps:
+    - name: 下载Gcc
+      run: |
+        mkdir tools
+        cd tools
+        wget -q https://github.com/wendal/xmake-docker/releases/download/dev-gcc/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
+    - name: 上传
+      uses: actions/upload-artifact@v2
+        with:
+          name: gcc
+          path: tools/
+
   EC6xx:
     runs-on: ubuntu-latest
+    needs: ["download-gcc"]
     strategy:    
       matrix:
         csdk_project:
@@ -85,11 +100,13 @@ jobs:
         run:  git clone --depth=1 https://github.com/openLuat/LuatOS.git
       - name: 克隆 ec7xx-csdk 代码库
         run:  git clone --depth=1 https://github.com/openLuat/luatos-soc-2022.git
+      - uses: actions/download-artifact@v2
+          with:
+            name: gcc
+            path: tools/
       - name: 下载Gcc
         run: |
-          mkdir tools
           cd tools
-          wget -q https://github.com/wendal/xmake-docker/releases/download/dev-gcc/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
           tar xf gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
       - name: 构建指定项目
         run: |
@@ -98,6 +115,5 @@ jobs:
           export LSPD_MODE=enable
           cd luatos-soc-2022
           xmake -y --root
-          rm -fr build
         env:
           PROJECT_NAME: ${{ matrix.csdk_project }}
