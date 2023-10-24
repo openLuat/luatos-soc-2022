@@ -16,7 +16,6 @@ jobs:
           - example_andlink
           - example_apn
           - example_audio
-          - example_audio2
           - example_audio_flash
           - example_audio_raw
           - example_camera
