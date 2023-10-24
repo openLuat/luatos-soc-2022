@@ -11,11 +11,11 @@ jobs:
         mkdir tools
         cd tools
         wget -q https://github.com/wendal/xmake-docker/releases/download/dev-gcc/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2
-    - name: 上传
+    - name: 上传GCC
       uses: actions/upload-artifact@v2
-        with:
-          name: gcc
-          path: tools/
+      with:
+        name: gcc
+        path: tools/
 
   EC6xx:
     runs-on: ubuntu-latest
@@ -101,9 +101,9 @@ jobs:
       - name: 克隆 ec7xx-csdk 代码库
         run:  git clone --depth=1 https://github.com/openLuat/luatos-soc-2022.git
       - uses: actions/download-artifact@v2
-          with:
-            name: gcc
-            path: tools/
+        with:
+          name: gcc
+          path: tools/
       - name: 下载Gcc
         run: |
           cd tools
