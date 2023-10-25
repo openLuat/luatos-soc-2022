@@ -162,6 +162,10 @@
 // 主推的UI库, 功能强大但API繁琐
 //#define LUAT_USE_LVGL
 
+#define LUAT_USE_LVGL_JPG 1 // 启用JPG解码支持
+// #define LUAT_USE_LVGL_PNG 1 // 启用PNG解码支持
+// #define LUAT_USE_LVGL_BMP 1 // 启用BMP解码支持
+
 #define LUAT_USE_LVGL_ARC   //圆弧 无依赖
 #define LUAT_USE_LVGL_BAR   //进度条 无依赖
 #define LUAT_USE_LVGL_BTN   //按钮 依赖容器CONT

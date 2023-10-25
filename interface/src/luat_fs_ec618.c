@@ -426,9 +426,15 @@ int luat_fs_init(void) {
 	luat_fs_mount(&conf2);
 #ifdef LUAT_USE_LVGL
 	luat_lv_fs_init();
-	// lv_bmp_init();
-	// lv_png_init();
+    #ifdef LUAT_USE_LVGL_BMP
+	lv_bmp_init();
+    #endif
+    #ifdef LUAT_USE_LVGL_PNG
+	lv_png_init();
+    #endif
+    #ifdef LUAT_USE_LVGL_JPG
 	lv_split_jpeg_init();
+    #endif
 #endif
 #endif
 	return 0;
