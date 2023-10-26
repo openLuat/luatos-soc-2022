@@ -23,6 +23,7 @@
 #include "luat_base.h"
 #include "luat_mem.h"
 #include "luat_pm.h"
+#include "luat_wdt.h"
 #include "FreeRTOS.h"
 #include "apmu_external.h"
 #include "slpman.h"
@@ -387,6 +388,7 @@ int luat_pm_get_poweron_reason(void)
 
 int luat_pm_poweroff(void)
 {
+	luat_wdt_close();
     pwrKeyStartPowerOff();
     return 0;
 }
