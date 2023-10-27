@@ -23,7 +23,7 @@
 #include "luat_debug.h"
 
 #include "luat_uart.h"
-
+#include "bsp.h"
 /*
  * 使用原厂UART的时候，编译进以下3个函数即可
  */

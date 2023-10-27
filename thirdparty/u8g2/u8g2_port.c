@@ -9,6 +9,9 @@
 #include "u8g2_port.h"
 #include <string.h>
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 #define MAX_RETRY 3
 
 uint8_t u8x8_luat_gpio_and_delay_default(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
@@ -32,7 +35,7 @@ uint8_t u8x8_luat_gpio_and_delay_default(u8x8_t *u8x8, uint8_t msg, uint8_t arg_
         break;
 
         case U8X8_MSG_DELAY_MILLI:            // delay arg_int * 1 milli second
-            luat_timer_mdelay(arg_int);
+            vTaskDelay(arg_int);
             break;
 
         case U8X8_MSG_GPIO_AND_DELAY_INIT:

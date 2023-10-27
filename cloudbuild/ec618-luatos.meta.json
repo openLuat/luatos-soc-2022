@@ -595,10 +595,38 @@
                         "dft": false
                     },
                     {
-                        "name": "lvgl",
+                        "name": "@lvgl",
                         "content": "轻量级图形化库,依赖lcd库. 虽然支持但SPI慢,效果不好",
-                        "rsize": 360536,
+                        "rsize": 1024,
                         "children": [
+                            {
+                                "name": "lvgl",
+                                "content": "基础功能",
+                                "rsize": 260536,
+                                "fsize": 631888,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_jpg",
+                                "content": "JPG解码功能",
+                                "rsize": 260536,
+                                "fsize": 631888,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_png",
+                                "content": "PNG解码功能",
+                                "rsize": 260536,
+                                "fsize": 631888,
+                                "dft": false
+                            },
+                            {
+                                "name": "lvgl_bmp",
+                                "content": "BMP解码功能",
+                                "rsize": 260536,
+                                "fsize": 631888,
+                                "dft": false
+                            },
                             {
                                 "name": "lvgl_anim",
                                 "content": "自定义动画",
@@ -862,9 +890,9 @@
                         "rsize": 27888,
                         "children": [
                             {
-                                "name": "USE_U8G2_SARASA_M8_ENGLISH",
+                                "name": "USE_U8G2_SARASA_ENGLISH",
                                 "content": "等宽字体 英文字体和特殊符号",
-                                "rsize": 191216,
+                                "rsize": 121216,
                                 "fsize": 304416,
                                 "dft": false
                             },

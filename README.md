@@ -1,5 +1,7 @@
 # CSDK for ABCDEGF
 
+[![Github Actions](https://github.com/openLuat/luatos-soc-2022/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/openLuat/luatos-soc-2022/actions/workflows/ci.yaml)
+
 ## 使用前须知
 
 1. **强烈推荐使用git来下载本代码库**, 不会命令行操作git可以用 [tortoiseGit](https://tortoisegit.org/download/)
@@ -16,6 +18,14 @@ CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型�
 * Air700E   极致小封装
 * Air780EG  带GNSS定位
 * Air780EX  邮票孔封装
+
+## 应用文档
+
+1. 添加自定义数据到指定区域并[合成binpkg](project/example_flash), 用于量产刷机
+2. [脱离本csdk编译无依赖的库文件](doc/build_lib_by_gcc.md)
+3. CSDK调试指南 https://doc.openluat.com/article/4984
+4. Linux/Mac刷机工具(测试版) https://github.com/openLuat/ectool2py
+6. [差分升级所需要工具,支持docker](tools/dtools)
 
 ## 目录说明
 
@@ -35,7 +45,18 @@ CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型�
 
 3. 生成的binpkg位于`out`目录, 日志数据库文件位于`PLAT`目录
 
-## 加入入口函数
+
+## 如何新增自己的项目
+
+建议将 `project/example` 拷贝一份,作为验证项目
+
+1. project新建目录，目录名称和项目名称一致，目录下新建xmake.lua，内容仿照着example写，核心是TARGET_NAME必须和项目名称一致
+2. 代码路径当然不是限制的，在SDK的任何目录，甚至电脑上的其他地方，前提是你会改project里xmake.lua内的源码路径
+3. 根目录执行build.bat 你的项目名称
+
+## 项目中新增入口函数
+
+本CSDK中没有main函数,需要通过宏注册入口函数
 
 * 加入头文件common_api.h
 * 类似于`void main(void)`，但是可以任意名字，不能有入口参数和返回参数，同时允许多个入口
@@ -47,11 +68,6 @@ CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型�
 * `INIT_DRV_EXPORT`一般用于外设驱动初始化，初始化外部器件之类的，打开电源，提供时钟之类的，可以没有
 * `INIT_TASK_EXPORT`一般用于初始化任务，用户代码基本上都是跑在任务里，原则上必须有
 
-## 加入自己的项目
-
-1. project新建目录，目录名称和项目名称一致，目录下新建xmake.lua，内容仿照着example写，核心是TARGET_NAME必须和项目名称一致
-2. 代码路径当然不是限制的，在SDK的任何目录，甚至电脑上的其他地方，前提是你会改project里xmake.lua内的源码路径
-3. 根目录执行build.bat 你的项目名称
 
 ## 在SDK外存放项目文件的编译方法
 
@@ -140,13 +156,6 @@ apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386
 ./build-wine-docker.sh
 ```
 
-## 应用文档
-
-1. 添加自定义数据到指定区域并[合成binpkg](project/example_flash), 用于量产刷机
-2. [脱离本csdk编译无依赖的库文件](doc/build_lib_by_gcc.md)
-3. CSDK调试指南 https://doc.openluat.com/article/4984
-4. Linux/Mac刷机工具(测试版) https://github.com/openLuat/ectool2py
-5. CI状态 http://gitea.wendal.cn/openLuat/luatos-soc-2022/actions
 
 ## 授权协议
 

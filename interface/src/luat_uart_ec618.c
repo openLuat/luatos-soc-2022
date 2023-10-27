@@ -212,7 +212,7 @@ int luat_uart_setup(luat_uart_t* uart) {
 	case UART_ID2:
 #ifdef __LUATOS__
 		luat_hmeta_model_name(model);
-		if ((1 == g_s_serials[UART_ID2].alt_type) || !strcmp("Air780EG", model))
+		if ((1 == g_s_serials[UART_ID2].alt_type) || !strcmp("Air780EG", model) || !strcmp("Air780EUG", model))
 #else
 		if ((1 == g_s_serials[UART_ID2].alt_type))
 #endif

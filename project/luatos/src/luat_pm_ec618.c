@@ -1,6 +1,7 @@
 #include "luat_base.h"
 #include "luat_pm.h"
 #include "luat_msgbus.h"
+#include "luat_wdt.h"
 
 #include "bsp.h"
 #include "bsp_custom.h"
@@ -246,6 +247,7 @@ int luat_pm_get_poweron_reason(void)
 extern void pwrKeyStartPowerOff(void);
 int luat_pm_poweroff(void)
 {
+	luat_wdt_close();
     pwrKeyStartPowerOff();
     return 0;
 }
