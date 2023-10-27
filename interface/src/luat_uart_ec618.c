@@ -62,6 +62,11 @@ typedef struct
 	uint16_t unused;
 	uint8_t alt_type;
 	uint8_t rs485_pin;
+	struct 
+	{
+		uint8_t is_enable;
+		uint8_t is_start;
+	}rx_info;
 }serials_info;
 
 static serials_info g_s_serials[MAX_DEVICE_COUNT - 1] ={0};
@@ -153,11 +158,23 @@ static int32_t luat_uart_cb(void *pData, void *pParam){
 #endif
         	break;
         case UART_CB_RX_TIMEOUT:
+			if (g_s_serials[uartid].rx_info.is_enable)
+			{
+				g_s_serials[uartid].rx_info.is_start = 0;
+			}
             len = Uart_RxBufferRead(uartid, NULL, 0);
             uart_cb[uartid].recv_callback_fun(uartid, len);
             break;
         case UART_CB_RX_NEW:
         	len = Uart_RxBufferRead(uartid, NULL, 0);
+			if(g_s_serials[uartid].rx_info.is_enable)
+			{
+				if (!g_s_serials[uartid].rx_info.is_start)
+				{
+					g_s_serials[uartid].rx_info.is_start = 1;
+					uart_cb[uartid].recv_callback_fun(uartid, 0xffffffff);
+				}
+			}
         	if (len > g_s_serials[uartid].rx_buf_size)
         	{
         		uart_cb[uartid].recv_callback_fun(uartid, len);
@@ -455,6 +472,15 @@ int luat_uart_wait_485_tx_done(int uartid)
 		}
     }
     return cnt;
+}
+
+int luat_uart_rx_start_notify_enable(int uart_id, uint8_t is_enable)
+{
+	if (luat_uart_exist(uart_id)){
+		g_s_serials[uart_id].rx_info.is_enable = is_enable;
+		return 0;
+    }
+    return -1;
 }
 
 #ifdef __LUATOS__
