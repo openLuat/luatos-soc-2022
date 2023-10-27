@@ -72,13 +72,7 @@ int luat_sfud_read(const sfud_flash* flash, uint8_t* buff, size_t offset, size_t
 	offset += FLASH_TTS_ADDR;
 	char cmd[4] = {0x03, offset >> 16, (offset >> 8) & 0xFF, offset & 0xFF};
 	SPI_FastTransfer(FLASH_SPI_ID, cmd, cmd, 4);
-	if (len >= 200) {
-		SPI_BlockTransfer(FLASH_SPI_ID, buff, buff, len);
-	}
-	else {
-		SPI_FastTransfer(FLASH_SPI_ID, buff, buff, len);
-	}
-	
+	SPI_FastTransfer(FLASH_SPI_ID, buff, buff, len);
 	GPIO_FastOutput(FLASH_SPI_CS, 1);
 	// if (memcmp(buff, ivtts_16k + offset, len)) {
 	// 	LUAT_DEBUG_PRINT("tts data NOT match %04X %04X", offset, len);
