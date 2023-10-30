@@ -286,7 +286,7 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/mempool/profiler/include")
     add_files(LUATOS_ROOT.."components/mempool/profiler/**.c")
 
-    -- hmeta
+    -- fskv
     add_includedirs(LUATOS_ROOT.."components/fskv")
     add_files(LUATOS_ROOT.."components/fskv/*.c")
 
