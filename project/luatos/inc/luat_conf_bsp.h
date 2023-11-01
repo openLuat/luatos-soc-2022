@@ -400,4 +400,8 @@
 #undef LUAT_USE_REPL
 #endif
 
+#ifdef LUAT_USE_TLS_DISABLE
+#undef LUAT_USE_TLS
+#endif
+
 #endif
