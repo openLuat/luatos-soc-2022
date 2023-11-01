@@ -13,7 +13,7 @@
 #ifndef SOCKET_BUF_LEN
 #define SOCKET_BUF_LEN	(3 * TCP_MSS)
 #endif
-
+#include "common_api.h"
 /* Socket protocol types (TCP/UDP/RAW) */
 #define SOCK_STREAM     1
 #define SOCK_DGRAM      2
