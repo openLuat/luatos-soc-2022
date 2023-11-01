@@ -248,7 +248,7 @@ extern void pwrKeyStartPowerOff(void);
 int luat_pm_poweroff(void)
 {
 	luat_wdt_close();
-    pwrKeyStartPowerOff();
+	slpManStartPowerOff();
     return 0;
 }
 
