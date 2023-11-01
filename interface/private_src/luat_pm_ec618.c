@@ -389,7 +389,7 @@ int luat_pm_get_poweron_reason(void)
 int luat_pm_poweroff(void)
 {
 	luat_wdt_close();
-    pwrKeyStartPowerOff();
+	slpManStartPowerOff();
     return 0;
 }
 
