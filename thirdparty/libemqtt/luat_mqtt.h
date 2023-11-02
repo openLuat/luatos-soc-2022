@@ -133,13 +133,6 @@ int luat_mqtt_init(luat_mqtt_ctrl_t *mqtt_ctrl, int adapter_index);
 int luat_mqtt_set_connopts(luat_mqtt_ctrl_t *mqtt_ctrl, luat_mqtt_connopts_t *opts);
 
 /**
- *@brief 设置MQTT服务器信息、加密信息函数
- *@param mqtt_ctrl luatos_mqtt对象实例
- *@param opts 结构体MQTT服务器信息、加密信息函数
- *@return 成功为0，其他值失败
- */
-
-/**
  *@brief 手动发起重连
  *@param mqtt_ctrl luatos_mqtt对象实例
  *@return 成功为0，其他值失败
