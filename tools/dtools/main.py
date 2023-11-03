@@ -129,18 +129,20 @@ def diff_soc(old_path, new_path, dst_path):
     ## 然后打包整体差分包
     # cmd = "{} make_ota_file {} 0 0 0 0 0 \"{}\" \"{}\" \"{}\"".format(str(soc_exe_path), 
     # new_param['fota']['magic_num'], 
-    # str(new_path.with_name("script_fota.zip")), str(exe_path.with_name("delta.par")), str(Path(out_path, "output.sota")))
+    # str(new_path.with_name("script_fota.zip")), 
+    # str(exe_path.with_name("delta.par")), 
+    # str(Path(out_path, "output.sota")))
     cmd = []
     if os.name != "nt":
         cmd.append("wine")
     cmd.append("soc_tools.exe")
     cmd.append("make_ota_file")
-    cmd.append("0")
-    cmd.append("0")
-    cmd.append("0")
-    cmd.append("0")
-    cmd.append("0")
     cmd.append(str(new_param['fota']['magic_num']))
+    cmd.append("0")
+    cmd.append("0")
+    cmd.append("0")
+    cmd.append("0")
+    cmd.append("0")
     cmd.append(tmpp("script_fota.zip"))
     cmd.append("delta.par")
     cmd.append(tmpp("output.sota"))
