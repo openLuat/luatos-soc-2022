@@ -14,12 +14,15 @@ def diff_org(old_path, new_path, dst_path):
         cmd.append("wine")
     cmd.append("FotaToolkit.exe")
     cmd.append("-d")
-    cmd.append("config\ec618.json")
+    if os.name != "nt":
+        cmd.append("config/ec618.json")
+    else:
+        cmd.append("config\\ec618.json")
     cmd.append("BINPKG")
     cmd.append(dst_path)
     cmd.append(old_path)
     cmd.append(new_path)
-    subprocess.check_call(cmd, shell=True)
+    subprocess.check_call(" ".join(cmd), shell=True)
 
 # QAT固件比较简单, 原版差分文件
 def diff_qat(old_path, new_path, dst_path):
@@ -121,7 +124,7 @@ def diff_soc(old_path, new_path, dst_path):
     cmd.append(tmpp("script.bin"))
     cmd.append(tmpp("script_fota.zip"))
     cmd.append(str(new_param['fota']['block_len']))
-    subprocess.check_call(cmd, shell=True)
+    subprocess.check_call(" ".join(cmd), shell=True)
 
     ## 然后打包整体差分包
     # cmd = "{} make_ota_file {} 0 0 0 0 0 \"{}\" \"{}\" \"{}\"".format(str(soc_exe_path), 
@@ -141,7 +144,7 @@ def diff_soc(old_path, new_path, dst_path):
     cmd.append(tmpp("script_fota.zip"))
     cmd.append("delta.par")
     cmd.append(tmpp("output.sota"))
-    subprocess.check_call(cmd, shell=True)
+    subprocess.check_call(" ".join(cmd), shell=True)
 
     shutil.copy(tmpp("output.sota"), dst_path)
     print("done soc diff")
@@ -175,12 +178,16 @@ def start_web():
         resp_headers.clear()
         oldBinbkg = request.files.get("old")
         newBinpkg = request.files.get("new")
+        if os.path.exists("old.binpkg") :
+            os.remove("old.binpkg")
+        if os.path.exists("new.binpkg") :
+            os.remove("new.binpkg")
         oldBinbkg.save("old.binpkg")
         newBinpkg.save("new.binpkg")
         do_mode(mode, "old.binpkg", "new.binpkg", "diff.bin", True)
         if len(resp_headers) > 0 :
-            for k, v in resp_headers :
-                response.add_header(k, v)
+            for k in resp_headers :
+                response.add_header(k, resp_headers[k])
         return static_file("diff.bin", root=".", download="diff.bin")
     bottle.run(host="0.0.0.0", port=9000)
 

@@ -21,6 +21,7 @@ FOTA分区的默认大小是512K, f所以默认情况下只能480K的bin文件
 ### 通过脚本跑
 
 ```
+pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple oss2 bottle py7zr
 python3 main.py csdk old.binpkg new.binpkg diff.bin
 ```
 
