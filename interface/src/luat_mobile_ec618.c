@@ -752,6 +752,7 @@ int luat_mobile_sms_event_register_handler(luat_mobile_sms_event_callback_t call
 extern soc_mobile_set_rrc_release_time(uint8_t s);
 void luat_mobile_set_rrc_auto_release_time(uint8_t s)
 {
+	if (1 == s) s = 2;
 	soc_mobile_set_rrc_release_time(s);
 }
 
