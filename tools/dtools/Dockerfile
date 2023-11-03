@@ -30,6 +30,7 @@ RUN wine FotaToolkit.exe -h || date
 RUN apt update && apt install -y python3-pip && pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple oss2 && apt clean -y
 
 COPY main.py /opt/
+COPY soc_tools.exe /opt/
 
 EXPOSE 9000
 
