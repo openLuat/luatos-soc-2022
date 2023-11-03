@@ -88,7 +88,7 @@ def diff_soc(old_path, new_path, dst_path):
                 new_binpkg = bio.read()
             if str(fname).endswith("script.bin") :
                 new_script = bio.read()
-    if not old_param or not old_binpkg or not old_script:
+    if not old_param or not old_binpkg:
         print("老版本不是SOC固件!!")
         return
     if not new_param or not new_binpkg or not new_script:
@@ -187,10 +187,7 @@ def start_web():
         oldBinbkg.save("old.binpkg")
         newBinpkg.save("new.binpkg")
         do_mode(mode, "old.binpkg", "new.binpkg", "diff.bin", True)
-        if len(resp_headers) > 0 :
-            for k in resp_headers :
-                response.add_header(k, resp_headers[k])
-        return static_file("diff.bin", root=".", download="diff.bin")
+        return static_file("diff.bin", root=".", download="diff.bin", headers=resp_headers)
     bottle.run(host="0.0.0.0", port=9000)
 
 def main():

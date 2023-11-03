@@ -16,7 +16,7 @@ FotaToolkit.exe -d config\ec618.json BINPKG old.binpkg new.binpkg diff.bin
 
 生成完成后, 得到diff.bin, 注意, 文件大小超过(FOTA分区大小-32k系统占用), 就无法成功更新
 
-FOTA分区的默认大小是512K, f所以默认情况下只能480K的bin文件
+FOTA分区的默认大小是512K, 所以默认情况下只能480K的bin文件
 
 ### 通过脚本跑
 
