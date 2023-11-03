@@ -8,6 +8,13 @@
 #include "libemqtt.h"
 #include "luat_mqtt.h"
 
+/*
+本demo是演示mqtt对接
+1. mqtt对端版本是 3.1.1, 支持TCP和TLS-TCP, 不支持mqtt over websocket
+2. 本代码支持qos0/1/2, 但部分云服务器mqtt是不支持qos2的, 而非本demo不支持
+3. 本代码对QOS1/2的实现是 没有重发 机制的, 发送失败只会断开TCP连接.
+*/
+
 
 #define MQTT_DEMO_SSL 			0
 #define MQTT_DEMO_AUTOCON 		1
