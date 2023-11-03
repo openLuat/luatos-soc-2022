@@ -82,6 +82,7 @@ static void andlink_http_cb(int status, void *data, uint32_t len, void *param){
 }
 
 static void andlink_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
+    dn_dev_ctrl_frame_t ctrlFrame = {0};
     luat_rtos_task_handle param = luat_mqtt_ctrl->userdata;
 	switch (event)
 	{
@@ -111,7 +112,6 @@ static void andlink_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
 		break;
 	}
 	case MQTT_MSG_PUBLISH : {
-        dn_dev_ctrl_frame_t ctrlFrame;
         RESP_MODE_e mode;
         uint16_t message_id  = 0;
 		const uint8_t* ptr;
@@ -128,6 +128,7 @@ static void andlink_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
         cJSON* deviceId_json = cJSON_GetObjectItemCaseSensitive(payload_json, "deviceId");
         cJSON* seqId_json = cJSON_GetObjectItemCaseSensitive(payload_json, "seqId");
         cJSON* data_json = cJSON_GetObjectItemCaseSensitive(payload_json, "data");
+
         memcpy(ctrlFrame.function, function_json->valuestring, strlen(function_json->valuestring));
         memcpy(ctrlFrame.deviceId, deviceId_json->valuestring, strlen(deviceId_json->valuestring));
         if (cJSON_IsObject(data_json)){

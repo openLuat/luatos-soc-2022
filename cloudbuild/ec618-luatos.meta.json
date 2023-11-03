@@ -555,6 +555,13 @@
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
+                    },
+                    {
+                        "name": "tls_disable",
+                        "content": "禁用TLS/SSL功能,可节省110k的flash消耗,相关加密通信都将不可用",
+                        "rsize": -120000,
+                        "fsize": 1024,
+                        "dft": false
                     }
                 ]
             },
