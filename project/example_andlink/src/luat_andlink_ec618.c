@@ -12,11 +12,11 @@
 #include "andlink.h"
 
 /* 修改下面参数可以快速验证,更多参数自定义需往下详细阅读demo */
-#define PRODUCT_ID           "xxx"
-#define ANDLINK_TOKEN        "xxx"
-#define PRODUCT_TOKEN        "xxx"
-#define IMEI        		 "xxx"
-#define SN 					 "xxx"
+#define PRODUCT_ID           "XXX"
+#define ANDLINK_TOKEN        "XXX"
+#define PRODUCT_TOKEN        "XXX"
+#define IMEI        		 "XXX"
+#define SN 					 "XXX"
 
 #define ANDLINK_QUEUE_SIZE 	 32
 static luat_is_link_up = 0;
@@ -26,7 +26,6 @@ static luat_rtos_queue_t andlink_queue_handle;
 
 // 通知设备状态
 int andlink_set_led_callback(ADL_DEV_STATE_e state){
-	LUAT_DEBUG_PRINT("andlink_set_led_callback %d",state);
 	return luat_rtos_queue_send(andlink_queue_handle, &state, NULL, 0);
 }
 
@@ -61,9 +60,9 @@ static void luat_andlink_init_task(void *param)
 	luat_rtos_task_sleep(2000);
 	cJSON* chips_json;
 	cJSON* extInfo_json = cJSON_CreateObject();
-	cJSON_AddStringToObject(extInfo_json, "cmei", IMEI);	// 设备唯一标识,必选
+	cJSON_AddStringToObject(extInfo_json, "cmei", IMEI);				// 设备唯一标识,必选
 	cJSON_AddNumberToObject(extInfo_json, "authMode", 0);				// 0表示类型认证，1表示设备认证，设备认证时，需使用authId和authKey
-	cJSON_AddStringToObject(extInfo_json, "sn", SN);	// 设备SN，必选
+	cJSON_AddStringToObject(extInfo_json, "sn", SN);					// 设备SN，必选
 	cJSON_AddStringToObject(extInfo_json, "manuDate", "2023-07");		// 设备生产日期，格式为年-月
 	cJSON_AddStringToObject(extInfo_json, "OS", "Freertos");			// 操作系统
 	cJSON* chips_array = cJSON_CreateArray();
@@ -98,7 +97,6 @@ static void luat_andlink_task(void *param){
 	ADL_DEV_STATE_e andlink_state;
 	while (1){
         if (luat_rtos_queue_recv(andlink_queue_handle, &andlink_state, NULL, 5000) == 0){
-			LUAT_DEBUG_PRINT("andlink_state %d",andlink_state);
 			switch (andlink_state)
 			{
 			case ADL_BOOTSTRAP:
@@ -157,7 +155,7 @@ static void luat_libandlink_init(void)
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
 	luat_rtos_queue_create(&andlink_queue_handle, ANDLINK_QUEUE_SIZE, sizeof(ADL_DEV_STATE_e));
-	luat_rtos_task_create(&andlink_init_task_handle, 2 * 1024, 10, "andlink_init", luat_andlink_init_task, NULL, 16);
+	luat_rtos_task_create(&andlink_init_task_handle, 4 * 1024, 10, "andlink_init", luat_andlink_init_task, NULL, 16);
 	luat_rtos_task_create(&andlink_task_handle, 4 * 1024, 10, "andlink", luat_andlink_task, NULL, 16);
 }
 

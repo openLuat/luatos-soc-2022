@@ -20,6 +20,22 @@
 #define MQTT_HOST_LEN       256
 #define MQTT_TOPIC_LEN      256
 
+#define ANDLINK_QUEUE_SIZE 	 64
+
+static luat_rtos_queue_t andlink_queue_handle;
+typedef enum{
+    ADL_MQTT_MSG_CONNACK = 1,
+    ADL_MQTT_MSG_PUBLISH,
+    ADL_MQTT_MSG_CLOSE,
+    ADL_MQTT_MSG_RELEASE,
+    ADL_TIMER_REPORT,
+    ADL_ERROR,
+} andlink_event_t;
+typedef struct{
+	luat_mqtt_ctrl_t *luat_mqtt_ctrl;
+	andlink_event_t event;
+} andlink_queue_t;
+
 typedef struct{
     adl_dev_attr_t devAttr;
     uint8_t *gwAddress2;
@@ -82,82 +98,16 @@ static void andlink_http_cb(int status, void *data, uint32_t len, void *param){
 }
 
 static void andlink_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
-    dn_dev_ctrl_frame_t ctrlFrame = {0};
-    luat_rtos_task_handle param = luat_mqtt_ctrl->userdata;
-	switch (event)
-	{
+    andlink_queue_t andlink_queue = {.luat_mqtt_ctrl = luat_mqtt_ctrl};
+	switch (event){
 	case MQTT_MSG_CONNACK:{
-		// LUAT_DEBUG_PRINT("mqtt_connect ok");
-        if (andlink_client->devCbs->set_led_callback){
-            andlink_client->devCbs->set_led_callback(ADL_ONLINE);
-        }
-		// LUAT_DEBUG_PRINT("mqtt_subscribe");
-		uint16_t msgid = 0;
-        char andlink_sub_topic[128] = {0};
-        snprintf_(andlink_sub_topic, 128, ANDLINK_MQTT_DOWM, andlink_client->deviceId);
-        // LUAT_DEBUG_PRINT("andlink_sub_topic:%s",andlink_sub_topic);
-		mqtt_subscribe(&(luat_mqtt_ctrl->broker), andlink_sub_topic, &msgid, 1);
-		// LUAT_DEBUG_PRINT("publish");
-		uint16_t message_id  = 0;
-        cJSON* online_json = cJSON_CreateObject();
-        cJSON_AddStringToObject(online_json, "deviceId", andlink_client->deviceId);
-        cJSON_AddStringToObject(online_json, "eventType", "MBoot");
-        cJSON_AddNumberToObject(online_json, "timestamp", (double)time(NULL));
-        cJSON_AddStringToObject(online_json, "deviceType", andlink_client->devAttr.deviceType);
-        char* online_data = cJSON_Print(online_json);
-        cJSON_Delete(online_json);
-		mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), andlink_client->mqtt_pub_topic, online_data, strlen(online_data), 0, 1, &message_id);
-        cJSON_free(online_data);
-        luat_rtos_event_send(param, 0, 0, 0, 0, 0);
+        andlink_queue.event = ADL_MQTT_MSG_CONNACK;
+        luat_rtos_queue_send(andlink_queue_handle, &andlink_queue, NULL, 0);
 		break;
 	}
 	case MQTT_MSG_PUBLISH : {
-        RESP_MODE_e mode;
-        uint16_t message_id  = 0;
-		const uint8_t* ptr;
-        char eventType[32]={0};
-        char respData[256]={0};
-        int respBufSize = 0;
-		uint16_t topic_len = mqtt_parse_pub_topic_ptr(luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
-		LUAT_DEBUG_PRINT("pub_topic: %.*s",topic_len,ptr);
-		uint16_t payload_len = mqtt_parse_pub_msg_ptr(luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
-		LUAT_DEBUG_PRINT("pub_msg: %.*s",payload_len,ptr);
-
-        cJSON* payload_json = cJSON_Parse(ptr);
-        cJSON* function_json = cJSON_GetObjectItemCaseSensitive(payload_json, "function");
-        cJSON* deviceId_json = cJSON_GetObjectItemCaseSensitive(payload_json, "deviceId");
-        cJSON* seqId_json = cJSON_GetObjectItemCaseSensitive(payload_json, "seqId");
-        cJSON* data_json = cJSON_GetObjectItemCaseSensitive(payload_json, "data");
-
-        memcpy(ctrlFrame.function, function_json->valuestring, strlen(function_json->valuestring));
-        memcpy(ctrlFrame.deviceId, deviceId_json->valuestring, strlen(deviceId_json->valuestring));
-        if (cJSON_IsObject(data_json)){
-            ctrlFrame.data = cJSON_Print(data_json);
-            ctrlFrame.dataLen = strlen(ctrlFrame.data);
-        }
-        if (strncmp("Unbind", function_json->valuestring, strlen(function_json->valuestring)) == 0){
-            mode = NORSP_MODE;
-            cJSON* unbind_json = cJSON_CreateObject();
-            cJSON_AddStringToObject(unbind_json, "eventType", "Response_Unbind");
-            cJSON_AddStringToObject(unbind_json, "deviceId", deviceId_json->valuestring);
-            cJSON_AddStringToObject(unbind_json, "seqId", seqId_json->valuestring);
-            char* unbind_data = cJSON_Print(unbind_json);
-            cJSON_Delete(unbind_json);
-            mqtt_publish_with_qos(&(luat_mqtt_ctrl->broker), andlink_client->mqtt_pub_topic, unbind_data, strlen(unbind_data), 0, 1, &message_id);
-            cJSON_free(unbind_data);
-        }else{
-            mode = ASYNC_MODE;
-        }
-        if (andlink_client->devCbs->dn_send_cmd_callback){
-            andlink_client->devCbs->dn_send_cmd_callback(mode,&ctrlFrame,eventType,respData,respBufSize);
-            if (respBufSize){
-                //同步的用不上,不做了
-            }
-        }
-        if (ctrlFrame.data){
-            cJSON_free(ctrlFrame.data);
-        }
-        cJSON_Delete(payload_json);
+        andlink_queue.event = ADL_MQTT_MSG_PUBLISH;
+        luat_rtos_queue_send(andlink_queue_handle, &andlink_queue, NULL, 0);
 		break;
 	}
 	case MQTT_MSG_PUBACK : 
@@ -166,14 +116,13 @@ static void andlink_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
 		break;
 	}
 	case MQTT_MSG_CLOSE : {
-		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt close");
-        if (andlink_client->devCbs->set_led_callback){
-            andlink_client->devCbs->set_led_callback(ADL_OFFLINE);
-        }
+        andlink_queue.event = ADL_MQTT_MSG_CLOSE;
+        luat_rtos_queue_send(andlink_queue_handle, &andlink_queue, NULL, 0);
 		break;
 	}
 	case MQTT_MSG_RELEASE : {
-		LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt release");
+        andlink_queue.event = ADL_MQTT_MSG_RELEASE;
+        luat_rtos_queue_send(andlink_queue_handle, &andlink_queue, NULL, 0);
 		break;
 	}
 	default:
@@ -182,7 +131,7 @@ static void andlink_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
 	return;
 }
 
-static LUAT_RT_RET_TYPE andlink_manage_report(LUAT_RT_CB_PARAM){
+static void andlink_manage_report(void){
     luat_event_t event;
     cJSON* device_manage_json = cJSON_CreateObject();
 	cJSON_AddStringToObject(device_manage_json, "deviceId", andlink_client->deviceId);
@@ -229,12 +178,16 @@ static LUAT_RT_RET_TYPE andlink_manage_report(LUAT_RT_CB_PARAM){
     luat_http_client_start(andlink_client->andlink_http_client, andlink_client->deviceManageUrl, 1, 0, 0);
     luat_rtos_event_recv(luat_rtos_get_current_handle(), 0, &event, NULL, LUAT_WAIT_FOREVER);
     luat_http_client_close(andlink_client->andlink_http_client);
-    // if (event.id){ goto error;}
-    // LUAT_DEBUG_PRINT("andlink_client->http_post_data:%s",andlink_client->http_post_data);
+
     if (andlink_client->http_post_data){
         free(andlink_client->http_post_data);
         andlink_client->http_post_data = NULL;
     }
+}
+
+static LUAT_RT_RET_TYPE andlink_timer_report(LUAT_RT_CB_PARAM){
+    andlink_queue_t andlink_queue = {.event = ADL_TIMER_REPORT};
+    luat_rtos_queue_send(andlink_queue_handle, &andlink_queue, NULL, 0);
 }
 
 int andlink_init(adl_dev_attr_t *devAttr, adl_dev_callback_t *devCbs){
@@ -495,9 +448,8 @@ int andlink_init(adl_dev_attr_t *devAttr, adl_dev_callback_t *devCbs){
         free(andlink_client->http_post_data);
         andlink_client->http_post_data = NULL;
     }
-
-    andlink_manage_report(NULL);
-    andlink_client->report_timer = luat_create_rtos_timer(andlink_manage_report, andlink_client, NULL);
+    andlink_manage_report();
+    andlink_client->report_timer = luat_create_rtos_timer(andlink_timer_report, andlink_client, NULL);
     luat_start_rtos_timer(andlink_client->report_timer, 20*60*60*1000, 1);
 
 	luat_mqtt_ctrl_t *andlink_mqtt_client = (luat_mqtt_ctrl_t *)luat_heap_malloc(sizeof(luat_mqtt_ctrl_t));
@@ -531,8 +483,8 @@ int andlink_init(adl_dev_attr_t *devAttr, adl_dev_callback_t *devCbs){
     cJSON_Delete(will_json);
     luat_mqtt_set_will(andlink_mqtt_client, andlink_client->mqtt_pub_topic, will_data, strlen(will_data), 0, 0);
     cJSON_free(will_data);
-	luat_rtos_task_sleep(3000);
-
+	// luat_rtos_task_sleep(3000);
+    luat_rtos_queue_create(&andlink_queue_handle, ANDLINK_QUEUE_SIZE, sizeof(andlink_queue_t));
 	ret = luat_mqtt_connect(andlink_mqtt_client);
 	if (ret) {
 		LUAT_DEBUG_PRINT("mqtt connect ret=%d\n", ret);
@@ -540,13 +492,104 @@ int andlink_init(adl_dev_attr_t *devAttr, adl_dev_callback_t *devCbs){
 		goto error;
 	}
 
-    luat_rtos_event_recv(luat_rtos_get_current_handle(), 0, &event, NULL, LUAT_WAIT_FOREVER);
-    if (event.id){ 
-        if (andlink_client->devCbs->set_led_callback){
-            andlink_client->devCbs->set_led_callback(ADL_OFFLINE);
+    andlink_queue_t andlink_queue;
+    dn_dev_ctrl_frame_t ctrlFrame = {0};
+    RESP_MODE_e mode;
+    uint16_t message_id  = 0;
+    const uint8_t* ptr;
+    char eventType[32]={0};
+    char respData[256]={0};
+    int respBufSize = 0;
+    uint16_t topic_len;
+    uint16_t payload_len;
+    while (1){
+        if (luat_rtos_queue_recv(andlink_queue_handle, &andlink_queue, NULL, LUAT_WAIT_FOREVER) == 0){
+            switch (andlink_queue.event){
+                case ADL_MQTT_MSG_CONNACK:
+                    // LUAT_DEBUG_PRINT("mqtt_connect ok");
+                    if (andlink_client->devCbs->set_led_callback){
+                        andlink_client->devCbs->set_led_callback(ADL_ONLINE);
+                    }
+                    // LUAT_DEBUG_PRINT("mqtt_subscribe");
+                    uint16_t msgid = 0;
+                    char andlink_sub_topic[128] = {0};
+                    snprintf_(andlink_sub_topic, 128, ANDLINK_MQTT_DOWM, andlink_client->deviceId);
+                    // LUAT_DEBUG_PRINT("andlink_sub_topic:%s",andlink_sub_topic);
+                    mqtt_subscribe(&(andlink_queue.luat_mqtt_ctrl->broker), andlink_sub_topic, &msgid, 1);
+                    // LUAT_DEBUG_PRINT("publish");
+                    uint16_t message_id  = 0;
+                    cJSON* online_json = cJSON_CreateObject();
+                    cJSON_AddStringToObject(online_json, "deviceId", andlink_client->deviceId);
+                    cJSON_AddStringToObject(online_json, "eventType", "MBoot");
+                    cJSON_AddNumberToObject(online_json, "timestamp", (double)time(NULL));
+                    cJSON_AddStringToObject(online_json, "deviceType", andlink_client->devAttr.deviceType);
+                    char* online_data = cJSON_Print(online_json);
+                    cJSON_Delete(online_json);
+                    mqtt_publish_with_qos(&(andlink_queue.luat_mqtt_ctrl->broker), andlink_client->mqtt_pub_topic, online_data, strlen(online_data), 0, 1, &message_id);
+                    cJSON_free(online_data);
+                    break;
+                case ADL_MQTT_MSG_PUBLISH:
+                    topic_len = mqtt_parse_pub_topic_ptr(andlink_queue.luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
+                    LUAT_DEBUG_PRINT("pub_topic: %.*s",topic_len,ptr);
+                    payload_len = mqtt_parse_pub_msg_ptr(andlink_queue.luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
+                    LUAT_DEBUG_PRINT("pub_msg: %.*s",payload_len,ptr);
+
+                    cJSON* payload_json = cJSON_Parse(ptr);
+                    cJSON* function_json = cJSON_GetObjectItemCaseSensitive(payload_json, "function");
+                    cJSON* deviceId_json = cJSON_GetObjectItemCaseSensitive(payload_json, "deviceId");
+                    cJSON* seqId_json = cJSON_GetObjectItemCaseSensitive(payload_json, "seqId");
+                    cJSON* data_json = cJSON_GetObjectItemCaseSensitive(payload_json, "data");
+
+                    memcpy(ctrlFrame.function, function_json->valuestring, strlen(function_json->valuestring));
+                    memcpy(ctrlFrame.deviceId, deviceId_json->valuestring, strlen(deviceId_json->valuestring));
+                    if (cJSON_IsObject(data_json)){
+                        ctrlFrame.data = cJSON_Print(data_json);
+                        ctrlFrame.dataLen = strlen(ctrlFrame.data);
+                    }
+                    if (strncmp("Unbind", function_json->valuestring, strlen(function_json->valuestring)) == 0){
+                        mode = NORSP_MODE;
+                        cJSON* unbind_json = cJSON_CreateObject();
+                        cJSON_AddStringToObject(unbind_json, "eventType", "Response_Unbind");
+                        cJSON_AddStringToObject(unbind_json, "deviceId", deviceId_json->valuestring);
+                        cJSON_AddStringToObject(unbind_json, "seqId", seqId_json->valuestring);
+                        char* unbind_data = cJSON_Print(unbind_json);
+                        cJSON_Delete(unbind_json);
+                        mqtt_publish_with_qos(&(andlink_queue.luat_mqtt_ctrl->broker), andlink_client->mqtt_pub_topic, unbind_data, strlen(unbind_data), 0, 1, &message_id);
+                        cJSON_free(unbind_data);
+                    }else{
+                        mode = ASYNC_MODE;
+                    }
+                    if (andlink_client->devCbs->dn_send_cmd_callback){
+                        andlink_client->devCbs->dn_send_cmd_callback(mode,&ctrlFrame,eventType,respData,respBufSize);
+                        if (respBufSize){
+                            //同步的用不上,不做了
+                        }
+                    }
+                    if (ctrlFrame.data){
+                        cJSON_free(ctrlFrame.data);
+                    }
+                    cJSON_Delete(payload_json);
+                    break;
+                case ADL_MQTT_MSG_CLOSE:
+                    LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt close");
+                    if (andlink_client->devCbs->set_led_callback){
+                        andlink_client->devCbs->set_led_callback(ADL_OFFLINE);
+                    }
+                    break;
+                case ADL_MQTT_MSG_RELEASE:
+                    LUAT_DEBUG_PRINT("luat_mqtt_cb mqtt release");
+                    break;
+                case ADL_TIMER_REPORT:
+                    andlink_manage_report();
+                    break;
+                default:
+                    break;
+			}
         }
-        goto error; 
     }
+    
+
+
     return 0;
 error:
     if (http_post_data_json){
