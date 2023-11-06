@@ -319,7 +319,7 @@
 #define LUAT_USE_WLAN_SCANONLY 1
 #define LUAT_USE_SNTP 1
 //目前没用到的宏，但是得写在这里
-//#define LUAT_USE_I2S
+#define LUAT_USE_I2S
 
 #ifndef LUAT_USE_HMETA
 #define LUAT_USE_HMETA 1
