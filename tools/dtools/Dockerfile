@@ -1,4 +1,5 @@
-FROM ccr.ccs.tencentyun.com/wendal/ecfota-base:latest
+# FROM ccr.ccs.tencentyun.com/wendal/ecfota-base:latest
+FROM wendal/ecfota-base
 # FROM ubuntu:22.04
 # RUN sed -i 's/security.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 # RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
