@@ -495,13 +495,11 @@ int andlink_init(adl_dev_attr_t *devAttr, adl_dev_callback_t *devCbs){
     andlink_queue_t andlink_queue;
     dn_dev_ctrl_frame_t ctrlFrame = {0};
     RESP_MODE_e mode;
-    uint16_t message_id  = 0;
     const uint8_t* ptr;
     char eventType[32]={0};
     char respData[256]={0};
     int respBufSize = 0;
-    uint16_t topic_len;
-    uint16_t payload_len;
+    uint16_t message_id,topic_len,payload_len;
     while (1){
         if (luat_rtos_queue_recv(andlink_queue_handle, &andlink_queue, NULL, LUAT_WAIT_FOREVER) == 0){
             switch (andlink_queue.event){
@@ -530,9 +528,9 @@ int andlink_init(adl_dev_attr_t *devAttr, adl_dev_callback_t *devCbs){
                     break;
                 case ADL_MQTT_MSG_PUBLISH:
                     topic_len = mqtt_parse_pub_topic_ptr(andlink_queue.luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
-                    LUAT_DEBUG_PRINT("pub_topic: %.*s",topic_len,ptr);
+                    // LUAT_DEBUG_PRINT("pub_topic: %.*s",topic_len,ptr);
                     payload_len = mqtt_parse_pub_msg_ptr(andlink_queue.luat_mqtt_ctrl->mqtt_packet_buffer, &ptr);
-                    LUAT_DEBUG_PRINT("pub_msg: %.*s",payload_len,ptr);
+                    // LUAT_DEBUG_PRINT("pub_msg: %.*s",payload_len,ptr);
 
                     cJSON* payload_json = cJSON_Parse(ptr);
                     cJSON* function_json = cJSON_GetObjectItemCaseSensitive(payload_json, "function");
@@ -629,6 +627,7 @@ int andlink_destroy(void){
         LUAT_DEBUG_PRINT("andlink_client already destroyed");
         return -1;
     }
+    luat_rtos_queue_delete(andlink_queue_handle);
 	if (andlink_client->report_timer){
         luat_stop_rtos_timer(andlink_client->report_timer);
 		luat_release_rtos_timer(andlink_client->report_timer);
