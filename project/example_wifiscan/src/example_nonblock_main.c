@@ -26,11 +26,19 @@
 #include "luat_pm.h"
 #include "luat_wifiscan.h"
 #include "cmidev.h"
+
+enum
+{
+	LUAT_GET_HEAD_DONE = 1,
+};
+
+luat_rtos_task_handle wifi_scan_nonblock_task_handle;
 luat_wifisacn_get_info_t *wifiscan_get;
 CHAR Wifiscan_req[96] = {0};
 //soc_service_misc_callback为弱函数，参考下面直接调用
 void soc_service_misc_callback(uint8_t *data, uint32_t len)
 {
+	uint8_t *http_down_data;
 	uint8_t sg_id = (((len) >> 12) & 0x000F);
 	uint16_t prim_id = ((len)&0x0FFF);
 	int ret=-1;
@@ -39,27 +47,19 @@ void soc_service_misc_callback(uint8_t *data, uint32_t len)
 	case CAM_DEV:
 		switch (prim_id)
 		{
-		case CMI_DEV_SET_WIFISCAN_CNF://下面为处理函数
-			wifiscan_get = (luat_wifisacn_get_info_t *)malloc(sizeof(luat_wifisacn_get_info_t));
-			memset(wifiscan_get, 0, sizeof(luat_wifisacn_get_info_t));
-			memcpy(wifiscan_get,data, sizeof(luat_wifisacn_get_info_t));
-			LUAT_DEBUG_PRINT("this hw demo%d", wifiscan_get->bssidNum);
-			for (size_t i = 0; i < wifiscan_get->bssidNum; i++)
-			{
-				memset(Wifiscan_req, 0, sizeof(Wifiscan_req));
-				snprintf_(Wifiscan_req, 64, "%.*s, \"%02x:%02x:%02x:%02x:%02x:%02x\",%d,%d", wifiscan_get->ssidHexLen[i], wifiscan_get->ssidHex[i], wifiscan_get->bssid[i][0], wifiscan_get->bssid[i][1], wifiscan_get->bssid[i][2],
-						  wifiscan_get->bssid[i][3], wifiscan_get->bssid[i][4], wifiscan_get->bssid[i][5], wifiscan_get->rssi[i], wifiscan_get->channel[i]);
-				LUAT_DEBUG_PRINT("wifiscan result %s", Wifiscan_req);
-				
-			}
-			free(wifiscan_get);
-			break;
+		case CMI_DEV_SET_WIFISCAN_CNF://下面为处理函数   
+		 LUAT_DEBUG_PRINT("data len%d\r\n",len);
+		 http_down_data = malloc(len);
+		 memcpy(http_down_data, data, len);
+		 luat_rtos_event_send(wifi_scan_nonblock_task_handle, LUAT_GET_HEAD_DONE, http_down_data, len, 0, 0);
+		break;
 		}
 		break;
 	}
 }
 static void wifi_scan_nonblock_task(void *param)
 {
+	luat_event_t event;
 	int ret = -1;
 	size_t total, used, max_used;
 	luat_wifiscan_set_info_t wifiscan_info = {0};
@@ -71,11 +71,32 @@ static void wifi_scan_nonblock_task(void *param)
 	wifiscan_info.channelCount = 1;
 	wifiscan_info.channelRecLen = 280;
 	wifiscan_info.channelId[0] = 0;
-	luat_wlan_scan_nonblock(&wifiscan_info);
 	while (1)
 	{
-		ret = luat_wlan_scan_nonblock(&wifiscan_info);//调用异步wifi_scan函数
-		LUAT_DEBUG_PRINT("scan_callback_value%d", ret);
+		luat_wlan_scan_nonblock(&wifiscan_info);//调用异步wifi_scan函数
+		luat_rtos_event_recv(wifi_scan_nonblock_task_handle, 0, &event, NULL, LUAT_WAIT_FOREVER);
+		switch (event.id)
+		{
+		case LUAT_GET_HEAD_DONE:
+			wifiscan_get = (luat_wifisacn_get_info_t *)malloc(sizeof(luat_wifisacn_get_info_t));
+			memset(wifiscan_get, 0, sizeof(luat_wifisacn_get_info_t));
+			memcpy(wifiscan_get,event.param1, sizeof(luat_wifisacn_get_info_t));
+			LUAT_DEBUG_PRINT("this hw demo%d", wifiscan_get->bssidNum);
+			for (size_t i = 0; i < wifiscan_get->bssidNum; i++)
+			{
+				memset(Wifiscan_req, 0, sizeof(Wifiscan_req));
+				snprintf_(Wifiscan_req, 64, "%.*s, \"%02x:%02x:%02x:%02x:%02x:%02x\",%d,%d", wifiscan_get->ssidHexLen[i], wifiscan_get->ssidHex[i], wifiscan_get->bssid[i][0], wifiscan_get->bssid[i][1], wifiscan_get->bssid[i][2],
+						  wifiscan_get->bssid[i][3], wifiscan_get->bssid[i][4], wifiscan_get->bssid[i][5], wifiscan_get->rssi[i], wifiscan_get->channel[i]);
+				LUAT_DEBUG_PRINT("wifiscan result %s", Wifiscan_req);
+				
+			}
+			free(wifiscan_get);
+			free(event.param1);
+			break;
+		
+		default:
+			break;
+		}
 		luat_rtos_task_sleep(10000);
 		luat_meminfo_sys(&total, &used, &max_used);
     	LUAT_DEBUG_PRINT("meminfo total %d, used %d, max_used%d",total, used, max_used);
@@ -85,9 +106,7 @@ static void wifi_scan_nonblock_task(void *param)
 
 
 static void wifi_scan_nonblock_task_init(void)
-{
-	int ret = -1;
-	luat_rtos_task_handle wifi_scan_nonblock_task_handle;
-	luat_rtos_task_create(&wifi_scan_nonblock_task_handle, 2 * 1024, 50, "wifi_scan_nonblock_task", wifi_scan_nonblock_task, NULL, 0);
+{	
+	luat_rtos_task_create(&wifi_scan_nonblock_task_handle, 2 * 1024, 50, "wifi_scan_nonblock_task", wifi_scan_nonblock_task, NULL, 16);
 }
 INIT_TASK_EXPORT(wifi_scan_nonblock_task_init, "1");
