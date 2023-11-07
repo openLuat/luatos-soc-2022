@@ -324,6 +324,11 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/statem/*.c")
     add_includedirs(LUATOS_ROOT.."components/statem")
 
+    -- ercoap
+    add_includedirs(LUATOS_ROOT.."components/network/ercoap/include",{public = true})
+    add_files(LUATOS_ROOT.."components/network/ercoap/src/*.c")
+    add_files(LUATOS_ROOT.."components/network/ercoap/binding/*.c")
+
     
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "/interface/include")

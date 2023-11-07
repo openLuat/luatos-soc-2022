@@ -264,6 +264,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_FASTLZ
   {"fastlz",    luaopen_fastlz},
 #endif
+#ifdef LUAT_USE_ERCOAP
+  {"ercoap", luaopen_ercoap},
+#endif
   {NULL, NULL}
 };
 
