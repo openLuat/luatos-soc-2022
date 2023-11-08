@@ -1,4 +1,4 @@
-name: Github Actions
+name: EC618
 run-name: GoGoGo 🚀
 on: [push]
 
