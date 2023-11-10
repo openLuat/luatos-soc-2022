@@ -4,6 +4,13 @@
 1. windows原生工具
 2. 可运行原生工具的docker镜像
 
+支持的差分功能:
+1. CSDK生产的binpkg差分,功能名称csdk
+2. 合宙系列AT固件的差分,功能名称at
+3. QAT系列固件的差分,功能名称qat
+4. LuatOS固件的soc文件之间的差分,功能名称soc
+5. 原始SDK的binpkg差分,功能名称org
+
 ## 原生工具的用法
 
 先把需要差分的新老binpkg, 分别命名为 `old.binpkg` 和 `new.binpkg`, 存放在当前目录下.
