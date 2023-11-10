@@ -13,27 +13,25 @@
 
 ## 原生工具的用法
 
-先把需要差分的新老binpkg, 分别命名为 `old.binpkg` 和 `new.binpkg`, 存放在当前目录下.
-
-### 直接跑命令行, 适合 QAT固件和CSDK固件
-
-```shell
-FotaToolkit.exe -d config\ec618.json BINPKG old.binpkg new.binpkg diff.bin
-```
-
-生成完成后, 得到diff.bin, 注意, 文件大小超过(FOTA分区大小-32k系统占用), 就无法成功更新
-
-FOTA分区的默认大小是512K, 所以默认情况下只能480K的bin文件
-
 ### 通过脚本跑
 
+如果是LuatOS的soc文件差分,需要先安装依赖项
+
 ```
-pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple oss2 bottle py7zr
+pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple py7zr
+```
+
+差分命令格式及示例
+
+```
+python3 main.py 模式 老版本固件路径 新版本固件路径 输出差分包的路径
+
 python3 main.py csdk old.binpkg new.binpkg diff.bin
 ```
 
-其中csdk是模式, 可选值有`csdk` `at` `qat` `org` `soc`
-
+其中
+* 模式, 可选值有`csdk` `at` `qat` `org` `soc`
+* 非LuatOS固件传binpkg路径, LuatOS固件传soc文件路径
 
 ## Docker镜像说明
 
