@@ -356,7 +356,8 @@ const struct luat_vfs_filesystem vfs_fs_ec618 = {
         T(fsize),
         T(fexist),
         T(info),
-        T(lsdir)
+        T(lsdir),
+        T(truncate)
     },
     .fopts = {
         T(fopen),
@@ -444,16 +445,16 @@ int luat_fs_init(void) {
 extern luat_vfs_mount_t * getmount(const char* filename);
 extern int luat_vfs_lfs2_truncate(void* userdata, const char *filename, size_t len);
 
-int luat_fs_truncate(const char* filename, size_t len) {
-    luat_vfs_mount_t *mount = getmount(filename);
-    if (mount == NULL ) return -1;
-    if (strcmp(mount->fs->name, "lfs2") == 0) {
-        return luat_vfs_lfs2_truncate(mount->userdata, filename + strlen(mount->prefix), len);
-    }else if(strcmp(mount->fs->name, "ec618") == 0){
-        return luat_vfs_ec618_truncate(NULL, filename, len);
-    }
-    return -1;
-}
+// int luat_fs_truncate(const char* filename, size_t len) {
+//     luat_vfs_mount_t *mount = getmount(filename);
+//     if (mount == NULL ) return -1;
+//     if (strcmp(mount->fs->name, "lfs2") == 0) {
+//         return luat_vfs_lfs2_truncate(mount->userdata, filename + strlen(mount->prefix), len);
+//     }else if(strcmp(mount->fs->name, "ec618") == 0){
+//         return luat_vfs_ec618_truncate(NULL, filename, len);
+//     }
+//     return -1;
+// }
 
 #else
 

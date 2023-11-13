@@ -315,7 +315,8 @@ const struct luat_vfs_filesystem vfs_fs_lfs2 = {
         T(rename),
         T(fsize),
         T(fexist),
-        T(info)
+        T(info),
+        T(truncate)
     },
     .fopts = {
         T(fopen),
