@@ -59,26 +59,42 @@ typedef struct
 		}rs485_param_bit;
 	};
 	uint32_t rx_buf_size;
-	uint16_t unused;
 	uint8_t alt_type;
 	uint8_t rs485_pin;
 	struct 
 	{
-		uint8_t is_enable;
-		uint8_t is_start;
+		uint8_t is_enable:1;
+		uint8_t is_start:1;
+		uint8_t unuse:6;
 	}rx_info;
+	uint8_t luatos_rx_msg_cnt;
 }serials_info;
 
 static serials_info g_s_serials[MAX_DEVICE_COUNT - 1] ={0};
 
 #ifdef __LUATOS__
 
+static int32_t luat_uart_recv_run(lua_State *L, void* ptr)
+{
+	int uart_id = (int)ptr;
+	if (g_s_serials[uart_id].luatos_rx_msg_cnt)
+	{
+		g_s_serials[uart_id].luatos_rx_msg_cnt--;
+	}
+	return l_uart_handler(L, ptr);
+}
+
 void luat_uart_recv_cb(int uart_id, uint32_t data_len){
+	if (g_s_serials[uart_id].luatos_rx_msg_cnt > 5)
+	{
+		return;
+	}
         rtos_msg_t msg;
-        msg.handler = l_uart_handler;
-        msg.ptr = NULL;
+        msg.handler = luat_uart_recv_run;
+        msg.ptr = uart_id;
         msg.arg1 = uart_id;
         msg.arg2 = data_len;
+        g_s_serials[uart_id].luatos_rx_msg_cnt++;
         int re = luat_msgbus_put(&msg, 0);
 }
 
@@ -358,6 +374,10 @@ int luat_uart_read(int uartid, void* buffer, size_t len) {
         else
         {
         	rcount = Uart_RxBufferRead(uartid, (uint8_t *)buffer, len);
+        	if (rcount < len)
+        	{
+        		g_s_serials[uartid].luatos_rx_msg_cnt = 0;
+        	}
         }
     }
     return rcount;
