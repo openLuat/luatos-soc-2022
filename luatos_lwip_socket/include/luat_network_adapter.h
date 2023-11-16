@@ -100,6 +100,9 @@ enum
 	NW_ADAPTER_INDEX_HW_PS_DEVICE = NW_ADAPTER_INDEX_LWIP_NETIF_QTY,
 	NW_ADAPTER_INDEX_ETH0 = NW_ADAPTER_INDEX_HW_PS_DEVICE,	//外挂以太网+硬件协议栈
 	NW_ADAPTER_INDEX_USB,			//USB网卡
+	NW_ADAPTER_INDEX_POSIX,         // 对接POSIX
+	NW_ADAPTER_INDEX_LUAPROXY,      // 代理到Lua层
+	NW_ADAPTER_INDEX_CUSTOM,        // 对接到自定义适配器
 	NW_ADAPTER_QTY,
 
 	NW_CMD_AUTO_HEART_TIME = 0,
@@ -279,14 +282,11 @@ typedef struct
 	int (*user_cmd)(int socket_id, uint64_t tag, uint32_t cmd, uint32_t value, void *user_data);
 
 	int (*dns)(const char *domain_name, uint32_t len, void *param,  void *user_data);
-#ifdef LUAT_USE_LWIP
 	int (*dns_ipv6)(const char *domain_name, uint32_t len, void *param,  void *user_data);
-#endif
 	int (*set_dns_server)(uint8_t server_index, luat_ip_addr_t *ip, void *user_data);
-#ifdef LUAT_USE_LWIP
 	int (*set_mac)(uint8_t *mac, void *user_data);
 	int (*set_static_ip)(luat_ip_addr_t *ip, luat_ip_addr_t *submask, luat_ip_addr_t *gateway, luat_ip_addr_t *ipv6, void *user_data);
-#endif
+	int (*get_full_ip_info)(luat_ip_addr_t *ip, luat_ip_addr_t *submask, luat_ip_addr_t *gateway, luat_ip_addr_t *ipv6, void *user_data);
 	int (*get_local_ip_info)(luat_ip_addr_t *ip, luat_ip_addr_t *submask, luat_ip_addr_t *gateway, void *user_data);
 	//所有网络消息都是通过cb_fun回调
 	//cb_fun回调时第一个参数为OS_EVENT，包含了socket的必要信息，第二个是luat_network_cb_param_t，其中的param是这里传入的param(就是适配器序号)
@@ -471,7 +471,7 @@ int network_close(network_ctrl_t *ctrl, uint32_t timeout_ms);
  * timeout_ms=0时，为非阻塞接口
  * UDP的时候，remote_ip和remote_port和connect不一致的时候才需要remote_ip和remote_port
  * TCP不看remote_ip和remote_port
- * 则塞模式，*tx_len不需要看，非则塞模式需要看*tx_len的实际长度是不是和len一致
+ * 阻塞模式，*tx_len不需要看，非阻塞模式需要看*tx_len的实际长度是不是和len一致
  */
 int network_tx(network_ctrl_t *ctrl, const uint8_t *data, uint32_t len, int flags, luat_ip_addr_t *remote_ip, uint16_t remote_port, uint32_t *tx_len, uint32_t timeout_ms);
 /*

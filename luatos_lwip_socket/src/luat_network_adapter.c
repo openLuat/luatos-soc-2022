@@ -248,7 +248,6 @@ static void tls_settimer( void *data, uint32_t int_ms, uint32_t fin_ms )
 	{
 		return;
 	}
-
 	if (!fin_ms)
 	{
 		platform_stop_timer(ctrl->tls_short_timer);
@@ -282,7 +281,7 @@ static void tls_dbg(void *data, int level,
         const char *file, int line,
         const char *str)
 {
-	DBG_Printf("%s %d:%s", file, line, str);
+	(void)data;(void)level;DBG_Printf("%s %d:%s", file, line, str);
 }
 
 static int tls_send(void *ctx, const unsigned char *buf, size_t len )
@@ -501,7 +500,6 @@ static int network_state_off_line(network_ctrl_t *ctrl, OS_EVENT *event, network
 static int network_state_wait_dns(network_ctrl_t *ctrl, OS_EVENT *event, network_adapter_t *adapter)
 {
 	if ((ctrl->need_close) || ctrl->wait_target_state != NW_WAIT_ON_LINE) return -1;
-	int i;
 	switch(event->ID)
 	{
 	case EV_NW_RESET:
@@ -519,7 +517,7 @@ static int network_state_wait_dns(network_ctrl_t *ctrl, OS_EVENT *event, network
 			//更新dns cache
 			ctrl->dns_ip = event->Param2;
 			ctrl->dns_ip_nums = event->Param1;
-			for(i = 0; i < ctrl->dns_ip_nums; i++)
+			for(int i = 0; i < ctrl->dns_ip_nums; i++)
 			{
 				DBG("dns ip%d, ttl %u, %s", i, ctrl->dns_ip[i].ttl_end, ipaddr_ntoa(&ctrl->dns_ip[i].ip));
 			}
@@ -534,6 +532,11 @@ static int network_state_wait_dns(network_ctrl_t *ctrl, OS_EVENT *event, network
 				return -1;
 			}
 
+		}
+		if (!ctrl->remote_port)
+		{
+			ctrl->state = NW_STATE_OFF_LINE;
+			return 0;
 		}
 		ctrl->dns_ip_cnt = 0;
 		if (network_base_connect(ctrl, &ctrl->dns_ip[ctrl->dns_ip_cnt].ip))
@@ -749,6 +752,7 @@ static int network_state_on_line(network_ctrl_t *ctrl, OS_EVENT *event, network_
 		ctrl->ack_size += event->Param2;
 		if (NW_WAIT_TX_OK == ctrl->wait_target_state)
 		{
+
 			if (ctrl->ack_size == ctrl->tx_size)
 			{
 #ifdef LUAT_USE_LWIP
@@ -943,16 +947,16 @@ static int32_t network_default_socket_callback(void *data, void *param)
 		{
 			if ((event->ID == EV_NW_DNS_RESULT) && (ctrl->wait_target_state != NW_WAIT_ON_LINE))
 			{
-				DBG("socket %s %s", network_ctrl_event_id_string(event->ID), network_ctrl_wait_state_string(ctrl->wait_target_state));
+				DBG("socket event:%s,wait:%s", network_ctrl_event_id_string(event->ID), network_ctrl_wait_state_string(ctrl->wait_target_state));
 				return 0;
 			}
 			if (ctrl->auto_mode)
 			{
-				DBG("socket %d,%s,%s,%s", ctrl->socket_id, network_ctrl_event_id_string(event->ID),
+				DBG("socket %d,event:%s,state:%s,wait:%s", ctrl->socket_id, network_ctrl_event_id_string(event->ID),
 						network_ctrl_state_string(ctrl->state),
 						network_ctrl_wait_state_string(ctrl->wait_target_state));
 				network_default_statemachine(ctrl, event, adapter);
-				DBG("%s,%s",network_ctrl_state_string(ctrl->state),network_ctrl_wait_state_string(ctrl->wait_target_state));
+				DBG("socket %d,state:%s,wait:%s", ctrl->socket_id, network_ctrl_state_string(ctrl->state),network_ctrl_wait_state_string(ctrl->wait_target_state));
 			}
 			else if (ctrl->task_handle)
 			{
@@ -965,7 +969,7 @@ static int32_t network_default_socket_callback(void *data, void *param)
 		}
 		else
 		{
-			DBG_ERR("cb ctrl invaild %x", ctrl);
+			DBG_ERR("cb ctrl invaild %x %08X", ctrl, event->ID);
 			DBG_HexPrintf(&ctrl->tag, 8);
 			DBG_HexPrintf(&cb_param->tag, 8);
 		}
@@ -982,11 +986,11 @@ static int32_t network_default_socket_callback(void *data, void *param)
 				{
 					if (ctrl->auto_mode)
 					{
-						DBG("socket %d,%s,%s,%s", ctrl->socket_id, network_ctrl_event_id_string(event->ID),
+						DBG("socket %d,event:%s,state:%s,wait:%s", ctrl->socket_id, network_ctrl_event_id_string(event->ID),
 								network_ctrl_state_string(ctrl->state),
 								network_ctrl_wait_state_string(ctrl->wait_target_state));
 						network_default_statemachine(ctrl, &temp_event, adapter);
-						DBG("%s,%s",network_ctrl_state_string(ctrl->state),	network_ctrl_wait_state_string(ctrl->wait_target_state));
+						DBG("socket %d,event:%s,wait:%s", ctrl->socket_id, network_ctrl_state_string(ctrl->state),	network_ctrl_wait_state_string(ctrl->wait_target_state));
 					}
 					else if (ctrl->task_handle)
 					{
@@ -1205,6 +1209,8 @@ int network_set_local_port(network_ctrl_t *ctrl, uint16_t local_port)
 	}
 	else
 	{
+		ctrl->local_port = 0;
+#if 0
 		if (ctrl->adapter_index < NW_ADAPTER_INDEX_LWIP_NETIF_QTY)
 		{
 			ctrl->local_port = 0;
@@ -1218,31 +1224,7 @@ int network_set_local_port(network_ctrl_t *ctrl, uint16_t local_port)
 		}
 		ctrl->local_port = adapter->port;
 		OS_UNLOCK;
-		return 0;
-	}
-}
-
-uint8_t network_check_ready(network_ctrl_t *ctrl, uint8_t adapter_index)
-{
-	network_adapter_t *adapter;
-	if (ctrl)
-	{
-		adapter = &prv_adapter_table[ctrl->adapter_index];
-	}
-	else if (adapter_index < NW_ADAPTER_QTY)
-	{
-		adapter = &prv_adapter_table[adapter_index];
-	}
-	else
-	{
-		return 0;
-	}
-	if (adapter->opt)
-	{
-		return adapter->opt->check_ready(adapter->user_data);
-	}
-	else
-	{
+#endif
 		return 0;
 	}
 }
@@ -1264,7 +1246,26 @@ int network_socket_connect(network_ctrl_t *ctrl, luat_ip_addr_t *remote_ip)
 	network_adapter_t *adapter = &prv_adapter_table[ctrl->adapter_index];
 	ctrl->is_server_mode = 0;
 	ctrl->online_ip = remote_ip;
-	return adapter->opt->socket_connect(ctrl->socket_id, ctrl->tag, ctrl->local_port, remote_ip, ctrl->remote_port, adapter->user_data);
+	uint16_t local_port = ctrl->local_port;
+	if (!local_port)
+	{
+		if (ctrl->adapter_index >= NW_ADAPTER_INDEX_HW_PS_DEVICE)
+		{
+			adapter->port += 100;
+			local_port = adapter->port;
+			if (adapter->port < 60000)
+			{
+				adapter->port = 60000;
+			}
+			if (local_port < 60000)
+			{
+				local_port = 60000;
+			}
+			local_port += ctrl->socket_id;
+			DBG("%d,%d,%d", ctrl->socket_id, local_port, adapter->port);
+		}
+	}
+	return adapter->opt->socket_connect(ctrl->socket_id, ctrl->tag, local_port, remote_ip, ctrl->remote_port, adapter->user_data);
 }
 
 int network_socket_listen(network_ctrl_t *ctrl)
@@ -1386,7 +1387,6 @@ int network_dns(network_ctrl_t *ctrl)
 	{
 		return adapter->opt->dns(ctrl->domain_name, ctrl->domain_name_len, ctrl, adapter->user_data);
 	}
-
 }
 
 int network_set_mac(uint8_t adapter_index, uint8_t *mac)
@@ -1663,7 +1663,7 @@ int network_wait_link_up(network_ctrl_t *ctrl, uint32_t timeout_ms)
 	NW_LOCK;
 	ctrl->auto_mode = 1;
 //	network_adapter_t *adapter = &prv_adapter_table[ctrl->adapter_index];
-	if (network_check_ready(ctrl,0))
+	if (network_check_ready(ctrl, 0))
 	{
 		ctrl->state = NW_STATE_OFF_LINE;
 		ctrl->wait_target_state = NW_WAIT_NONE;
@@ -1756,7 +1756,7 @@ int network_connect(network_ctrl_t *ctrl, const char *domain_name, uint32_t doma
 	ctrl->remote_port = remote_port;
 	network_adapter_t *adapter = &prv_adapter_table[ctrl->adapter_index];
 	ctrl->wait_target_state = NW_WAIT_ON_LINE;
-	if (!network_check_ready(ctrl,0))
+	if (!network_check_ready(ctrl, 0))
 	{
 
 		ctrl->state = NW_STATE_LINK_OFF;
@@ -1777,7 +1777,7 @@ NETWORK_CONNECT_WAIT:
 		return 1;
 	}
 	uint8_t finish = 0;
-	OS_EVENT event;
+	OS_EVENT event = {0};
 	int result;
 	//DBG_INFO("%s wait for active!,%u,%x", Net->Tag, To * SYS_TICK, Net->hTask);
 
@@ -1824,13 +1824,12 @@ int network_listen(network_ctrl_t *ctrl, uint32_t timeout_ms)
 	ctrl->need_close = 0;
 	network_adapter_t *adapter = &prv_adapter_table[ctrl->adapter_index];
 	ctrl->wait_target_state = NW_WAIT_ON_LINE;
-	if (!network_check_ready(ctrl,0))
+	if (!network_check_ready(ctrl, 0))
 	{
 
 		ctrl->state = NW_STATE_LINK_OFF;
 		goto NETWORK_LISTEN_WAIT;
 	}
-
 	if (network_base_connect(ctrl, NULL))
 	{
 		ctrl->state = NW_STATE_OFF_LINE;
@@ -1850,11 +1849,11 @@ NETWORK_LISTEN_WAIT:
 	OS_EVENT event;
 	int result;
 	//DBG_INFO("%s wait for active!,%u,%x", Net->Tag, To * SYS_TICK, Net->hTask);
+
 	if (timeout_ms != 0xffffffff)
 	{
 		platform_start_timer(ctrl->timer, timeout_ms, 0);
 	}
-
 	while (!finish)
 	{
 		platform_wait_event(ctrl->task_handle, 0, &event, NULL, 0);
@@ -2008,13 +2007,21 @@ int network_tx(network_ctrl_t *ctrl, const uint8_t *data, uint32_t len, int flag
 	    		case 0:
 	    			break;
 	    		default:
+					#if MBEDTLS_VERSION_NUMBER >= 0x03000000
+					#else
 	    			DBG_ERR("0x%x, %d", -result, ctrl->ssl->state);
+					#endif
 	    			ctrl->need_close = 1;
 	    			NW_UNLOCK;
 	    			return -1;
 	    		}
-	    	}while(ctrl->ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER);
+			#if MBEDTLS_VERSION_NUMBER >= 0x03000000
+			}while(!mbedtls_ssl_is_handshake_over(ctrl->ssl));
+	    	#else
+			}while(ctrl->ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER);
+			#endif
 		}
+
 	    uint32_t done = 0;
 	    while(done < len)
 	    {
@@ -2108,6 +2115,7 @@ int network_rx(network_ctrl_t *ctrl, uint8_t *data, uint32_t len, int flags, lua
 #ifdef LUAT_USE_TLS
 		if (ctrl->tls_mode)
 		{
+
 			do
 			{
 				result = mbedtls_ssl_read(ctrl->ssl, data + read_len, len - read_len);
@@ -2163,7 +2171,11 @@ int network_rx(network_ctrl_t *ctrl, uint8_t *data, uint32_t len, int flags, lua
 				}
 				else if (!result)
 				{
+					#if MBEDTLS_VERSION_NUMBER >= 0x03000000
+					read_len = ctrl->ssl->MBEDTLS_PRIVATE(in_msglen);
+					#else
 					read_len = ctrl->ssl->in_msglen;
+					#endif
 					break;
 				}
 				else if ((MBEDTLS_ERR_SSL_WANT_READ) == result)
@@ -2305,8 +2317,10 @@ int network_wait_rx(network_ctrl_t *ctrl, uint32_t timeout_ms, uint8_t *is_break
 	OS_EVENT event;
 	int result;
 	//DBG_INFO("%s wait for active!,%u,%x", Net->Tag, To * SYS_TICK, Net->hTask);
-
-	platform_start_timer(ctrl->timer, timeout_ms, 0);
+	if (timeout_ms)
+	{
+		platform_start_timer(ctrl->timer, timeout_ms, 0);
+	}
 	while (!finish)
 	{
 		platform_wait_event(ctrl->task_handle, 0, &event, NULL, 0);
@@ -2348,3 +2362,27 @@ int network_wait_rx(network_ctrl_t *ctrl, uint32_t timeout_ms, uint8_t *is_break
 	return result;
 }
 
+uint8_t network_check_ready(network_ctrl_t *ctrl, uint8_t adapter_index)
+{
+	network_adapter_t *adapter;
+	if (ctrl)
+	{
+		adapter = &prv_adapter_table[ctrl->adapter_index];
+	}
+	else if (adapter_index < NW_ADAPTER_QTY)
+	{
+		adapter = &prv_adapter_table[adapter_index];
+	}
+	else
+	{
+		return 0;
+	}
+	if (adapter->opt)
+	{
+		return adapter->opt->check_ready(adapter->user_data);
+	}
+	else
+	{
+		return 0;
+	}
+}
