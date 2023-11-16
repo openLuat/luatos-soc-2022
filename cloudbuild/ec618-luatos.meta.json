@@ -80,6 +80,20 @@
                         "rsize": 0,
                         "fsize": 0,
                         "dft": false
+                    },
+                    {
+                        "name": "@comment_5",
+                        "content": "显示的都是预估大小,不是红色就不能编译的.能实际编译成功就是能放得下",
+                        "rsize": 0,
+                        "fsize": 0,
+                        "dft": false
+                    },
+                    {
+                        "name": "@comment_6",
+                        "content": "lua基础库, 网络基础库(socket/http/mqtt)都是默认开启的,没有配置项",
+                        "rsize": 0,
+                        "fsize": 0,
+                        "dft": false
                     }
                 ]
             },
@@ -184,21 +198,21 @@
                     },
                     {
                         "name": "media",
-                        "content": "多媒体,当前仅音频,支持播放amr/mp3",
+                        "content": "多媒体,当前仅音频,支持播放amr/mp3. 含audio和codec库",
                         "rsize": 10240,
                         "fsize": 288052,
                         "dft": false
                     },
                     {
                         "name": "sms",
-                        "content": "短信收发,不支持电信卡!!!",
+                        "content": "短信收发,模块插入电信卡是无法收发短信的.",
                         "rsize": 60240,
                         "fsize": 288052,
                         "dft": false
                     },
                     {
                         "name": "wlan",
-                        "content": "wlan扫描功能.仅支持扫描，不支持wifi通信",
+                        "content": "wlan扫描功能.仅支持扫描，不支持wifi通信!!",
                         "rsize": 10240,
                         "fsize": 288052,
                         "dft": false
@@ -237,13 +251,13 @@
                     },
                     {
                         "name": "tts_only",
-                        "content": "禁用AMR/MP3的解码,仅集成TTS播放功能",
+                        "content": "禁用AMR/MP3的解码,仅集成TTS播放功能,能节省空间",
                         "rsize": -100240,
                         "fsize": 288052,
                         "dft": false
                     },
                     {
-                        "name" : "tts_8k",
+                        "name" : "@tts_8k",
                         "content": "[已废弃,不要选]选用8k的TTS资源, 音质比16k稍差",
                         "rsize" : 1024,
                         "fsize" : 288052,
@@ -294,7 +308,7 @@
                     },
                     {
                         "name": "pack",
-                        "content": "数据打包与解包",
+                        "content": "数据打包与解包,尤其是二进制数据的解包和封包",
                         "rsize": 1960,
                         "fsize": 289380,
                         "dft": false
@@ -315,14 +329,14 @@
                     },
                     {
                         "name": "fdb",
-                        "content": "kv数据库,掉电不丢,推荐改用fskv库",
+                        "content": "[不推荐使用]kv数据库,掉电不丢,推荐改用fskv库",
                         "rsize": 10832,
                         "fsize": 298252,
                         "dft": false
                     },
                     {
                         "name": "fskv",
-                        "content": "kv数据库,替代fdb,建议使用",
+                        "content": "[推荐使用]kv数据库,替代fdb,建议使用",
                         "rsize": 10832,
                         "fsize": 298252,
                         "dft": false
@@ -357,7 +371,7 @@
                     },
                     {
                         "name": "lora2",
-                        "content": "lora2驱动(支持多挂)",
+                        "content": "lora2驱动(支持挂载多个设备)",
                         "rsize": 13196,
                         "fsize": 284548,
                         "dft": false
@@ -558,8 +572,29 @@
                     },
                     {
                         "name": "tls_disable",
-                        "content": "禁用TLS/SSL功能,可节省110k的flash消耗,相关加密通信都将不可用",
+                        "content": "完全禁用TLS/SSL功能,可节省110k的flash消耗,相关加密通信都将不可用",
                         "rsize": -120000,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_CONF_TLS_DTLS_DISABLE",
+                        "content": "禁用加密版UDP通信,类似于TCP的SSL/TLS,99%的场景用不到它",
+                        "rsize": -12000,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_CONF_TLS_DISABLE_NC",
+                        "content": "禁用GCM/DHM/DES/PKCS1_V21等算法,99%的场景用不到它",
+                        "rsize": -4000,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_CONF_TLS_SHA512_DISABLE",
+                        "content": "禁用SHA512算法,99%的场景用不到它",
+                        "rsize": -10000,
                         "fsize": 1024,
                         "dft": false
                     }
@@ -1086,12 +1121,12 @@
             {
                 "icon": "zmdi-puzzle-piece",
                 "name": "@ADD123",
-                "content": "非常用库,一般用不到",
+                "content": "不常用库,一般用不到",
                 "rsize": 0,
                 "children": [
                     {
                         "name": "mqttcore",
-                        "content": "MQTT协议解析库,不含链接,也不依赖mqtt库",
+                        "content": "MQTT协议解析库,不含链接,也不依赖mqtt库. 对日常的mqtt通信没有影响.",
                         "rsize": 5200,
                         "fsize": 357620,
                         "dft": false
