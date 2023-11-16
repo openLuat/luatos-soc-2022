@@ -41,7 +41,7 @@ void luat_crypto_md5( unsigned char *input, int ilen, unsigned char output[16] )
     mbedtls_md5(input, ilen, output);
 }
 
-
+#ifndef __LUATOS__
 /**
  * @brief BASE64加密
  * @param dst buffer
@@ -69,6 +69,8 @@ int luat_crypto_base64_decode( unsigned char *dst, size_t dlen, size_t *olen, co
 {
     mbedtls_base64_decode(dst, dlen, olen, src, slen);
 }
+
+#endif
 
 /**
  * @brief 进行SHA1校验
