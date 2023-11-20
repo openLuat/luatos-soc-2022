@@ -171,7 +171,7 @@ def do_mode(mode, old_path, new_path, dst_path, is_web) :
 
 def start_web():
     import bottle
-    from bottle import request, post, static_file, response
+    from bottle import request, post, static_file, response, get
     @post("/api/diff/<mode>")
     def http_api(mode):
         if os.path.exists("diff.bin"):
@@ -188,6 +188,9 @@ def start_web():
         newBinpkg.save("new.binpkg")
         do_mode(mode, "old.binpkg", "new.binpkg", "diff.bin", True)
         return static_file("diff.bin", root=".", download="diff.bin", headers=resp_headers)
+    @get("/")
+    def index_page():
+        return static_file("index.html", root=".")
     bottle.run(host="0.0.0.0", port=9000)
 
 def main():
@@ -200,7 +203,7 @@ def main():
     if len(sys.argv) < 5 :
         print("需要 模式 老版本路径 新版本路径 目标输出文件路径")
         print("示例:  python main.py qat old.binpkg new.binpkg diff.bin")
-        print("可选模式有: at qat csdk org")
+        print("可选模式有: at qat csdk org soc")
         sys.exit(1)
     do_mode(mode, sys.argv[2], sys.argv[3], sys.argv[4], False)
 
