@@ -38,7 +38,7 @@
 
 void luat_crypto_md5( unsigned char *input, int ilen, unsigned char output[16] )
 {
-    mbedtls_md5(input, ilen, output);
+    mbedtls_md5_ret(input, ilen, output);
 }
 
 #ifndef __LUATOS__
@@ -80,7 +80,7 @@ int luat_crypto_base64_decode( unsigned char *dst, size_t dlen, size_t *olen, co
  */
 void luat_crypto_sha1(const unsigned char *input, size_t ilen, unsigned char output[20])
 {
-    mbedtls_sha1(input, ilen, output);
+    mbedtls_sha1_ret(input, ilen, output);
 }
 
 
@@ -93,15 +93,38 @@ void luat_crypto_sha1(const unsigned char *input, size_t ilen, unsigned char out
  */
 void luat_crypto_sha256(const unsigned char *input, size_t ilen, unsigned char output[20], int is_224)
 {
-    mbedtls_sha256(input, ilen, output, is_224);
+    mbedtls_sha256_ret(input, ilen, output, is_224);
 }
 
+#ifdef __LUATOS__
+#define LUAT_LOG_TAG "crypto"
+#include "luat_log.h"
+#include "luat_mcu.h"
+#endif
+
+static uint8_t trng_wait;
+static uint8_t trng_pool[24];
+
 int luat_crypto_trng(char* buff, size_t len) {
-    uint8_t tmp[24];
-    for (size_t i = 0; i < len; i+=24)
-    {
-        rngGenRandom(tmp);
-        memcpy(buff + i, tmp, len - i > 24 ? 24 : len - i);
+    char* dst = buff;
+    while (len > 0) {
+        // 池内没有剩余的随机值? 生成一次
+        if (trng_wait == 0) {
+            // LLOGD("生成一次随机数 24字节,放入池中");
+            rngGenRandom(trng_pool);
+            trng_wait = 24;
+        }
+        // 剩余随机值够用, 直接拷贝
+        if (len <= trng_wait) {
+            memcpy(dst, trng_pool + (24 - trng_wait), len);
+            trng_wait -= len;
+            return 0;
+        }
+        // 不够用, 先把现有的用完, 然后下一个循环
+        memcpy(dst, trng_pool + (24 - trng_wait), trng_wait);
+        dst += trng_wait;
+        len -= trng_wait;
+        trng_wait = 0;
     }
     return 0;
 }
