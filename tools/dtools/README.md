@@ -33,6 +33,14 @@ python3 main.py csdk old.binpkg new.binpkg diff.bin
 * 模式, 可选值有`csdk` `at` `qat` `org` `soc`
 * 非LuatOS固件传binpkg路径, LuatOS固件传soc文件路径
 
+|差分模式|文件后缀|说明|
+|-------|-------|----|
+|org    |binpkg |移芯原始sdk的差分包|
+|at     |binpkg |合宙AT固件差分包,包括LSAT,AUAT,LPAT固件|
+|qat    |binpkg |合宙QAT固件差分包|
+|csdk   |binpkg |本CSDK所使用的差分包|
+|soc    |soc    |LuatOS固件的差分包|
+
 ## Docker镜像说明
 
 鉴于服务器大多是linux系统,而fota工具又没有linux系统, 这里提供docker镜像

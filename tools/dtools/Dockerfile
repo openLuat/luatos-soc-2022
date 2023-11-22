@@ -25,6 +25,7 @@ RUN apt update && apt install -y python3-pip && pip3 install -i https://pypi.tun
 COPY main.py /opt/
 COPY bottle.py /opt/
 COPY soc_tools.exe /opt/
+COPY index.html /opt/
 
 EXPOSE 9000
 

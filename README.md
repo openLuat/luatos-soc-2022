@@ -13,11 +13,11 @@
 ## 介绍
 CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型号及海外型号:
 
-* Air780E   合宙主推封装
-* Air600E   兼容友商的封装
-* Air700E   极致小封装
-* Air780EG  带GNSS定位
-* Air780EX  邮票孔封装
+* [Air780E](https://air780e.cn)   合宙主推封装
+* [Air600E](https://air600e.cn)   兼容友商的封装
+* [Air700E](https://air700e.cn)   极致小封装
+* [Air780EG](https://air780eg.cn)  带GNSS定位
+* [Air780EX](https://air780ex.cn)  邮票孔封装
 
 ## 应用文档
 
