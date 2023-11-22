@@ -163,7 +163,7 @@ ivResSize		nSize )			/* [in] read size */
 }
 #else
 #define FLASH_TTS_ADDR (64 * 1024)
-extern luat_sfud_flash_t luat_sfud;
+extern sfud_flash sfud_flash_tables[];
 static PV_Union g_s_spi_config;
 static ivBool tts_read_data(
 		  ivPointer		pParameter,			/* [in] user callback parameter */
@@ -421,9 +421,9 @@ int luat_audio_play_tts_text(uint32_t multimedia_id, void *text, uint32_t text_b
 #else
 	if (!g_s_spi_config.u32)
 	{
-		if (LUAT_TYPE_SPI == luat_sfud.luat_spi)
+		if (LUAT_TYPE_SPI == sfud_flash_tables[0].luat_sfud.luat_spi)
 		{
-			luat_spi_t *spi = (luat_spi_t *)luat_sfud.user_data;
+			luat_spi_t *spi = (luat_spi_t *)sfud_flash_tables[0].luat_sfud.user_data;
 			if (spi == NULL) {
 				DBG("本固件支持TTS功能但未包含TTS资源,需要外挂SPI Flash才能正常工作");
 				return -1;
@@ -431,9 +431,9 @@ int luat_audio_play_tts_text(uint32_t multimedia_id, void *text, uint32_t text_b
 			g_s_spi_config.u8[0] = spi->id;
 			g_s_spi_config.u8[1] = spi->cs;
 		}
-		else if (LUAT_TYPE_SPI_DEVICE == luat_sfud.luat_spi)
+		else if (LUAT_TYPE_SPI_DEVICE == sfud_flash_tables[0].luat_sfud.luat_spi)
 		{
-			luat_spi_device_t* spi_device = (luat_spi_t *)luat_sfud.user_data;
+			luat_spi_device_t* spi_device = (luat_spi_t *)sfud_flash_tables[0].luat_sfud.user_data;
 			if (spi_device == NULL) {
 				DBG("本固件支持TTS功能但未包含TTS资源,需要外挂SPI Flash才能正常工作");
 				return -1;
