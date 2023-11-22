@@ -267,6 +267,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_ERCOAP
   {"ercoap", luaopen_ercoap},
 #endif
+#ifdef LUAT_USE_SQLITE3
+  {"sqlite3", luaopen_sqlite3},
+#endif
   {NULL, NULL}
 };
 
