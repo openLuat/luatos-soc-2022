@@ -83,7 +83,6 @@ jobs:
           - example_otp
           - example_pm
           - example_protobuf
-          - example_psm
           - example_pwm
           - example_record
           - example_rtc
