@@ -16,7 +16,7 @@
 #include "luat_debug.h"
 
 
-#define FTP_DEBUG 1
+#define FTP_DEBUG 0
 #if FTP_DEBUG == 0
 #undef LUAT_DEBUG_PRINT
 #define LUAT_DEBUG_PRINT(...)
