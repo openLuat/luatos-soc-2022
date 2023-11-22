@@ -50,6 +50,7 @@ typedef struct
 	uint8_t raw_mode;
 	uint8_t debug_on_off;
 	uint8_t soft_dac_mode;
+	uint8_t record_channel;
 }luat_audio_hardware_t;
 
 static luat_audio_hardware_t g_s_audio_hardware;
@@ -380,6 +381,7 @@ int luat_i2s_setup(luat_i2s_conf_t *conf)
 	if (conf->id >= I2S_MAX) return -1;
 	luat_i2s_base_setup(conf->id, conf->communication_format, I2S_FRAME_SIZE_16_16);
 	g_s_audio_hardware.record_sample_rate[conf->id] = conf->sample_rate;
+	g_s_audio_hardware.record_channel = (conf->channel_format < 2)?1:2;
 	return 0;
 }
 int luat_i2s_send(uint8_t id, char* buff, size_t len)
@@ -390,7 +392,7 @@ int luat_i2s_send(uint8_t id, char* buff, size_t len)
 int luat_i2s_recv(uint8_t id, char* buff, size_t len)
 {
 	if (id >= I2S_MAX) return -1;
-	if (I2S_Start(id, 0, g_s_audio_hardware.record_sample_rate[id], 1))
+	if (I2S_Start(id, 0, g_s_audio_hardware.record_sample_rate[id], g_s_audio_hardware.record_channel))
 	{
 		DBG("!");
 		return -1;
