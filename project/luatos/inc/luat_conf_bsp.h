@@ -72,6 +72,7 @@
 // #define LUAT_USE_LIBCOAP 1
 // #define LUAT_USE_ERCOAP 1
 // #define LUAT_USE_SQLITE3 1
+// #define LUAT_USE_WS2812 1
 #define LUAT_USE_YMODEM 1
 
 //----------------------------

@@ -333,6 +333,11 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT.."components/sqlite3/include",{public = true})
     add_files(LUATOS_ROOT.."components/sqlite3/src/*.c")
     add_files(LUATOS_ROOT.."components/sqlite3/binding/*.c")
+    
+    -- ws2812 单独的库
+    add_includedirs(LUATOS_ROOT.."components/ws2812/include",{public = true})
+    add_files(LUATOS_ROOT.."components/ws2812/src/*.c")
+    add_files(LUATOS_ROOT.."components/ws2812/binding/*.c")
 
     
     -- 作为最后补充, 不然总是报主库没有的头文件
