@@ -315,7 +315,7 @@ static void luat_test_task(void *param)
 	uint8_t get_mp3_head = 0;
 	uint8_t is_error;
 	uint8_t mp3_head_data[12];
-	uint8_t mp3_head_len;
+	uint8_t mp3_head_len = 0;
 	luat_http_client_base_config(g_s_http_client, 5000, 0, 3);
 	//https下载额外打开ssl配置
 	//luat_http_client_ssl_config(g_s_http_client, 0, NULL, 0, NULL, 0, NULL, 0, NULL, 0);
