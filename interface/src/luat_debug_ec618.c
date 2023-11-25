@@ -84,7 +84,7 @@ void luat_debug_dump(uint8_t *data, uint32_t len)
 	char *uart_buf = malloc(len * 3);
 	if (uart_buf)
 	{
-		uint32_t i,j;
+		uint32_t i,j = 0;
 	    for (i = 0; i < len; i++){
 			uart_buf[j++] = ByteToAsciiTable[(data[i] & 0xf0) >> 4];
 			uart_buf[j++] = ByteToAsciiTable[data[i] & 0x0f];
