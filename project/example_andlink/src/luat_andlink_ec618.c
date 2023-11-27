@@ -38,8 +38,8 @@ int andlink_dn_send_cmd_callback(RESP_MODE_e mode, dn_dev_ctrl_frame_t *ctrlFram
 // 获取设备IP
 int andlink_get_device_ipaddr(char *ip, char *broadAddr){
 	char *ipaddr = NULL;
-	ip_addr_t ipv4;
-	ip_addr_t ipv6;
+	ip_addr_t ipv4 = {.type=0xFF};
+	ip_addr_t ipv6 = {.type=0xFF};
 	while (luat_is_link_up == 0){
 		luat_rtos_task_sleep(100);
 	}
