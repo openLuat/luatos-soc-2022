@@ -164,6 +164,8 @@ add_cxflags("-g3",
             "-Wstack-usage=4096",
 {force=true})
 
+add_cxflags("-Werror=maybe-uninitialized")
+
 add_ldflags(" -Wl,--wrap=clock ",{force = true})
 add_ldflags(" -Wl,--wrap=localtime ",{force = true})
 add_ldflags(" -Wl,--wrap=gmtime ",{force = true})

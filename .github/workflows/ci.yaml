@@ -55,7 +55,6 @@ jobs:
           - example_audio
           - example_audio_flash
           - example_audio_raw
-          - example_camera
           - example_cjson
           - example_crypto
           - example_fatfs
@@ -104,7 +103,6 @@ jobs:
           - example_wifiscan
           - example_ymodem
           - libhttp_fota_iot
-          - lvgl_demo
           - tracker
           - web_audio
     steps:
