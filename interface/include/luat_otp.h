@@ -71,7 +71,7 @@ int luat_otp_lock(int zone);
  * @param zone OTP的区域, 通常为1,2,3等整数,与设备相关
  * @return int == 0 无该区域, > 0 区域大小, 例如 256, 512
  */
-int luat_otp_size(int zone);
+size_t luat_otp_size(int zone);
 
 
 /**
