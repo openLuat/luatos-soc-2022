@@ -58,6 +58,8 @@ int luat_otp_write(int zone, char* buff, size_t offset, size_t len) {
 }
 
 int luat_otp_erase(int zone, size_t offset, size_t len) {
+    (void)offset;
+    (void)len;
     if (zone >= 1 && zone <= 3) {
         return QSPI_FLASH_OTP_Handle(FLASH_OTP_ERASE, (uint32_t)zone << 16, NULL, 0);
     }
@@ -71,7 +73,7 @@ int luat_otp_lock(int zone) {
     return -1;
 }
 
-int luat_otp_size(int zone) {
+size_t luat_otp_size(int zone) {
     if (zone >= 1 && zone <= 3) {
         return 256;
     }
