@@ -20,7 +20,7 @@ FROM wendal/ecfota-base
 # # 调用一次FotaToolkit,这样才能初始化wine环境,不然启动耗时会很长
 # RUN wine FotaToolkit.exe -h || date
 
-RUN apt update && apt install -y python3-pip && pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple py7zr && apt clean -y
+RUN apt update && apt install -y python3-pip && pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple py7zr cos-python-sdk-v5 requests && apt clean -y
 
 COPY main.py /opt/
 COPY bottle.py /opt/

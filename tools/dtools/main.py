@@ -1,14 +1,28 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 
-import os, struct, sys, logging, subprocess, shutil
+import os, struct, sys, logging, subprocess, shutil, hashlib, requests
 
 logging.basicConfig(level=logging.DEBUG)
 
 resp_headers = {}
 
+cos_client = None
+cos_bucket = None
+
 # 原版差分文件
 def diff_org(old_path, new_path, dst_path):
+    old_sha1 = hashlib.sha1()
+    new_sha1 = hashlib.sha1()
+    with open(old_path, "rb") as f :
+        old_sha1.update(f.read())
+    with open(new_path, "rb") as f :
+        new_sha1.update(f.read())
+    cos_path = "ec618/v1/origin/{}/{}.bin".format(old_sha1.hexdigest(), new_sha1.hexdigest())
+    if cos_client :
+        if cos_client.object_exists(cos_bucket, cos_path) :
+            cos_client.download_file(cos_bucket, cos_path, dst_path)
+            return True
     cmd = []
     if os.name != "nt":
         cmd.append("wine")
@@ -23,6 +37,9 @@ def diff_org(old_path, new_path, dst_path):
     cmd.append(old_path)
     cmd.append(new_path)
     subprocess.check_call(" ".join(cmd), shell=True)
+    if cos_client :
+        cos_client.upload_file(cos_bucket, cos_path, dst_path)
+    return True
 
 # QAT固件比较简单, 原版差分文件
 def diff_qat(old_path, new_path, dst_path):
@@ -183,16 +200,42 @@ def start_web():
             os.remove("diff.bin")
         global resp_headers
         resp_headers.clear()
-        oldBinbkg = request.files.get("old")
-        newBinpkg = request.files.get("new")
-        if "mode" in request.params :
-            mode = request.params["mode"]
         if os.path.exists("old.binpkg") :
             os.remove("old.binpkg")
         if os.path.exists("new.binpkg") :
             os.remove("new.binpkg")
-        oldBinbkg.save("old.binpkg")
-        newBinpkg.save("new.binpkg")
+        if "oldurl" in request.params and  len(request.params["oldurl"]) > 10 :
+            oldurl = request.params["oldurl"]
+            resp = requests.request("GET", oldurl)
+            if resp.status_code != 200 :
+                response.status_code = 400
+                return "老版本URL无法访问"
+            with open("old.binpkg", "wb") as f :
+                f.write(resp.content)
+        elif "old" in request.files :
+            oldBinbkg = request.files.get("old")
+            oldBinbkg.save("old.binpkg")
+        else :
+            response.status_code = 400
+            return "起码要提供old或者oldurl参数"
+        if "newurl" in request.params and  len(request.params["newurl"]) > 10 :
+            newurl = request.params["newurl"]
+            resp = requests.request("GET", newurl)
+            if resp.status_code != 200 :
+                response.status_code = 400
+                return "新版本URL无法访问"
+            with open("new.binpkg", "wb") as f :
+                f.write(resp.content)
+        elif "new" in request.files :
+            newBinbkg = request.files.get("new")
+            newBinbkg.save("old.binpkg")
+        else :
+            response.status_code = 400
+            return "起码要提供new或者newurl参数"
+
+        if "mode" in request.params :
+            mode = request.params["mode"]
+
         do_mode(mode, "old.binpkg", "new.binpkg", "diff.bin", True)
         return static_file("diff.bin", root=".", download="diff.bin", headers=resp_headers)
     @get("/")
@@ -203,6 +246,20 @@ def start_web():
 def main():
     if len(sys.argv) < 2 :
         return
+    if "COS_ENABLE" in os.environ and os.environ["COS_ENABLE"] == "1":
+        from qcloud_cos import CosConfig
+        from qcloud_cos import CosS3Client
+        secret_id = os.environ['COS_SECRET_ID']
+        secret_key = os.environ['COS_SECRET_KEY']
+        region = os.environ['COS_SECRET_REGION']
+        token = None
+        scheme = 'https'
+        config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key, Token=token, Scheme=scheme)
+        global cos_client
+        global cos_bucket
+        cos_client = CosS3Client(config)
+        cos_bucket = os.environ['COS_SECRET_BUCKET']
+        logging.info("启用腾讯COS支持")
     mode = sys.argv[1]
     if mode == "web" :
         start_web()

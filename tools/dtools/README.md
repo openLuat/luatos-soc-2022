@@ -69,13 +69,32 @@ docker run -it --rm -p 9000:9000 wendal/ecfota-ec618
 ```
 URL         /api/diff/<mode>
 METHOD      POST
-使用文件上传的方式 老文件的参数名 old, 新文件的参数名 new
-响应结果是diff.bin
-<mode> 是模式, 与命令行的模式一致
+使用文件上传的方式 
+
+可用参数:
+old 老版本的文件
+new 新版本的文件
+oldurl 老版本的URL,将通过该URL获取老版本的文件
+newurl 新版本的URL,将通过该URL获取新版本的文件
+mode   替代URL中的mode参数, 与命令行的模式一样
+<mode> URL参, 是模式, 与命令行的模式一样
 ```
+
+注意, old和oldurl需提供其中一个, new和newurl也需提供其中一个 
 
 注意: docker镜像的web服务也是 `main.py` 提供的,非必须, 其他编程语言也可以直接在镜像内调用差分工具
 
 ## 其他信息
 
 未尽事宜,请咨询FAE或销售
+
+## 更新日志
+
+### 1.0.2
+
+1. 增加腾讯云COS集成, 支持差分包重用
+2. 新增oldurl,newurl参数
+
+### 1.0.1
+
+1. 增加mode参数, 替代URL中的mode参数
