@@ -22,6 +22,8 @@
 #include "luat_i2s_ec618.h"
 #include "driver_i2s.h"
 #include "driver_gpio.h"
+extern void I2S_GetConfig(uint8_t I2SID, i2sDataFmt_t *DataFmt, i2sSlotCtrl_t *SlotCtrl, i2sBclkFsCtrl_t *BclkFsCtrl, i2sDmaCtrl_t *DmaCtrl);
+
 void luat_i2s_init(void)
 {
 
@@ -47,6 +49,17 @@ void luat_i2s_base_setup(uint8_t bus_id, uint8_t mode,  uint8_t frame_size)
 		GPIO_IomuxEC618(22, 1, 1, 0);
 		break;
 	}
+}
+
+void luat_i2s_set_lr_channel(uint8_t bus_id, uint8_t lr_channel)
+{
+	i2sDataFmt_t DataFmt;
+	i2sSlotCtrl_t  SlotCtrl;
+	i2sBclkFsCtrl_t BclkFsCtrl;
+	i2sDmaCtrl_t DmaCtrl;
+	I2S_GetConfig(bus_id, &DataFmt, &SlotCtrl, &BclkFsCtrl, &DmaCtrl);
+	BclkFsCtrl.fsPolarity = lr_channel;
+	I2S_FullConfig(bus_id, DataFmt, SlotCtrl,  BclkFsCtrl,  DmaCtrl);
 }
 
 int luat_i2s_start(uint8_t bus_id, uint8_t is_play, uint32_t sample, uint8_t channel_num)

@@ -382,6 +382,10 @@ int luat_i2s_setup(luat_i2s_conf_t *conf)
 	luat_i2s_base_setup(conf->id, conf->communication_format, I2S_FRAME_SIZE_16_16);
 	g_s_audio_hardware.record_sample_rate[conf->id] = conf->sample_rate;
 	g_s_audio_hardware.record_channel = (conf->channel_format < 2)?1:2;
+	if (conf->channel_format < 2)
+	{
+		luat_i2s_set_lr_channel(conf->id, conf->channel_format);
+	}
 	return 0;
 }
 int luat_i2s_send(uint8_t id, char* buff, size_t len)
