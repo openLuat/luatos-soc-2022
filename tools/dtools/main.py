@@ -228,7 +228,7 @@ def start_web():
                 f.write(resp.content)
         elif "new" in request.files :
             newBinbkg = request.files.get("new")
-            newBinbkg.save("old.binpkg")
+            newBinbkg.save("new.binpkg")
         else :
             response.status_code = 400
             return "起码要提供new或者newurl参数"

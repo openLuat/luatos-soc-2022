@@ -2,7 +2,7 @@ version: '3.2'
 
 services:
   app:
-    image: wendal/ecfota-ec618:1.0.2
+    image: wendal/ecfota-ec618:1.0.3
     # deploy:
     #   mode: replicated
     #   replicas: 1
