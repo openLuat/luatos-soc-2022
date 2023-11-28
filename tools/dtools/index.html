@@ -8,12 +8,19 @@
             <h2>差分过程会需要1~2分钟,取决于机器性能,提交表单后请耐心等待</h2>
         </div>
         <div>
-            <h2>本html里固定生成了org差分,自行改一下form表单的action值吧</h2>
+            <h2>本服务是EC618差分, 适合Air780E/Air600E/Air780EG等基于EC618方案的模组</h2>
         </div>
         <div>
             <form method="post" enctype="multipart/form-data" action="/api/diff/org">
                 原有版本(老版本) <input type="file" name="old"> <p/>
                 待升级版本(新版本) <input type="file" name="new"> <p/>
+                差分类型 <select name="mode">
+                    <option value="org">原始差分</option>
+                    <option value="csdk">CSDK差分</option>
+                    <option value="at">合宙AT差分</option>
+                    <option value="qat">合宙QAT差分</option>
+                    <option value="soc">LuatOS差分</option>
+                </select>
                 <button type="submit">提交,开始生成</button>
             </form>
         </div>

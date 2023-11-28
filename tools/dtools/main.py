@@ -155,14 +155,19 @@ def do_mode(mode, old_path, new_path, dst_path, is_web) :
 
     # 根据不同的模式执行
     if mode == "org":
+        logging.info("执行原始差分")
         diff_org(old_path, new_path, dst_path)
     elif mode == "qat" :
+        logging.info("执行QAT差分")
         diff_qat(old_path, new_path, dst_path)
     elif mode == "at" :
+        logging.info("执行AT差分")
         diff_at(old_path, new_path, dst_path)
     elif mode == "csdk" :
+        logging.info("执行CSDK差分")
         diff_csdk(old_path, new_path, dst_path)
     elif mode == "soc" :
+        logging.info("执行LuatOS差分")
         diff_soc(old_path, new_path, dst_path)
     else:
         print("未知模式, 未支持" + mode)
@@ -180,6 +185,8 @@ def start_web():
         resp_headers.clear()
         oldBinbkg = request.files.get("old")
         newBinpkg = request.files.get("new")
+        if "mode" in request.params :
+            mode = request.params["mode"]
         if os.path.exists("old.binpkg") :
             os.remove("old.binpkg")
         if os.path.exists("new.binpkg") :

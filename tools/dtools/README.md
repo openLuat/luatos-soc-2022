@@ -11,6 +11,8 @@
 4. LuatOS固件的soc文件之间的差分,功能名称soc
 5. 原始SDK的binpkg差分,功能名称org
 
+演示地址: https://ecfota-ec618.k8s.air32.cn/
+
 ## 原生工具的用法
 
 ### 通过脚本跑
@@ -45,15 +47,22 @@ python3 main.py csdk old.binpkg new.binpkg diff.bin
 
 鉴于服务器大多是linux系统,而fota工具又没有linux系统, 这里提供docker镜像
 
-构建镜像
+拉取最新镜像(可选)
 ```
-docker build -t ecfota .
+docker pull wendal/ecfota-ec618
+```
+
+或者构建本地镜像(可选)
+```
+docker build -t wendal/ecfota-ec618 .
 ```
 
 运行镜像, 暴露9000端口, 会创建一个http api
 ```
-docker run -it --rm -p 9000:9000 ecfota
+docker run -it --rm -p 9000:9000 wendal/ecfota-ec618
 ```
+
+本目录也提供了docker-compose和k8s的部署文件
 
 ### http api调用规则
 
