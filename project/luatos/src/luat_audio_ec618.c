@@ -378,8 +378,25 @@ void luat_audio_set_debug(uint8_t on_off)
 
 int luat_i2s_setup(luat_i2s_conf_t *conf)
 {
+	uint8_t frame_size = I2S_FRAME_SIZE_16_16;
 	if (conf->id >= I2S_MAX) return -1;
-	luat_i2s_base_setup(conf->id, conf->communication_format, I2S_FRAME_SIZE_16_16);
+	if (conf->channel_bits != 16)
+	{
+		switch (conf->bits_per_sample)
+		{
+		case 24:
+			frame_size = I2S_FRAME_SIZE_24_32;
+			break;
+		case 32:
+			frame_size = I2S_FRAME_SIZE_32_32;
+			break;
+		default:
+			frame_size = I2S_FRAME_SIZE_16_32;
+			break;
+		}
+
+	}
+	luat_i2s_base_setup(conf->id, conf->communication_format, frame_size);
 	g_s_audio_hardware.record_sample_rate[conf->id] = conf->sample_rate;
 	g_s_audio_hardware.record_channel = (conf->channel_format < 2)?1:2;
 	if (conf->channel_format < 2)
