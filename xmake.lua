@@ -400,7 +400,7 @@ target(USER_PROJECT_NAME..".elf")
 
             local mem_map_data = io.readfile("$(projectdir)/PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h")
             FLASH_FOTA_REGION_START = tonumber(mem_map_data:match("#define FLASH_FOTA_REGION_START%s+%((%g+)%)"))
-            if TTS_ONCHIP or os.getenv("LUAT_USE_TTS_ONCHIP") == "1" and not TLS_DISABLE then
+            if (TTS_ONCHIP or os.getenv("LUAT_USE_TTS_ONCHIP") == "1") and not TLS_DISABLE then
                 LUAT_SCRIPT_SIZE = 64
                 LUAT_SCRIPT_OTA_SIZE = 48
             elseif os.getenv("LUAT_EC618_LITE_MODE") == "1" then
