@@ -396,10 +396,11 @@ target(USER_PROJECT_NAME..".elf")
             USER_PROJECT_NAME_VERSION = conf_data:match("#define LUAT_BSP_VERSION \"(%w+)\"")
             VM_64BIT = conf_data:find("\r#define LUAT_CONF_VM_64bit") or conf_data:find("\n#define LUAT_CONF_VM_64bit")
             local TTS_ONCHIP = conf_data:find("\r#define LUAT_USE_TTS_ONCHIP") or conf_data:find("\n#define LUAT_USE_TTS_ONCHIP")
+            local TLS_DISABLE = conf_data:find("\r#define LUAT_USE_TLS_DISABLE") or conf_data:find("\n#define LUAT_USE_TLS_DISABLE")
 
             local mem_map_data = io.readfile("$(projectdir)/PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h")
             FLASH_FOTA_REGION_START = tonumber(mem_map_data:match("#define FLASH_FOTA_REGION_START%s+%((%g+)%)"))
-            if TTS_ONCHIP or os.getenv("LUAT_USE_TTS_ONCHIP") == "1" then
+            if TTS_ONCHIP or os.getenv("LUAT_USE_TTS_ONCHIP") == "1" and not TLS_DISABLE then
                 LUAT_SCRIPT_SIZE = 64
                 LUAT_SCRIPT_OTA_SIZE = 48
             elseif os.getenv("LUAT_EC618_LITE_MODE") == "1" then
