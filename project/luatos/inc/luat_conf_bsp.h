@@ -232,7 +232,7 @@
 
 
 // 加密算法相关
-#define LUAT_CONF_TLS_DISABLE_ECP_ECDHE 1
+// #define LUAT_CONF_TLS_DISABLE_ECP_ECDHE 1
 // #define LUAT_CONF_TLS_DTLS_DISABLE 1
 // #define LUAT_CONF_TLS_DISABLE_NC 1
 #endif
