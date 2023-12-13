@@ -161,6 +161,7 @@ void test_json_1(char* json_data)
 	LUAT_DEBUG_PRINT("######## Test ########\n");
 	LUAT_DEBUG_PRINT("json data = %s\n", rendered1);
 	cJSON_free(rendered1);
+	cJSON_Delete(root);
 }
 
 void test_json_2()
@@ -200,6 +201,7 @@ void test_json_2()
 	result = cJSON_Print(root);
 	LUAT_DEBUG_PRINT("json data = %s\n", result);
 	cJSON_free(result);
+	cJSON_Delete(root);
 }
 
 
@@ -222,6 +224,7 @@ static void demo_init_cjson()
 	char* result = cJSON_Print(a);
 	LUAT_DEBUG_PRINT("---- %s", result);
 	cJSON_free(result);
+	cJSON_Delete(a);
 
 
 	// test
