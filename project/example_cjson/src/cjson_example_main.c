@@ -56,6 +56,7 @@ void test_json_1(char* json_data)
 	
 	LUAT_DEBUG_PRINT("######## Test 02 ########\n");
 	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 
 	LUAT_DEBUG_PRINT("######## Test 07 ########\n");
 	LUAT_DEBUG_PRINT("root json size = %d\n", cJSON_GetArraySize(root));
@@ -64,14 +65,22 @@ void test_json_1(char* json_data)
 	LUAT_DEBUG_PRINT("######## Test 08 ########\n");
 	cJSON *json_item1 = cJSON_GetArrayItem(root, 0);
 	cJSON *json_item2 = cJSON_GetArrayItem(root, 1);
-	LUAT_DEBUG_PRINT("json_item1 data = %s\n", cJSON_Print(json_item1));
-	LUAT_DEBUG_PRINT("json_item2 data = %s\n", cJSON_Print(json_item2));
+	rendered = cJSON_Print(json_item1);
+	LUAT_DEBUG_PRINT("json_item1 data = %s\n", rendered);
+	cJSON_free(rendered);
+	rendered = cJSON_Print(json_item2);
+	LUAT_DEBUG_PRINT("json_item2 data = %s\n", rendered);
+	cJSON_free(rendered);
 
 	LUAT_DEBUG_PRINT("######## Test 09 ########\n");
 	cJSON* format1 = cJSON_GetObjectItem(root, "format");
 	cJSON* framerate_item1 = cJSON_GetObjectItem(format1, "frame rate");
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(format1));
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(framerate_item1));
+	rendered = cJSON_Print(format1);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
+	rendered = cJSON_Print(framerate_item1);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 	
 	LUAT_DEBUG_PRINT("######## Test 10 ########\n");
 	cJSON_bool isHasItem1 = cJSON_HasObjectItem(root, "format");
@@ -81,52 +90,69 @@ void test_json_1(char* json_data)
 
 	LUAT_DEBUG_PRINT("######## Test 11 ########\n");
 	cJSON* cjson_null = cJSON_CreateNull();
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_null));
+	rendered = cJSON_Print(cjson_null);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 	LUAT_DEBUG_PRINT("json data is null or not = %d\n", (int)cJSON_IsNull(cjson_null));
 	cJSON_Delete(cjson_null);
 
 	cJSON* cjson_true = cJSON_CreateTrue();
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_true));
+	rendered  = cJSON_Print(cjson_true);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 	LUAT_DEBUG_PRINT("json data is true or not = %d\n", (int)cJSON_IsTrue(cjson_true));
 	cJSON_Delete(cjson_true);
 
 	cJSON* cjson_false = cJSON_CreateFalse();
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_false));
+	rendered = cJSON_Print(cjson_false);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 	LUAT_DEBUG_PRINT("json data is false or not = %d\n", (int)cJSON_IsFalse(cjson_false));
 	cJSON_Delete(cjson_false);
 
 
 	cJSON_bool bool_type = (cJSON_bool)1;
 	cJSON* cjson_bool = cJSON_CreateBool(bool_type);
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_bool));
+	rendered = cJSON_Print(cjson_bool);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
 	LUAT_DEBUG_PRINT("json data is bool or not = %d\n", (int)cJSON_IsBool(cjson_bool));
 	cJSON_Delete(cjson_bool);
 
 	double number_type = 88;
 	cJSON* cjson_number = cJSON_CreateNumber(number_type);
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_number));
+	rendered = cJSON_Print(cjson_number);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 	LUAT_DEBUG_PRINT("json data is number or not = %d\n", (int)cJSON_IsNumber(cjson_number));
 	cJSON_Delete(cjson_number);
 		
 	char* string_type = "Welcome to luatOS";
 	cJSON* cjson_string = cJSON_CreateString(string_type);
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_string));
+	rendered = cJSON_Print(cjson_string);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 	LUAT_DEBUG_PRINT("json data is string or not = %d\n", (int)cJSON_IsString(cjson_string));
 	cJSON_Delete(cjson_string);
 
 	char* raw_type = "Welcome to luatOS raw";
 	cJSON* cjson_raw = cJSON_CreateRaw(raw_type);
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_raw));
+	rendered = cJSON_Print(cjson_raw);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 	LUAT_DEBUG_PRINT("json data is raw or not = %d\n", (int)cJSON_IsRaw(cjson_raw));
 	cJSON_Delete(cjson_raw);
 
 	cJSON* cjson_array = cJSON_CreateArray();
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_array));
+	rendered = cJSON_Print(cjson_array);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 	LUAT_DEBUG_PRINT("json data is array or not = %d\n", (int)cJSON_IsArray(cjson_array));
 	cJSON_Delete(cjson_array);
 
 	cJSON* cjson_object = cJSON_CreateObject();
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(cjson_object));
+	rendered = cJSON_Print(cjson_object);
+	LUAT_DEBUG_PRINT("json data = %s\n", rendered);
+	cJSON_free(rendered);
 	LUAT_DEBUG_PRINT("json data is object or not = %d\n", (int)cJSON_IsObject(cjson_object));
 	cJSON_Delete(cjson_object);
 
@@ -134,7 +160,7 @@ void test_json_1(char* json_data)
 	
 	LUAT_DEBUG_PRINT("######## Test ########\n");
 	LUAT_DEBUG_PRINT("json data = %s\n", rendered1);
-	
+	cJSON_free(rendered1);
 }
 
 void test_json_2()
@@ -153,12 +179,15 @@ void test_json_2()
 	char* result = cJSON_Print(root);
 	LUAT_DEBUG_PRINT("######## Test 03 ########\n");
 	LUAT_DEBUG_PRINT("json data = %s\n", result);
+	cJSON_free(result);
 	
 	LUAT_DEBUG_PRINT("######## Test 04 ########\n");
 	LUAT_DEBUG_PRINT("json version = %s\n", cJSON_Version());
 
 	LUAT_DEBUG_PRINT("######## Test 05 ########\n");
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_PrintUnformatted(root));
+	result = cJSON_PrintUnformatted(root);
+	LUAT_DEBUG_PRINT("json data = %s\n", result);
+	cJSON_free(result);
 
 	LUAT_DEBUG_PRINT("######## Test 12 ########\n");
 	cJSON_AddNullToObject(root, "null");
@@ -168,7 +197,9 @@ void test_json_2()
 	cJSON_AddNumberToObject(root, "number", 88);
 	cJSON_AddStringToObject(root, "string", "Welcome to luatOS");
 	cJSON_AddRawToObject(root, "Raw", "Welcome to luatOS raw");
-	LUAT_DEBUG_PRINT("json data = %s\n", cJSON_Print(root));
+	result = cJSON_Print(root);
+	LUAT_DEBUG_PRINT("json data = %s\n", result);
+	cJSON_free(result);
 }
 
 
@@ -188,7 +219,9 @@ static void demo_init_cjson()
 	LUAT_DEBUG_PRINT("---- %s", json_test);
 	cJSON * a = cJSON_Parse(json_test);
 	cJSON_AddLongLongToObject(a, "testlonglong", 1670751410618);
-	LUAT_DEBUG_PRINT("---- %s", cJSON_Print(a));
+	char* result = cJSON_Print(a);
+	LUAT_DEBUG_PRINT("---- %s", result);
+	cJSON_free(result);
 
 
 	// test
