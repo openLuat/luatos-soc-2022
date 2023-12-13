@@ -2060,6 +2060,8 @@ typedef struct CmiDevRrcStatusInfo_Tag
     UINT32                  cellId;
     CmiDevIntraCellInfo     intraCellList[CMI_DEV_QENG_INTRA_NCELL_NUM]; //64 bytes
     CmiDevInterCellInfo     interCellList[CMI_DEV_QENG_INTER_NCELL_NUM]; //256 bytes
+    UINT16                  drx;
+    UINT16                  srvd;
 }CmiDevRrcStatusInfo;   //336 bytes
 
 /*
@@ -2302,8 +2304,10 @@ typedef CmiDevGetBasicCellListInfoCnf   CmiDevGetBasicCellListInfoInd;
 ******************************************************************************/
 typedef struct CmiDevSetExtStatisModeReq_Tag
 {
-    UINT16      periodRptS; //"CMI_DEV_EXT_STATIS_IND" report period, if set to 0, stop statis report
-    UINT16      rsvd0;
+    UINT32      periodRptMs; /* "CMI_DEV_EXT_STATIS_IND" report period, if set to 0, stop statis report. Uint is ms.
+                              * If periodRptMs less than 1000 ms,then recommanded use USB channel,
+                              * the serial channel may be loss infomation.
+                              */
 }CmiDevSetExtStatisModeReq;
 
 typedef CamCmiEmptySig  CmiDevSetExtStatisModeCnf;
@@ -2405,8 +2409,7 @@ typedef struct CmiDevPhyStatisInfo_Tag
 
 typedef struct CmiDevExtStatisInd_Tag
 {
-    UINT16      periodTimeS;    //statis period time in second, could used to calc TPT
-    UINT16      rsvd0;
+    UINT32      periodTimeMs;    //statis period time in millisecond, could used to calc TPT
 
     CmiDevL2StatisInfo  l2StatisInfo;
     CmiDevPhyStatisInfo phyStatisInfo;

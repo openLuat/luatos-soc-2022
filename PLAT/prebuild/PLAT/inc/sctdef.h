@@ -42,6 +42,8 @@
 // ram code to set flash clock
 #define PLAT_PM_RAMCODE_FLASHCLK __attribute__((__section__(".platPMRamcodeFCLK")))
 
+#define PLAT_PA_NOINIT __attribute__((__section__(".platPANoInit")))
+
 // data placed in asmb
 #define PLAT_FA_ZI __attribute__((__section__(".platFAZIData")))
 #define PLAT_FA_DATA __attribute__((__section__(".platFARWData")))

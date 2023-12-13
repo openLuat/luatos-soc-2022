@@ -53,6 +53,17 @@ typedef enum UlPduTickType_Tag
 
 
 /*
+ * How LWIP proc this UL PDU
+*/
+typedef enum UlPduNextActType_Tag
+{
+    UL_PDU_PARSE            = 0,    /*need lwip parse and process*/
+    UL_PDU_ROHC_TFT_IP4     = 1,    /*need do rohc or TFT with ip4 channel*/
+    UL_PDU_ROHC_TFT_IP6     = 2,    /*need do rohc or TFT with ip6 channel*/
+    UL_PDU_ACT_TYPE_MAX     = 3,
+}UlPduNextActType;
+
+/*
  * UL data PDU info, this just the UL user data need to send to NW
  *
  *
@@ -315,16 +326,6 @@ typedef enum DlPduNextActType_Tag
     DL_PDU_ACT_TYPE_MAX = 31
 }DlPduNextActType;
 
-/*
- * How LWIP proc this UL PDU
-*/
-typedef enum UlPduNextActType_Tag
-{
-    UL_PDU_PARSE        = 0, /*need lwip parse and process*/
-    UL_PDU_ROHC_IP4     = 1, /*need do rohc with ip4 channel*/
-    UL_PDU_ROHC_IP6     = 2, /*need do rohc with ip6 channel*/
-    UL_PDU_ACT_TYPE_MAX = 3,
-}UlPduNextActType;
 
 
 /*

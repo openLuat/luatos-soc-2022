@@ -645,6 +645,7 @@ INT32  cmsSockMgrProcUlPendingList(void);
 UINT32 cmsSockMgrQueryDlfcDefinedSize(void);
 
 CmsSockMgrActionResult cmsSockMgrSendAsyncEvntInd(UINT16      reqlen,  UINT16 eventId,void *reqBody);
+void cmsSockMgrProcRemoveAllCacheNode(CmsSockMgrContext *pMgrContext);
 
 
 #endif

@@ -10,6 +10,7 @@
  ******************************************************************************
 ******************************************************************************/
 #include "pspdu.h"
+#include "lwip/ip_addr.h"
 
 #define PS_DLPDUBLOCK_SIZE sizeof(DlPduBlock)
 
@@ -25,6 +26,19 @@ typedef struct PsifDlDataHeader_Tag
     UINT16 dlLen; // UL packet length
 }PsifDlDataHeader;
 
+typedef struct PsifUlPkgInfo_Tag
+{
+    UINT8 ipVer; //ip version
+    UINT8 tos;
+    UINT8 nextProto;
+    UINT8 rsvd;
+    UINT32 ipv6Fl; //if ipVer is ipv6, th traffic flow label
+    UINT8 *srcIp;
+    UINT8 *dstIp;
+    UINT8  spi; //if nextProto is esp; the spi value within esp hdr
+    UINT16 srcPort;
+    UINT16 dstPort;//if nextProto is udp/tcp; the source port and destination port info within udp/tcp hdr
+}PsifUlPkgInfo;
 #define PBUF_DLRAM_HLEN  (sizeof(PsifDlDataHeader))
 
 
@@ -146,3 +160,17 @@ struct pbuf * PsifTcpipDlHighWaterChkInput(struct pbuf *pInput);
 
 #endif
 
+void PsifGenTftUlPkgInfo(PsifUlPkgInfo *pUlPkgInfo, UINT8 nextPro, const ip_addr_t *src, const ip_addr_t *dst, UINT8 tos, UINT32 spi, UINT32 ipv6FL, UINT16 srcPort, UINT16 dstPort);
+
+/******************************************************************************
+ * PsifTftRouteUlPkg
+ * Description: Route the UL PDU to matched bearer, and return the CID of matched bearer
+ * input:   UINT8 defaultIpv4Cid    //default ipv4 bearer CID, if no ipv4 CID, input: 0xFF
+ *          UINT8 defaultIpv6Cid    //default ipv6 bearer CID, if no ipv6 CID, input: 0xFF
+ *          void *pfList    //packet filter list
+ *          UlPduBlock *pPdu            //UL PDU which need to dispatch
+ * output:  UINT8 cid   // matched bearer cid
+ * Note:
+ * 1> if no bearer matched, return 0xFF (LWIP_PS_INVALID_CID)
+******************************************************************************/
+UINT8 PsifTftRouteUlPkg(UINT8 defaultIpv4Cid, UINT8 defaultIpv6Cid, void *pfList, PsifUlPkgInfo *pUlPkgInfo);

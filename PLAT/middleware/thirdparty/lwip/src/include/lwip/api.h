@@ -339,8 +339,8 @@ err_t   netconn_bind(struct netconn *conn, const ip_addr_t *addr, u16_t port);
 
 #if ENABLE_PSIF
 err_t   netconn_bind_cid(struct netconn *conn, u8_t cid);
-err_t
-netconn_alloca_server_port(u8_t type, int32_t *server_port);
+err_t netconn_set_sockid(struct netconn *conn, int32_t socketid);
+err_t netconn_alloca_server_port(u8_t type, int32_t *server_port);
 
 #endif
 

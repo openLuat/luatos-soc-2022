@@ -205,7 +205,7 @@ struct pbuf {
   u8_t tickType:2;
   u8_t bIgnorFree:1; // if set, ignore the free action with the pbuf//for DL pkg will be fwd to host directly,it will free as dl pdu info by ccio rx task
   u8_t rsvd:2;
-  u8_t reserved2;
+  u8_t bind_ded_cid;
   u8_t reserved3;
   u8_t sequence;
   u32_t sysTick;

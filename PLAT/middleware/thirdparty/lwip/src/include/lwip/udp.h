@@ -135,6 +135,7 @@ struct udp_pcb {
   u8_t reserved;
 #endif
 #if ENABLE_PSIF
+  u8_t bind_ded_cid;//bind with dedicated cid
   int sockid;
 #endif
 
@@ -247,6 +248,7 @@ struct udp_pcb *get_udp_list(void);
 #endif
 
 #if ENABLE_PSIF
+err_t udp_set_sockid(struct udp_pcb *pcb, u32_t socketid);
 void udp_netif_enter_oos_state(const ip_addr_t *address);
 void udp_netif_exit_oos_state(const ip_addr_t *address);
 struct udp_pcb *get_global_sequence_handler_pcb(void);

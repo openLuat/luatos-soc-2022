@@ -99,6 +99,12 @@ struct api_msg {
       u8_t reserved;
 #endif
     } bc;
+    /*set socket id*/
+#if ENABLE_PSIF
+    struct {
+       u32_t socketid;
+    } ss;
+#endif
         /** used for lwip_netconn_alloc_server_port*/
     struct {
       u8_t type;
@@ -274,6 +280,7 @@ void lwip_netconn_do_bind            (void *m);
 
 #if ENABLE_PSIF
 void lwip_netconn_do_bind_cid        (void *m);
+void lwip_netconn_do_set_socketid        (void *m);
 void lwip_netconn_alloc_server_port(void *m);
 #endif
 

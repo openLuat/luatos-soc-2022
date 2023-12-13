@@ -121,7 +121,7 @@ SECTIONS
    *(.psFAZIData)
    . = ALIGN(4);
    Image$$LOAD_PS_FDATA_ASMB$$ZI$$Limit = .;
-   
+   *(.platPANoInit)
    *(.psFANoInitData)
    *(.exceptCheck)
   } >ASMB_AREA

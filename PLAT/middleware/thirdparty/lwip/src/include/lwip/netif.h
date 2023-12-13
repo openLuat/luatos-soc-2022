@@ -468,7 +468,7 @@ typedef struct netif_ip6_prefix_info_tag
     u8_t state; //netif_ip6_prefix_state_tag
     u8_t source; //netif_ip6_prefix_source_tag
     u8_t cid;
-    u8_t reserved;
+    u8_t prefix_len; //the prefix length
     u32_t life_time;
     u32_t active_time;
     struct netif_ip6_prefix_info_tag *next;
@@ -682,7 +682,7 @@ u8_t netif_get_timer_active_state(struct netif* netif, u8_t type);
 #endif
 
 #if PS_ENABLE_TCPIP_HIB_SLEEP2_MODE
-void netif_add_ip6_prefix_info(u32_t prefix[2], u8_t state, u8_t source, u32_t life_time, u32_t active_time, u8_t cid);
+void netif_add_ip6_prefix_info(u32_t prefix[2], u8_t state, u8_t source, u32_t life_time, u32_t active_time, u8_t cid, u8_t prefix_len);
 void netif_remove_ip6_prefix_info(u8_t cid);
 struct netif_ip6_prefix_info_tag *netif_find_ip6_prefix_info(u8_t cid);
 struct netif_ip6_prefix_info_tag *netif_get_ip6_prefix_info_list(void);

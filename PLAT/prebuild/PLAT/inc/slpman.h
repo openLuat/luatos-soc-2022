@@ -43,7 +43,7 @@ AT+ECPMUCFG?      check current pmu state
 #define PMU_POSTSLP2_EXPECTED_CODE_RUNNING_TIME     (27)
 
 #define PMU_PRESLP_EXPECTED_CODE_RUNNING_TIME     (5)
-#define PMU_POSTSLP_EXPECTED_CODE_RUNNING_TIME     (2)
+#define PMU_POSTSLP_EXPECTED_CODE_RUNNING_TIME     (3)
 #define PMU_WORTH_SLEEP_TIME                (50+PMU_PRESLP_EXPECTED_CODE_RUNNING_TIME+PMU_POSTSLP_EXPECTED_CODE_RUNNING_TIME)
 
 typedef enum
@@ -991,7 +991,13 @@ void slpManSetWakeupIOPowerState(bool pwrOn);
                    false to power off LDO1833
 */
 void slpManForceIOPowerState(bool pwrOn);
-
+/**
+* @brief void slpManSetCPSleepEnable(bool en)
+* @details  enable or disable cp sleep 
+* @param    en: true enable cp sleep
+                false disable cp sleep
+*/
+void slpManSetCPSleepEnable(bool en);
 
 
 /** \} */

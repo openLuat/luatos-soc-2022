@@ -93,6 +93,9 @@ struct raw_pcb {
   u8_t  chksum_reqd;
 #endif
 
+#if ENABLE_PSIF
+  u8_t bind_ded_cid;//bind with dedicated cid
+#endif
 //store the pending_msg for this pcb
 #if LWIP_SUSPEND_UP_DATA_ENABLE
     void *pending_msg;

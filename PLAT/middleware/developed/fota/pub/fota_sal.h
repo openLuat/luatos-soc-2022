@@ -21,6 +21,7 @@
  *                    INCLUDES                                                *
  *----------------------------------------------------------------------------*/
 #include <stdint.h>
+#include "system_ec618.h"
 #include "sctdef.h"
 #ifdef FEATURE_FOTA_ENABLE
 #include "common.h"
@@ -79,7 +80,7 @@ extern "C" {
 #define BSP_QSPI_READ_AP_FLASH(buf, addr, size)    BSP_QSPI_Read_Safe(buf, addr, size)
 
 #if defined CHIP_EC618 || defined CHIP_EC618_Z0
-#define BSP_QSPI_ENABLE_CP_FLASH()
+#define BSP_QSPI_ENABLE_CP_FLASH()                 CPXIP_Enable()
 #define BSP_QSPI_DISABLE_CP_FLASH()
 #define BSP_QSPI_ERASE_CP_FLASH_32K(addr, size)    -1
 #define BSP_QSPI_ERASE_CP_FLASH(addr, size)        -1

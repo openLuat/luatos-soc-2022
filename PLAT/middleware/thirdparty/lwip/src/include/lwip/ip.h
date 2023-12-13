@@ -306,6 +306,9 @@ err_t ip_input(struct pbuf *p, struct netif *inp);
 
 #endif /* LWIP_IPV6 */
 
+#if ENABLE_PSIF
+err_t ps_ip_input(struct pbuf *p, struct netif *inp);
+#endif
 #define ip_route_get_local_ip(src, dest, netif, ipaddr) do { \
   (netif) = ip_route(src, dest); \
   (ipaddr) = ip_netif_get_local_ip(netif, dest); \

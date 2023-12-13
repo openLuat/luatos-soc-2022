@@ -37,7 +37,7 @@ CmsRetId devGetCMTLRA(UINT32 atHandle);
 CmsRetId devSetCMTLRA(UINT32 atHandle,INT32 allow, INT32 handleId);
 #endif
 CmsRetId devGetESTATUS(UINT32 atHandle, UINT8 statusType);
-CmsRetId devSetESTATIS(UINT32 atHandle, UINT16 periodS);
+CmsRetId devSetESTATIS(UINT32 atHandle, UINT32 periodMs);
 CmsRetId devSetECMEASCFG(UINT32 atHandle, CmiDevSetMeasAdjustCfgReq *pMeasCfgReq);
 CmsRetId devGetECBCINFO(UINT32 atHandle, CmiDevGetBasicCellListInfoReq *pGetBcInfoReq);
 

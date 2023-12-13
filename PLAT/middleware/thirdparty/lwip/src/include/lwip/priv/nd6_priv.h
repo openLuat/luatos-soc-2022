@@ -101,6 +101,9 @@ struct nd6_prefix_list_entry {
   ip6_addr_t prefix;
   struct netif *netif;
   u32_t invalidation_timer; /* in ms since value may originate from network packet */
+  u32_t active_time; //the active time of the prefix
+  u16_t rsvd;
+  u8_t prefix_len; //the prefix length
 #if LWIP_IPV6_AUTOCONFIG
   u8_t flags;
 #define ND6_PREFIX_AUTOCONFIG_AUTONOMOUS 0x01
