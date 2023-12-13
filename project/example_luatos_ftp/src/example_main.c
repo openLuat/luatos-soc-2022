@@ -53,6 +53,7 @@ static void luatos_http_task(void *param)
 		LUAT_DEBUG_PRINT("等待网络注册");
 	}
 	luat_event_t event;
+	uint8_t ftp_state = FTP_ERROR;
 #if	FTP_OTA_TEST == 1
 	uint8_t ota_result = 0;
 #endif
@@ -62,19 +63,28 @@ static void luatos_http_task(void *param)
 		luat_ftp_release();
 		while (1)
 		{
-			LUAT_DEBUG_PRINT("ftp login fail");
+			LUAT_DEBUG_PRINT("ftp login fail 1");
+			luat_rtos_task_sleep(1000);
 		}
 	}
-	ftpclient_recv_response(luatos_http_task_handle, event);
+	ftp_state = ftpclient_recv_response(luatos_http_task_handle, event);
+	if (FTP_ERROR == ftp_state)
+	{
+		while (1)
+		{
+			LUAT_DEBUG_PRINT("ftp login fail 2");
+			luat_rtos_task_sleep(1000);
+		}
+	}
 
 	if(luat_ftp_command("LIST") == 0)
 	{
-		ftpclient_recv_response(luatos_http_task_handle, event);
+		ftp_state = ftpclient_recv_response(luatos_http_task_handle, event);
 	}
 
 	if(luat_ftp_pull("123123.txt", "/1234567.txt", 0) == 0)
 	{
-		ftpclient_recv_response(luatos_http_task_handle, event);
+		ftp_state = ftpclient_recv_response(luatos_http_task_handle, event);
 	}
 
 #if	FTP_OTA_TEST == 1
@@ -83,9 +93,10 @@ static void luatos_http_task(void *param)
 		ota_result = ftpclient_recv_response(luatos_http_task_handle, event);
 	}
 #endif
+
 	if(luat_ftp_close() == 0)
 	{
-		ftpclient_recv_response(luatos_http_task_handle, event);
+		ftp_state = ftpclient_recv_response(luatos_http_task_handle, event);
 	}
 
 #if	FTP_OTA_TEST == 1
