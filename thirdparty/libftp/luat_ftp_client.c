@@ -14,7 +14,7 @@
 
 #include "luat_ftp.h"
 #include "common_api.h"
-
+#include "luat_debug.h"
 
 #define FTP_DEBUG 0
 #if FTP_DEBUG == 0
@@ -61,16 +61,37 @@ static uint32_t luat_ftp_cmd_send(luat_ftp_ctrl_t *ftp_ctrl, uint8_t* send_data,
 }
 
 static int luat_ftp_cmd_recv(luat_ftp_ctrl_t *ftp_ctrl,uint8_t *recv_data,uint32_t *recv_len,uint32_t timeout_ms){
-	uint32_t total_len = 0;
+	size_t total_len = 0;
 	uint8_t is_break = 0,is_timeout = 0;
-	int ret = network_wait_rx(g_s_ftp.network->cmd_netc, timeout_ms, &is_break, &is_timeout);
-	DBG("network_wait_rx ret:%d is_break:%d is_timeout:%d",ret,is_break,is_timeout);
-	if (ret)
-		return -1;
-	if (is_timeout)
-		return 1;
-	else if (is_break)
-		return 2;
+	while (1)
+	{
+		int ret = network_wait_rx(g_s_ftp.network->cmd_netc, timeout_ms, &is_break, &is_timeout);
+		DBG("network_wait_rx ret:%d is_break:%d is_timeout:%d",ret,is_break,is_timeout);
+		if (ret)
+			return -1;
+		if (is_timeout)
+			return 1;
+		else if (is_break)
+			return 2;
+		int result;
+		do
+		{
+			result = network_rx(g_s_ftp.network->cmd_netc, &recv_data[total_len], FTP_CMD_RECV_MAX - total_len, 0, NULL, NULL, recv_len);
+			if(*recv_len > 0)
+			{
+				total_len += *recv_len;
+			}
+			DBG("recv len %d %d", *recv_len, total_len);
+			DBG("recv data %s", recv_data);
+		} while (!result && *recv_len > 0);
+		if(0 == memcmp(recv_data + total_len - 2, "\r\n", 2))
+		{
+			break;
+		}
+	}
+	
+	
+	#if 0
 	int result = network_rx(g_s_ftp.network->cmd_netc, NULL, 0, 0, NULL, NULL, &total_len);
 	if (0 == result){
 		if (total_len>0){
@@ -89,6 +110,7 @@ next:
 		DBG("ftp network_rx fail");
 		return -1;
 	}
+	#endif
 	return 0;
 }
 
@@ -351,9 +373,11 @@ static int ftp_login(void)
 	}
 	DBG("ftp connect ok");
 	memset(g_s_ftp.network->cmd_send_data,0,FTP_CMD_SEND_MAX);
+	memset(g_s_ftp.network->cmd_recv_data,0,FTP_CMD_RECV_MAX);
 	snprintf_((char *)(g_s_ftp.network->cmd_send_data), FTP_CMD_SEND_MAX, "USER %s\r\n",g_s_ftp.network->username);
 	luat_ftp_cmd_send(&g_s_ftp, g_s_ftp.network->cmd_send_data, strlen((const char *)(g_s_ftp.network->cmd_send_data)),FTP_SOCKET_TIMEOUT);
 	ret = luat_ftp_cmd_recv(&g_s_ftp,g_s_ftp.network->cmd_recv_data,&g_s_ftp.network->cmd_recv_len,FTP_SOCKET_TIMEOUT);
+	DBG("ftp recv data  %s", g_s_ftp.network->cmd_recv_data);
 	if (ret){
 		DBG("ftp username wrong");
 		return -1;
@@ -365,9 +389,11 @@ static int ftp_login(void)
 	}
 	DBG("ftp username ok");
 	memset(g_s_ftp.network->cmd_send_data,0,FTP_CMD_SEND_MAX);
+	memset(g_s_ftp.network->cmd_recv_data,0,FTP_CMD_RECV_MAX);
 	snprintf_((char *)(g_s_ftp.network->cmd_send_data), FTP_CMD_SEND_MAX, "PASS %s\r\n",g_s_ftp.network->password);
 	luat_ftp_cmd_send(&g_s_ftp, g_s_ftp.network->cmd_send_data, strlen((const char *)(g_s_ftp.network->cmd_send_data)),FTP_SOCKET_TIMEOUT);
 	ret = luat_ftp_cmd_recv(&g_s_ftp,g_s_ftp.network->cmd_recv_data,&g_s_ftp.network->cmd_recv_len,FTP_SOCKET_TIMEOUT);
+
 	if (ret){
 		DBG("ftp login wrong");
 		return -1;
@@ -563,7 +589,7 @@ static void ftp_task(void *param){
 					goto operation_failed;
 				}
 				luat_ftp_cmd_send(&g_s_ftp, g_s_ftp.network->cmd_send_data, strlen((const char *)(g_s_ftp.network->cmd_send_data)),FTP_SOCKET_TIMEOUT);
-				ret = luat_ftp_cmd_recv(&g_s_ftp,g_s_ftp.network->cmd_recv_data,&g_s_ftp.network->cmd_recv_len,FTP_SOCKET_TIMEOUT);
+				ret = luat_ftp_cmd_recv(&g_s_ftp,g_s_ftp.network->cmd_recv_data,&g_s_ftp.network->cmd_recv_len,FTP_SOCKET_TIMEOUT / 3);
 				if (ret){
 					goto operation_failed;
 				}else{
