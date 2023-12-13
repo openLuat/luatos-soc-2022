@@ -2,7 +2,7 @@ version: '3.2'
 
 services:
   app:
-    image: wendal/ecfota-ec618:1.0.3
+    image: wendal/ecfota-ec618:1.0.4
     # deploy:
     #   mode: replicated
     #   replicas: 1
@@ -12,3 +12,4 @@ services:
     #     - "traefik.http.services.adsb.loadbalancer.server.port=9000"
     ports:
       - 9000:9000
+      - 8000:8000

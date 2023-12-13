@@ -21,8 +21,6 @@ target(TARGET_NAME)
     -- 按需链接mbedtls
     -- add_defines("MBEDTLS_CONFIG_FILE=\"config_ec_ssl_comm.h\"")
     -- add_files(SDK_TOP .. "PLAT/middleware/thirdparty/mbedtls/library/*.c")
-    -- 按需编译httpclient
-    -- add_files(SDK_TOP .. "PLAT/middleware/thirdparty/httpclient/*.c")
 
     --可以继续增加add_includedirs和add_files
     --自动链接

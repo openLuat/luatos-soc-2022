@@ -54,6 +54,10 @@ void luat_uart_recv_cb(int uart_id, uint32_t data_len){
     free(data_buff);
 }
 
+void luat_uart_sent_cb(int uart_id, void *param){
+    LUAT_DEBUG_PRINT("uart_id:%d ", uart_id);
+}
+
 static void task_test_uart(void *param)
 {
     // 除非你已经非常清楚uart0作为普通串口给用户使用所带来的的后果，否则不要打开以下注释掉的代码
@@ -70,6 +74,7 @@ static void task_test_uart(void *param)
     luat_uart_setup(&uart);
 
     luat_uart_ctrl(UART_ID, LUAT_UART_SET_RECV_CALLBACK, luat_uart_recv_cb);
+    luat_uart_ctrl(UART_ID, LUAT_UART_SET_SENT_CALLBACK, luat_uart_sent_cb);
 
     while (1)
     {
