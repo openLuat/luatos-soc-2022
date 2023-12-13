@@ -399,9 +399,9 @@ static void ftp_task(void *param){
 	luat_rtos_event_recv(g_s_ftp.task_handle, FTP_EVENT_LOGIN, &task_event, NULL, LUAT_WAIT_FOREVER);
 	if (ftp_login()){
 		LUAT_DEBUG_PRINT("ftp login fail");
-		luat_ftp_release();
 		ftp_state = FTP_ERROR;
 		l_ftp_cb(ftp_state);
+		luat_ftp_release();
 		g_s_ftp.task_handle = NULL;
 		luat_rtos_task_delete(task_handle);
 		return;
@@ -654,7 +654,7 @@ static void ftp_task(void *param){
 operation_failed:
 		if(g_s_ftp.is_fota)
 		{
-			luat_fota_done(g_s_ftp.context)
+			luat_fota_done(g_s_ftp.context);
 			g_s_ftp.is_fota = 0;
 		}
 		ftp_state = FTP_ERROR;

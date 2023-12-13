@@ -1,4 +1,4 @@
-local TARGET_NAME = "example_ftp"
+local TARGET_NAME = "example_luatos_ftp"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
 includes(SDK_TOP.."/thirdparty/libftp")
