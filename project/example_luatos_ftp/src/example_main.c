@@ -11,6 +11,8 @@
 
 static luat_rtos_task_handle luatos_http_task_handle;
 
+static uint8_t MOBILE_LINK = 0;
+
 static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t status)
 {
 	if (LUAT_MOBILE_EVENT_NETIF == event)
@@ -18,6 +20,7 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 		if (LUAT_MOBILE_NETIF_LINK_ON == status)
 		{
 			luat_socket_check_ready(index, NULL);
+			MOBILE_LINK = 1;
 		}
 	}
 }
@@ -47,8 +50,7 @@ static uint8_t ftpclient_recv_response(luat_rtos_task_handle handle, luat_event_
 
 static void luatos_http_task(void *param)
 {
-	while (luat_mobile_get_register_status()!=1)
-	{
+	while (MOBILE_LINK!=1){
 		luat_rtos_task_sleep(500);
 		LUAT_DEBUG_PRINT("等待网络注册");
 	}

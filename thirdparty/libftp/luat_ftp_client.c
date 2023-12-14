@@ -61,31 +61,27 @@ static uint32_t luat_ftp_cmd_send(luat_ftp_ctrl_t *ftp_ctrl, uint8_t* send_data,
 }
 
 static int luat_ftp_cmd_recv(luat_ftp_ctrl_t *ftp_ctrl,uint8_t *recv_data,uint32_t *recv_len,uint32_t timeout_ms){
-	size_t total_len = 0;
+	int result = 0,total_len = 0;
 	uint8_t is_break = 0,is_timeout = 0;
-	while (1)
-	{
-		int ret = network_wait_rx(g_s_ftp.network->cmd_netc, timeout_ms, &is_break, &is_timeout);
-		DBG("network_wait_rx ret:%d is_break:%d is_timeout:%d",ret,is_break,is_timeout);
-		if (ret)
-			return -1;
-		if (is_timeout)
-			return 1;
-		else if (is_break)
-			return 2;
-		int result;
-		do
-		{
+	while (1){
+		result = network_wait_rx(g_s_ftp.network->cmd_netc, timeout_ms, &is_break, &is_timeout);
+		DBG("network_wait_rx result:%d is_break:%d is_timeout:%d",result,is_break,is_timeout);
+		if (result) return -1;
+		if (is_timeout) return 1;
+		else if (is_break) return 2;
+		do{
 			result = network_rx(g_s_ftp.network->cmd_netc, &recv_data[total_len], FTP_CMD_RECV_MAX - total_len, 0, NULL, NULL, recv_len);
 			if(*recv_len > 0)
 			{
 				total_len += *recv_len;
 			}
-			DBG("recv len %d %d", *recv_len, total_len);
-			DBG("recv data %s", recv_data);
+			// DBG("recv len %d %d", *recv_len, total_len);
+			// DBG("recv data %s", recv_data);
 		} while (!result && *recv_len > 0);
-		if(0 == memcmp(recv_data + total_len - 2, "\r\n", 2))
-		{
+		if(0 == memcmp(recv_data + total_len - 2, "\r\n", 2)){
+			recv_data[total_len] = 0;
+			DBG("all recv len %d %d", *recv_len, total_len);
+			DBG("all recv data %s", recv_data);
 			break;
 		}
 	}
