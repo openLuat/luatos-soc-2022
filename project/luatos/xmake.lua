@@ -230,7 +230,8 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/network/httpsrv/src/*.c")
 
     -- iotauth
-    add_files(LUATOS_ROOT.."components/iotauth/luat_lib_iotauth.c")
+    add_includedirs(LUATOS_ROOT.."components/iotauth", {public = true})
+    add_files(LUATOS_ROOT.."components/iotauth/*.c")
 
     -- mobile
     add_includedirs(LUATOS_ROOT.."components/mobile")
