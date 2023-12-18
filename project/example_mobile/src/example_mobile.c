@@ -151,6 +151,9 @@ static void mobile_event_cb(LUAT_MOBILE_EVENT_E event, uint8_t index, uint8_t st
 	case LUAT_MOBILE_EVENT_CSCON:
 		LUAT_DEBUG_PRINT("RRC状态 %d", status);
 		break;
+	case LUAT_MOBILE_EVENT_NAS_ERROR:
+		LUAT_DEBUG_PRINT("NAS异常类型 %d，拒绝原因 %d", index, status);
+		break;
 	case LUAT_MOBILE_EVENT_FATAL_ERROR:
 		LUAT_DEBUG_PRINT("网络需要严重故障，建议在5秒后重启协议栈");
 		break;

@@ -506,6 +506,8 @@ typedef enum LUAT_MOBILE_EVENT
 	LUAT_MOBILE_EVENT_TIME_SYNC, 	/**< 通过基站同步时间完成*/
 	LUAT_MOBILE_EVENT_CSCON, /**< RRC状态，0 idle 1 active*/
 	LUAT_MOBILE_EVENT_BEARER,/**< PDP承载状态*/
+	LUAT_MOBILE_EVENT_SMS,/**< sms消息，air780e不需要*/
+	LUAT_MOBILE_EVENT_NAS_ERROR,/**< NAS异常消息，air780e, air780ep有效*/
 	LUAT_MOBILE_EVENT_FATAL_ERROR = 0xff,/**< 网络遇到严重故障*/
 }LUAT_MOBILE_EVENT_E;
 
