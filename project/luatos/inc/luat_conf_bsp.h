@@ -89,6 +89,9 @@
 #define LUAT_USE_PROTOBUF 1
 #define LUAT_USE_RSA      1
 
+// 蚂蚁链
+// #define LUAT_USE_ANTBOT 1
+
 // 编码转换,需要大概40k空间,并非完整的GBK映射默认关闭
 // #define LUAT_USE_ICONV 1
 

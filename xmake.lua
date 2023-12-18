@@ -533,12 +533,12 @@ target(USER_PROJECT_NAME..".elf")
             end
         end
 
-        -- 计算差分包大小, 需要把老的binpkg放在根目录,且命名为old.binpkg
-        if os.exists("old.binpkg") then
+        -- 计算差分包大小, 需要把老的binpkg放在根目录,且命名为 $项目名称.binpkg
+        if os.exists(USER_PROJECT_NAME .. ".binpkg") then
             os.cp("./PLAT/tools/fcelf.exe", "tools/dtools/dep/fcelf.exe")
             os.cp(OUT_PATH.."/"..USER_PROJECT_NAME..".binpkg", "tools/dtools/new.binpkg")
-            os.cp("old.binpkg", "tools/dtools/old.binpkg")
-            os.exec("tools\\dtools\\run.bat BINPKG delta.par old.binpkg new.binpkg")
+            os.cp(USER_PROJECT_NAME .. ".binpkg", "tools/dtools/old.binpkg")
+            os.exec("tools\\dtools\\run.bat BINPKG delta.par " .. USER_PROJECT_NAME .. ".binpkg new.binpkg")
         end
 	end)
 target_end()

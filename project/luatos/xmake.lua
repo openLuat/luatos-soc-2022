@@ -59,14 +59,16 @@ target("fastlz")
     add_files(LUATOS_ROOT.."components/fastlz/**.c")
     LIB_USER = LIB_USER .. SDK_TOP .. "/" .. LIB_DIR .. "libfastlz.a "
 target_end()
+
 add_includedirs(LUATOS_ROOT.."components/printf",{public = true})
+
 target(TARGET_NAME)
     set_kind("static")
     set_targetdir(LIB_DIR)
 
     on_load(function (target)
-            local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
-            LUAT_USE_TTS_8K = conf_data:find("\r#define LUAT_USE_TTS_8K") or conf_data:find("\n#define LUAT_USE_TTS_8K")
+        local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
+        LUAT_USE_TTS_8K = conf_data:find("\r#define LUAT_USE_TTS_8K") or conf_data:find("\n#define LUAT_USE_TTS_8K")
         if LUAT_USE_TTS_8K then
             target:add("includedirs","$(projectdir)/PLAT/core/tts/include/8k_lite_ver")
             target:add("files","$(projectdir)/PLAT/core/lib/libaisound50_8K.a")
@@ -74,6 +76,10 @@ target(TARGET_NAME)
             target:add("includedirs","$(projectdir)/PLAT/core/tts/include/16k_lite_ver")
             target:add("files","$(projectdir)/PLAT/core/lib/libaisound50_16K.a")
         end
+
+        local conf_data = io.readfile("$(projectdir)/project/luatos/inc/luat_conf_bsp.h")
+        LUAT_USE_TTS_8K = conf_data:find("\r#define LUAT_USE_ANTBOT") or conf_data:find("\n#define LUAT_USE_ANTBOT")
+        target:add("files","$(projectdir)/lib/libbot.a")
     end)
 
     --加入代码和头文件
@@ -150,11 +156,16 @@ target(TARGET_NAME)
     add_includedirs(LUATOS_ROOT .. "components/minmea")
     add_files(LUATOS_ROOT.."components/minmea/**.c")
 
+    -- mlx90640
     add_files(LUATOS_ROOT.."components/mlx90640-library/*.c")
     add_includedirs(LUATOS_ROOT.."components/mlx90640-library")
 
+    
+    -- antbot, 库本身是闭源的, 集成到lua库是开源的
+    add_files(LUATOS_ROOT.."components/antbot/binding/*.c")
+    add_includedirs(LUATOS_ROOT.."components/antbot/include")
+
     --------------------------------------------------------------
-    -- UI类的,能不能用另说, 先加上吧
     
     add_includedirs(LUATOS_ROOT.."lua/include")
     add_includedirs(LUATOS_ROOT.."luat/include")
@@ -230,7 +241,8 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/network/httpsrv/src/*.c")
 
     -- iotauth
-    add_files(LUATOS_ROOT.."components/iotauth/luat_lib_iotauth.c")
+    add_includedirs(LUATOS_ROOT.."components/iotauth", {public = true})
+    add_files(LUATOS_ROOT.."components/iotauth/*.c")
 
     -- mobile
     add_includedirs(LUATOS_ROOT.."components/mobile")
