@@ -104,7 +104,11 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT .. "components/cmux/*.c")
     add_files(LUATOS_ROOT .. "components/cjson/*.c")
     add_files(LUATOS_ROOT .. "components/crypto/*.c")
-
+    
+    -- weak
+    add_files(LUATOS_ROOT.."/luat/weak/luat_spi_device.c",
+            LUATOS_ROOT.."/luat/weak/luat_malloc_weak.c",
+            LUATOS_ROOT.."/luat/weak/luat_mem_weak.c")
     -- printf
     add_includedirs(LUATOS_ROOT.."components/printf",{public = true})
     add_files(LUATOS_ROOT.."components/printf/*.c")
