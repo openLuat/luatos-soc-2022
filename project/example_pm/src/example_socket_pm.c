@@ -75,7 +75,7 @@ static void demo_socket_pm_task(void *arg)
     char helloworld[] = "helloworld";
     char txbuf[128] = {0};
 
-    ip_addr_t remote_ip;
+    ip_addr_t remote_ip={0};
     struct sockaddr_in name;
     socklen_t sockaddr_t_size = sizeof(name);
     int ret, h_errnop;
@@ -146,6 +146,7 @@ static void demo_socket_pm_task(void *arg)
     {
         socket_id = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         memset(&name, 0, sizeof(name));
+       
         name.sin_family = AF_INET;
         name.sin_addr.s_addr = remote_ip.u_addr.ip4.addr;
         name.sin_port = htons(DEMO_SERVER_TCP_PORT);
