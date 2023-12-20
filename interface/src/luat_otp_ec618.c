@@ -22,8 +22,10 @@
 #include "luat_base.h"
 #include "luat_otp.h"
 
+#ifdef __LUATOS__
 #define LUAT_LOG_TAG "otp"
 #include "luat_log.h"
+#endif
 
 // EC618提供的头文件没有OTP相关的API, 以下调用的均为隐藏API
 typedef enum
@@ -72,7 +74,9 @@ int luat_otp_erase(int zone, size_t offset, size_t len) {
     (void)len;
     uint32_t addr = ((uint32_t)zone << 12);
     if (zone >= 1 && zone <= 3) {
+        #ifdef __LUATOS__
         LLOGI("otp erase zone %d %08X", zone, addr);
+        #endif
         return QSPI_FLASH_OTP_Handle(FLASH_OTP_ERASE, addr, NULL, 0);
     }
     return -1;
@@ -81,7 +85,9 @@ int luat_otp_erase(int zone, size_t offset, size_t len) {
 int luat_otp_lock(int zone) {
     uint32_t addr = ((uint32_t)zone << 12);
     if (zone >= 1 && zone <= 3) {
+        #ifdef __LUATOS__
         LLOGW("otp lock zone %d %08X", zone, addr);
+        #endif
         return QSPI_FLASH_OTP_Handle(FLASH_OTP_LOCK, addr, NULL, 0);
     }
     return -1;
