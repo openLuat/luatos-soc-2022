@@ -22,6 +22,9 @@
 #include "luat_base.h"
 #include "luat_otp.h"
 
+#define LUAT_LOG_TAG "otp"
+#include "luat_log.h"
+
 // EC618提供的头文件没有OTP相关的API, 以下调用的均为隐藏API
 typedef enum
 {
@@ -35,10 +38,15 @@ uint8_t QSPI_FLASH_OTP_Handle(FLASH_OTP_OPS opType, uint32_t addr, uint8_t* bufP
 
 int luat_otp_read(int zone, char* buff, size_t offset, size_t len) {
     uint8_t ret = 0;
+    uint32_t addr = ((uint32_t)zone << 12) + offset;
     if (zone >= 1 && zone <= 3) {
-        ret = QSPI_FLASH_OTP_Handle(FLASH_OTP_READ, ((uint32_t)zone << 16) + (offset), (uint8_t*)buff, len);
+        if (offset + len > luat_otp_size(zone)) {
+            len = luat_otp_size(zone) - offset;
+        }
+        //LLOGD("otp read %d %08x %p %d", zone, addr, buff, len);
+        ret = QSPI_FLASH_OTP_Handle(FLASH_OTP_READ, addr, (uint8_t*)buff, len);
         if (ret == 0) {
-            return (offset + len) > luat_otp_size(zone) ? luat_otp_size(zone) - offset : len;
+            return len;
         }
         return 0;
     }
@@ -47,12 +55,14 @@ int luat_otp_read(int zone, char* buff, size_t offset, size_t len) {
 
 int luat_otp_write(int zone, char* buff, size_t offset, size_t len) {
     uint8_t ret = 0;
+    uint32_t addr = ((uint32_t)zone << 12) + offset;
     if (zone >= 1 && zone <= 3) {
-        ret = QSPI_FLASH_OTP_Handle(FLASH_OTP_WRITE, ((uint32_t)zone << 16) + (offset), (uint8_t*)buff, len);
-        if (ret == 0) {
-            return (offset + len) > luat_otp_size(zone) ? luat_otp_size(zone) - offset : len;
+        if (offset + len > luat_otp_size(zone)) {
+            len = luat_otp_size(zone) - offset;
         }
-        return 0;
+        //LLOGD("otp write %d %08x %p %d", zone, addr, buff, len);
+        ret = QSPI_FLASH_OTP_Handle(FLASH_OTP_WRITE, addr, (uint8_t*)buff, len);
+        return ret;
     }
     return -1;
 }
@@ -60,15 +70,19 @@ int luat_otp_write(int zone, char* buff, size_t offset, size_t len) {
 int luat_otp_erase(int zone, size_t offset, size_t len) {
     (void)offset;
     (void)len;
+    uint32_t addr = ((uint32_t)zone << 12);
     if (zone >= 1 && zone <= 3) {
-        return QSPI_FLASH_OTP_Handle(FLASH_OTP_ERASE, (uint32_t)zone << 16, NULL, 0);
+        LLOGI("otp erase zone %d %08X", zone, addr);
+        return QSPI_FLASH_OTP_Handle(FLASH_OTP_ERASE, addr, NULL, 0);
     }
     return -1;
 }
 
 int luat_otp_lock(int zone) {
+    uint32_t addr = ((uint32_t)zone << 12);
     if (zone >= 1 && zone <= 3) {
-        return QSPI_FLASH_OTP_Handle(FLASH_OTP_LOCK, (uint32_t)zone << 16, NULL, 0);
+        LLOGW("otp lock zone %d %08X", zone, addr);
+        return QSPI_FLASH_OTP_Handle(FLASH_OTP_LOCK, addr, NULL, 0);
     }
     return -1;
 }
