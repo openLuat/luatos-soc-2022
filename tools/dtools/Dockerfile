@@ -31,6 +31,5 @@ COPY soc_tools.exe /opt/
 COPY index.html /opt/
 
 EXPOSE 9000
-EXPOSE 8000
 
 CMD [ "/usr/bin/python3", "main.py", "web"]

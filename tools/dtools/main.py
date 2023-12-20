@@ -10,7 +10,8 @@ import bottle
 from bottle import request, post, static_file, response, get, abort, HTTPResponse
 
 # 监控相关的
-from prometheus_client import start_http_server, Summary, Counter
+from prometheus_client import Summary, Counter
+import prometheus_client
 REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')
 DIFF_TIME = Summary('diff_processing_seconds', 'Time spent processing binpkg diff')
 
@@ -308,8 +309,11 @@ def index_page():
 def heartcheck():
     return HTTPResponse("ok")
 
+@get("/metrics")
+def get_metrics():
+    return HTTPResponse(prometheus_client.generate_latest())
+
 def start_web():
-    start_http_server(8000)
     bottle.run(host="0.0.0.0", port=9000, server="cheroot")
 
 #------------------------------------------------------------------------------------------
