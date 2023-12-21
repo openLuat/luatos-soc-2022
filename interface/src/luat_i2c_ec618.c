@@ -170,6 +170,7 @@ int luat_i2c_transfer(int id, int addr, uint8_t *reg, size_t reg_len, uint8_t *b
 #include "soc_i2c.h"
 #include "driver_gpio.h"
 #include "gpr_common.h"
+extern void GPR_swResetModule(const ClockResetVector_t *v);
 static uint32_t luat_i2c_global_timeout = 25;
 static uint8_t luat_i2c_iomux[I2C_MAX];
 static const ClockResetVector_t g_i2cResetVectors[] = {I2C0_RESET_VECTOR, I2C1_RESET_VECTOR};

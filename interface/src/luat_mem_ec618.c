@@ -26,6 +26,8 @@
 
 #include <stdlib.h>
 #include "luat_base.h"
+#include "FreeRTOS.h"
+#include "task.h"
 extern void soc_get_heap_info(uint32_t *total, uint32_t *total_free, uint32_t *min_free);
 void* luat_heap_malloc(size_t len) {
     return malloc(len);

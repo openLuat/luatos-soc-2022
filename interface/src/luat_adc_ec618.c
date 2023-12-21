@@ -160,7 +160,7 @@ int luat_adc_open(int id, void* ptr) {
         adc_init = 0;
     }
 
-    AdcAioResDiv_e resdiv;
+    AdcAioResDiv_e resdiv = ADC_AIO_RESDIV_BYPASS;
     if (LUAT_ADC_CH_CPU == id || ADC_CH_CPU_OLD == id)
     {
        adc_range_to_resdiv(id, adc_range[2], &resdiv, NULL);
@@ -253,7 +253,7 @@ int luat_adc_read(int id, int* val, int* val2) {
         return -1;
     }
 
-    float ratio;
+    float ratio = 1;
     if (LUAT_ADC_CH_CPU == id || ADC_CH_CPU_OLD == id)
     {
        adc_range_to_resdiv(id, adc_range[2], NULL, &ratio);
