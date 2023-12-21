@@ -62,8 +62,8 @@
 /**
  * @brief 停止位
  */
-#define LUAT_0_5_STOP_BITS                   0xf0   /**< 0.5 */
-#define LUAT_1_5_STOP_BITS                   0xf1   /**< 1.5 */
+#define LUAT_UART_STOP_BIT1                   1   /**<1 */
+#define LUAT_UART_STOP_BIT2                   2   /**<2 */
 
 #define LUAT_VUART_ID_0						0x20    
 
@@ -76,11 +76,11 @@ typedef struct luat_uart {
     int baud_rate;              /**< 波特率 */
 
     uint8_t data_bits;          /**< 数据位 */
-    uint8_t stop_bits;          /**< 停止位 */
+    uint8_t stop_bits;          /**< 停止位,可设置为1或2，1：1位停止位，2：2位停止位 */
     uint8_t bit_order;          /**< 高低位 */
-    uint8_t parity;             /**< 奇偶校验位 */
+    uint8_t parity;             /**< 奇偶校验位 0 不进行奇偶校验 1 奇校验 2 偶校验 */
 
-    size_t bufsz;               /**< 接收数据缓冲区大小 */
+    size_t bufsz;               /**< 接收数据缓冲区大小，最小支持2046(默认值) 最大支持8K(8*1024) */
     uint32_t pin485;            /**< 转换485的pin, 如果没有则是0xffffffff*/
     uint32_t delay;             /**< 485翻转延迟时间，单位us */
     uint8_t rx_level;           /**< 接收方向的电平 */
