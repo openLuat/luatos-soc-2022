@@ -1,6 +1,8 @@
-
+#include "luat_base.h"
 #include "luat_msgbus.h"
-
+#include "luat_rtos.h"
+#include "luat_rtos_legacy.h"
+#include "common_api.h"
 
 #if 0
 #include "FreeRTOS.h"
