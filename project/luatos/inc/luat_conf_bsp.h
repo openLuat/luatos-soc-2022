@@ -88,6 +88,7 @@
 // #define LUAT_USE_NES 1
 #define LUAT_USE_PROTOBUF 1
 #define LUAT_USE_RSA      1
+// #define LUAT_USE_XXTEA    1
 
 // 蚂蚁链
 // #define LUAT_USE_ANTBOT 1

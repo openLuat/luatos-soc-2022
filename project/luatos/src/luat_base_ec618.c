@@ -276,6 +276,9 @@ static const luaL_Reg loadedlibs[] = {
 #ifdef LUAT_USE_ANTBOT
   {"antbot", luaopen_antbot},
 #endif
+#ifdef LUAT_USE_XXTEA
+  {"xxtea", luaopen_xxtea},
+#endif
   {NULL, NULL}
 };
 

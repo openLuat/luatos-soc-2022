@@ -169,6 +169,11 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/antbot/binding/*.c")
     add_includedirs(LUATOS_ROOT.."components/antbot/include")
 
+    -- xxtea 库
+    add_files(LUATOS_ROOT.."components/xxtea/src/*.c")
+    add_files(LUATOS_ROOT.."components/xxtea/binding/*.c")
+    add_includedirs(LUATOS_ROOT.."components/xxtea/include")
+
     --------------------------------------------------------------
     
     add_includedirs(LUATOS_ROOT.."lua/include")
