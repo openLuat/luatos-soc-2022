@@ -93,13 +93,13 @@ int luat_i2c_send(int id, int addr, void* buff, size_t len, uint8_t stop);
  */
 int luat_i2c_recv(int id, int addr, void* buff, size_t len);
 /**
- * @brief I2C 收发数据
+ * @brief I2C 数据收发函数，如果reg,reg_len 存在，为读取寄存器的值，不存在为发送数据
  * 
  * @param id i2c_id
  * @param addr 7位设备地址
- * @param reg 发送数据
- * @param reg_len 发送数据长度
- * @param buff 数据buff
+ * @param reg 要读取的寄存器，可以是数组
+ * @param reg_len 寄存器的长度
+ * @param buff 数据buff，如果reg,reg_len 存在，为接收的数据，不存在为发送的数据
  * @param len 数据长度
  * @return 0成功 其他失败
  */
