@@ -586,7 +586,7 @@
                     },
                     {
                         "name": "rndis",
-                        "content": "启用RNDIS网卡, lua内存会强制减少到128k",
+                        "content": "启用RNDIS网卡, lua内存会强制减少到160k",
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false

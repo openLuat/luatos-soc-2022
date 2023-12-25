@@ -265,7 +265,7 @@
 
 #ifdef LUAT_EC618_RNDIS_ENABLED
 #undef LUAT_HEAP_SIZE
-#define LUAT_HEAP_SIZE (100*1024)
+#define LUAT_HEAP_SIZE (160*1024)
 #endif
 //-----------------------------
 
