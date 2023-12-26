@@ -481,6 +481,13 @@
                         "rsize": 2008,
                         "fsize": 274360,
                         "dft": false
+                    },
+                    {
+                        "name": "ir",
+                        "content": "IR红外发射/接收,当前仅支持发送",
+                        "rsize": 2008,
+                        "fsize": 274360,
+                        "dft": false
                     }
                 ],
                 "fsize": 287420,
