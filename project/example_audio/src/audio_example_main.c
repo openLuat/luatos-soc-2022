@@ -30,7 +30,8 @@
 #define LED4_PIN_ALT_FUN	0
 #define CHARGE_EN_PIN	HAL_GPIO_2
 #define CHARGE_EN_PIN_ALT_FUN	0
-
+//如果PA无法关闭，而且CODEC不支持静音的话，就需要I2S一直输出空白音
+//#define PA_ALWAYS_ON
 //AIR600EAC开发板配置
 //#define CODEC_PWR_PIN HAL_GPIO_12
 //#define CODEC_PWR_PIN_ALT_FUN	4
@@ -184,12 +185,15 @@ void codec_ctrl(uint8_t onoff)
 
 
 extern void download_file();
+#ifdef PA_ALWAYS_ON
+#else
 static HANDLE g_s_delay_timer;
 
 void app_pa_on(uint32_t arg)
 {
 	luat_gpio_set(PA_PWR_PIN, 1);
 }
+#endif
 
 void audio_event_cb(uint32_t event, void *param)
 {
@@ -197,11 +201,18 @@ void audio_event_cb(uint32_t event, void *param)
 	switch(event)
 	{
 	case LUAT_MULTIMEDIA_CB_AUDIO_DECODE_START:
+
+#ifdef PA_ALWAYS_ON
+#else
 		codec_ctrl(1);
 		luat_audio_play_write_blank_raw(0, 3, 1);
+#endif
 		break;
 	case LUAT_MULTIMEDIA_CB_AUDIO_OUTPUT_START:
+#ifdef PA_ALWAYS_ON
+#else
 		luat_rtos_timer_start(g_s_delay_timer, 100, 0, app_pa_on, NULL);
+#endif
 		break;
 	case LUAT_MULTIMEDIA_CB_TTS_INIT:
 		break;
@@ -212,6 +223,11 @@ void audio_event_cb(uint32_t event, void *param)
 		}
 		break;
 	case LUAT_MULTIMEDIA_CB_AUDIO_DONE:
+#ifdef PA_ALWAYS_ON
+		LUAT_DEBUG_PRINT("audio play done, result=%d!", luat_audio_play_get_last_error(0));
+		luat_i2s_start(0, 1, 16000, 2);
+		luat_i2s_transfer_loop(0, NULL, 3200, 2, 0);
+#else
 		luat_rtos_timer_stop(g_s_delay_timer);
 		LUAT_DEBUG_PRINT("audio play done, result=%d!", luat_audio_play_get_last_error(0));
 		luat_gpio_set(PA_PWR_PIN, 0);
@@ -219,6 +235,7 @@ void audio_event_cb(uint32_t event, void *param)
 		//如果用软件DAC，打开下面的2句注释，消除POP音和允许进低功耗
 //		luat_rtos_task_sleep(10);
 //		SoftDAC_Stop();
+#endif
 		break;
 	}
 }
@@ -304,9 +321,12 @@ static void demo_task(void *arg)
 	// char tts_string[] = "hello world, now test once";
 	luat_audio_play_info_t mp3_info[4] = {0};
 	luat_audio_play_info_t amr_info[5] = {0};
-
+	luat_debug_set_fault_mode(LUAT_DEBUG_FAULT_HANG);
 	download_file();
+#ifdef PA_ALWAYS_ON
+#else
 	luat_rtos_timer_create(&g_s_delay_timer);
+#endif
     luat_audio_play_global_init(audio_event_cb, audio_data_cb, luat_audio_play_file_default_fun, luat_audio_play_tts_default_fun, NULL);
 	tts_config();
 	int result = codec_config();
@@ -319,6 +339,15 @@ static void demo_task(void *arg)
 		}
 	}
 	play_channel_config();
+	luat_rtos_task_sleep(2000);
+#ifdef PA_ALWAYS_ON
+	codec_ctrl(1);
+	luat_i2s_start(0, 1, 16000, 2);
+	luat_i2s_transfer_loop(0, NULL, 3200, 2, 0);
+	luat_rtos_task_sleep(300);
+	luat_gpio_set(PA_PWR_PIN, 1);
+	luat_rtos_task_sleep(300);
+#endif
 	mp3_info[0].path = "test1.mp3";
 	mp3_info[1].path = "test2.mp3";
 	mp3_info[2].path = "test3.mp3";
@@ -340,16 +369,23 @@ static void demo_task(void *arg)
     amr_info[4].rom_data_len = sizeof(amr_yuan_data);
     while(1)
     {
+#ifdef PA_ALWAYS_ON
+    	luat_i2s_transfer_loop_stop(0);
+#endif
 		luat_audio_play_multi_files(0, mp3_info, 4);
 		luat_rtos_task_sleep(9000);
 		luat_meminfo_sys(&total, &used, &max_used);
     	LUAT_DEBUG_PRINT("meminfo total %d, used %d, max_used%d",total, used, max_used);
-
+#ifdef PA_ALWAYS_ON
+    	luat_i2s_transfer_loop_stop(0);
+#endif
 		luat_audio_play_multi_files(0, amr_info, 5);
 		luat_rtos_task_sleep(9000);
     	luat_meminfo_sys(&total, &used, &max_used);
     	LUAT_DEBUG_PRINT("meminfo total %d, used %d, max_used%d",total, used, max_used);
-
+#ifdef PA_ALWAYS_ON
+    	luat_i2s_transfer_loop_stop(0);
+#endif
 		luat_audio_play_tts_text(0, tts_string, sizeof(tts_string));
 		luat_rtos_task_sleep(35000);
 		luat_meminfo_sys(&total, &used, &max_used);

@@ -102,3 +102,13 @@ int luat_i2s_tx_stat(uint8_t id, size_t *buffsize, size_t* remain) {
     (void)remain;
     return -1;
 }
+
+void luat_i2s_transfer_loop(uint8_t bus_id, uint8_t* address, uint32_t one_truck_byte_len, uint32_t total_trunk_cnt, uint8_t need_irq)
+{
+	I2S_TransferLoop(bus_id, address, one_truck_byte_len, total_trunk_cnt, need_irq);
+}
+
+void luat_i2s_transfer_loop_stop(uint8_t bus_id)
+{
+	I2S_StopTransferLoop(bus_id);
+}
