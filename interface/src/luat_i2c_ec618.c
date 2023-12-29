@@ -237,6 +237,9 @@ int luat_i2c_setup(int id, int speed) {
 
     }
 	I2C_MasterSetup(id, speed);
+#ifdef __LUATOS__
+	luat_i2c_set_polling_mode(id, 1);
+#endif
     return 0;
 }
 
@@ -347,6 +350,9 @@ int luat_i2c_no_block_transfer(int id, int addr, uint8_t is_read, uint8_t *reg, 
 		GPR_swResetModule(&g_i2cResetVectors[id]);
 	}
 	I2C_Prepare(id, addr, 2, CB, pParam);
+#ifdef __LUATOS__
+	luat_i2c_set_polling_mode(id, 0);
+#endif
 	I2C_SetNoBlock(id);
 	if (reg && reg_len)
 	{
@@ -360,6 +366,9 @@ int luat_i2c_no_block_transfer(int id, int addr, uint8_t is_read, uint8_t *reg, 
 	{
 		I2C_MasterXfer(id, I2C_OP_WRITE, NULL, 0, buff, len, Toms);
 	}
+#ifdef __LUATOS__
+	luat_i2c_set_polling_mode(id, 0);
+#endif
 	return 0;
 }
 
