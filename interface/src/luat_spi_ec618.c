@@ -347,3 +347,11 @@ int luat_lcd_draw(luat_lcd_conf_t* conf, uint16_t x1, uint16_t y1, uint16_t x2, 
 }
 #endif
 #endif
+
+
+#ifdef __LUATOS__
+
+void luat_spi_set_sdhc_ctrl(block_disk_t *disk) {
+}
+
+#endif
