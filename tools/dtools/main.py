@@ -3,7 +3,7 @@
 
 ## 需要使用到的库
 import os, struct, sys, logging, subprocess, shutil, hashlib, requests
-import uuid
+import uuid, json
 
 # web相关
 import bottle
@@ -188,6 +188,95 @@ def diff_soc(old_path, new_path, dst_path, cwd="."):
     shutil.copy(tmpp("output.sota"), dst_path)
     logging.info("done soc diff")
 
+"""
+全量升级
+"""
+def do_full(old_path, new_path, dst_path, cwd="."):
+    # 建立临时目录
+    tmpdir = os.path.join(os.path.abspath(cwd), "fulltmp")
+    if os.path.exists(tmpdir) :
+        shutil.rmtree(tmpdir)
+    os.makedirs(tmpdir)
+
+    # 解开binpkg文件
+    cmd = []
+    if os.name != "nt":
+        cmd.append("wine")
+    cmd.append(os.path.join("dep","fcelf.exe"))
+    cmd.append("-E")
+    cmd.append("-input")
+    cmd.append(new_path)
+    cmd.append("-dir")
+    cmd.append(tmpdir)
+    cmd.append("-info")
+    cmd.append(os.path.join(tmpdir, "imageinfo.json"))
+    subprocess.check_call(" ".join(cmd), shell=True, cwd=cwd)
+
+    # 读取imgeinfo.json
+    with open(os.path.join(tmpdir, "imageinfo.json"), "r") as f :
+        imageinfo = json.loads(f.read())
+    bin_data = bytes()
+    for ii in imageinfo["imageinfo"] :
+        if ii["type"] == "AP":
+            pass
+            #cmd = "{} zip_file {} {} \"{}\" \"{}\" {} 1".format(str(soc_exe_path), "eaf18c16", "00024000", str(work_path.with_name(ap_name)), str(work_path.with_name("ap.zip")), "40000")
+            cmd = []
+            if os.name != "nt":
+                cmd.append("wine")
+            cmd.append("soc_tools.exe")
+            cmd.append("zip_file")
+            cmd.append("eaf18c16")
+            cmd.append("00024000")
+            cmd.append(os.path.join(tmpdir, ii["file"]))
+            cmd.append(os.path.join(tmpdir, "ap.zip"))
+            cmd.append("40000")
+            subprocess.check_call(" ".join(cmd), shell=True, cwd=cwd)
+            with open(os.path.join(tmpdir, "ap.zip"), "rb") as f :
+                bin_data += f.read()
+        elif ii["type"] == "CP":
+            # cmd = "{} zip_file {} {} \"{}\" \"{}\" {} 1".format(str(soc_exe_path), "eaf18c16", "80000000", str(work_path.with_name("cp-demo-flash.bin")), str(work_path.with_name("cp.zip")), "40000")
+            cmd = []
+            if os.name != "nt":
+                cmd.append("wine")
+            cmd.append("soc_tools.exe")
+            cmd.append("zip_file")
+            cmd.append("eaf18c16")
+            cmd.append("80000000")
+            cmd.append(os.path.join(tmpdir, ii["file"]))
+            cmd.append(os.path.join(tmpdir, "cp.zip"))
+            cmd.append("40000")
+            subprocess.check_call(" ".join(cmd), shell=True, cwd=cwd)
+            with open(os.path.join(tmpdir, "cp.zip"), "rb") as f :
+                bin_data += f.read()
+    with open(os.path.join(tmpdir, "total.zip"), "wb+") as f :
+        f.write(bin_data)
+
+    # cmd = "{} make_ota_file {} 4294967295 0 0 0 {} \"{}\" \"{}\" \"{}\"".format(str(soc_exe_path), "eaf18c16", str(hex(version)), str(work_path.with_name("total.zip")), DUMMPY_BIN_PATH, str(Path(out_path, "{}_{}_{}.sota".format(file_name, version, file_suffix))))
+    cmd = []
+    if os.name != "nt":
+        cmd.append("wine")
+    cmd.append("soc_tools.exe")
+    cmd.append("make_ota_file")
+    cmd.append("eaf18c16")
+    cmd.append("4294967295")
+    cmd.append("0")
+    cmd.append("0")
+    cmd.append("0")
+    cmd.append("0x113a695d")
+    cmd.append(os.path.join(tmpdir, "total.zip"))
+    with open(os.path.join(tmpdir, "dummy.bin"), "w+") as f :
+        pass
+    cmd.append(os.path.join(tmpdir, "dummy.bin"))
+    cmd.append(os.path.join(tmpdir, "out.sota"))
+
+    logging.info(" ".join(cmd))
+    subprocess.check_call(" ".join(cmd), shell=True, cwd=cwd)
+    shutil.copy(os.path.join(tmpdir, "out.sota"), dst_path)
+    
+    # soc_tools.exe make_ota_file eaf18c16 4294967295 0 0 0 0x113a695d
+    # soc_tools.exe make_ota_file eaf18c16 4294967295 0 0 0 0x113a695d
+    logging.info("完成全量升级更新包的制作")
+
 def do_mode(mode, old_path, new_path, dst_path, is_web, tmpdir=".") :
 
     tmpdir = os.path.abspath(tmpdir)
@@ -207,6 +296,9 @@ def do_mode(mode, old_path, new_path, dst_path, is_web, tmpdir=".") :
     elif mode == "soc" :
         logging.info("执行LuatOS差分")
         diff_soc(old_path, new_path, dst_path, tmpdir)
+    elif mode == "full" :
+        logging.info("执行全量升级")
+        do_full(old_path, new_path, dst_path, tmpdir)
     else:
         print("未知模式, 未支持" + mode)
         if not is_web :
@@ -277,6 +369,7 @@ def http_api(mode):
         if os.path.exists(tmpdir) :
             shutil.rmtree(tmpdir)
         shutil.copytree(os.path.abspath("."), tmpdir)
+        os.chmod(tmpdir, 0o777)
         logging.info(" ".join(os.listdir(tmpdir)))
         result, msg = http_api_work(mode, tmpdir)
         if os.path.exists(os.path.join(tmpdir, "diff.bin")):

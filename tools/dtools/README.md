@@ -1,15 +1,18 @@
 # 差分包生成工具
 
 本文件夹是生成差分包所需要的工具, 分2部分:
+
 1. windows原生工具
 2. 可运行原生工具的docker镜像
 
 支持的差分功能:
+
 1. CSDK生产的binpkg差分,功能名称csdk
 2. 合宙系列AT固件的差分,功能名称at
 3. QAT系列固件的差分,功能名称qat
 4. LuatOS固件的soc文件之间的差分,功能名称soc
 5. 原始SDK的binpkg差分,功能名称org
+6. CSDK全量/整包升级包,功能名称full
 
 演示地址: https://ecfota-ec618.k8s.air32.cn/
 
@@ -32,7 +35,7 @@ python3 main.py csdk old.binpkg new.binpkg diff.bin
 ```
 
 其中
-* 模式, 可选值有`csdk` `at` `qat` `org` `soc`
+* 模式, 可选值有`csdk` `at` `qat` `org` `soc` `full`
 * 非LuatOS固件传binpkg路径, LuatOS固件传soc文件路径
 
 |差分模式|文件后缀|说明|
@@ -42,6 +45,7 @@ python3 main.py csdk old.binpkg new.binpkg diff.bin
 |qat    |binpkg |合宙QAT固件差分包|
 |csdk   |binpkg |本CSDK所使用的差分包|
 |soc    |soc    |LuatOS固件的差分包|
+|full   |binpkg |CSDK全量/整包升级包|
 
 ## Docker镜像说明
 
@@ -89,6 +93,10 @@ mode   替代URL中的mode参数, 与命令行的模式一样
 未尽事宜,请咨询FAE或销售
 
 ## 更新日志
+
+# 1.0.7
+
+1. 支持csdk的全量升级包
 
 # 1.0.5
 
