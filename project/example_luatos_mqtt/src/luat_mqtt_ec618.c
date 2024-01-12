@@ -187,7 +187,11 @@ static void luat_mqtt_task(void *param)
 	opts.port = MQTT_PORT;
 	LUAT_DEBUG_PRINT("  host %s port %d", MQTT_HOST, MQTT_PORT);
 	ret = luat_mqtt_set_connopts(luat_mqtt_ctrl, &opts);
-
+	if (ret) {
+		LUAT_DEBUG_PRINT("mqtt set connopts error ret %d", ret);
+		luat_rtos_task_delete(NULL);
+		return;
+	}
 	char imei[32] = {0};
 	ret = luat_mobile_get_imei(0, imei, sizeof(imei)-1);
 	
@@ -216,8 +220,6 @@ static void luat_mqtt_task(void *param)
 	
 	LUAT_DEBUG_PRINT("4. setup mqtt callback");
 	luat_mqtt_set_cb(luat_mqtt_ctrl,luat_mqtt_cb);
-
-	luat_rtos_task_sleep(3000);
 
 	LUAT_DEBUG_PRINT("5. start mqtt connect");
 	ret = luat_mqtt_connect(luat_mqtt_ctrl);

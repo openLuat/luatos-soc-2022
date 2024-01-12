@@ -8,9 +8,11 @@
 2. 本CSDK底层是没有AT指令的,不存在"调用某某AT指令"的情况
 
 ## 文档中心
+
 [CSDK软件开发资料](https://doc.openluat.com/wiki/37?wiki_page_id=4544)
 
 ## 介绍
+
 CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型号及海外型号:
 
 * [Air780E](https://air780e.cn)   合宙主推封装
@@ -23,9 +25,9 @@ CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型�
 
 1. 添加自定义数据到指定区域并[合成binpkg](project/example_flash), 用于量产刷机
 2. [脱离本csdk编译无依赖的库文件](doc/build_lib_by_gcc.md)
-3. CSDK调试指南 https://doc.openluat.com/article/4984
-4. Linux/Mac刷机工具(测试版) https://github.com/openLuat/ectool2py
-6. [差分升级所需要工具,支持docker](tools/dtools)
+3. Linux/Mac刷机工具(测试版) [ectool2py](https://github.com/openLuat/ectool2py)
+4. [差分升级所需要工具,支持docker](tools/dtools)
+5. [升级包格式及生成方法](doc/upgrade_pkg.md)
 
 ## 目录说明
 
@@ -36,15 +38,14 @@ CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型�
 ## 编译说明
 
 1. 安装xmake, **选取加入PATH**, 建议安装到C:\Program Files下，其他目录可能会出问题；
-   xmake下载地址：https://xmake.io/#/guide/installation
-   windows下可以直接访问：https://github.com/xmake-io/xmake/releases ,下载系统对应的xmake-2.7.3-win32.exe或者xmake-2.7.3-win64.exe即可. 比2.7.3更高的版本也是可以的.
+   xmake下载地址：[xmake官网](https://xmake.io/#/guide/installation)
+   windows下可以直接访问：[合宙云盘](https://pan.air32.cn/s/DJTr?path=%2F%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7) ,下载系统对应的xmake-2.7.3-win32.exe或者xmake-2.7.3-win64.exe即可. 比2.7.3更高的版本也是可以的.
 
    **注意：环境变量需重启电脑生效**
 
 2. 如果编译example的话在本代码库的根目录执行`build.bat example`进行编译
 
 3. 生成的binpkg位于`out`目录, 日志数据库文件位于`PLAT`目录
-
 
 ## 如何新增自己的项目
 
@@ -68,12 +69,11 @@ CSDK for ABCDEGF, 适用于所有基于ABCDEGF的合宙模组, 包括衍生型�
 * `INIT_DRV_EXPORT`一般用于外设驱动初始化，初始化外部器件之类的，打开电源，提供时钟之类的，可以没有
 * `INIT_TASK_EXPORT`一般用于初始化任务，用户代码基本上都是跑在任务里，原则上必须有
 
-
 ## 在SDK外存放项目文件的编译方法
 
 假设项目路径是 `D:\github\ABCDEGF-webabc` , 目录结构如下
 
-```
+```tree
 D:\github
     - ABCDEGF-webabc
         - code
@@ -90,7 +90,7 @@ D:\github
 
 编译方式:
 
-```
+```cmd
 set PROJECT_DIR=D:\github\ABCDEGF-webabc\code
 build webabc
 ```
@@ -99,7 +99,7 @@ build webabc
 
 恢复到默认项目查找逻辑, 之后就能恢复到 project/xxx 查找xmake.lua
 
-```
+```cmd
 set PROJECT_DIR=
 build luatos
 ```
@@ -108,7 +108,7 @@ build luatos
 
 在有网的环境下, xmake会自行下载gcc工具链. 但如果无法联网, 或者网络受限的情况, 通常会有这种提示:
 
-```
+```cmd
 error: fatal: not a git repository
 ```
 
@@ -119,7 +119,7 @@ error: fatal: not a git repository
 3. 假设解压后的路径是 `D:\gcc-arm-none-eabi-10.3-2021.10`, 检查 `D:\gcc-arm-none-eabi-10.3-2021.10\bin\arm-none-eabi-g++.exe` 是否存在, 如果不存在, 那肯定是多一层目录. **务必检查!!!**
 4. 用文本编辑器(例如vscode)打开 `本代码库` 的 `build.bat`, 修改内容如下
 
-```
+```cmd
 原本的内容:
 rem set GCC_PATH=E:\gcc_mcu
 修改成set开头的语句,注意是去掉rem并修改值.
@@ -155,7 +155,6 @@ apt-get install -y lib32z1 binutils:i386 libc6:i386 libgcc1:i386 libstdc++5:i386
 ```shell
 ./build-wine-docker.sh
 ```
-
 
 ## 授权协议
 
