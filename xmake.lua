@@ -482,55 +482,59 @@ target(USER_PROJECT_NAME..".elf")
         os.exec(cmd)
         ---------------------------------------------------------
 
+        import("lib.detect.find_file")
+        local path7z = nil
+        if is_plat("windows") then
+            path7z = "\"$(programdir)/winenv/bin/7z.exe\""
+        elseif is_plat("linux") or is_plat("macosx") then
+            path7z = find_file("7z", { "/usr/bin/", "/usr/local/bin/" })
+            if not path7z then
+                path7z = find_file("7zr", { "/usr/bin/"})
+            end
+        end
+        if path7z == nil then
+            print("7z not find")
+            return
+        end
         if USER_PROJECT_NAME == 'luatos' then
-            import("lib.detect.find_file")
-            local path7z = nil
-            if is_plat("windows") then
-                path7z = "\"$(programdir)/winenv/bin/7z.exe\""
-            elseif is_plat("linux") or is_plat("macosx") then
-                path7z = find_file("7z", { "/usr/bin/", "/usr/local/bin/" })
-                if not path7z then
-                    path7z = find_file("7zr", { "/usr/bin/"})
+            os.cp("$(projectdir)/project/luatos/pack", OUT_PATH)
+            import("core.base.json")
+            local info_table = json.loadfile(OUT_PATH.."/pack/info.json")
+            if VM_64BIT then
+                info_table["script"]["bitw"] = 64
+            end
+            if script_addr then
+                info_table["download"]["script_addr"] = script_addr
+                info_table["rom"]["fs"]["script"]["size"] = LUAT_SCRIPT_SIZE
+                io.gsub(OUT_PATH.."/pack/config_ec618_usb.ini", "filepath = .\\script.bin\nburnaddr = 0x(%g+)", "filepath = .\\script.bin\nburnaddr = 0x"..script_addr)
+            end
+            if full_addr then
+                info_table["fota"]["full_addr"] = full_addr
+            end
+            json.savefile(OUT_PATH.."/pack/info.json", info_table)
+            os.cp(OUT_PATH.."/luatos.binpkg", OUT_PATH.."/pack")
+            os.cp(OUT_PATH.."/luatos.elf", OUT_PATH.."/pack")
+            os.cp("./PLAT/comdb.txt", OUT_PATH.."/pack")
+            os.cp("./PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h", OUT_PATH .. "/pack")
+            os.cp("$(projectdir)/project/luatos/inc/luat_conf_bsp.h", OUT_PATH.."/pack")
+            os.exec(path7z.." a -mx9 LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z "..OUT_PATH.."/pack/* -r")
+            local ver = "_FULL"
+            if os.getenv("LUAT_EC618_LITE_MODE") == "1" then
+                ver = ""
+            end
+            if os.getenv("LUAT_USE_TTS") == "1" then
+                ver = "_TTS"
+                if os.getenv("LUAT_USE_TTS_ONCHIP") == "1" then
+                    ver = "_TTS_ONCHIP"
                 end
             end
-            if path7z then
-                os.cp("$(projectdir)/project/luatos/pack", OUT_PATH)
-                import("core.base.json")
-                local info_table = json.loadfile(OUT_PATH.."/pack/info.json")
-                if VM_64BIT then
-                    info_table["script"]["bitw"] = 64
-                end
-                if script_addr then
-                    info_table["download"]["script_addr"] = script_addr
-                    info_table["rom"]["fs"]["script"]["size"] = LUAT_SCRIPT_SIZE
-                    io.gsub(OUT_PATH.."/pack/config_ec618_usb.ini", "filepath = .\\script.bin\nburnaddr = 0x(%g+)", "filepath = .\\script.bin\nburnaddr = 0x"..script_addr)
-                end
-                if full_addr then
-                    info_table["fota"]["full_addr"] = full_addr
-                end
-                json.savefile(OUT_PATH.."/pack/info.json", info_table)
-                os.cp(OUT_PATH.."/luatos.binpkg", OUT_PATH.."/pack")
-                os.cp(OUT_PATH.."/luatos.elf", OUT_PATH.."/pack")
-                os.cp("./PLAT/comdb.txt", OUT_PATH.."/pack")
-                os.cp("./PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h", OUT_PATH .. "/pack")
-                os.cp("$(projectdir)/project/luatos/inc/luat_conf_bsp.h", OUT_PATH.."/pack")
-                os.exec(path7z.." a -mx9 LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z "..OUT_PATH.."/pack/* -r")
-                local ver = "_FULL"
-                if os.getenv("LUAT_EC618_LITE_MODE") == "1" then
-                    ver = ""
-                end
-                if os.getenv("LUAT_USE_TTS") == "1" then
-                    ver = "_TTS"
-                    if os.getenv("LUAT_USE_TTS_ONCHIP") == "1" then
-                        ver = "_TTS_ONCHIP"
-                    end
-                end
-                os.mv("LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z", OUT_PATH.."/LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618"..ver..".soc")
-                os.rm(OUT_PATH.."/pack")
-            else
-                print("7z not find")
-                return
-            end
+            os.mv("LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z", OUT_PATH.."/LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618"..ver..".soc")
+            os.rm(OUT_PATH.."/pack")
+        else 
+            os.cp("$(projectdir)/project/luatos/pack/info.json", OUT_PATH)
+            os.cp("./PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h", OUT_PATH)
+            os.exec(path7z.." a -mx9 "..USER_PROJECT_NAME.."_ec618.7z "..OUT_PATH.."/* -r")
+            os.mv(USER_PROJECT_NAME.."_ec618.7z", OUT_PATH.."/"..USER_PROJECT_NAME.."_ec618.soc")
         end
 
         -- 计算差分包大小, 需要把老的binpkg放在根目录,且命名为 $项目名称.binpkg
