@@ -64,12 +64,10 @@ static void luat_test_task(void *param)
 	g_s_network_ctrl = network_alloc_ctrl(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_init_ctrl(g_s_network_ctrl, g_s_task_handle, luat_test_socket_callback, NULL);
 	network_set_base_mode(g_s_network_ctrl, 1, 15000, 1, 300, 5, 9);
-	g_s_network_ctrl->is_debug = 0;	//下行测速时关闭debug，如果只是普通测试，打开debug
+	g_s_network_ctrl->is_debug = 1;	//下行测速时关闭debug，如果只是普通测试，打开debug
 	// 请访问 https://netlab.luatos.com 获取新的端口号
-//	const char remote_ip[] = "112.125.89.8";
-//	int port = 35228;
-	const char remote_ip[] = "alienwalker.f3322.net";
-	int port = 60010;
+	const char remote_ip[] = "112.125.89.8";
+	int port = 44535;
 	const char hello[] = "hello, luatos!";
 	uint8_t *tx_data = malloc(1024);
 	uint8_t *rx_data = malloc(1024 * 8);
@@ -335,11 +333,12 @@ static void luat_test_init(void)
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
 	//	下行测试，不要和上行测试同步进行
 	luat_rtos_task_create(&g_s_task_handle, 2 * 1024, 90, "test", luat_test_task, NULL, 16);
+//  服务器功能测试必须打开IPV6，客户端不是必须的
+//	luat_mobile_set_default_pdn_ipv6(1);
 //	luat_rtos_task_create(&g_s_server_task_handle, 4 * 1024, 10, "server", luat_server_test_task, NULL, 16);
 //	luat_rtos_task_create(&g_s_server_task_handle, 4 * 1024, 10, "server", luat_udp_server_test_task, NULL, 16);
 //	上行测试
 //	luat_rtos_task_create(&g_s_upload_test_task_handle, 2 * 1024, 10, "test2", luat_async_test_task, NULL,0);
-	luat_mobile_set_default_pdn_ipv6(1);
 //	luat_mobile_set_rrc_auto_release_time(2);
 }
 
