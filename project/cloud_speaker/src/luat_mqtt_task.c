@@ -419,7 +419,8 @@ static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
                 if(money == NULL)
                 {
                     LUAT_DEBUG_PRINT("cloud_speaker_mqtt Missing amount field %d", money);
-                    return 0;
+                    cJSON_Delete(boss);
+                    return;
                 }
                 if (cJSON_IsString(money))
                 {
