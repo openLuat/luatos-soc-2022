@@ -412,11 +412,10 @@ int luat_i2s_send(uint8_t id, uint8_t* buff, size_t len)
 }
 
 int luat_i2s_rx_cb(void *pdata, void *param){
-	luat_i2s_conf_t *conf = (luat_i2s_conf_t *)param;
 	if (pdata)
 	{
 		Buffer_Struct *buf = (Buffer_Struct *)pdata;
-		luat_i2s_event_cb((uint8_t)param, LUAT_I2S_EVENT_RX_DONE, buf->Data, buf->Pos, conf->userdata);
+		luat_i2s_event_cb((uint8_t)param, LUAT_I2S_EVENT_RX_DONE, buf->Data, buf->Pos, NULL);
 	}
 }
 
