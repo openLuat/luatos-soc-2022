@@ -90,6 +90,8 @@ mode   替代URL中的mode参数, 与命令行的模式一样
 
 ## 其他信息
 
+* [安装wine9的教程](install_wine.md)
+
 未尽事宜,请咨询FAE或销售
 
 ## 更新日志
