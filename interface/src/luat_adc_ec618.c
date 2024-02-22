@@ -90,6 +90,7 @@ static int adc_range_to_resdiv(int id, int range, AdcAioResDiv_e *resdiv, float 
         {LUAT_ADC_AIO_RANGE_2_7, ADC_AIO_RESDIV_RATIO_7OVER16, (float)16/7},
         {LUAT_ADC_AIO_RANGE_3_2, ADC_AIO_RESDIV_RATIO_6OVER16, (float)16/6},
         {LUAT_ADC_AIO_RANGE_3_8, ADC_AIO_RESDIV_RATIO_5OVER16, (float)16/5},
+        {LUAT_ADC_AIO_RANGE_MAX, ADC_AIO_RESDIV_RATIO_5OVER16, (float)16/5},
         // 不再支持以下配置，无意义
         // {LUAT_ADC_AIO_RANGE_4_8, ADC_AIO_RESDIV_RATIO_4OVER16, (float)16/4},
         // {LUAT_ADC_AIO_RANGE_6_4, ADC_AIO_RESDIV_RATIO_3OVER16, (float)16/3},
