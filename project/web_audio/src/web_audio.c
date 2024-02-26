@@ -21,11 +21,11 @@ extern void loop_Playback_task_init(void);
 char mqtt_subTopic[40];
 static char subTopic[] = "test20220929/";
 //861551057085904
-/************************ï¿½Æ¶ï¿½ï¿½ï¿½ÆµMQTT ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½***************************************/
-// 0---4ï¿½Ö½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½Ö³ï¿½ï¿½ï¿½--ï¿½ï¿½ï¿½Öµï¿½gbkï¿½ï¿½ï¿½ï¿½--1--4ï¿½Ö½Ú´ï¿½ï¿½ï¿½ï¿½Æµurlï¿½ï¿½ï¿½ï¿½--urlï¿½ï¿½gbkï¿½ï¿½ï¿½ï¿½
-// 0ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½Ö¡ï¿½1ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Çºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½
-/************************ï¿½Æ¶ï¿½ï¿½ï¿½ÆµMQTT ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½***************************************/
-void messageArrived(uint8_t payloadlen, uint8_t *data) // ï¿½ï¿½MQTTï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+/************************ÔÆ¶ËÒôÆµMQTT ¸ºÔØÏûÏ¢ÀàÐÍ***************************************/
+// 0---4×Ö½Ú´ó¶ËÎÄ×Ö³¤¶È--ÎÄ×ÖµÄgbk±àÂë--1--4×Ö½Ú´ó¶ËÒôÆµurl³¤¶È--urlµÄgbk±àÂë
+// 0±íÊ¾ºóÃæÊÇÆÕÍ¨ÎÄ×Ö¡£1±íÊ¾ºóÃæÊÇÒôÆµ¡£Á½ÖÖÈÎÒâ×éºÏ¡£³¤¶ÈÊÇºóÃæ±àÂëµÄ³¤¶È
+/************************ÔÆ¶ËÒôÆµMQTT ¸ºÔØÏûÏ¢ÀàÐÍ***************************************/
+void messageArrived(uint8_t payloadlen, uint8_t *data) // ¶ÔMQTTµÄ¸ºÔØÏûÏ¢½øÐÐ´¦Àí£¬½âÎöÊý¾Ý
 {
     luat_event_t event;
     int payload_array[60];
@@ -72,10 +72,10 @@ void messageArrived(uint8_t payloadlen, uint8_t *data) // ï¿½ï¿½MQTTï¿½Ä¸ï¿½ï¿½ï
             LUAT_DEBUG_PRINT("http url%s",http_down_struct.url);
             LUAT_DEBUG_PRINT("url len%d", http_down_struct.url_len);
             int ret = luat_rtos_queue_send(http_down_queue, &http_down_struct, NULL, 0);
-            LUAT_DEBUG_PRINT("luat_rtos_send_sucessed%d", ret);
+            LUAT_DEBUG_PRINT("laut_rtos_send_sucessed%d", ret);
             if (0 == ret)
             {
-                LUAT_DEBUG_PRINT("luat_rtos_send_sucessed");
+                LUAT_DEBUG_PRINT("laut_rtos_send_sucessed");
             }
         }
         luat_rtos_task_sleep(1500);
@@ -96,7 +96,7 @@ void mqtt_payload_task(void *param)
     }
 }
 
-void Mqtt_payload_task_Init(void) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø£ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½
+void Mqtt_payload_task_Init(void) // µ¥¶À¸ã¸öÈÎÎñ¸ºÔðÏÂÔØ£¬Êý¾ÝÍ¨¹ýÏûÏ¢¶ÓÁÐ´«Êä
 {
     int ret = -1;
     luat_rtos_task_handle Mqtt_payload_handle;
@@ -128,10 +128,10 @@ static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event)
         payload_send.payload_len = payloadlen;
         payload_send.payload_data = ptr;
         ret = luat_rtos_queue_send(MQTT_payload_queue, &payload_send, NULL, 0);
-        LUAT_DEBUG_PRINT("luat_rtos_send_sucessed%d", ret);
+        LUAT_DEBUG_PRINT("laut_rtos_send_sucessed%d", ret);
         if (0 == ret)
         {
-            LUAT_DEBUG_PRINT("luat_rtos_send_sucessed");
+            LUAT_DEBUG_PRINT("laut_rtos_send_sucessed");
         }
 
         break;
@@ -196,7 +196,7 @@ static void mqtt_demo(void)
             audioQueueData MQTT_link = {0};
             MQTT_link.playType = TTS_PLAY;
             MQTT_link.priority = MONEY_PLAY;
-            char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó³É¹ï¿½";
+            char str[] = "·þÎñÆ÷Á¬½Ó³É¹¦";
             MQTT_link.message.tts.data = malloc(sizeof(str));
             memcpy(MQTT_link.message.tts.data, str, sizeof(str));
             MQTT_link.message.tts.len = sizeof(str);
@@ -211,7 +211,7 @@ static void mqtt_demo(void)
             audioQueueData MQTT_link = {0};
             MQTT_link.playType = TTS_PLAY;
             MQTT_link.priority = MONEY_PLAY;
-            char str[] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½";
+            char str[] = "·þÎñÆ÷Á¬½ÓÊ§°Ü";
             MQTT_link.message.tts.data = malloc(sizeof(str));
             memcpy(MQTT_link.message.tts.data, str, sizeof(str));
             MQTT_link.message.tts.len = sizeof(str);
@@ -278,10 +278,10 @@ static void luatos_http_cb(int status, void *data, uint32_t len, void *param)
 	case HTTP_STATE_IDLE:
 		break;
 	case HTTP_STATE_SEND_BODY_START:
-		//ï¿½ï¿½ï¿½ï¿½ï¿½POSTï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï·¢ï¿½ï¿½POSTï¿½ï¿½bodyï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Î·ï¿½ï¿½Í²ï¿½ï¿½ê£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½HTTP_STATE_SEND_BODYï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		//Èç¹ûÊÇPOST£¬ÔÚÕâÀï·¢ËÍPOSTµÄbodyÊý¾Ý£¬Èç¹ûÒ»´Î·¢ËÍ²»Íê£¬¿ÉÒÔÔÚHTTP_STATE_SEND_BODY»Øµ÷Àï¼ÌÐø·¢ËÍ
 		break;
 	case HTTP_STATE_SEND_BODY:
-		//ï¿½ï¿½ï¿½ï¿½ï¿½POSTï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï·¢ï¿½ï¿½POSTÊ£ï¿½ï¿½ï¿½bodyï¿½ï¿½ï¿½ï¿½
+		//Èç¹ûÊÇPOST£¬¿ÉÒÔÔÚÕâÀï·¢ËÍPOSTÊ£ÓàµÄbodyÊý¾Ý
 		break;
 	default:
 		break;
@@ -324,7 +324,7 @@ static void http_down_task(void *param)
             while (1)
             {
                 luat_rtos_event_recv(http_down_task_handle, 0, &event, NULL, LUAT_WAIT_FOREVER);
-                LUAT_DEBUG_PRINT("ï¿½ï¿½Æµï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
+                LUAT_DEBUG_PRINT("ÒôÆµÎÄ¼þÏÂÔØÍê³É");
                 switch (event.id)
                 {
                 case audio_HTTP_GET_HEAD_DONE:
