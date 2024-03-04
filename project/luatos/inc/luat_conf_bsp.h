@@ -387,6 +387,9 @@
 #ifdef LUAT_USE_REPL
 #undef LUAT_USE_REPL
 #endif
+#ifdef LUAT_USE_YMODEM
+#undef LUAT_USE_YMODEM
+#endif
 #undef LUAT_USE_SFUD
 #else
 #ifndef LUAT_USE_SFUD
