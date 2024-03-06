@@ -50,9 +50,9 @@ int luat_camera_setup(int id, luat_spi_camera_t *conf, void * callback, void *pa
 	if (id < 0 || id >= I2S_MAX || !conf || !callback) return -ERROR_PARAM_INVALID;
 	if (g_s_camera[id].is_init) return -ERROR_OPERATION_FAILED;
 	uint16_t color_byte = conf->only_y?1:2;
-	conf->one_buf_height = 8000 / (conf->sensor_width * color_byte);
+	uint16_t one_buf_height = 8000 / (conf->sensor_width * color_byte);
 //	DBG("one buf height %d", conf->one_buf_height);
-	g_s_camera[id].total_byte = conf->one_buf_height * conf->sensor_width * color_byte;
+	g_s_camera[id].total_byte = one_buf_height * conf->sensor_width * color_byte;
 	g_s_camera[id].callback = callback;
 	g_s_camera[id].param = param;
 
