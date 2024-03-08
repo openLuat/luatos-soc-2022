@@ -507,15 +507,22 @@
                         "dft": false
                     },
                     {
+                        "name": "@rev_release_v1109",
+                        "content": "选用V1109发行版的代码进行编译, 发布日期 2024.3.6",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
                         "name": "@rev_release_v1108",
-                        "content": "选用V1108发行版的代码进行编译, 固件标识固定为 V1108 RELEASE CLOUD. 发布日期 2023.10.31",
+                        "content": "选用V1108发行版的代码进行编译, 发布日期 2023.10.31",
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
                     },
                     {
                         "name": "@rev_release_v1107",
-                        "content": "选用V1107发行版的代码进行编译, 固件标识固定为 V1107 RELEASE CLOUD. 发布日期 2023.7.11",
+                        "content": "选用V1107发行版的代码进行编译, 发布日期 2023.7.11",
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
