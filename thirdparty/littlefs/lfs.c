@@ -2521,6 +2521,7 @@ int lfs_file_opencfg(lfs_t *lfs, lfs_file_t *file,
     file->pos = 0;
     file->off = 0;
     file->cache.buffer = NULL;
+    file->name = NULL;
 
     // allocate entry for file if it doesn't exist
     lfs_stag_t tag = lfs_dir_find(lfs, &file->m, &path, &file->id);

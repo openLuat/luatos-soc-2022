@@ -54,13 +54,6 @@
 #define EC_REG_DFSR             (*(volatile unsigned int *) (0xE000ED30u))
 #define EC_REG_AFSR             (*(volatile unsigned int *) (0xE000ED3Cu))
 
-// magic number for fs assert indication "FS_Assert_sF", 12bytes/3 words 0x46535F41 0x73736572 0x745F7346
-#define EC_FS_ASSERT_MAGIC_NUMBER0     (0x46535F41)
-#define EC_FS_ASSERT_MAGIC_NUMBER1     (0x73736572)
-#define EC_FS_ASSERT_MAGIC_NUMBER2     (0x745F7346)
-
-#define EC_FS_ASSERT_REFORMAT_THRESHOLD     (10)
-
 #define AT_PORT_UART_INSTANCE     (1)
 #define RESET_REASON_MAGIC        (0xACD20E00)
 #define RESET_REASON_MASK         (0xFFFFFF00)

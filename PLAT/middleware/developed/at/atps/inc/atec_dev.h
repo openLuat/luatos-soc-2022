@@ -265,6 +265,11 @@
 #define ATC_ECCFG_1_CFUN_CLEAR_BARCELL_VAL_MAX       (1)
 #define ATC_ECCFG_1_CFUN_CLEAR_BARCELL_VAL_DEFAULT   (0)
 
+//AT+ECCFG="EnableLoggedMDT"
+#define ATC_ECCFG_1_ENABLE_LOGGED_MDT_VAL_MIN       (0)
+#define ATC_ECCFG_1_ENABLE_LOGGED_MDT_VAL_MAX       (1)
+#define ATC_ECCFG_1_ENABLE_LOGGED_MDT_VAL_DEFAULT   (0)
+
 #define ATEC_ECCFG_GET_RSP_STR_LEN           512
 
 /* AT+ECMEASCFG */
@@ -292,7 +297,7 @@
 
 /*AT+ECBCINFO*/
 #define ATC_ECBCINFO_0_VAL_MIN                  0
-#define ATC_ECBCINFO_0_VAL_MAX                  2
+#define ATC_ECBCINFO_0_VAL_MAX                  3
 #define ATC_ECBCINFO_0_VAL_DEFAULT              0
 
 #define ATC_ECBCINFO_1_VAL_MIN                  4

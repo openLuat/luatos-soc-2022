@@ -11,6 +11,7 @@
 #include "hal_dumpMedia.h"
 #include "exception_dump.h"
 #include "plat_config.h"
+#include "utfc.h"
 
 #ifdef FEATURE_UART_HELP_DUMP_ENABLE
 int *excepStepDump = (int *)0x404008;
@@ -601,6 +602,13 @@ uint32_t EcDumpTopFlow(void)
     *excepStep = (*excepStep | 0x1);
     eehDumpMediaFlush(instance);
     RetValue = EcDumpHandshakeProc(WaitPeriod_1s>>1);
+    //stop log to avoid log output when call following API
+    uniLogStop();
+    //from test with linux tool, ulg ep txcmplt may mis-clear by UTFC, SW API will timeout
+    if(uniLogGetPherType() == USB_FOR_UNILOG)
+    {
+        utfcEpnClear((UsbTxEpNum_e)(usbDevGetUlgInEpNum()));
+    }
 
     if (RetValue == 0)
     {

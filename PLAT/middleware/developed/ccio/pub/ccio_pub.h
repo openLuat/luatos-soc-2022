@@ -189,11 +189,11 @@ typedef struct CcioDevice
 /**This function is called by CCIO channel monitor
  * when it wants to pass a packet for further handling.
  */
-typedef int32_t (*chentInCallback)(void *chent, CcioPbuf_t *custPbuf, void *extras);
+typedef int32_t (*chentInCallback)(void *chent, void *custPbuf, void *extras);
 /**This function is called by the l2 layer or same layer entity
  * when it wants to send a packet via a certain of I/O channel Entity.
  */
-typedef int32_t (*chentOutFunc)(void *chent, CcioPbuf_t *custPbuf, void *extras);
+typedef int32_t (*chentOutFunc)(void *chent, void *custPbuf, void *extras);
 /**Function prototype for notifying user that entity status is changed.
  * @param flags: entity status event.
  * @param args : entity status info.

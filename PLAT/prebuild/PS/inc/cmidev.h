@@ -156,6 +156,8 @@ typedef enum _EPAT_CMI_DEV_PRIM_ID_TAG
     CMI_DEV_NAS_EVENT_IND,                  //CmiDevNasEventInd
     CMI_DEV_RRC_EVENT_IND,                  //CmiDevErrcEventInd
 
+    CMI_DEV_DETECT_EVENT_IND,     //CmiDevDetectEventInd
+
     CMI_DEV_PRIM_END = 0x0fff
 }CMI_DEV_PRIM_ID;
 
@@ -568,6 +570,10 @@ typedef struct CmiDevSetExtCfgReq_Tag
     UINT8   userDrxCycle;   //CmiUserDrxCycle
     BOOL    cfunClrBarCellPresent;
     BOOL    cfunClrBarCell;     //True: clear bar cell (except cell barred by ATCMD) when perform cfun0/cfun4
+
+    BOOL    enableLoggedMDTPresent;
+    BOOL    enableLoggedMDT;
+    UINT16  resvd;
 }CmiDevSetExtCfgReq;    // 64 bytes
 
 typedef struct CmiDevSetMeasAdjustCfgReq_Tag
@@ -674,7 +680,8 @@ typedef struct CmiDevGetExtCfgCnf_Tag
 
     UINT8   userDrxCycle;              //CmiUserDrxCycle
     BOOL    cfunClrBarCell;
-    UINT8   rsvd3[2];
+    BOOL    enableLoggedMDT;
+    UINT8   rsvd3;
 }CmiDevGetExtCfgCnf;    // 36 bytes
 
 /******************************************************************************
@@ -2176,7 +2183,8 @@ typedef enum CmiDevGetBasicCellInfoMode_Enum
                                          * don't need to acquire neighber cell SIB */
     CMI_DEV_GET_BASIC_CELL_ID,          /* search cell, including measure cell and acquire cell SIB1 to get cellID, PLMN,
                                          * and tac info */
-    CMI_DEV_GET_SAVED_BASIC_CELL_INFO
+    CMI_DEV_GET_SAVED_BASIC_CELL_INFO,
+    CMI_DEV_GET_BASIC_CELL_ID_HIGH_PRO  /* same as CMI_DEV_GET_BASIC_CELL_ID, with higher priority than PLMN search */
 }CmiDevGetBasicCellInfoMode;
 
 typedef enum CmiDevGetBasicCellInfoRptMode_Enum
@@ -2847,6 +2855,53 @@ typedef struct CmiDevNasEventInd_Tag
 
     UINT32  carrierFreq;
 }CmiDevNasEventInd;
+
+#define CMI_DEV_MAX_SACN_FREQ_RPT_NUM    24
+
+typedef enum CmiDevDetectEventType_Enum
+{
+    CMI_DEV_DETECT_EVENT_TYPE_RSSI_SACN  = 0,
+    CMI_DEV_DETECT_EVENT_TYPE_SYS_INFO_DEC_FAIL = 1
+}CmiDevDetectEventType;
+
+typedef struct CmiDevScanFreqList_Tag
+{
+    UINT32      carrierFreq;    // euArfcn is bit[23:0], [31:24] reprsents carrierFreqOffset
+    UINT8       freqScore;      // range in 0 ~ 255
+    UINT8       rsvd[3];
+}CmiDevScanFreqList;
+
+typedef struct CmiDevRssiScanInfo_Tag
+{
+    UINT8               freqNum;
+    UINT8               rsvd[3];
+    CmiDevScanFreqList  freqList[CMI_DEV_MAX_SACN_FREQ_RPT_NUM];
+}CmiDevRssiScanInfo;
+
+typedef enum CmiDevSysInfoType_Enum
+{
+    CMI_DEV_SYS_INFO_TYPE_MIB  = 0,
+    CMI_DEV_SYS_INFO_TYPE_SIB  = 1,
+}CmiDevSysInfoType;
+
+typedef struct CmiDevSysInfoDecFailInfo_Tag
+{
+    UINT32      carrierFreq;    // euArfcn is bit[23:0], [31:24] reprsents carrierFreqOffset
+    UINT8       sysInfoType;    // CmiDevSysInfoType
+    UINT16      phyCellId;
+    UINT8       rsvd;
+}CmiDevSysInfoDecFailInfo;
+
+typedef struct CmiDevDetectEventInd_Tag
+{
+    UINT8   detectEventType;   /* CmiDevDetectEventType */
+    UINT8   rsvd1[3];
+
+    union {
+        CmiDevRssiScanInfo          rssiSacnInfo;
+        CmiDevSysInfoDecFailInfo    sysInfoDecFail;
+    }event;
+}CmiDevDetectEventInd;
 
 #endif
 

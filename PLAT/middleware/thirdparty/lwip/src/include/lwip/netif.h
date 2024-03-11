@@ -574,6 +574,8 @@ void netif_set_up(struct netif *netif);
 void netif_set_down(struct netif *netif);
 void netif_set_type_up(struct netif *netif, u8_t type);
 void netif_set_type_down(struct netif *netif, u8_t type, u8_t with_flag);
+u8_t netif_type_is_up(struct netif *netif, u8_t type);
+
 
 
 /** @ingroup netif

@@ -574,15 +574,15 @@ static void LPUSART_DMARxConfig(LPUSART_RESOURCES *lpusart, bool isLpuart)
     }
 }
 
-PLAT_PA_RAMCODE static void CO_USART_DmaUpdateRxConfig(LPUSART_RESOURCES *lpusart, uint32_t targetAddress, uint32_t num)
+PLAT_PA_RAMCODE static void CO_USART_DmaUpdateRxConfig(LPUSART_RX_DMA *co_usart_dma_rx, uint32_t targetAddress, uint32_t num)
 {
     uint32_t firstDescriptorLen = MIN(num, CO_USART_DMA_BURST_SIZE);
 
-    lpusart->co_usart_dma_rx->descriptor[0].TAR = targetAddress;
-    lpusart->co_usart_dma_rx->descriptor[0].CMDR = DMA_setDescriptorTransferLen(lpusart->co_usart_dma_rx->descriptor[1].CMDR, firstDescriptorLen);
+    co_usart_dma_rx->descriptor[0].TAR = targetAddress;
+    co_usart_dma_rx->descriptor[0].CMDR = DMA_setDescriptorTransferLen(co_usart_dma_rx->descriptor[1].CMDR, firstDescriptorLen);
 
-    lpusart->co_usart_dma_rx->descriptor[1].TAR = lpusart->co_usart_dma_rx->descriptor[0].TAR + firstDescriptorLen;
-    lpusart->co_usart_dma_rx->descriptor[1].CMDR = DMA_setDescriptorTransferLen(lpusart->co_usart_dma_rx->descriptor[1].CMDR, num - firstDescriptorLen);
+    co_usart_dma_rx->descriptor[1].TAR = co_usart_dma_rx->descriptor[0].TAR + firstDescriptorLen;
+    co_usart_dma_rx->descriptor[1].CMDR = DMA_setDescriptorTransferLen(co_usart_dma_rx->descriptor[1].CMDR, num - firstDescriptorLen);
 }
 
 
@@ -1035,6 +1035,9 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
     uint32_t mask, bytes_in_fifo = 0, i, address;
 
     LPUSART_INFO *info = lpusart->info;
+    USART_TypeDef *co_usart_regs = lpusart->co_usart_regs; // Get rid of flash const data to boost access time
+    LPUSART_RX_DMA *co_usart_dma_rx = lpusart->co_usart_dma_rx;
+    uint8_t        *hw_rxfifo_buf = lpusart->hw_rxfifo_buf;
 
     volatile uint32_t left_to_recv = num;
 
@@ -1063,16 +1066,16 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
 
     if(info->flags & LPUSART_FLAG_POWER_FULL)
     {
-        if(lpusart->co_usart_dma_rx)
+        if(co_usart_dma_rx)
         {
-            CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)data, num);
+            CO_USART_DmaUpdateRxConfig(co_usart_dma_rx, (uint32_t)data, num);
 
-            DMA_suspendChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
-            address = DMA_getChannelCurrentTargetAddress(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
+            DMA_suspendChannel(co_usart_dma_rx->instance, co_usart_dma_rx->channel, co_usart_dma_rx->request);
+            address = DMA_getChannelCurrentTargetAddress(co_usart_dma_rx->instance, co_usart_dma_rx->channel);
 
-            if((address > (uint32_t)lpusart->hw_rxfifo_buf) && (address <= ((uint32_t)lpusart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
+            if((address > (uint32_t)hw_rxfifo_buf) && (address <= ((uint32_t)hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
             {
-                bytes_in_fifo = address - (uint32_t)lpusart->hw_rxfifo_buf;
+                bytes_in_fifo = address - (uint32_t)hw_rxfifo_buf;
             }
 
 #if LPUSART_DRIVER_DEBUG
@@ -1081,7 +1084,7 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
 
             if(bytes_in_fifo >= num)
             {
-                memcpy(info->xfer.rx_buf, lpusart->hw_rxfifo_buf, num);
+                memcpy(info->xfer.rx_buf, hw_rxfifo_buf, num);
                 info->xfer.rx_cnt = num;
 
 #if LPUSART_DRIVER_DEBUG
@@ -1094,21 +1097,21 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
             }
             else if(bytes_in_fifo > 0)
             {
-                memcpy(info->xfer.rx_buf, lpusart->hw_rxfifo_buf, bytes_in_fifo);
+                memcpy(info->xfer.rx_buf, hw_rxfifo_buf, bytes_in_fifo);
                 info->xfer.rx_cnt = bytes_in_fifo;
-                CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)&info->xfer.rx_buf[info->xfer.rx_cnt], num - bytes_in_fifo);
+                CO_USART_DmaUpdateRxConfig(co_usart_dma_rx, (uint32_t)&info->xfer.rx_buf[info->xfer.rx_cnt], num - bytes_in_fifo);
             }
 
         }
 
-        lpusart->co_usart_regs->IER |= USART_IER_RX_LINE_STATUS_Msk;
+        co_usart_regs->IER |= USART_IER_RX_LINE_STATUS_Msk;
 
         // Lucky :), we have bytes waiting, try our best to receive all of them, however, let normal recv process handle the case if new data keeps arriving
-        while((bytes_in_fifo = EIGEN_FLD2VAL(USART_FCNR_RX_FIFO_NUM, lpusart->co_usart_regs->FCNR)) > 0)
+        while((bytes_in_fifo = EIGEN_FLD2VAL(USART_FCNR_RX_FIFO_NUM, co_usart_regs->FCNR)) > 0)
         {
-            volatile uint32_t lsr = lpusart->co_usart_regs->LSR;
+            volatile uint32_t lsr = co_usart_regs->LSR;
             // some flags in LSR are ROC, need to backup
-            lpusart->co_usart_regs->SCR = lsr;
+            co_usart_regs->SCR = lsr;
 
             if(lsr & USART_LSR_RX_BUSY_Msk)
             {
@@ -1118,14 +1121,14 @@ PLAT_PA_RAMCODE int32_t LPUSART_Receive(void *data, uint32_t num, LPUSART_RESOUR
             left_to_recv = num - info->xfer.rx_cnt;
 
 #if LPUSART_DRIVER_DEBUG
-            ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_recv_2, P_DEBUG, "fetching data, bytes_in_fifo: %d, rx_cnt: %d, lsr: 0x%x", bytes_in_fifo, info->xfer.rx_cnt, lsr);
+            //ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_recv_2, P_DEBUG, "fetching data, bytes_in_fifo: %d, rx_cnt: %d, lsr: 0x%x", bytes_in_fifo, info->xfer.rx_cnt, lsr);
 #endif
 
             i = MIN(bytes_in_fifo, left_to_recv);
 
             while(i--)
             {
-                info->xfer.rx_buf[info->xfer.rx_cnt++] = lpusart->co_usart_regs->RBR;
+                info->xfer.rx_buf[info->xfer.rx_cnt++] = co_usart_regs->RBR;
             }
 
 RECV_COMPLETE:
@@ -1133,9 +1136,9 @@ RECV_COMPLETE:
             left_to_recv = num - info->xfer.rx_cnt;
 
             // prepare in advance for dma recv
-            if(lpusart->co_usart_dma_rx)
+            if(co_usart_dma_rx)
             {
-                CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)&info->xfer.rx_buf[info->xfer.rx_cnt], left_to_recv);
+                CO_USART_DmaUpdateRxConfig(co_usart_dma_rx, (uint32_t)&info->xfer.rx_buf[info->xfer.rx_cnt], left_to_recv);
             }
 
             if(left_to_recv == 0)
@@ -1143,12 +1146,12 @@ RECV_COMPLETE:
                 // Full
                 info->rx_status.rx_busy = 0;
 
-                lpusart->co_usart_regs->IER &= ~USART_IER_RX_LINE_STATUS_Msk;
+                co_usart_regs->IER &= ~USART_IER_RX_LINE_STATUS_Msk;
 
-                if(lpusart->co_usart_dma_rx)
+                if(co_usart_dma_rx)
                 {
-                    DMA_loadChannelFirstDescriptor(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[0]);
-                    DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+                    DMA_loadChannelFirstDescriptor(co_usart_dma_rx->instance, co_usart_dma_rx->channel, &co_usart_dma_rx->descriptor[0]);
+                    DMA_resumeChannel(co_usart_dma_rx->instance, co_usart_dma_rx->channel, co_usart_dma_rx->request);
                 }
 
                 if(info->cb_event != NULL)
@@ -1167,18 +1170,18 @@ RECV_COMPLETE:
 
         // need to add protection to check rxfifo in irqHandler for 'fake' timeout, that's caused by
         // we have try to receive bytes from rxfifo as many as possible so when timeout occurs, there maybe no bytes left in rxfifo
-        if(lpusart->co_usart_dma_rx)
+        if(co_usart_dma_rx)
         {
-            lpusart->co_usart_regs->IER |= USART_IER_RX_TIMEOUT_Msk;
+            co_usart_regs->IER |= USART_IER_RX_TIMEOUT_Msk;
 
-            DMA_loadChannelFirstDescriptor(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[0]);
-            DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+            DMA_loadChannelFirstDescriptor(co_usart_dma_rx->instance, co_usart_dma_rx->channel, &co_usart_dma_rx->descriptor[0]);
+            DMA_resumeChannel(co_usart_dma_rx->instance, co_usart_dma_rx->channel, co_usart_dma_rx->request);
 
             if(info->xfer.rx_cnt != 0)
             {
-                volatile uint32_t lsr = lpusart->co_usart_regs->LSR;
+                volatile uint32_t lsr = co_usart_regs->LSR;
                 // some flags in LSR are ROC, need to backup
-                lpusart->co_usart_regs->SCR = lsr;
+                co_usart_regs->SCR = lsr;
 
                 if(lsr & USART_LSR_RX_BUSY_Msk)
                 {
@@ -1205,12 +1208,12 @@ RECV_COMPLETE:
         }
         else if(lpusart->co_usart_irq)
         {
-            lpusart->co_usart_regs->IER |= USART_IER_RX_TIMEOUT_Msk   | \
+            co_usart_regs->IER |= USART_IER_RX_TIMEOUT_Msk   | \
                                            USART_IER_RX_DATA_REQ_Msk;
 
             if(info->xfer.rx_cnt != 0)
             {
-                if(lpusart->co_usart_regs->LSR & USART_LSR_RX_BUSY_Msk)
+                if(co_usart_regs->LSR & USART_LSR_RX_BUSY_Msk)
                 {
                     // do nothing if there's still data coming since we can let isr report later
                 }
@@ -1234,9 +1237,9 @@ RECV_COMPLETE:
             while(info->xfer.rx_cnt < info->xfer.rx_num)
             {
                 //wait unitl receive data is ready
-                while((lpusart->co_usart_regs->LSR & USART_LSR_RX_DATA_READY_Msk) == 0);
+                while((co_usart_regs->LSR & USART_LSR_RX_DATA_READY_Msk) == 0);
                 //read data
-                info->xfer.rx_buf[info->xfer.rx_cnt++] = lpusart->co_usart_regs->RBR;
+                info->xfer.rx_buf[info->xfer.rx_cnt++] = co_usart_regs->RBR;
             }
             info->rx_status.rx_busy = 0;
         }
@@ -1864,17 +1867,20 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
     uint32_t current_cnt, total_cnt, left_to_recv, bytes_in_fifo, dmaCurrentTargetAddress;
 
     LPUSART_INFO *info = lpusart->info;
+    USART_TypeDef *co_usart_regs = lpusart->co_usart_regs;
+    LPUSART_RX_DMA *co_usart_dma_rx = lpusart->co_usart_dma_rx;
+    uint8_t        *hw_rxfifo_buf = lpusart->hw_rxfifo_buf;
 
     // Check interrupt source
-    isr_reg = lpusart->co_usart_regs->ISR;
-    lpusart->co_usart_regs->ICR = isr_reg;
-    lpusart->co_usart_regs->ICR = 0;
+    isr_reg = co_usart_regs->ISR;
+    co_usart_regs->ICR = isr_reg;
+    co_usart_regs->ICR = 0;
 
     // Fetch backuped LSR in receive routine
-    lsr_reg = lpusart->co_usart_regs->LSR | lpusart->co_usart_regs->SCR;
+    lsr_reg = co_usart_regs->LSR | co_usart_regs->SCR;
 
 #if LPUSART_DRIVER_DEBUG
-    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_0, P_DEBUG, "Enter co_uart irq, isr: 0x%x, lsr: 0x%x-%x, fcnr: 0x%x, rx_cnt:%d", isr_reg, lsr_reg, lpusart->co_usart_regs->SCR, lpusart->co_usart_regs->FCNR, info->xfer.rx_cnt);
+    ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_0, P_DEBUG, "Enter co_uart irq, isr: 0x%x, lsr: 0x%x-%x, fcnr: 0x%x, rx_cnt:%d", isr_reg, lsr_reg, co_usart_regs->SCR, co_usart_regs->FCNR, info->xfer.rx_cnt);
 #endif
 
 
@@ -1916,7 +1922,7 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
         {
             // refer to receive API for the rxfifo water level check
             // the timeout interrupt may be blocked for a while and then new data is coming, in this case we just defer this round of handling
-            if((lpusart->co_usart_regs->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos) && !(lsr_reg & USART_LSR_RX_BUSY_Msk))
+            if((co_usart_regs->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos) && !(lsr_reg & USART_LSR_RX_BUSY_Msk))
             {
 #ifdef PM_FEATURE_ENABLE
                 LOCK_SLEEP(0, 1);
@@ -1925,23 +1931,24 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
 
                 current_cnt = info->xfer.rx_cnt;
 
-                if(lpusart->co_usart_dma_rx)
+                if(co_usart_dma_rx)
                 {
                     // suspend dma channel so that we can get the correct dma transfer size
-                    DMA_suspendChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
-                    dmaCurrentTargetAddress = DMA_getChannelCurrentTargetAddress(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel);
+                    DMA_suspendChannel(co_usart_dma_rx->instance, co_usart_dma_rx->channel, co_usart_dma_rx->request);
+                    dmaCurrentTargetAddress = DMA_getChannelCurrentTargetAddress(co_usart_dma_rx->instance, co_usart_dma_rx->channel);
 
 #if LPUSART_DRIVER_DEBUG
                     ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_1, P_DEBUG, "uart recv timeout, dma address: 0x%x", dmaCurrentTargetAddress);
 #endif
-                    if((dmaCurrentTargetAddress >= (uint32_t)lpusart->hw_rxfifo_buf) && (dmaCurrentTargetAddress <= ((uint32_t)lpusart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
+                    if((dmaCurrentTargetAddress >= (uint32_t)hw_rxfifo_buf) && (dmaCurrentTargetAddress <= ((uint32_t)hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN)))
                     {
                         // user buffer is full and rxfifo buffer isn't, resume dma transfer
-                        if(dmaCurrentTargetAddress != ((uint32_t)lpusart->hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN))
+                        if(dmaCurrentTargetAddress != ((uint32_t)hw_rxfifo_buf + HW_RXFIFO_BUFFER_LEN))
                         {
-                            DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+                            DMA_resumeChannel(co_usart_dma_rx->instance, co_usart_dma_rx->channel, co_usart_dma_rx->request);
                         }
                         current_cnt = info->xfer.rx_num;
+                        info->xfer.rx_cnt = current_cnt;
                         goto RECV_COMPLETE;
                     }
                     else
@@ -1952,7 +1959,7 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
 
                 total_cnt = info->xfer.rx_num;
 
-                bytes_in_fifo = lpusart->co_usart_regs->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos;
+                bytes_in_fifo = co_usart_regs->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos;
 
                 left_to_recv = total_cnt - current_cnt;
 
@@ -1963,7 +1970,7 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
                 {
                     while(i--)
                     {
-                        info->xfer.rx_buf[current_cnt++] = lpusart->co_usart_regs->RBR;
+                        info->xfer.rx_buf[current_cnt++] = co_usart_regs->RBR;
                     }
                 }
 
@@ -1972,14 +1979,14 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
                 // Check if required amount of data is received
                 if (current_cnt == total_cnt)
                 {
-                    if(lpusart->co_usart_dma_rx)
+                    if(co_usart_dma_rx)
                     {
 #if LPUSART_DRIVER_DEBUG
                         ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_2, P_DEBUG, "cpu recv complete in timeout event");
 #endif
                         // load descriptor and start DMA transfer
-                        DMA_loadChannelFirstDescriptor(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[2]);
-                        DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+                        DMA_loadChannelFirstDescriptor(co_usart_dma_rx->instance, co_usart_dma_rx->channel, &co_usart_dma_rx->descriptor[2]);
+                        DMA_resumeChannel(co_usart_dma_rx->instance, co_usart_dma_rx->channel, co_usart_dma_rx->request);
                     }
 
  RECV_COMPLETE:
@@ -1988,23 +1995,23 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
                     event |= ARM_USART_EVENT_RECEIVE_COMPLETE;
 
                     //Disable RDA interrupt
-                    lpusart->co_usart_regs->IER &= ~(USART_IER_RX_DATA_REQ_Msk | USART_IER_RX_TIMEOUT_Msk | USART_IER_RX_LINE_STATUS_Msk);
+                    co_usart_regs->IER &= ~(USART_IER_RX_DATA_REQ_Msk | USART_IER_RX_TIMEOUT_Msk | USART_IER_RX_LINE_STATUS_Msk);
 
                 }
                 else
                 {
                     event |= ARM_USART_EVENT_RX_TIMEOUT;
 
-                    if(lpusart->co_usart_dma_rx)
+                    if(co_usart_dma_rx)
                     {
                         // Prepare for next recv
                         left_to_recv = total_cnt - info->xfer.rx_cnt;
 
-                        CO_USART_DmaUpdateRxConfig(lpusart, (uint32_t)info->xfer.rx_buf + info->xfer.rx_cnt, left_to_recv);
+                        CO_USART_DmaUpdateRxConfig(co_usart_dma_rx, (uint32_t)info->xfer.rx_buf + info->xfer.rx_cnt, left_to_recv);
 
                         // load descriptor and start DMA transfer
-                        DMA_loadChannelFirstDescriptor(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, &lpusart->co_usart_dma_rx->descriptor[0]);
-                        DMA_resumeChannel(lpusart->co_usart_dma_rx->instance, lpusart->co_usart_dma_rx->channel, lpusart->co_usart_dma_rx->request);
+                        DMA_loadChannelFirstDescriptor(co_usart_dma_rx->instance, co_usart_dma_rx->channel, &co_usart_dma_rx->descriptor[0]);
+                        DMA_resumeChannel(co_usart_dma_rx->instance, co_usart_dma_rx->channel, co_usart_dma_rx->request);
 #if LPUSART_DRIVER_DEBUG
                         ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_3, P_DEBUG, "restart dma recv in timeout event, rx_cnt:%d, start address: 0x%x", info->xfer.rx_cnt, (uint32_t)info->xfer.rx_buf + info->xfer.rx_cnt);
 #endif
@@ -2029,7 +2036,7 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
 
         left_to_recv = total_cnt - current_cnt;
 
-        bytes_in_fifo = lpusart->co_usart_regs->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos;
+        bytes_in_fifo = co_usart_regs->FCNR >> USART_FCNR_RX_FIFO_NUM_Pos;
 
         // leave at least one byte in fifo to trigger timeout interrupt
         i = bytes_in_fifo - 1;
@@ -2041,7 +2048,7 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
 
         while(i--)
         {
-            info->xfer.rx_buf[current_cnt++] = lpusart->co_usart_regs->RBR;
+            info->xfer.rx_buf[current_cnt++] = co_usart_regs->RBR;
         }
 
         info->xfer.rx_cnt = current_cnt;
@@ -2052,19 +2059,19 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
             event |= ARM_USART_EVENT_RECEIVE_COMPLETE;
 
             //Disable RDA interrupt
-            lpusart->co_usart_regs->IER &= ~(USART_IER_RX_DATA_REQ_Msk | USART_IER_RX_TIMEOUT_Msk | USART_IER_RX_LINE_STATUS_Msk);
+            co_usart_regs->IER &= ~(USART_IER_RX_DATA_REQ_Msk | USART_IER_RX_TIMEOUT_Msk | USART_IER_RX_LINE_STATUS_Msk);
 
             info->rx_status.rx_busy = 0;
         }
     }
 
     if(((isr_reg & USART_ISR_TX_DATA_REQ_Msk) == USART_ISR_TX_DATA_REQ_Msk) || \
-       ((lpusart->co_usart_regs->IER & USART_IER_TX_DATA_REQ_Msk) && ((lpusart->co_usart_regs->FCNR & USART_FCNR_TX_FIFO_NUM_Msk) == 0)))
+       ((co_usart_regs->IER & USART_IER_TX_DATA_REQ_Msk) && ((co_usart_regs->FCNR & USART_FCNR_TX_FIFO_NUM_Msk) == 0)))
     {
         info->xfer.tx_cnt = info->xfer.tx_num;
         info->xfer.send_active = 0U;
         event |= ARM_USART_EVENT_SEND_COMPLETE;
-        lpusart->co_usart_regs->IER &= ~USART_IER_TX_DATA_REQ_Msk;
+        co_usart_regs->IER &= ~USART_IER_TX_DATA_REQ_Msk;
 
 #ifdef PM_FEATURE_ENABLE
         CHECK_TO_UNLOCK_SLEEP(1, 0);
