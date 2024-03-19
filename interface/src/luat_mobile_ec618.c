@@ -933,6 +933,9 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 		req.fakeCellBarTimerS = value;
 		req.enableFakeCellOptPresent = 1;
 		break;
+	case MOBILE_CONF_RESET_TO_FACTORY:
+		PsCfgResetAllUeConfig();
+		return 0;
 	default:
 		return -1;
 	}
