@@ -632,6 +632,13 @@
                         "rsize": -10000,
                         "fsize": 1024,
                         "dft": false
+                    },
+                    {
+                        "name": "LUAT_CONF_TLS_DISABLE_ECP_ECDHE",
+                        "content": "禁用椭圆算法,对兼容椭圆和AES的https网站能起到加速效果",
+                        "rsize": -10000,
+                        "fsize": 1024,
+                        "dft": false
                     }
                 ]
             },
