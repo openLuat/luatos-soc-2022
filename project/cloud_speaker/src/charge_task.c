@@ -30,6 +30,6 @@ static void charge_task(void *param)
 
 void charge_task_init(void)
 {
-    int result = luat_rtos_task_create(&charge_task_handle, 256, 20, "charge task", charge_task, NULL, NULL);
+    int result = luat_rtos_task_create(&charge_task_handle, 4096, 20, "charge task", charge_task, NULL, NULL);
     LUAT_DEBUG_PRINT("cloud_speaker_charge_task create task result %d", result);
 }
