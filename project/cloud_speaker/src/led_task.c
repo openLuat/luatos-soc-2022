@@ -46,6 +46,6 @@ static void led_task(void *param)
 
 void led_task_init(void)
 {
-	int result = luat_rtos_task_create(&led_task_handle, 256, 20, "led task", led_task, NULL, NULL);
+	int result = luat_rtos_task_create(&led_task_handle, 2048, 20, "led task", led_task, NULL, NULL);
     LUAT_DEBUG_PRINT("cloud_speaker_led_task create task result %d", result);
 }
