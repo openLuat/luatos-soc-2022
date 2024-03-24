@@ -755,6 +755,20 @@ void luat_mobile_rf_test_mode(uint8_t uart_id, uint8_t on_off);
  * @return 无
  */
 void luat_mobile_rf_test_input(char *data, uint32_t data_len);
+
+
+/**
+ * @brief 是否允许基站时间同步给本地时间
+ * @param on_off 0不允许，其他允许
+ */
+void luat_mobile_set_sync_time(uint8_t on_off);
+
+/**
+ * @brief 查看当前是否允许基站时间同步给本地时间
+ * @return =0不允许，其他允许
+ */
+uint8_t luat_mobile_get_sync_time(void);
+
 /** @}*/
 
 #endif

@@ -971,3 +971,10 @@ void luat_mobile_rf_test_mode(uint8_t uart_id, uint8_t on_off)
 {
 	soc_mobile_rf_test_mode(uart_id, on_off);
 }
+
+
+static uint8_t luat_mobile_sync_time_enable = 1;
+uint8_t soc_mobile_is_sync_time_enable(void) {return luat_mobile_sync_time_enable;}
+
+void luat_mobile_set_sync_time(uint8_t on_off) {luat_mobile_sync_time_enable = on_off;}
+uint8_t luat_mobile_get_sync_time(void) {return luat_mobile_sync_time_enable;}
