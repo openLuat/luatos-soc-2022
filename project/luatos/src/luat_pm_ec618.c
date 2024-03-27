@@ -29,21 +29,17 @@ static const char slpStateText[5][5]={{"Actv"},{"Idle"},{"Slp1"},{"Slp2"},{"Hibn
 static const char wakeupSrcStr[3][4] = {{"POR"}, {"RTC"}, {"IO"}};
 extern void soc_set_usb_sleep(uint8_t onoff);
 uint32_t inParam = 0xAABBCCDD;
-
-static int luat_dtimer_cb(lua_State *L, void* ptr) {
-    rtos_msg_t* msg = (rtos_msg_t*)lua_topointer(L, -1);
-    lua_getglobal(L, "sys_pub");
-    if (lua_isfunction(L, -1)) {
-        lua_pushstring(L, "DTIMER_WAKEUP");
-        lua_pushinteger(L, msg->arg1);
-        lua_call(L, 2, 0);
-    }
-    return 0;
-}
+extern int luat_dtimer_cb(lua_State *L, void* ptr);
 
 static void appTimerExpFunc(uint8_t id) {
     wakeup_deeptimer_id = id;
     LLOGI("DeepTimer Wakeup by id=%d", id);
+    if (luat_msgbus_is_ready()) {
+        rtos_msg_t msg = {0};
+        msg.handler = luat_dtimer_cb;
+        msg.arg1 = wakeup_deeptimer_id;
+        luat_msgbus_put(&msg, 0);
+    }
 }
 
 static slpManSlpState_t luat_user_slp_state(void)
@@ -186,6 +182,7 @@ void luat_pm_init(void) {
     slpManRegisterUsrSlpDepthCb(luat_user_slp_state);
     if (wakeup_deeptimer_id != 0xff)
     {
+    	luat_msgbus_init();
         rtos_msg_t msg = {0};
         msg.handler = luat_dtimer_cb;
         msg.arg1 = wakeup_deeptimer_id;

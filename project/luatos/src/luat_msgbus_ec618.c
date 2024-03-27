@@ -64,4 +64,8 @@ uint32_t luat_msgbus_freesize(void) {
 }
 
 uint8_t luat_msgbus_is_empty(void) {return !get_event_cnt(prvTaskHandle);}
+
+uint8_t luat_msgbus_is_ready(void) {
+	return prvTaskHandle?1:0;
+}
 #endif
