@@ -487,6 +487,7 @@ int luat_uart_wait_485_tx_done(int uartid)
 	int cnt = 0;
     if (luat_uart_exist(uartid)){
 		if (g_s_serials[uartid].rs485_param_bit.is_485used) {
+			luat_stop_rtos_timer(g_s_serials[uartid].rs485_timer);
 			while(!Uart_IsTSREmpty(uartid)) {cnt++;}
 			GPIO_Output(g_s_serials[uartid].rs485_pin, g_s_serials[uartid].rs485_param_bit.rx_level);
 		}
