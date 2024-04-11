@@ -27,6 +27,7 @@
 
 #define LUAT_USE_IOTAUTH 1
 #define LUAT_USE_WEBSOCKET 1
+// #define LUAT_USE_ULWIP 1
 
 #define LUAT_USE_SOFT_UART 1
 //----------------------------

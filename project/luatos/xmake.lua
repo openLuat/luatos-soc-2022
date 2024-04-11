@@ -360,6 +360,13 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/ws2812/src/*.c")
     add_files(LUATOS_ROOT.."components/ws2812/binding/*.c")
 
+    -- ulwip
+    add_includedirs(LUATOS_ROOT.."components/network/ulwip/include",{public = true})
+    -- add_files(LUATOS_ROOT.."components/network/ulwip/src/*.c")
+    add_files(LUATOS_ROOT.."components/network/ulwip/binding/*.c")
+    add_includedirs(LUATOS_ROOT.."components/network/adapter_lwip2",{public = true})
+    add_files(LUATOS_ROOT.."components/network/adapter_lwip2/*.c")
+
     
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "/interface/include")
