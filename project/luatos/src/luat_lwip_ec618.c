@@ -2035,6 +2035,9 @@ void net_lwip_register_adapter(uint8_t adapter_index)
 
 int net_lwip_check_all_ack(int socket_id)
 {
+	if (!prvlwip.socket[socket_id].pcb.tcp) {
+		return 0;
+	}
 	if (!llist_empty(&prvlwip.socket[socket_id].wait_ack_head))
 	{
 		NET_ERR("socekt %d not all ack", socket_id);
