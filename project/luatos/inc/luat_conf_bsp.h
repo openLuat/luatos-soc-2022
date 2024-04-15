@@ -74,7 +74,8 @@
 // #define LUAT_USE_ERCOAP 1
 // #define LUAT_USE_SQLITE3 1
 // #define LUAT_USE_WS2812 1
-#define LUAT_USE_YMODEM 1
+// #define LUAT_USE_YMODEM 1
+// #define LUAT_USE_HT1621 1
 
 //----------------------------
 // 高通字体, 需配合芯片使用
