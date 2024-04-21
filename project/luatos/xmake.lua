@@ -362,7 +362,7 @@ target(TARGET_NAME)
 
     -- ulwip
     add_includedirs(LUATOS_ROOT.."components/network/ulwip/include",{public = true})
-    -- add_files(LUATOS_ROOT.."components/network/ulwip/src/*.c")
+    add_files(LUATOS_ROOT.."components/network/ulwip/src/*.c")
     add_files(LUATOS_ROOT.."components/network/ulwip/binding/*.c")
     add_includedirs(LUATOS_ROOT.."components/network/adapter_lwip2",{public = true})
     add_files(LUATOS_ROOT.."components/network/adapter_lwip2/*.c")
