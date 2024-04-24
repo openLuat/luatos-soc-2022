@@ -179,6 +179,12 @@ add_defines("sprintf=sprintf_")
 add_defines("snprintf=snprintf_")
 add_defines("vsnprintf=vsnprintf_")
 
+-- 开启网络IP包拦截
+if USER_PROJECT_NAME == "luatos" then
+    add_defines("LUAT_NET_IP_INTERCEPT=1")
+    add_ldflags("-Wl,--wrap=ps_ip_input",{force = true})
+end
+
 -- ==============================
 -- === includes =====
 
