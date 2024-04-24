@@ -281,6 +281,7 @@ static const luaL_Reg loadedlibs[] = {
 #endif
 #ifdef LUAT_USE_ULWIP
   {"ulwip", luaopen_ulwip},
+  {"napt",  luaopen_napt},
 #endif
 #ifdef LUAT_USE_HT1621
   {"ht1621", luaopen_ht1621},
