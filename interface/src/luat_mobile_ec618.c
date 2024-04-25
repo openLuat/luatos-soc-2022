@@ -872,7 +872,7 @@ static CmsRetId luatSetPSMSettingTest(UINT8 psmMode)
 static void luat_mobile_set_attach_type_ec618(UINT16 paramSize, void *pParam)
 {
 	uint32_t value;
-	memcpy(value, pParam, 4);
+	memcpy(&value, pParam, 4);
 	DBG("CE MODE %d", value);
 	if (value <= CMI_PS_MODE_1_OF_OPERATION)
 	{
