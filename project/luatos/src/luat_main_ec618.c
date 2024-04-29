@@ -246,6 +246,8 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 static void luatos_task_init(void)
 {
 	GPIO_GlobalInit(NULL);
+extern void soc_aon_gpio_save_state_enable(uint8_t on_off);
+	soc_aon_gpio_save_state_enable(1);
 // https://gitee.com/openLuat/LuatOS/issues/I6H86Q
 #ifdef LUAT_UART0_FORCE_USER
 	extern void soc_uart0_set_log_off(uint8_t is_off);

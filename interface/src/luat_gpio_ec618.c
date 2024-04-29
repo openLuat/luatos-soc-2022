@@ -244,6 +244,13 @@ int luat_gpio_setup(luat_gpio_t *gpio){
 int luat_gpio_set(int pin, int level){
     if (((uint32_t)(pin)) >= HAL_GPIO_MAX) return -1;
     GPIO_Output(pin, level);
+#ifdef __LUATOS__
+    extern int soc_aon_gpio_save_state(uint32_t gpio_sn, uint32_t state);
+    if ((pin >= HAL_GPIO_20) && (pin <= HAL_GPIO_28))
+    {
+    	soc_aon_gpio_save_state(pin - 20, level?1:2);
+    }
+#endif
     return 0;
 }
 
@@ -286,6 +293,13 @@ void luat_gpio_close(int pin){
     }
     GPIO_ExtiSetCB(pin, NULL, 0);
     GPIO_ExtiConfig(pin, 0,0,0);
+#ifdef __LUATOS__
+    if ((pin >= HAL_GPIO_20) && (pin <= HAL_GPIO_28))
+    {
+    	//soc_aon_gpio_save_state_enable(1);
+    	soc_aon_gpio_save_state(pin - 20, 0);
+    }
+#endif
     return ;
 }
 int luat_gpio_set_irq_cb(int pin, luat_gpio_irq_cb cb, void* args)
