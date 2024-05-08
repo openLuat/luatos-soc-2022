@@ -37,22 +37,21 @@ luat_rtos_task_handle task2_handle;
 
 typedef struct
 {
-	uint8_t echo_pin;
 	uint8_t is_finish;
 	uint64_t start_tick;
 	uint64_t end_tick;
 	luat_gpio_cfg_t gpio_cfg;
 } hcsr04_t;
-static hcsr04_t g_s_hcsr04 = {.echo_pin = ECHO_PIN};
+static hcsr04_t g_s_hcsr04;
 static int gpio_isr(int pin, void *args)
 {
-	if (pin == g_s_hcsr04.echo_pin)
+	if (pin == ECHO_PIN)
 	{
 		if (luat_gpio_get(pin))
 		{
 			g_s_hcsr04.start_tick = luat_mcu_tick64();
 			luat_gpio_cfg_t gpio_cfg = {0};
-			gpio_cfg.pin = g_s_hcsr04.echo_pin;
+			gpio_cfg.pin = ECHO_PIN;
 			gpio_cfg.mode = LUAT_GPIO_IRQ;
 			gpio_cfg.irq_type = LUAT_GPIO_FALLING_IRQ;
 			gpio_cfg.pull = LUAT_GPIO_PULLUP;
@@ -80,7 +79,7 @@ static void task1(void *param)
 		luat_gpio_set(TRIGGER_PIN, LUAT_GPIO_HIGH);
 		delay_us(10);
 		luat_gpio_set(TRIGGER_PIN, LUAT_GPIO_LOW);
-		gpio_cfg.pin = g_s_hcsr04.echo_pin;
+		gpio_cfg.pin = ECHO_PIN;
 		gpio_cfg.mode = LUAT_GPIO_IRQ;
 		gpio_cfg.irq_type = LUAT_GPIO_RISING_IRQ;
 		gpio_cfg.pull = LUAT_GPIO_PULLDOWN;
@@ -93,7 +92,7 @@ static void task1(void *param)
 			luat_rtos_task_sleep(1);
 			delay++;
 		}
-		luat_gpio_close(g_s_hcsr04.echo_pin);
+		luat_gpio_close(ECHO_PIN);
 		if (g_s_hcsr04.is_finish && delay < TIMEOUT_TIMES)
 		{
 			float distance = ((g_s_hcsr04.end_tick - g_s_hcsr04.start_tick) / luat_mcu_us_period()) * 340 / 10000 / 2 ;
