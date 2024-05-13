@@ -1,9 +1,10 @@
 local TARGET_NAME = "example_lbsLoc"
 local LIB_DIR = "$(buildir)/".. TARGET_NAME .. "/"
 local LIB_NAME = "lib" .. TARGET_NAME .. ".a "
-
+includes(SDK_TOP.."/luatos_lwip_socket")
 target(TARGET_NAME)
     set_kind("static")
+    add_deps("luatos_lwip_socket")
     set_targetdir(LIB_DIR)
     
     --加入代码和头文件
