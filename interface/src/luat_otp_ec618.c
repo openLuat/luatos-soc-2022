@@ -41,7 +41,7 @@ uint8_t QSPI_FLASH_OTP_Handle(FLASH_OTP_OPS opType, uint32_t addr, uint8_t* bufP
 int luat_otp_read(int zone, char* buff, size_t offset, size_t len) {
     uint8_t ret = 0;
     uint32_t addr = ((uint32_t)zone << 12) + offset;
-    if (zone >= 1 && zone <= 3) {
+    if (zone >= 1 && zone <= 3 && ((offset + len) <= 128)) {
         if (offset + len > luat_otp_size(zone)) {
             len = luat_otp_size(zone) - offset;
         }
@@ -58,7 +58,7 @@ int luat_otp_read(int zone, char* buff, size_t offset, size_t len) {
 int luat_otp_write(int zone, char* buff, size_t offset, size_t len) {
     uint8_t ret = 0;
     uint32_t addr = ((uint32_t)zone << 12) + offset;
-    if (zone >= 1 && zone <= 3) {
+    if (zone >= 1 && zone <= 3  && ((offset + len) <= 128)) {
         if (offset + len > luat_otp_size(zone)) {
             len = luat_otp_size(zone) - offset;
         }
