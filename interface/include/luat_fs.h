@@ -134,6 +134,9 @@ size_t luat_fs_fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
  */
 size_t luat_fs_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 
+
+int luat_fs_fflush(FILE *stream);
+
 /**
  * @brief 删除文件,类似于remove
  * @param filename[IN] 文件路径

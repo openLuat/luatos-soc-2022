@@ -157,6 +157,15 @@ size_t luat_vfs_ec618_fwrite(__attribute__((unused))void* userdata, const void *
         return 0;
     return ret;
 }
+
+int luat_vfs_ec618_fflush(__attribute__((unused))void* userdata, FILE *stream) {
+    //DBG("luat_fs_fwrite fd=%p size=%ld nmemb=%ld", stream, size, nmemb);
+    lfs_ssize_t ret = LFS_fileSync((lfs_file_t*)stream);
+    if (ret < 0)
+        return 0;
+    return ret;
+}
+
 int luat_vfs_ec618_remove(__attribute__((unused))void* userdata, const char *filename) {
     const char* dst = check_path(filename);
     if (dst == NULL)
@@ -368,7 +377,8 @@ const struct luat_vfs_filesystem vfs_fs_ec618 = {
         T(feof),
         T(ferror),
         T(fread),
-        T(fwrite)
+        T(fwrite),
+        T(fflush)
     }
 };
 
@@ -493,6 +503,10 @@ __attribute__((weak)) size_t luat_fs_fread(void *ptr, size_t size, size_t nmemb,
 
 __attribute__((weak)) size_t luat_fs_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
     return luat_vfs_ec618_fwrite(NULL, ptr, size, nmemb, stream);
+}
+
+__attribute__((weak)) int luat_fs_fflush(FILE *stream) {
+    return luat_vfs_ec618_fflush(NULL, stream);
 }
 
 __attribute__((weak)) int luat_fs_remove(const char *filename) {
