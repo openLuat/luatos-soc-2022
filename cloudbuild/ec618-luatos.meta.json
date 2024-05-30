@@ -995,6 +995,20 @@
                         "rsize": 27888,
                         "children": [
                             {
+                                "name": "@fonts_comment1",
+                                "content" : "从V1110开始,U8G2库的字体数据有更新. 如果有从V1110之前的版本差分升级到V1110或以上的版本,请注意差分包的大小",
+                                "rsize": 1024,
+                                "fsize": 304416,
+                                "dft": false
+                            },
+                            {
+                                "name": "@fonts_comment2",
+                                "content" : "高级选项里, 有选取老版本的字体数据的配置项, 仅供有上述低版本差分升级的用户使用, 新用户无需关注",
+                                "rsize": 1024,
+                                "fsize": 304416,
+                                "dft": false
+                            },
+                            {
                                 "name": "USE_U8G2_SARASA_ENGLISH",
                                 "content": "等宽字体 英文字体和特殊符号",
                                 "rsize": 121216,
