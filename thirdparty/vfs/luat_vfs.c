@@ -100,6 +100,7 @@ extern size_t luat_vfs_ec618_fwrite(__attribute__((unused))void* userdata, const
 extern int luat_vfs_ec618_remove(__attribute__((unused))void* userdata, const char *filename) ;
 extern int luat_vfs_ec618_rename(__attribute__((unused))void* userdata, const char *old_filename, const char *new_filename) ;
 extern int luat_vfs_ec618_fexist(__attribute__((unused))void* userdata, const char *filename);
+extern int luat_vfs_ec618_fflush(__attribute__((unused))void* userdata, FILE *stream);
 
 extern size_t luat_vfs_ec618_fsize(__attribute__((unused))void* userdata, const char *filename) ;
 extern int luat_vfs_ec618_truncate(__attribute__((unused))void* userdata, const char* filename, size_t len) ;
@@ -143,7 +144,8 @@ const struct luat_vfs_filesystem vfs_fs_ec618 = {
         T(feof),
         T(ferror),
         T(fread),
-        T(fwrite)
+        T(fwrite),
+        T(fflush)
     }
 };
 
@@ -348,7 +350,15 @@ size_t luat_fs_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) 
     return fd->fsMount->fs->fopts.fwrite(fd->fsMount->userdata, ptr, size, nmemb, fd->fd);
 }
 
-
+int luat_fs_fflush(FILE *stream) {
+    luat_vfs_fd_t* fd = getfd(stream);
+    if (fd == NULL)
+        return NULL;
+    if (fd->fsMount->fs->fopts.fflush != NULL) {
+        return fd->fsMount->fs->fopts.fflush(fd->fsMount->userdata, fd->fd);
+    }
+    return -1;
+}
 
 int luat_fs_remove(const char *filename) {
     luat_vfs_mount_t *mount = getmount(filename);

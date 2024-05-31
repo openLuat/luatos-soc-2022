@@ -22,6 +22,7 @@ struct luat_vfs_file_opts {
     int (*ferror)(void* fsdata, FILE *stream);
     size_t (*fread)(void* fsdata, void *ptr, size_t size, size_t nmemb, FILE *stream);
     size_t (*fwrite)(void* fsdata, const void *ptr, size_t size, size_t nmemb, FILE *stream);
+    int (*fflush)(void* fsdata, FILE *stream);
     void* (*mmap)(void* fsdata, FILE *stream);
 };
 
