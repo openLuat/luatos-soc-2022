@@ -133,6 +133,9 @@ int luat_fota_init(uint32_t start_address, uint32_t len, luat_spi_device_t* spi_
 	memset(g_s_fota.p_fota_file_head, 0, sizeof(CoreUpgrade_FileHeadCalMD5Struct));
 	g_s_fota.ota_state = OTA_STATE_IDLE;
 	BSP_QSPI_Erase_Safe(__SOC_OTA_INFO_DATA_SAVE_ADDRESS__, __FLASH_SECTOR_SIZE__);
+	CoreUpgrade_HeadCalMD5Struct Head = {0};
+	Head.MaigcNum = __APP_START_MAGIC__;
+	FLASH_writeSafe((uint8_t *)&Head, __SOC_OTA_INFO_DATA_SAVE_ADDRESS__, sizeof(Head));
 	OS_ReInitBuffer(&g_s_fota.data_buffer, __FLASH_SECTOR_SIZE__ * 4);
 	return 0;
 }
