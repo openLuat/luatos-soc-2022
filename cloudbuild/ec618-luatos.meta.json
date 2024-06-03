@@ -514,6 +514,13 @@
                         "dft": false
                     },
                     {
+                        "name": "@rev_master_select",
+                        "content": "使用代码库的最新代码,即master分支的最新代码",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
                         "name": "@rev_release_v1109",
                         "content": "选用V1109发行版的代码进行编译, 发布日期 2024.3.6",
                         "rsize": 0,
@@ -644,6 +651,13 @@
                         "name": "LUAT_CONF_TLS_DISABLE_ECP_ECDHE",
                         "content": "禁用椭圆算法,对兼容椭圆和AES的https网站能起到加速效果",
                         "rsize": -10000,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "LUAT_CONF_FONTS_OLD_STYLE",
+                        "content": "使用老的U8G2字体文件, 使得老版本差分升级时,差分包大小不会超标. 新用户不要选这个选项!!!",
+                        "rsize": 1024,
                         "fsize": 1024,
                         "dft": false
                     }
@@ -980,6 +994,20 @@
                         "content": "通用字体,适用于u8g2/disp/eink/lcd库",
                         "rsize": 27888,
                         "children": [
+                            {
+                                "name": "@fonts_comment1",
+                                "content" : "从V1110开始,U8G2库的字体数据有更新. 如果有从V1110之前的版本差分升级到V1110或以上的版本,请注意差分包的大小",
+                                "rsize": 1024,
+                                "fsize": 304416,
+                                "dft": false
+                            },
+                            {
+                                "name": "@fonts_comment2",
+                                "content" : "高级选项里, 有选取老版本的字体数据的配置项, 仅供有上述低版本差分升级的用户使用, 新用户无需关注",
+                                "rsize": 1024,
+                                "fsize": 304416,
+                                "dft": false
+                            },
                             {
                                 "name": "USE_U8G2_SARASA_ENGLISH",
                                 "content": "等宽字体 英文字体和特殊符号",

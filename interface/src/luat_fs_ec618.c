@@ -159,7 +159,7 @@ size_t luat_vfs_ec618_fwrite(__attribute__((unused))void* userdata, const void *
 }
 
 int luat_vfs_ec618_fflush(__attribute__((unused))void* userdata, FILE *stream) {
-    //DBG("luat_fs_fwrite fd=%p size=%ld nmemb=%ld", stream, size, nmemb);
+    //DBG("luat_vfs_ec618_fflush fd=%p", stream);
     lfs_ssize_t ret = LFS_fileSync((lfs_file_t*)stream);
     if (ret < 0)
         return 0;
