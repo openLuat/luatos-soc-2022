@@ -202,6 +202,7 @@ static int32_t luat_uart_cb(void *pData, void *pParam){
 }
 
 
+extern uint8_t luat_gpio_alt_check(uint8_t pin);
 
 int luat_uart_setup(luat_uart_t* uart) {
     if (!luat_uart_exist(uart->id)) {
@@ -299,14 +300,8 @@ int luat_uart_setup(luat_uart_t* uart) {
          	if (!g_s_serials[uart->id].rs485_timer) {
          		g_s_serials[uart->id].rs485_timer = luat_create_rtos_timer(luat_uart_wait_timer_cb, uart->id, NULL);
          	}
-          	if (g_s_serials[uart->id].rs485_pin >= HAL_GPIO_14 && g_s_serials[uart->id].rs485_pin <= HAL_GPIO_15)
-          	{
-          		GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_serials[uart->id].rs485_pin, 4), 0, 0, 0);
-          	}
-          	else
-          	{
-          		GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_serials[uart->id].rs485_pin, 0), 0, 0, 0);
-          	}
+         	uint8_t alt = luat_gpio_alt_check(g_s_serials[uart->id].rs485_pin);
+         	GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_serials[uart->id].rs485_pin, alt), alt, 0, 0);
          	//GPIO_IomuxEC618(GPIO_ToPadEC618(g_s_serials[uart->id].rs485_pin, 0), 0, 0, 0);
          	GPIO_Config(g_s_serials[uart->id].rs485_pin, 0, g_s_serials[uart->id].rs485_param_bit.rx_level);
 		 }

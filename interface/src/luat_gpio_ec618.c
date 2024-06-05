@@ -254,6 +254,18 @@ int luat_gpio_set(int pin, int level){
     return 0;
 }
 
+uint8_t luat_gpio_alt_check(uint8_t pin)
+{
+	for (uint8_t i = 0; i < GPIO_ALT_MAX; i++)
+	{
+		if (pin == gpio_alt[i].pin)
+		{
+			return gpio_alt[i].alt;
+		}
+	}
+	return 0;
+}
+
 int luat_gpio_get(int pin){
 	if (((uint32_t)(pin)) >= HAL_GPIO_QTY) return 0;
     uint8_t re;
