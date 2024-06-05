@@ -1052,11 +1052,14 @@ int32_t SPI_Transfer(const void *data_out, void *data_in, uint32_t num, SPI_RESO
 */
 uint32_t SPI_GetDataCount(SPI_RESOURCES *spi)
 {
-    uint32_t cnt;
+    uint32_t cnt, dmaCnt;
     if (!(spi->info->flags & SPI_FLAG_CONFIGURED))
         return 0;
     if (spi->dma)
-        cnt = DMA_getChannelCount(spi->dma->rx_instance, spi->dma->rx_ch);
+    {
+        dmaCnt = DMA_getChannelCount(spi->dma->rx_instance, spi->dma->rx_ch);
+        cnt = (dmaCnt > spi->info->xfer.rx_cnt) ? dmaCnt : spi->info->xfer.rx_cnt;
+    }
     else
         cnt = spi->info->xfer.rx_cnt;
     return cnt;
@@ -1345,7 +1348,6 @@ void SPI_IRQHandler(SPI_RESOURCES *spi)
     data_width = spi->info->data_width;
 
     mis = spi->reg->MIS;
-    spi->reg->ICR = mis & (SPI_ICR_RTIC_Msk | SPI_ICR_RORIC_Msk);
 
     // full duplex or Send only
     if(info->xfer.tx_buf)
@@ -1422,8 +1424,11 @@ void SPI_IRQHandler(SPI_RESOURCES *spi)
 
     if(info->xfer.rx_cnt == info->xfer.num)
     {
-        // disable interrupts no matter what kind of trasaction is
+        // disable and clear interrupts no matter what kind of trasaction is
+        // timeout is 2^7 = 128 cycles and timeout conter clears on every edge of clock, so the actual timeout is 64
+        // Note: make sure there's no data left in rxfifo, otherwise, timeout int will be triggered again on clear
         spi->reg->IMSC = 0;
+        spi->reg->ICR = SPI_ICR_RTIC_Msk | SPI_ICR_RORIC_Msk;
         info->status.busy = 0;
         if(info->cb_event)
         {
@@ -1438,6 +1443,7 @@ void SPI_IRQHandler(SPI_RESOURCES *spi)
     {
         // Handle errors
         // Overrun flag is set
+        spi->reg->ICR = SPI_ICR_RORIC_Msk;
         info->status.data_lost = 1U;
         if(info->cb_event)
             info->cb_event(ARM_SPI_EVENT_DATA_LOST);

@@ -189,6 +189,22 @@ typedef enum _SIG_EPAT_CCM_CFG_UE_OPERATION_MODE
 typedef UINT8   UeOperationModeT;
 
 /******************************************************************************
+ * Update SIM file control:
+ * 0:update SIM file immediately when GUTI/TAI/LAI/EPS update status change
+ * 1:delay update SIM file until perform CFUN0,except for ATTACH procedure,
+ *   will update SIM file immediately
+ * 2:delay update SIM file until perform CFUN0
+******************************************************************************/
+typedef enum UpdateSimControl_Tag
+{
+    UPDATE_SIM_IMMEDIATELY = 0,
+    UPDATE_SIM_UNTILL_POWER_OFF_EXCEPT_ATTACH = 1,
+    UPDATE_SIM_UNTILL_POWER_OFF = 2
+}UpdateSimControl;
+
+typedef UINT8   UpdateSimControlT;
+
+/******************************************************************************
  * PlmnType
  * HPLMN/EHPLMN/RPLMN/EPLMN.....
 ******************************************************************************/

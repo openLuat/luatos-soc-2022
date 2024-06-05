@@ -41,7 +41,7 @@ CmsRetId smsCMGRCMSSGetSmsMsgRecordCnf(UINT16 reqHandle, UINT16 rc, void *paras)
 CmsRetId smsCMGWSetSmsMsgRecordCnf(UINT16 reqHandle, UINT16 rc, void *paras);
 CmsRetId smsCMGDDelSmsMsgRecordCnf(UINT16 reqHandle, UINT16 rc, void *paras);
 CmsRetId smsCMGLSmsMsgRecordCnf(UINT16 reqHandle, UINT16 rc, void *paras);
-CmsRetId smsCPMSGetStorStatusCnf(UINT16 reqHandle, UINT16 rc, void *paras);
+CmsRetId smsGetSimStorStatusCnf(UINT16 reqHandle, UINT16 rc, void *paras);
 
 CmsRetId smsNewSMSRptUrc(CmiSmsNewMsgInd *pCmiMsgInd);
 CmsRetId smsProcNewSMSInd(void * paras);

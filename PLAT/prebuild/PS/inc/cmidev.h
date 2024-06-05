@@ -502,7 +502,7 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    pwrAttachWoEia;         /* whether or not attach without integrity protected while power on */
 
     BOOL    updateLociCtrlPresent;
-    BOOL    updateLociCtrl;
+    UINT8   updateLociCtrl;
     BOOL    savePlmnSelModePresent;
     BOOL    savePlmnSelMode;
 
@@ -647,7 +647,7 @@ typedef struct CmiDevGetExtCfgCnf_Tag
 
     UINT8   attachWithImsiCtrl;
     BOOL    pwrAttachWoEia;
-    BOOL    updateLociCtrl;
+    UINT8   updateLociCtrl;
     BOOL    enableRoam;
 
     BOOL    savePlmnSelMode;
@@ -2068,7 +2068,10 @@ typedef struct CmiDevRrcStatusInfo_Tag
     CmiDevIntraCellInfo     intraCellList[CMI_DEV_QENG_INTRA_NCELL_NUM]; //64 bytes
     CmiDevInterCellInfo     interCellList[CMI_DEV_QENG_INTER_NCELL_NUM]; //256 bytes
     UINT16                  drx;
-    UINT16                  srvd;
+    //Note: the bDetetcted Cell is used when rrcState is 'CMI_DEV_EM_RRC_CELL_SEARCH_STATE'
+    //If TRUE: indicator the reported cell info is the latest cell detected result
+    BOOL                    bIsDetectedCell;
+    UINT8                   rsvd;
 }CmiDevRrcStatusInfo;   //336 bytes
 
 /*
@@ -2712,8 +2715,13 @@ typedef struct CmiDevSetWifiScanCnf_Tag
     UINT8   bssid[CMI_DEV_MAX_WIFI_BSSID_NUM][6];       // mac address is fixed to 6 digits
 }CmiDevSetWifiScanCnf;
 
+typedef enum CmiDevTxPowerType_Tag
+{
+    CMI_DEV_TX_POWER_SET_FIXED_POWER = 0,               //set a fixed tx power
+    CMI_DEV_TX_POWER_SET_THRESHOLD_RPT = 1,             //set high or low tx power report threshold
+}CmiDevTxPowerType;
 
-typedef struct CmiDevSetTxPowerReq_Tag
+typedef struct CmiDevSetTxPowerFixedReq_Tag
 {
     // Tx Power should be set in CONNECTED mode
     // PHY will release this value when leave CONNECT mode
@@ -2732,6 +2740,24 @@ typedef struct CmiDevSetTxPowerReq_Tag
     BOOL            fixedPowerPresent;
     INT8            fixedPower;
     UINT16          rsvd;
+}CmiDevSetTxPowerFixedReq;
+
+typedef struct CmiDevSetTxPowerThresholdRptReq_Tag
+{
+    BOOL                            highTxThesholdPresent;
+    BOOL                            lowTxThesholdPresent;
+    //High Tx power report threshold, [-45...23]dbm; If value is 127, treat it invalid
+    INT8                            highTxTheshold;
+    //Low Tx power report threshold, [-45...23]dbm; If value is 127, treat it invalid
+    INT8                            lowTxTheshold;
+}CmiDevSetTxPowerThresholdRptReq;
+
+typedef struct CmiDevSetTxPowerReq_Tag
+{
+    CmiDevTxPowerType               reqType;
+    UINT8                           rsvd[3];
+    CmiDevSetTxPowerFixedReq        setTxPowerFixedReq;
+    CmiDevSetTxPowerThresholdRptReq setTxPowerThreshRptReq;
 }CmiDevSetTxPowerReq;
 
 typedef CamCmiEmptySig CmiDevSetTxPowerCnf;
@@ -2767,7 +2793,13 @@ typedef CamCmiEmptySig CmiDevGetBarCellReq;
 /******************************************************************************
  * CMI_DEV_GET_BAR_CELL_CNF
 ******************************************************************************/
-#define     CMI_MAX_BAR_CELL_NUM    8
+#define     CMI_MAX_BAR_CELL_NUM    16 //8(ATCMD barCell) + 8(NVM NAS fakecell barCell)
+
+typedef enum CmiCellBarredCauseTag
+{
+    CMI_CELL_BARRED_BY_NAS_FAKECELL = 0,        //barred for ECCFG="FakeCellOpt", 65534
+    CMI_CELL_BARRED_BY_ATCMD = 1,               //barred for AT+ECBARCELL
+}CmiCellBarredCause;
 
 typedef struct CmiDevBarCellList_Tag
 {
@@ -2777,7 +2809,8 @@ typedef struct CmiDevBarCellList_Tag
     //1-65534: remaining vaild time; 65535 - inifinity
     UINT16                  remainBarTimeS;
     UINT16                  phyCellId;
-    UINT16                  rsvd;
+    UINT8                   barCause;
+    UINT8                   rsvd;
     UINT32                  earfcn;
 }CmiDevBarCellList;
 
@@ -2796,6 +2829,7 @@ typedef enum CmiDevRrcEventTypeEnum_Tag
 {
     CMI_DEV_RRC_NONE = 0,
     CMI_DEV_RRC_CELL_CHANGED = 1,       /* UE reselect/handover/reestablish to another cell and success */
+    CMI_DEV_RRC_ESTABLISH_FAIL_CAUSE = 2,   /* report rrc establish fail reason */
 }CmiDevRrcEventTypeEnum;
 
 typedef struct CmiDevErrcCellChangedInd_Tag
@@ -2821,12 +2855,22 @@ typedef struct CmiDevErrcCellChangedInd_Tag
     UINT16                  rsvd2;
 }CmiDevErrcCellChangedInd;
 
+typedef enum CmiDevErrcEstablishFailCauseTag
+{
+    CMI_DEV_RRC_CESTABLISH_FAIL_OTHERS                  = 0,    //prach fail or phy reset or and so on
+    CMI_DEV_RRC_CESTABLISH_FAIL_T300_EXPIRY             = 1,    //T300 expiry
+    CMI_DEV_RRC_CESTABLISH_FAIL_REJECTED_BY_NW          = 2,    //reject by NW, RrcConnectionReject
+    CMI_DEV_RRC_CESTABLISH_FAIL_ACCESS_BARRING_CHECK    = 3,    //barred by access barring check
+    CMI_DEV_RRC_CESTABLISH_FAIL_RESELECTION             = 4,    //aborted by reselection
+}CmiDevErrcEstablishFailCause;
+
 typedef struct CmiDevErrcEventInd_Tag
 {
-    UINT8   eventType;          // CmiDevRrcEventTypeEnum
-    UINT8   rsvd[3];
+    UINT8   eventType; // CmiDevRrcEventTypeEnum
+    UINT8   rsvd[2];
 
-    CmiDevErrcCellChangedInd    cellChangedInd;
+    CmiDevErrcEstablishFailCause    establishFailCause;
+    CmiDevErrcCellChangedInd        cellChangedInd;
 }CmiDevErrcEventInd;
 
 /******************************************************************************

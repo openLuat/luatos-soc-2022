@@ -168,7 +168,7 @@ typedef enum atecMoSmsType_enum
 #define ATC_CSMP_1_VP_ENHANCED_STR_MAX_LEN      15      /* (PSIL_SMS_VP_OCTET_MAX_LENGTH *2) + 1 */
 #define ATC_CSMP_1_VP_ENHANCED_STR_DEFAULT      NULL
 #define ATC_CSMP_2_PID_VAL_MIN                  0
-#define ATC_CSMP_2_PID_VAL_MAX                  1
+#define ATC_CSMP_2_PID_VAL_MAX                  255
 #define ATC_CSMP_2_PID_VAL_DEFAULT              0
 #define ATC_CSMP_3_DCS_VAL_MIN                  0
 #define ATC_CSMP_3_DCS_VAL_MAX                  255
@@ -272,12 +272,28 @@ typedef struct AtecConcatSmsBuf_TAG
     osTimerId_t             guardTimer;         /* Clean the buffer after guardTimer expired */
 }AtecConcatSmsBuf;
 
-typedef struct AtecSmsCPMSinfo_TAG
+
+typedef struct AtecSmsGetSimStorInfoTag
 {
-    BOOL                    bSuspendCPMS;       /* +CPMS? is suspended due to checking SMSFULL */
-    BOOL                    bPendingCPMS;       /* +CPMS? is pending */
-    UINT16                  pendingCPMSHdlr;
-}AtecSmsCPMSinfo;
+    union
+    {
+        struct
+        {
+            UINT8   bCPMSSet    : 1;    /* CMI_SMS_OPER_STORE_INFO_SETTING */
+            UINT8   bCPMSGet    : 1;    /* CMI_SMS_OPER_STORE_INFO_GETTING */
+            UINT8   bCMGD       : 1;    /* CMI_SMS_OPER_DEL_INFO_GETTING */
+            UINT8   bSMSFULL    : 1;    /* CMI_SMS_OPER_IS_SMSFULL */
+            UINT8   rsvd        : 4;
+        }flag;
+        UINT8 mask;
+    }pendingReq;
+
+    CmiSmsOperationMode currentReq;
+
+    UINT16 pendingHdlrCPMSSet;
+    UINT16 pendingHdlrCPMSGet;
+    UINT16 pendingHdlrCMGD;
+}AtecSmsGetSimStorInfo;
 
 /******************************************************************************
  *****************************************************************************
@@ -321,6 +337,7 @@ BOOL *smsECCMGRWaitSimFlag(void);
 
 BOOL SmsCbmDisplayFormat(UINT8 chanId, UINT8 smsFormat, CmiSmsDisplayCmd showCmd, PsilSmsStoreItemInfo *pSmsReadInfo, AtOutPdu *pAtRspPdu);
 BOOL SmsStatusRptDisplayFormat(UINT8 chanId, UINT8 smsFormat, CmiSmsDisplayCmd showCmd, PsilSmsStoreItemInfo *pSmsReadInfo, AtOutPdu *pAtRspPdu);
+void smsGetSimStorageInfo(UINT32 atHandle, CmiSmsOperationMode mode);
 
 #endif
 

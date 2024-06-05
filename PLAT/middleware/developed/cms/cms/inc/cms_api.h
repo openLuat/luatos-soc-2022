@@ -99,6 +99,7 @@ typedef enum _SIG_EPAT_cmsSigId_Enum
     SIG_CMS_UTC_TIME_LOCAL_REQ,     // C2A_UTC_TIME_LOCAL_REQ
     SIG_CMS_UTC_TIME_DCXO_REQ,           // C2A_UTC_TIME_DCXO_REQ
     SIG_CMS_CP_BTOFFSET_UPD_REQ,	// CP indicate ap to update BT offset
+    SIG_CMS_TX_PWR_RPT,             // C2A_COMM_TEST_REQ
     SIG_CMS_APMU_COMM_TEST_REQ,     // C2A_COMM_TEST_REQ
     SIG_CMS_CP_PAGING_EVENT_IND_ISR,    //CmsCpPagingEventIndIsr
     SIG_CMS_SIM_HOT_SWAP_IND,       //CmsSimHotSwapInd--fast signal

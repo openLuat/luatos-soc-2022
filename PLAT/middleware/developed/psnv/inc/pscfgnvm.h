@@ -136,6 +136,7 @@ typedef enum _EPAT_PsConfigParamId_Enum
     CERRC_CFG_MEAS_ADJUST_SETTING,                  /* TLV, CerrcCcmMeasAdjustConfig, AT+ECMEASCFG */
     CERRC_CFG_CFUN_CLEAR_BARCELL,                   /* TV,  BOOL cfunClrBarCell */
     CERRC_CFG_ENABLE_LOGGED_MDT,                    /* TV,  BOOL enableLoggedMDT */
+    CERRC_CFG_TX_POWER_THRESHOLD_RPT,               /* TLV, CerrcTxPowerThresholdRptCfg */
     /*
      * !!!!  PARAM ID !!!!
      * 1> Only allowed

@@ -122,6 +122,8 @@ void nd6_ra_retrans_timer_handler(void *arg);
 #if PS_ENABLE_TCPIP_HIB_SLEEP2_MODE
 
 struct nd6_prefix_list_entry *nd6_new_onlink_prefix_info(ip6_addr_t *prefix, struct netif *netif);
+struct nd6_router_list_entry *nd6_get_default_router_info_by_cid(u8_t cid);
+void nd6_add_default_router_info(u8_t cid, ip6_addr_t *src_addr, u32_t valid_time, u8_t flags);
 
 #endif
 

@@ -35,6 +35,18 @@
 #undef      PS_ENABLE_LPP_LCS_FEATURE   /* Cat1 disable LCS feature */
 //#define PS_ENABLE_LPP_LCS_FEATURE
 
+#define      PS_ENABLE_UP_OPT_FEATURE         /* TBD, now suggest always enable. Cat1 enable UP-opt feature */
+#define      PS_ENABLE_TEST_LOOP_BACK_MODE_FEATURE  /* Except 718S, enable TEST LOOP BACK MODE feature */
+#define      PS_ENABLE_SMS_FEATURE                  /* Except 718S, enable SMS feature */
+#define      PS_ENABLE_WIFISCAN_FEATURE             /* Except 718S, enable WIFISCAN feature */
+#define      PS_ENABLE_UICC_USAT_FEATURE            /* Except 718S, enable SIM STK feature */
+#define      PS_ENABLE_CP_OPT_FEATURE               /* Except 718S, enable Control Plane opt feature */
+#define      PS_ENABLE_RATE_CTRL_FEATURE            /* Except 718S, enable PLMN & APN Rate Control feature */
+#define      PS_ENABLE_RLC_UM_FEATURE               /* Except 718S, enable RLC UM feature */
+#define      PS_ENABLE_MDT_FEATURE                  /* Except 718S, enable RlfReport/MDT/ConnEstFailReport feature, also need enable PS_ENABLE_MDT_ASN1_FEATURE. */
+#define      PS_ENABLE_CMAS_ETWS_FEATURE            /* Except 718S, enable CMAS & ETWS feature */
+#define      PS_ENABLE_MODIFY_AND_DEDICATED_BR_FEATURE   /* Except 718S, enable dedicated BR operation feature. */
+#define      PS_ENABLE_EDRX_FEATURE                 /* Except 718S, enable edrx feature */
 /*
  * offset of body in a structure
 */

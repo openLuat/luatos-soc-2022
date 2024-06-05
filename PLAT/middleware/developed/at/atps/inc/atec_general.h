@@ -27,7 +27,7 @@
 /* ATE */
 #define ATC_E_0_VAL_MIN                     0
 #define ATC_E_0_VAL_MAX                     1
-#define ATC_E_0_VAL_DEFAULT                 0
+#define ATC_E_0_VAL_DEFAULT                 1
 
 /* ATQ */
 #define ATC_Q_0_VAL_MIN                     0

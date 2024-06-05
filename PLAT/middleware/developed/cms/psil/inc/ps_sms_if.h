@@ -316,6 +316,7 @@ typedef enum
     PSIL_MSG_CODING_DEFAULT_7BIT  = 0x00,
     PSIL_MSG_CODING_8BIT          = 0x01,
     PSIL_MSG_CODING_UCS2          = 0x02,
+    PSIL_MSG_CODING_RSVD          = 0x03,
     PSIL_MSG_CODING_NUM_OF
 }PsilMsgCodingType;
 

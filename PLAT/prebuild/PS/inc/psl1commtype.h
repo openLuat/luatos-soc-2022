@@ -79,6 +79,16 @@ typedef struct CerrcCcmMeasAdjustConfig_Tag
     INT16   rsrqMeasAdjust;         //range (-124..124), unit in 1/4dB
 }CerrcCcmMeasAdjustConfig;
 
+typedef struct CerrcTxPowerThresholdRptCfgTag
+{
+    //High Tx power report threshold, [-45...23]dbm
+    //If value is 127, phy will treat it invalid
+    INT8                            highTxTheshold;
+    //Low Tx power report threshold, [-45...23]dbm
+    //If value is 127, phy will treat it invalid
+    INT8                            lowTxTheshold;
+}CerrcTxPowerThresholdRptCfg;
+
 /*
  * As Release, start from Rel-13
 */

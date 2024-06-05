@@ -115,6 +115,9 @@ struct nd6_prefix_list_entry {
 struct nd6_router_list_entry {
   struct nd6_neighbor_cache_entry *neighbor_entry;
   u32_t invalidation_timer; /* in ms since value may originate from network packet */
+#if PS_ENABLE_TCPIP_HIB_SLEEP2_MODE
+  u8_t cid;
+#endif
   u8_t flags;
 };
 

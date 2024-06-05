@@ -197,6 +197,7 @@
 
 #define TCPIP_ENABLE_PORT_MGR 1
 
+#define TCP_WINDOWS_UPDATE_ALIGN_MSS 0
 
  /*
    ------------------------------------

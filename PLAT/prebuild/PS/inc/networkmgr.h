@@ -312,9 +312,14 @@ typedef struct NetMgrLanTcpipDataPathHostInfo_Tag
     UINT8           lanBindIp6Cid;   /* If not bind, set to : 0xFF */
     UINT8           rsvd1;
 
+    //ip4 info
     ip4_addr_t      hostIp4Addr;      /*the ip4 address which will assigned to host*/
+    ip4_addr_t      hostIp4NetMask;   /*the ip4 netmask which will assigned to host*/
+    ip4_addr_t      hostIp4DefaultGateWay;   /*the ip4 default gateway which will assigned to host*/
+
+    //ip6 info
     UINT32          hostIp6Prefix[2]; /*the ip6 prefix which will assigned to host*/
-    UINT32          hostIp6Id[2];     /*the ip6 ID which will assigned to host*/
+    UINT32          hostIp6Id[2];     /*the ip6 ID which will assigned to host, just used by ppp type*/
 
     ip4_addr_t      hostIp4Dns[NM_PDN_TYPE_MAX_DNS_NUM]; /*the ip4 dns which will assigned to host*/
     ip6_addr_t      hostIp6Dns[NM_PDN_TYPE_MAX_DNS_NUM]; /*the ip6 dns which will assigned to host*/
