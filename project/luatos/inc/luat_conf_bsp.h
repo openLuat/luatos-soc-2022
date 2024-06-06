@@ -385,6 +385,12 @@
 #endif
 
 #ifdef LUAT_USE_TTS_ONCHIP
+
+#ifdef LUAT_USE_TTS_16K
+#undef LUAT_USE_TTS_16K
+#define LUAT_USE_TTS_8K 1
+#endif
+
 #ifdef LUAT_USE_REPL
 #undef LUAT_USE_REPL
 #endif
