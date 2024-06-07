@@ -57,8 +57,12 @@ static const luaL_Reg loadedlibs[] = {
   {"errDump",luaopen_errdump},
 #ifdef LUAT_USE_NETWORK
   {"socket", luaopen_socket_adapter},
+#ifdef LUAT_USE_MQTT
   {"mqtt", luaopen_mqtt},
+#endif
+#ifdef LUAT_USE_WEBSOCKET
   {"websocket", luaopen_websocket},
+#endif
   {"http", luaopen_http},
 #ifdef LUAT_USE_FTP
   {"ftp", luaopen_ftp},

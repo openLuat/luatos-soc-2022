@@ -286,6 +286,13 @@
                 "rsize": 0,
                 "children": [
                     {
+                        "name": "mqtt",
+                        "content": "mqtt客户端",
+                        "rsize": 8304,
+                        "fsize": 274360,
+                        "dft": false
+                    },
+                    {
                         "name": "repl",
                         "content": "REPL(读取-解析-执行)循环",
                         "rsize": 10908,
@@ -415,6 +422,13 @@
                         "name": "ftp",
                         "content": "FTP客户端",
                         "rsize": 6008,
+                        "fsize": 274360,
+                        "dft": false
+                    },
+                    {
+                        "name": "websocket",
+                        "content": "websocket客户端",
+                        "rsize": 5320,
                         "fsize": 274360,
                         "dft": false
                     },
