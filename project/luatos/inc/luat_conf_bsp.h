@@ -386,11 +386,13 @@
 #endif
 
 #ifdef LUAT_USE_TTS_ONCHIP
+#ifdef LUAT_EC618_LITE_MODE
 #ifdef LUAT_USE_WEBSOCKET
 #undef LUAT_USE_WEBSOCKET
 #endif
 #ifdef LUAT_USE_FTP
 #undef LUAT_USE_FTP
+#endif
 #endif
 #ifdef LUAT_USE_REPL
 #undef LUAT_USE_REPL
