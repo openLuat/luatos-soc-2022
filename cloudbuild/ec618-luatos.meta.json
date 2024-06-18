@@ -535,6 +535,13 @@
                         "dft": false
                     },
                     {
+                        "name": "@rev_release_v1110",
+                        "content": "选用V1110发行版的代码进行编译, 发布日期 2024.6.7",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
                         "name": "@rev_release_v1109",
                         "content": "选用V1109发行版的代码进行编译, 发布日期 2024.3.6",
                         "rsize": 0,
