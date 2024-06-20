@@ -399,6 +399,13 @@ int luat_pm_reboot(void)
     return 0;
 }
 
+int luat_pm_reset(void)
+{
+	ResetECSystemReset();
+	return 0;
+}
+
+
 int luat_pm_get_vbus_status(uint8_t *status)
 {
     *status = usb_portmon_vbuspad_level();
