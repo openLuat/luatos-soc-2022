@@ -83,7 +83,7 @@ static void gnss_setup_task(void *param)
 
     luat_uart_ctrl(UART_ID, LUAT_UART_SET_RECV_CALLBACK, luat_uart_recv_cb);
 
-    // gnss电源
+    // gnss电源，实际上对应控制GPIO上电就会自动拉高，如果上电后不需要立刻打开，请把cfg.output_level改成0
     luat_gpio_cfg_t cfg = {0};
     cfg.pin = HAL_GPIO_13;
     cfg.mode = LUAT_GPIO_OUTPUT;
