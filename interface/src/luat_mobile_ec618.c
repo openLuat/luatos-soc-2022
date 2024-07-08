@@ -1009,3 +1009,37 @@ int luat_mobile_softsim_onoff(uint8_t on_off)
 	}
 	return 0;
 }
+
+int luat_mobile_sim_detect_onoff(uint8_t on_off)
+{
+	EcSimCfgGetParams pEcSimCfgGetParams = {0};
+
+	appGetECSIMCFGSync(&pEcSimCfgGetParams);
+	if (pEcSimCfgGetParams.bSimPreDetect != on_off)
+	{
+		CmsRetId                cmsRet = CMS_RET_SUCC;
+		CmiSimSetExtCfgReq      cmiReq = {0};
+		CmiSimSetExtCfgCnf      cmiCnf = {0};
+		AppPsCmiReqData         psCmiReqData = {0};
+		cmiReq.bSimPreDetect = on_off;
+		cmiReq.simPreDetectPresent = TRUE;
+
+	    psCmiReqData.sgId        = CAM_SIM;
+	    psCmiReqData.reqPrimId   = CMI_SIM_SET_EXT_CFG_REQ;
+	    psCmiReqData.cnfPrimId   = CMI_SIM_SET_EXT_CFG_CNF;
+	    psCmiReqData.reqParamLen = sizeof(cmiReq);
+	    psCmiReqData.pReqParam   = &cmiReq;
+
+	    /* output here */
+	    psCmiReqData.cnfBufLen = sizeof(cmiCnf);
+	    psCmiReqData.pCnfBuf   = &cmiCnf;
+
+	    cmsRet = appPsCmiReq(&psCmiReqData, CMS_MAX_DELAY_MS);
+
+	    if (cmsRet != CMS_RET_SUCC || psCmiReqData.cnfRc != CME_SUCC)
+	    {
+	        return -1;
+	    }
+	}
+	return 0;
+}
