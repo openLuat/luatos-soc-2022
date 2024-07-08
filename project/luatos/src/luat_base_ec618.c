@@ -423,17 +423,20 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 
 void luat_mcu_set_hardfault_mode(int mode)
 {
-	uint8_t new_mode = EXCEP_OPTION_DUMP_FLASH_EPAT_RESET;
+	uint8_t new_mode = EXCEP_OPTION_SILENT_RESET;
 	switch (mode)
 	{
 	case 0:
 		new_mode = EXCEP_OPTION_DUMP_FLASH_EPAT_LOOP;
 		break;
 	case 1:
-		new_mode = EXCEP_OPTION_DUMP_FLASH_RESET;
+		new_mode = EXCEP_OPTION_SILENT_RESET;
 		break;
 	case 2:
 		new_mode = EXCEP_OPTION_DUMP_FLASH_EPAT_RESET;
+		break;
+	case 3:
+		new_mode = EXCEP_OPTION_DUMP_FLASH_RESET;
 		break;
 	default:
 		return;
