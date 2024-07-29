@@ -183,7 +183,7 @@ static void luat_test_task(void *param)
 	luat_mobile_set_rrc_auto_release_time(3);
 	// 请访问 https://netlab.luatos.com 获取新的端口号
 	const char remote_ip[] = "112.125.89.8";
-	int port = 44966;
+	int port = 42025;
 	const char hello[] = "hello, luatos!";
 	uint8_t *tx_data = malloc(1024);
 	uint8_t *rx_data = malloc(1024 * 8);
