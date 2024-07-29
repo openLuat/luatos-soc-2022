@@ -140,9 +140,26 @@ typedef struct{
 	uint16_t event;
 } mqttQueueData;
 
+luat_rtos_mutex_t mutex = NULL;
+
 static void luat_mqtt_cb(luat_mqtt_ctrl_t *luat_mqtt_ctrl, uint16_t event){
+	
+	int ret = luat_rtos_mutex_lock(mutex,1000);
+	if (ret != 0)
+	{
+		LUAT_DEBUG_PRINT("mqtt sub cb timout or lock open fail eror ret %d", ret);
+		return;
+	}
+	
 	mqttQueueData mqtt_cb_event = {.luat_mqtt_ctrl = luat_mqtt_ctrl,.event = event};
 	luat_rtos_queue_send(mqtt_queue_handle, &mqtt_cb_event, NULL, 0);
+	
+	ret = luat_rtos_mutex_unlock(mutex);
+	if (ret != 0)
+	{
+		LUAT_DEBUG_PRINT("unlock fail eror ret %d", ret);
+	}
+	
 	return;
 }
 
@@ -155,7 +172,17 @@ static void luat_mqtt_task(void *param)
 	LUAT_DEBUG_PRINT("1. create task queue");
 	mqttQueueData mqttQueueRecv = {0};
 	luat_rtos_queue_create(&mqtt_queue_handle, MQTT_QUEUE_SIZE, sizeof(mqttQueueData));
+	
+	ret = luat_rtos_mutex_create(&mutex);  //创建锁
+	LUAT_DEBUG_PRINT("mutex init FAID ret %d", ret);
 
+	if (ret != 0)
+	{
+		LUAT_DEBUG_PRINT("mutex init FAID ret %d", ret);
+		luat_rtos_task_delete(NULL);
+		return;
+	}
+	
 	// 创建网络适配器承载
 	LUAT_DEBUG_PRINT("2. create network ctrl");
 	luat_mqtt_ctrl_t *luat_mqtt_ctrl = (luat_mqtt_ctrl_t *)luat_heap_malloc(sizeof(luat_mqtt_ctrl_t));
@@ -164,6 +191,7 @@ static void luat_mqtt_task(void *param)
 	ret = luat_mqtt_init(luat_mqtt_ctrl, NW_ADAPTER_INDEX_LWIP_GPRS);
 	if (ret) {
 		LUAT_DEBUG_PRINT("mqtt init FAID ret %d", ret);
+		luat_rtos_mutex_delete(mutex); //销毁锁
 		luat_rtos_task_delete(NULL);
 		return;
 	}
@@ -189,6 +217,7 @@ static void luat_mqtt_task(void *param)
 	ret = luat_mqtt_set_connopts(luat_mqtt_ctrl, &opts);
 	if (ret) {
 		LUAT_DEBUG_PRINT("mqtt set connopts error ret %d", ret);
+		luat_rtos_mutex_delete(mutex); //销毁锁
 		luat_rtos_task_delete(NULL);
 		return;
 	}
@@ -226,6 +255,7 @@ static void luat_mqtt_task(void *param)
 	if (ret) {
 		LUAT_DEBUG_PRINT("mqtt connect ret=%d\n", ret);
 		luat_mqtt_close_socket(luat_mqtt_ctrl);
+		luat_rtos_mutex_delete(mutex); //销毁锁
 		return;
 	}
 	LUAT_DEBUG_PRINT("6. wait mqtt event");
@@ -311,6 +341,9 @@ static void luat_mqtt_task(void *param)
 		}
 	}
 	LUAT_DEBUG_PRINT("20. mqtt task done");
+	        
+	luat_rtos_mutex_delete(mutex); //销毁锁
+	
 	luat_rtos_task_delete(NULL);
 }
 
