@@ -1,8 +1,8 @@
 DbVersion
-576587458,100
+2146184014,100
 <end>
 BuildInfo
-The current data file was built by the Application Ver. 2.2.73.199, Tue Aug  6 15:37:35 2024
+The current data file was built by the Application Ver. 2.2.73.199, Thu Aug  8 10:36:48 2024
 <end>
 EnumVals
 0,2048,0,0,PHY_ONLINE,PHY_ICS_MODULE,PhyIcsMeasMainEntrance_0,P_INFO,swLogPrintf("ICS MEAS of euArfcn %d will be started ");
@@ -4697,12 +4697,13 @@ EnumVals
 318464,652232703,0,0,PLAT_AP,NAS_PLMN,CePlmnCurPlmnSearchDone_5,P_WARNING,swLogPrintf("PLMN , no valid PLMN found , since PLMN is currently blocked ");
 318464,652234751,0,0,PLAT_AP,NAS_PLMN,CePlmnDelPhyCellId_1,P_VALUE,swLogPrintf("CE PLMN , cell locked , can ' t delete the PHY cell id ");
 318464,652236799,0,0,PLAT_AP,NAS_PLMN,CePlmnDelPhyCellId_2,P_VALUE,swLogPrintf("CE PLMN , delete the PHY cell id ");
-318464,652238847,0,0,PLAT_AP,PLA_APP,enter_NMI_handler,P_ERROR,swLogPrintf("WDT timeout!!! Enter NMI Handler!!! ");
-318464,652239360,0,0,PLAT_AP,PLA_APP,appSetPinOperationSync_1,P_INFO,swLogPrintf("PIN oper mode %d , pinStrLen %d , newPinStrLen %d ");
-318464,652241152,0,0,PLAT_AP,PLA_APP,appSetTxPowerSetting_warn1,P_WARNING,swLogPrintf("The maxPower ( %d ) should not less than minPower ( %d ) ");
-318464,652244991,0,0,PLAT_AP,PLA_APP,appSetTxPowerSetting_warn2,P_WARNING,swLogPrintf("appGetUeExtStatusInfoSync return error!!! ");
-318464,652247039,0,0,PLAT_AP,PLA_APP,appSetTxPowerSetting_warn3,P_WARNING,swLogPrintf("The Tx Power Setting should be restricted in RRC Connection state ");
-318464,652249087,0,0,PLAT_AP,PLA_APP,appSetTxPowerSetting_warn4,P_WARNING,swLogPrintf("Wrong TX power type setting ! ");
+318464,652238847,0,0,PLAT_AP,PLA_APP,synctime100,P_INFO,swLogPrintf("sync NITZ time fail ");
+318464,652240895,0,0,PLAT_AP,PLA_APP,enter_NMI_handler,P_ERROR,swLogPrintf("WDT timeout!!! Enter NMI Handler!!! ");
+318464,652241408,0,0,PLAT_AP,PLA_APP,appSetPinOperationSync_1,P_INFO,swLogPrintf("PIN oper mode %d , pinStrLen %d , newPinStrLen %d ");
+318464,652243200,0,0,PLAT_AP,PLA_APP,appSetTxPowerSetting_warn1,P_WARNING,swLogPrintf("The maxPower ( %d ) should not less than minPower ( %d ) ");
+318464,652247039,0,0,PLAT_AP,PLA_APP,appSetTxPowerSetting_warn2,P_WARNING,swLogPrintf("appGetUeExtStatusInfoSync return error!!! ");
+318464,652249087,0,0,PLAT_AP,PLA_APP,appSetTxPowerSetting_warn3,P_WARNING,swLogPrintf("The Tx Power Setting should be restricted in RRC Connection state ");
+318464,652251135,0,0,PLAT_AP,PLA_APP,appSetTxPowerSetting_warn4,P_WARNING,swLogPrintf("Wrong TX power type setting ! ");
 323584,662702080,0,0,PLAT_AP,UICC,UiccCtrlHandleCardInserted_0,P_WARNING,swLogPrintf("read abnormal tpLen %d from NVM , use default value and save ");
 323584,662704128,0,0,PLAT_AP,UICC,HandleUiccCtrlRecoveryState_abTP,P_WARNING,swLogPrintf("read abnormal tpLen %d from NVM , use default value and save ");
 323584,662706176,0,0,PLAT_AP,UICC,DecodeSms_1,P_VALUE,swLogPrintf("invalid sms status %d , set as free space ");
@@ -9136,5 +9137,5 @@ MW_INFO_PHY_EDRX_PARAM,midWareNvmInfoPhyEdrxParam
 plat_config,plat_config_fs_t
 <end>
 OptionalSegment
-optional_sk_01,BB0399397BE5F4327638A10D6B03C67621540BA6F69777D83CB2918B00F7B2FA
+optional_sk_01,8A76C63BD27110219970EA043B42557CB60707C2CD816513A8110FEEAF10810E
 <end>
