@@ -538,10 +538,18 @@ target(USER_PROJECT_NAME..".elf")
             os.mv("LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618.7z", OUT_PATH.."/LuatOS-SoC_"..USER_PROJECT_NAME_VERSION.."_EC618"..ver..".soc")
             os.rm(OUT_PATH.."/pack")
         else 
-            os.cp("$(projectdir)/project/luatos/pack/info.json", OUT_PATH)
-            os.cp("./PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h", OUT_PATH)
-            os.exec(path7z.." a -mx9 "..USER_PROJECT_NAME.."_ec618.7z "..OUT_PATH.."/* -r")
+            if not os.exists(OUT_PATH.."/pack") then
+                os.mkdir(OUT_PATH.."/pack")
+            end
+            os.cp(OUT_PATH.."/*.binpkg", OUT_PATH.."/pack")
+            os.cp(OUT_PATH.."/*.elf", OUT_PATH.."/pack")
+            os.cp(OUT_PATH.."/*.map", OUT_PATH.."/pack")
+            os.cp("./PLAT/comdb.txt", OUT_PATH.."/pack")
+            os.cp("$(projectdir)/project/luatos/pack/info.json", OUT_PATH.."/pack")
+            os.cp("./PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h", OUT_PATH .. "/pack")
+            os.exec(path7z.." a -mx9 "..USER_PROJECT_NAME.."_ec618.7z "..OUT_PATH.."/pack/* -r")
             os.mv(USER_PROJECT_NAME.."_ec618.7z", OUT_PATH.."/"..USER_PROJECT_NAME.."_ec618.soc")
+            os.rm(OUT_PATH.."/pack")
         end
 
         -- 计算差分包大小, 需要把老的binpkg放在根目录,且命名为 $项目名称.binpkg
