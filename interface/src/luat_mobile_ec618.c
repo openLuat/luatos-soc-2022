@@ -1044,3 +1044,8 @@ int luat_mobile_sim_detect_onoff(uint8_t on_off)
 	}
 	return 0;
 }
+
+void luat_mobile_softsim_init_default(void)
+{
+
+}
