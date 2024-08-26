@@ -771,6 +771,9 @@ uint8_t luat_mobile_get_sync_time(void);
 
 int luat_mobile_softsim_onoff(uint8_t on_off);
 int luat_mobile_sim_detect_onoff(uint8_t on_off);
+//实验性质API，请勿使用
+void luat_mobile_set_auto_rrc(uint8_t s1, uint32_t s2);
+void luat_mobile_set_auto_rrc_default(void);
 /** @}*/
 
 #endif

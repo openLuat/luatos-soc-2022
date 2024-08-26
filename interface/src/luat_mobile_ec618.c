@@ -746,6 +746,7 @@ int luat_mobile_sms_event_register_handler(luat_mobile_sms_event_callback_t call
 /* ------------------------------------------------- mobile status end ------------------------------------------------ */
 LUAT_WEAK void net_lwip_check_switch(uint8_t onoff) {;}
 extern soc_mobile_set_rrc_release_time(uint8_t s);
+extern void soc_mobile_set_rrc_release_idle_min_time(uint32_t s);
 void luat_mobile_set_rrc_auto_release_time(uint8_t s)
 {
 	if (1 == s) s = 2;
@@ -753,16 +754,29 @@ void luat_mobile_set_rrc_auto_release_time(uint8_t s)
 //	net_lwip_check_switch(s);
 }
 
+void luat_mobile_set_auto_rrc(uint8_t s1, uint32_t s2)
+{
+	soc_mobile_set_rrc_release_time(s1);
+	soc_mobile_set_rrc_release_idle_min_time(s2);
+}
+
+void luat_mobile_set_auto_rrc_default(void)
+{
+	net_lwip_check_switch(1);
+	soc_mobile_set_rrc_release_time(1);
+	soc_mobile_set_rrc_release_idle_min_time(35);
+}
+
 extern void soc_mobile_release_rrc_pause(uint8_t onoff);
 void luat_mobile_rrc_auto_release_pause(uint8_t onoff)
 {
-	soc_mobile_release_rrc_pause(onoff);
+	//soc_mobile_release_rrc_pause(onoff);
 }
 
 extern void soc_mobile_rrc_release_once(void);
 void luat_mobile_rrc_release_once(void)
 {
-	soc_mobile_rrc_release_once();
+	//soc_mobile_rrc_release_once();
 }
 
 int luat_mobile_reset_stack(void)
@@ -773,7 +787,7 @@ int luat_mobile_reset_stack(void)
 extern void soc_mobile_fatal_error_auto_reset_stack(uint8_t onoff);
 void luat_mobile_fatal_error_auto_reset_stack(uint8_t onoff)
 {
-	soc_mobile_fatal_error_auto_reset_stack(onoff);
+	//soc_mobile_fatal_error_auto_reset_stack(onoff);
 }
 
 int luat_mobile_set_period_work(uint32_t get_cell_period, uint32_t check_sim_period, uint8_t search_cell_time)
