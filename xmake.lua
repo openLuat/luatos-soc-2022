@@ -502,9 +502,9 @@ target(USER_PROJECT_NAME..".elf")
             print("7z not find")
             return
         end
+		import("core.base.json")
         if USER_PROJECT_NAME == 'luatos' then
             os.cp("$(projectdir)/project/luatos/pack", OUT_PATH)
-            import("core.base.json")
             local info_table = json.loadfile(OUT_PATH.."/pack/info.json")
             if VM_64BIT then
                 info_table["script"]["bitw"] = 64
@@ -546,9 +546,9 @@ target(USER_PROJECT_NAME..".elf")
             os.cp(OUT_PATH.."/*.map", OUT_PATH.."/pack")
             os.cp("./PLAT/comdb.txt", OUT_PATH.."/pack")
             os.cp("$(projectdir)/project/luatos/pack/info.json", OUT_PATH.."/pack")
-            local info_table = json.loadfile(OUT_PATH.."/info.json")
+            local info_table = json.loadfile(OUT_PATH.."/pack/info.json")
             info_table["rom"]["file"] = USER_PROJECT_NAME .. ".binpkg"
-            json.savefile(OUT_PATH.."/info.json", info_table)
+            json.savefile(OUT_PATH.."/pack/info.json", info_table)
             os.cp("./PLAT/device/target/board/ec618_0h00/common/inc/mem_map.h", OUT_PATH .. "/pack")
             os.exec(path7z.." a -mx9 "..USER_PROJECT_NAME.."_ec618.7z "..OUT_PATH.."/pack/* -r")
             os.mv(USER_PROJECT_NAME.."_ec618.7z", OUT_PATH.."/"..USER_PROJECT_NAME.."_ec618.soc")
