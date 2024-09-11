@@ -1063,3 +1063,23 @@ void luat_mobile_softsim_init_default(void)
 {
 
 }
+
+int luat_mobile_lock_cell(uint32_t op, uint32_t earfcn, uint16_t pci)
+{
+	CiotSetFreqParams p = {0};
+	if (op > LUAT_MOBILE_LOCK_CELL_OP_UNLOCK_CELL) return -1;
+	p.mode = op;
+	if (LUAT_MOBILE_LOCK_CELL_OP_LOCK_EARFCN == op)
+	{
+		p.arfcnList[0] = earfcn;
+		p.arfcnNum = 1;
+	}
+	if (LUAT_MOBILE_LOCK_CELL_OP_LOCK_CELL == op)
+	{
+		p.arfcnList[0] = earfcn;
+		p.arfcnNum = 1;
+		p.cellPresent = TRUE;
+		p.phyCellId = pci;
+	}
+	return appSetCiotFreqSync(&p);
+}
