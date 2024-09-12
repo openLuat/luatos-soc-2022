@@ -1,8 +1,8 @@
 DbVersion
-197088689,100
+2053727589,100
 <end>
 BuildInfo
-The current data file was built by the Application Ver. 2.2.73.199, Wed Sep 11 15:43:25 2024
+The current data file was built by the Application Ver. 2.2.73.199, Thu Sep 12 11:46:50 2024
 <end>
 EnumVals
 0,2048,0,0,PHY_ONLINE,PHY_ICS_MODULE,PhyIcsMeasMainEntrance_0,P_INFO,swLogPrintf("ICS MEAS of euArfcn %d will be started ");
@@ -8895,7 +8895,7 @@ EnumVals
 786432,1610615813,0,0,CUSTOMER,LUATOS,airm2m_service_14,P_SIG,swLogPrintf("%s , %u , %s , %x , %u ");
 786432,1610618879,0,0,CUSTOMER,LUATOS,airm2m_service_20,P_SIG,swLogPrintf("rrc no check ");
 786432,1610619392,0,0,CUSTOMER,LUATOS,airm2m_service_1,P_INFO,swLogPrintf("cnf %d , %d , %d ");
-786432,1610621696,0,0,CUSTOMER,LUATOS,airm2m_service_11,P_SIG,swLogPrintf("new cell %u , %u , %d , %d ");
+786432,1610621184,0,0,CUSTOMER,LUATOS,airm2m_service_11,P_SIG,swLogPrintf("new cell %u , %u ");
 786432,1610623488,0,0,CUSTOMER,LUATOS,airm2m_service_2,P_INFO,swLogPrintf("ind %d , %d , %d ");
 786432,1610625025,0,0,CUSTOMER,LUATOS,airm2m_service_3,P_INFO,swLogPrintf("nst result %s ");
 786432,1610627072,0,0,CUSTOMER,LUATOS,airm2m_service_4,P_ERROR,swLogPrintf("param len %d ");
@@ -9139,5 +9139,5 @@ MW_INFO_PHY_EDRX_PARAM,midWareNvmInfoPhyEdrxParam
 plat_config,plat_config_fs_t
 <end>
 OptionalSegment
-optional_sk_01,5E23E62F106B5EEA429F025642A25978C4E1E26DF90ABCCB1DF742F02B9C81D2
+optional_sk_01,E7212316B81E20A33120ACA5E75B1D670ECFD032F755E52F77B4A1C0DCDFBB4B
 <end>
