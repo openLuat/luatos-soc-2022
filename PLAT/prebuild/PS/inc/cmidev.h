@@ -571,9 +571,10 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    cfunClrBarCellPresent;
     BOOL    cfunClrBarCell;     //True: clear bar cell (except cell barred by ATCMD) when perform cfun0/cfun4
 
+    BOOL    disableNCellMeasPresent;
+    BOOL    disableNCellMeas;
     BOOL    enableLoggedMDTPresent;
     BOOL    enableLoggedMDT;
-    UINT16  resvd;
 }CmiDevSetExtCfgReq;    // 64 bytes
 
 typedef struct CmiDevSetMeasAdjustCfgReq_Tag
@@ -680,8 +681,8 @@ typedef struct CmiDevGetExtCfgCnf_Tag
 
     UINT8   userDrxCycle;              //CmiUserDrxCycle
     BOOL    cfunClrBarCell;
+    BOOL    disableNCellMeas;
     BOOL    enableLoggedMDT;
-    UINT8   rsvd3;
 }CmiDevGetExtCfgCnf;    // 36 bytes
 
 /******************************************************************************

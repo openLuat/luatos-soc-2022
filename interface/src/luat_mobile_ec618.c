@@ -947,6 +947,10 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 	case MOBILE_CONF_RESET_TO_FACTORY:
 		PsCfgResetAllUeConfig();
 		return 0;
+	case MOBILE_CONF_DISABLE_NCELL_MEAS:
+		req.disableNCellMeasPresent = 1;
+		req.disableNCellMeas = value;
+		break;
 	default:
 		return -1;
 	}
