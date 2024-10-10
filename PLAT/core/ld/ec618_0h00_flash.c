@@ -131,6 +131,11 @@ SECTIONS
 
   } >ASMB_AREA
   
+  .load_keepmem 0xA800 (NOLOAD):
+  {
+    *(.keepMem)
+  } >ASMB_AREA
+  
   .load_rrcmem 0xB000 (NOLOAD):
   {
     *(.rrcMem)
