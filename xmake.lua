@@ -268,6 +268,7 @@ add_includedirs(
                 SDK_TOP .. "/PLAT/core/tts/include",
                 SDK_TOP .. "/PLAT/core/multimedia/include",
                 SDK_TOP .. "/PLAT/core/driver/include",
+                SDK_TOP .. "/thirdparty/antbot/include",
                 SDK_TOP .. "/thirdparty/linksdk",
                 SDK_TOP .. "/thirdparty/printf",
 {public = true})
