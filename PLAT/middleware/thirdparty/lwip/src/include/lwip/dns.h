@@ -213,6 +213,9 @@ err_t          dns_local_addhost(const char *hostname, const ip_addr_t *addr);
 void dns_entry_retry_timer_handler(void* arg);
 void dns_entry_cache_timer_handler(void* arg);
 
+void dns_entry_clat_discovery_cache_timer_op(BOOL is_start, u32_t timeout);
+err_t dns_entry_stop_clat_discovery_timer(const char *name);
+err_t dns_entry_clat_discovery_start_cycle_retry(const char *name, u32_t retry_timeout_from_sleep);
 #endif
 
 #if PS_ENABLE_TCPIP_HIB_SLEEP2_MODE

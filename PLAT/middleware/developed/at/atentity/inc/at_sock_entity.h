@@ -412,7 +412,11 @@ typedef struct EcSocUdpSendReq_Tag{
     UINT16 reserved2;
     UINT32 reqSource;
     ip_addr_t remoteAddr;
-    UINT8 data[];
+#ifdef FEATURE_CCIO_ENABLE
+    UINT8 *data; /*Save ULFC data addr or heap data addr*/
+#else
+    UINT8 data[]; /*Save heap data*/
+#endif
 }EcSocUdpSendReq;
 
 typedef struct EcSocQueryReq_Tag{
@@ -594,7 +598,11 @@ typedef struct EcSocUlBuffer_Tag{
     UINT8 reserved;
     UINT16 length;
     struct EcSocUlBuffer_Tag *next;
-    UINT8 data[];
+#ifdef FEATURE_CCIO_ENABLE
+    UINT8 *data;/*Save ULFC data addr*/
+#else
+    UINT8 data[];/*Save heap data*/
+#endif
 }EcSocUlBuffer;
 
 typedef struct EcSocUlList_Tag{
@@ -766,7 +774,9 @@ typedef struct AtRefSocketSendInfo_Tag
     UINT16  dataLen;
 
     ip_addr_t remoteAddr;
-    void    *pPdu;  /*Dyn mem, raw data send to SOCK task, for feature, could be UlPduBlock*/
+    void    *pPdu;  /*Dyn mem, raw data send to SOCK task, for feature, could be UlPduBlock
+                    * If enable FEATURE_CCIO_ENABLE, the mem type is ULFC, otherwise is heap
+                    */
 }AtRefSocketSendInfo;
 
 typedef struct AtRefPassThroughSockInfo_Tag
@@ -996,8 +1006,8 @@ typedef struct AtRefSocHibPriMgrContext_Tag
     UINT8                  connectId ;       /*connectId 1~11*/
     UINT8                  pdpContextId;     /*context Id*/
     UINT16                 reqHandle;        /*source AT request handle */
-    AtRefSocServiceType    serviceType;      /*serviceTypeï¼?~5*/
-    AtRefataAccessMode     accessMode;       /*accessModeï¼?,1,2*/
+    AtRefSocServiceType    serviceType;      /*serviceType 0~5*/
+    AtRefataAccessMode     accessMode;       /*accessMode 0,1,2*/
     AtRefSockStatus        sockstate;
     UINT32                 dlTotalLen;
     UINT32                 ulTotalLen;

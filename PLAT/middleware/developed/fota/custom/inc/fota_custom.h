@@ -40,6 +40,7 @@
  *                    GLOBAL FUNCTIONS DECLEARATION                           *
  *----------------------------------------------------------------------------*/
 int32_t fotaDoExtension(uint8_t flags, void *args);
+uint8_t *GetFotaPubKey(void);
 
 
 #ifdef __cplusplus

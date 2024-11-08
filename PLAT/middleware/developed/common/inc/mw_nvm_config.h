@@ -99,6 +99,8 @@ typedef enum _EPAT_MidWareCfgParamId_Enum
     MW_CFG_URC_RI_SMS_INCOMING_PARAM,   /* TLV, MWNvmCfgUrcRISmsIncomingParam * MID_WARE_USED_AT_CHAN_NUM */
     MW_CFG_URC_RI_OTHER_PARAM,          /* TLV, MWNvmCfgUrcRIOtherParam * MID_WARE_USED_AT_CHAN_NUM */
     MW_CFG_PPP_AUTH_SELECT_PARAM,       /* TV, UINT8 pppAuthSelectMode */
+    MW_CFG_NET_HSOT_INFO_PARAM,     /* TLV, MWNvmCfgNetHostInfoParam */
+    MW_CFG_NET_CLAT_PARAM,  /* TLV, MWNvmCfgNetXlatParam */
 
     MW_CFG_PARAM_END,
     /* As need a bitmap to record which CFG is set/configed, here limit the MAX ID to 256, than 8 words bitmap is enough  */
@@ -204,6 +206,33 @@ typedef struct _SIG_EPAT_MW_CFG_NET_PARAM
     UINT8   localHostAddr[MID_WARE_IPV4_ADDR_LEN];  /* if "bNatEnable" set to TRUE, RNDIS/ECM host using this V4 ADDR: 192.168.x.x */
 }MWNvmCfgNetParam;     //8 bytes
 
+/*
+ * net param host info config
+ * paramId: MW_CFG_NET_HSOT_INFO_PARAM
+*/
+typedef struct _SIG_EPAT_MW_CFG_NET_HOST_INFO_PARAM
+{
+    UINT8   gateway[MID_WARE_IPV4_ADDR_LEN];
+    UINT8   mask[MID_WARE_IPV4_ADDR_LEN];
+    UINT8   localDns1[MID_WARE_IPV4_ADDR_LEN];
+    UINT8   localDns2[MID_WARE_IPV4_ADDR_LEN];
+}MWNvmCfgNetHostInfoParam;     //16 bytes
+
+/*
+ * net param CLAT info config
+ * paramId: MW_CFG_NET_CLAT_PARAM
+*/
+typedef struct _SIG_EPAT_MW_CFG_NET_CLAT_PARAM
+{
+    BOOL    bEnable; /*whether enable xlat feature*/
+    UINT8   bindIpv6Cid; //the ipv6 cid bind with
+    UINT8   ipv6PrefixLen; //the trans ipv6 prefix len
+    BOOL    bEnablePrefixDiscovery; /*whether enable prefix discover function. Ref: RFC7050*/
+    UINT8   ipv6Preix[MID_WARE_IPV6_ADDR_LEN]; //the trans ipv6 prefix info
+    UINT8   ipv4Local[MID_WARE_IPV4_ADDR_LEN]; //ue local private ipv4 address
+    UINT8   ipv4Dns1[MID_WARE_IPV4_ADDR_LEN]; //ipv4 dns server 1 for clat dns resolve
+    UINT8   ipv4Dns2[MID_WARE_IPV4_ADDR_LEN]; //ipv4 dns server 2 for clat dns resolve
+}MWNvmCfgNetXlatParam;     //16 bytes
 
 /*
  * AT socket config parameter
@@ -523,6 +552,15 @@ typedef struct MidWareNvmConfig_Tag
     * used for RI behavior when other URCs are presented, paramId: MW_CFG_URC_RI_OTHER_PARAM
     */
     MWNvmCfgUrcRIOtherParam         urcRIOtherParamCfg[MID_WARE_USED_AT_CHAN_NUM];      // 16 bytes
+    /*
+     * used for CMS other sub-mode, ParamId: MW_CFG_NET_HSOT_INFO_PARAM
+    */
+    MWNvmCfgNetHostInfoParam        netParamHostInfoCfg;      // 16 bytes
+
+    /*
+    * used for CLAT feature,ParamId: MW_CFG_NET_CLAT_PARAM:
+    */
+    MWNvmCfgNetXlatParam      clatParamCfg;
 }MidWareNvmConfig;
 
 
@@ -891,6 +929,22 @@ void mwNvmCfgSetAndSaveNetParamConfig(MWNvmCfgNetParam *pNetParamCfg);
   \param[out]   pDnsCfg   value
 */
 void mwNvmCfgGetNetParamConfig(MWNvmCfgNetParam *pNetParamCfg);
+void mwNvmCfgGetNetParamHostInfoConfig(MWNvmCfgNetHostInfoParam *pNetParamHostInfoCfg);
+void mwNvmCfgSetAndSaveNetParamHostInfoConfig(MWNvmCfgNetHostInfoParam *pNetParamHostInfoCfg);
+
+/**
+  \fn           void mwNvmCfgGetNetClatConfig(MWNvmCfgNetXlatParam *pNetClatCfg)
+  \brief        Get/Read net clat config info
+  \param[out]   pDnsCfg   value
+*/
+void mwNvmCfgGetNetClatConfig(MWNvmCfgNetXlatParam *pNetClatCfg);
+
+/**
+  \fn           void mwNvmCfgSetAndSaveNetClatConfig(MWNvmCfgNetHostInfoParam *pNetParamHostInfoCfg)
+  \brief        Set/save clat config
+  \param[in]    pDnsCfg   value
+*/
+void mwNvmCfgSetAndSaveNetClatConfig(MWNvmCfgNetXlatParam *pNetClatCfg);
 
 void mwNvmCfgSetAndSaveAtPendUrcParam(UINT8 chanId, UINT8 atPendUrcEnableFlag);
 UINT8 mwNvmCfgGetAtPendUrcParam(UINT8 chanId);

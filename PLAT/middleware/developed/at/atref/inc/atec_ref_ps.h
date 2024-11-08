@@ -90,6 +90,9 @@
 
 #define ATC_QWIFISCAN_CHANNELID_MAX_NUM         14
 
+#define ATC_QWIFISCAN_8_BSSID_STR_MAX_LEN       20  //the length of WIFI BSSID (MAC address) is 17, such as: "aa:bb:cc:dd:ee:ff"
+#define ATC_QWIFISCAN_8_BSSID_STR_DEF_VAL       NULL
+
 /* AT+QPOWD */
 #define ATC_QPOWD_0_CONTEXTID_VAL_MIN           0
 #define ATC_QPOWD_0_CONTEXTID_VAL_MAX           1

@@ -270,7 +270,12 @@ typedef struct CmsSockUlPendingPriData_Tag
     UINT16    offset;    /*this flag marks the actural rawData send position when re-transmit */
 
     UINT32    atHandle;  /*at request handle, for response Send CNF*/
-    UINT8     rawData[]; /*the actual send raw data*/
+
+#ifdef FEATURE_CCIO_ENABLE
+    UINT8     *rawData; /*the actual send raw data, save the ULFC mem addr*/
+#else
+    UINT8     rawData[]; /*the actual send raw data,save the heap data*/
+#endif
 
 }CmsSockUlPendingPriData;
 
@@ -404,8 +409,8 @@ typedef struct CmsSockMgrConnAcceptClientArg_Tag{
 }CmsSockMgrConnAcceptClientArg;
 
 typedef struct CmsSockUlPendingListArg_Tag{
-    UINT8  failCause;  /*if failCause is not equal to 0,this is failed*/
-    UINT8  resv0;
+    UINT8  failCause;   /*if failCause is not equal to 0,this is failed*/
+    BOOL   ulBuffFull;  /*output para: If tcp send buff is full, will set TRUE, and not continue send UL pending data*/
     UINT16 resv1;
 
     void  *pList;
@@ -471,7 +476,7 @@ typedef struct CmsSockMgrConnHibContext_Tag{
     ip_addr_t localAddr;
     void *eventCallback;
     UINT8 priContext[CMS_SOCK_MGR_HIB_PRIVATE_CONTEXT_MAX_LENGTH];
-}CmsSockMgrConnHibContext;  //64 bytes
+}CmsSockMgrConnHibContext;  //68 bytes
 
 typedef struct CmsSockMgrHibContext_Tag{
     UINT16 magic; //CMS_SOCK_MGR_CONTEXT_MAGIC
@@ -511,13 +516,6 @@ typedef struct CmsRefSockCfgParam_Tag
 {
     UINT16                              transPktSize; //transport paket size, range: 1-1460, def 1024 bytes
     UINT8                               transWaitTm; //range: 0-20, def: 2 ms
-    UINT8                               rsvd;
-
-    CmsRefSockDataFormat                sendDataFormat;
-    CmsRefSockDataFormat                recvDataFormat;
-    CmsRefSockViewMode                  viewMode;
-    CmsRefSockDataTransMode             udpRdMode;//UPD read mode
-    CmsRefSockDataTransMode             udpSendMode;//UDP send mode
     UINT8                               bPassiveClose:1;//indicated whether auto disconnect when server close enable or not
     UINT8                               bRecvInd:1;//indicated whether show length in recv URC on cache mode
     UINT8                               bTcpServerAutoAccept:1;//indicated whether TCP auto accept enable or not
@@ -525,8 +523,15 @@ typedef struct CmsRefSockCfgParam_Tag
     UINT8                               bSendEcho:1;//indicated whether echo sent data by AT+QISDE enable or not
     UINT8                               bSendInfoFlag:1 ;/*show QISEND/QISENDEX result 0 : not with URC;1: with +QISEND URC */
     UINT8                               bresv:2;
+
+    CmsRefSockDataFormat                sendDataFormat;
+    CmsRefSockDataFormat                recvDataFormat;
+    CmsRefSockViewMode                  viewMode;
+    CmsRefSockDataTransMode             udpRdMode;//UPD read mode
+    CmsRefSockDataTransMode             udpSendMode;//UDP send mode
+
     CmsRefSockTcpKeepAliveParam         tcpKeepAliveParam;
-}CmsRefSockCfgParam;  // 14 bytes
+}CmsRefSockCfgParam;  // 28 bytes
 
 typedef void (*CmsSockMgrReqProcess)(CmsSockMgrRequest *Req, ip_addr_t *sourceAddr, UINT16 sourcePort, INT32 rcvRequestFd);
 
@@ -582,6 +587,7 @@ INT32 cmsSockMgrCreateTcpSrvSocket(INT32 domain, UINT16 listenPort, ip_addr_t *b
 */
 INT32  cmsSockMgrEnableTcpKeepAlive(INT32 sockId, BOOL bKeepAlive, UINT16 idleTime, UINT8 intervalTime, UINT8 probeCnt);
 
+
 CmsSockMgrConnStatus cmsSockMgrRebuildSocket(INT32 fd, ip_addr_t *localAddr, ip_addr_t *remoteAddr, UINT16 *localPort, UINT16 *remotePort, INT32 type);
 
 CmsSockMgrConnStatus cmsSockMgrReCreateSocket(INT32 fd, INT32 domain, INT32 type);
@@ -599,7 +605,7 @@ void csmsSockMgrCallErrorEventCallback(CmsSockMgrContext* gMgrContext, INT32 err
 void cmsSockMgrCallStatusEventCallback(CmsSockMgrContext* gMgrContext, UINT8 oldStatus, UINT8 newStatus, UINT16 cause);
 void cmsSockMgrCallDlEventCallback(CmsSockMgrContext* gMgrContext, CmsSockMgrDataContext *dataContext, ip_addr_t *remoteAddr, UINT16 remotePort);
 void cmsSockMgrCallUlStatusEventCallback(CmsSockMgrContext* gMgrContext, UINT8 sequence, UINT8 status);
-void cmsSockMgrCallProcUlPendingCallBack(CmsSockMgrContext* gMgrContext,CmsSockUlPendingList *pList,UINT8 isTimeOut);
+BOOL cmsSockMgrCallProcUlPendingCallBack(CmsSockMgrContext* gMgrContext,CmsSockUlPendingList *pList,BOOL isTimeOut);
 CmsSockUlPendingList *cmsSockMgrInitUlPendingList(UINT16 len);
 
 

@@ -47,6 +47,17 @@
 
 #define NM_MAGIC_WORD               0xA5B7
 
+
+#define NM_MAX_DISCOVERED_IP6PREFIX_NUM 2
+#define NM_MAX_DISCOVERED_IP6PREFIX_URL_LEN 16
+/*Well-known addr for IPV6 discovery. ref RFC7050-2.2*/
+#define CLAT_PREFIX_DISCOVERY_IP4_WKA_ADDR_1 IPADDR4_INIT_BYTES(192,0,0,170)
+#define CLAT_PREFIX_DISCOVERY_IP4_WKA_ADDR_2 IPADDR4_INIT_BYTES(192,0,0,171)
+//For test: www.baidu.com
+//#define CLAT_PREFIX_DISCOVERY_IP4_WKA_ADDR_1 IPADDR4_INIT_BYTES(176,63,3,174)//b03f:3ae
+//#define CLAT_PREFIX_DISCOVERY_IP4_WKA_ADDR_2 IPADDR4_INIT_BYTES(176,175,39,154)//b0af:279a
+
+
 /******************************************************************************
  *****************************************************************************
  * STRUCT/ENUM
@@ -239,6 +250,7 @@ typedef struct NetMgrEthLanCfg_Tag
     ip4_addr_t  ethLocalAddr;       //Ethernet LAN netif (ECM/RNDIS) address, example: 192.168.10.1
     ip4_addr_t  ethHostAddr;        //host lan netif(ECM/RNDIS) address, if NAT mode, example: 192.168.10.5
     ip4_addr_t  ethHostNetMask;     //host lan netif(ECM/RNDIS) netmask.if NAT mode, example:255.255.255.0; if the setting is 0.0.0.0, ue will use the deault value
+    ip4_addr_t  ethHostDnsServer[NM_PDN_TYPE_MAX_DNS_NUM]; //host lan dns server
 }NetMgrEthLanCfg;   // 12 bytes
 
 #if 0
@@ -254,6 +266,28 @@ typedef struct NetMgrLanCfg_Tag
     //NetMgrPppLanCfg     pppLanCfg;
 }NetMgrLanCfg;      // 12 bytes
 
+//#if LWIP_XLAT_ENABLE /*Closed source part enabeles XLAT by default*/
+typedef struct NetMgrClatCfg_Tag
+{
+    BOOL    bEnable:1; /*whether enable xlat feature*/
+    BOOL    bEnablePrefixDiscovery:1; /*whether enable prefix discover function. Ref: RFC7050*/
+    UINT8   ipv6PreixPresent:1;
+    UINT8   ipv6PreixDiscoverdCleanPresent:1;
+    UINT8   rsvd0:4;
+
+    UINT8   bindIpv6Cid; //the ipv6 cid bind with
+    UINT8   ipv6PrefixLen; //the current used ipv6 prefix len
+
+    UINT8   ipv6DiscoverdPrefixLen[NM_MAX_DISCOVERED_IP6PREFIX_NUM]; //the discoverd ipv6 prefix len
+    UINT8   rsvd1[2];
+
+    ip6_addr_t   ipv6Preix; //the trans ipv6 prefix info
+    ip4_addr_t   ipv4Local; //ue local private ipv4 address
+    ip4_addr_t   ipv4Dns1; //ipv4 dns server 1 for clat dns resolve
+    ip4_addr_t   ipv4Dns2; //ipv4 dns server 2 for clat dns resolve
+    ip6_addr_t   ipv6PrefixDiscoverd[NM_MAX_DISCOVERED_IP6PREFIX_NUM]; //the discovered of ipv6 prefix info. Only set by IPV6 prefix discover procedure
+}NetMgrClatCfg;      // 68 bytes
+//#endif /*LWIP_XLAT_ENABLE*/
 
 /*
 */
@@ -435,6 +469,8 @@ typedef struct NmIfConfiguration_Tag
     UINT16      rsvd0 : 8;
 
     UINT16      mtu;
+    UINT16       ipv6GetPrefixDelay; //< 0(invalid);>= 0(valid)
+    UINT16       rsvd;
     NmIpAddr    ipv4Addr;
     NmIpAddr    ipv6Addr;
     NmIpAddr    dns[NM_MAX_DNS_NUM];
@@ -794,6 +830,15 @@ NmResult NetMgrLinkDown(UINT8 cid);
 */
 NmResult NetMgrTftConfig(UINT8 cid, UINT8 pfNum, CmiPsPacketFilter *pPFList);
 
+/******************************************************************************
+ * NetMgrQueryIpv6Ra
+ * Description: query ipv6 RA message by sending RS message
+ * input:   UINT8   cid
+ * output: NmResult
+ * Comment:
+******************************************************************************/
+NmResult NetMgrQueryIpv6Ra(UINT8 cid);
+
 
 /******************************************************************************
  * NetMgrLanLinkLayerStatusChange
@@ -886,6 +931,14 @@ void NetMgrProcCeregInd(CmiPsCeregInd *pCregInd);
 */
 NmResult NetMgrLanConfig(NetMgrLanCfg *lanCfg);
 
+//#if LWIP_XLAT_ENABLE /*Closed source part enabeles XLAT by default*/
+/*
+ * net mgr clat configuration
+*/
+NmResult NetMgrClatConfig(NetMgrClatCfg *pClatCfg, BOOL needCheckPs);
+NmResult NetMgrGetClatConfig(NetMgrClatCfg *pClatCfg);
+NmResult NetMgrIp6PrefixDiscoveryReq(UINT8 op, const CHAR* url, UINT8 cid);
+//#endif /*LWIP_XLAT_ENABLE*/
 /*
  * net mgr lan ctrl api(control the lan data path wether bind with pdp context)
  * if the same lan type has bind, it will be replace with the new pdp context

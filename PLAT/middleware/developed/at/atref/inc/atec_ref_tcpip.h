@@ -313,6 +313,7 @@ void      nmQISocPSTHdataInit(UINT8 connectId, UINT16 reqHander);
 void      nmQISocPSTHdataDeInit(void);
 void      nmQISocEnableUlfc(UINT8 chanId);
 void      nmQISocDisableUlfc(UINT8 chanId);
+void     *nmQISocAllocUlfcMem(UINT32 wantedSize,UINT8 chanId);
 CmsRetId  nmQNETDEVCTL(const AtCmdInputContext *pAtCmdReq);
 
 AtRefSocketSendInfo *nmQISocGetSendMsgHander(void);

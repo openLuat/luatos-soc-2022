@@ -1883,6 +1883,17 @@ PLAT_PA_RAMCODE void CO_USART_IRQHandler(LPUSART_RESOURCES *lpusart)
     ECPLAT_PRINTF(UNILOG_PLA_DRIVER, CO_USART_IRQHandler_0, P_DEBUG, "Enter co_uart irq, isr: 0x%x, lsr: 0x%x-%x, fcnr: 0x%x, rx_cnt:%d", isr_reg, lsr_reg, co_usart_regs->SCR, co_usart_regs->FCNR, info->xfer.rx_cnt);
 #endif
 
+    if((isr_reg == 0) && (co_usart_regs->IER & USART_IER_RX_TIMEOUT_Msk))
+    {
+        if(lsr_reg & (USART_LSR_RX_OVERRUN_ERROR_Msk | USART_LSR_RX_PARITY_ERROR_Msk | USART_LSR_RX_BREAK_Msk | USART_LSR_RX_FRAME_ERROR_Msk))
+        {
+            isr_reg = USART_ISR_RX_LINE_STATUS_Msk;
+        }
+        else
+        {
+            isr_reg = USART_ISR_RX_TIMEOUT_Msk;
+        }
+    }
 
     if((isr_reg & USART_ISR_RX_LINE_STATUS_Msk) == USART_ISR_RX_LINE_STATUS_Msk)
     {

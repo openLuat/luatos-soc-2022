@@ -301,5 +301,10 @@ void OsaFreeOneUlPduBlock(UlPduBlock **pUlPduBlk);
 */
 void OsaFreeUlPduBlockList(UlPduBlock **pUlPduBlk);
 
+/**
+ * Get DL PDU number and size in DL PDU list
+*/
+void OsaGetDlPduNumAndSize(const DlPduBlock *pDlPduHead, UINT32 *pPduNum, UINT32 *pPduSize);
+
 #endif
 
