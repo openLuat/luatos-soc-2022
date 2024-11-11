@@ -1,6 +1,7 @@
 
 #ifndef MEM_MAP_H
 #define MEM_MAP_H
+#ifdef __USER_CODE__
 
 
 /*
@@ -70,18 +71,11 @@ flash xip address(from ap view): 0x08800000---0x08900000
 
 //bl addr and size
 #define BOOTLOADER_FLASH_LOAD_ADDR      (0x00804000)
-#ifdef __USER_CODE__
 #define BOOTLOADER_FLASH_LOAD_SIZE      (0x1e000)//120kB
-#else
-#define BOOTLOADER_FLASH_LOAD_SIZE      (0x20000)//128kB
-#endif
 //ap image addr and size
 #define AP_FLASH_LOAD_ADDR              (0x00824000)
-#ifdef __USER_CODE__
 #define AP_FLASH_LOAD_SIZE              (0x2E0000)//2.5MB + 384KB
-#else
-#define AP_FLASH_LOAD_SIZE              (0x280000)//2.5MB
-#endif
+
 
 /*0x002a4000 -----0x00304000 RESERVRD 384KB*/
 
@@ -90,7 +84,6 @@ flash xip address(from ap view): 0x08800000---0x08900000
 #define FLASH_FOTA_REGION_LEN           (0x80000)//512KB
 #define FLASH_FOTA_REGION_END           (0x384000)
 
-#ifdef __USER_CODE__
 
 //fs addr and size
 #define FLASH_FS_REGION_START           (0x384000)
@@ -101,15 +94,7 @@ flash xip address(from ap view): 0x08800000---0x08900000
 //softsim addr and size
 #define SOFTSIM_FLASH_PHYSICAL_BASEADDR (0xfcc000)
 #define SOFTSIM_FLASH_MAX_SIZE          (0x00000)//0KB
-#else
-#define FLASH_FS_REGION_START           (0x384000)
-#define FLASH_FS_REGION_END             (0x3cc000)
-#define FLASH_FS_REGION_SIZE            (FLASH_FS_REGION_END-FLASH_FS_REGION_START) // 288KB
 
-//softsim addr and size
-#define SOFTSIM_FLASH_PHYSICAL_BASEADDR (0x3cc000)
-#define SOFTSIM_FLASH_MAX_SIZE          (0x10000)//64KB
-#endif
 
 //ap reliable addr and size
 #define NVRAM_FACTORY_PHYSICAL_BASE     (0x3dc000)
@@ -280,4 +265,14 @@ flash xip address(from ap view): 0x08800000---0x08900000
 
 
 
+
+
+#else
+#if defined SEC_ENH_1
+    #include "mem_map_secenh.h"
+#else
+    #include "mem_map_618.h"
 #endif
+#endif
+#endif
+

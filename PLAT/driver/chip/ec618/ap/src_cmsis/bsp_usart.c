@@ -1722,6 +1722,19 @@ PLAT_PA_RAMCODE void USART_IRQHandler (USART_RESOURCES *usart)
     ECPLAT_PRINTF(UNILOG_PLA_DRIVER, USART_IRQHandler_0, P_DEBUG, "isr:0x%x, lsr: 0x%x-%x, fcnr_reg:0x%x, rx_cnt:%d", isr_reg, lsr_reg, reg->SCR, reg->FCNR, info->xfer.rx_cnt);
 #endif
 
+    if((isr_reg == 0) && (reg->IER & USART_IER_RX_TIMEOUT_Msk))
+    {
+        if(lsr_reg & (USART_LSR_RX_OVERRUN_ERROR_Msk | USART_LSR_RX_PARITY_ERROR_Msk | USART_LSR_RX_BREAK_Msk | USART_LSR_RX_FRAME_ERROR_Msk))
+        {
+            isr_reg = USART_ISR_RX_LINE_STATUS_Msk;
+        }
+        else
+        {
+            isr_reg = USART_ISR_RX_TIMEOUT_Msk;
+        }
+    }
+
+
     if((isr_reg & USART_ISR_RX_LINE_STATUS_Msk) == USART_ISR_RX_LINE_STATUS_Msk)
     {
         if (lsr_reg & USART_LSR_RX_OVERRUN_ERROR_Msk)

@@ -1185,6 +1185,8 @@ typedef struct CmiSimUsatOpenChannelRspTag
     //UINT16                          bufferSize;
     UINT8                           channelId;
     BOOL                            linkEstOrPsActive;
+    UINT8                           dnsAddrLen;//=0/4/16, 0 means this item is not present
+    UINT8                           dnsAddr[CMI_SIM_USAT_MAX_ADDRESS_LEN];// IPV4--4bytes; IPV6--16bytes
     CmiSimUsatBipEqos               bipEqos;
     CmiSimUsatBipQos                bipQos;
 }

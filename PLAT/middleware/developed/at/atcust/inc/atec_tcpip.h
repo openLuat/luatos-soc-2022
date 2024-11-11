@@ -180,6 +180,40 @@
 #define ECNETCFG_1_NAT_DEF                  0
 #define ECNETCFG_2_HOST_ADDR_STR_MAX_LEN    64
 #define ECNETCFG_2_HOST_ADDR_STR_DEFAULT    NULL
+#define ECNETCFG_3_GETWAY_STR_MAX_LEN       64
+#define ECNETCFG_3_GETWAY_STR_DEFAULT       NULL
+#define ECNETCFG_4_MASK_STR_MAX_LEN         64
+#define ECNETCFG_4_MASK_STR_DEFAULT         NULL
+#define ECNETCFG_5_DNS1_STR_MAX_LEN         64
+#define ECNETCFG_5_DNS1_STR_DEFAULT         NULL
+#define ECNETCFG_6_DNS2_STR_MAX_LEN         64
+#define ECNETCFG_6_DNS2_STR_DEFAULT         NULL
+#define ECNETCFG_7_CLAT_MIN                 0
+#define ECNETCFG_7_CLAT_MAX                 1
+#define ECNETCFG_7_CLAT_DEF                 0
+#define ECNETCFG_8_CLAT_CID_MIN             1
+#define ECNETCFG_8_CLAT_CID_MAX             15
+#define ECNETCFG_8_CLAT_CID_DEF             1
+#define ECNETCFG_9_CLAT_IP6PREFIXLEN_MIN    32
+#define ECNETCFG_9_CLAT_IP6PREFIXLEN_MAX    96
+#define ECNETCFG_9_CLAT_IP6PREFIXLEN_DEF    96
+#define ECNETCFG_10_CLAT_IP6PREFIX_STR_MAX_LEN    64
+#define ECNETCFG_10_CLAT_IP6PREFIX_STR_DEFAULT    NULL
+#define ECNETCFG_11_CLAT_IP4LOCAL_STR_MAX_LEN     32
+#define ECNETCFG_11_CLAT_IP4LOCAL_STR_DEFAULT     NULL
+#define ECNETCFG_12_CLAT_IP4DNS1_STR_MAX_LEN      32
+#define ECNETCFG_12_CLAT_IP4DNS1_STR_DEFAULT      NULL
+#define ECNETCFG_13_CLAT_IP4DNS2_STR_MAX_LEN      32
+#define ECNETCFG_13_CLAT_IP4DNS2_STR_DEFAULT      NULL
+#define ECNETCFG_14_CLAT_IP6PREFIX_DISCOVERY_MIN   0
+#define ECNETCFG_14_CLAT_IP6PREFIX_DISCOVERY_MAX   1
+#define ECNETCFG_14_CLAT_IP6PREFIX_DISCOVERY_DEF   0
+#define ECNETCFG_15_CLAT_IP6PREFIXLEN_DISCOVERED_MIN    32
+#define ECNETCFG_15_CLAT_IP6PREFIXLEN_DISCOVERED_MAX    96
+#define ECNETCFG_15_CLAT_IP6PREFIXLEN_DISCOVERED_DEF    96
+#define ECNETCFG_16_CLAT_IP6PREFIX_DISCOVERED_STR_MAX_LEN    64
+#define ECNETCFG_16_CLAT_IP6PREFIX_DISCOVERED_STR_DEFAULT    NULL
+
 
 /* AT+ECNETDEVCTL */
 #define ECNETDEVCTL_0_OP_MIN                  0
@@ -470,6 +504,8 @@
 #define ECSOSTR_NAME  "+NSOSTR"
 #define ECQSOSR_NAME  "+NQSOSR"
 #endif
+void      nmSocEnableUlfc(UINT8 chanId);
+void     *nmSocAllocUlfcMem(UINT32 wantedSize,UINT8 chanId);
 CmsRetId  nmSNTP(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  nmPING(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  nmECDNS(const AtCmdInputContext *pAtCmdReq);
@@ -507,6 +543,7 @@ CmsRetId  nmECSRVSOTCPLISTENSTATUS(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  nmECSRVSOTCPSENDCLTT(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  nmSocketInputData(UINT8 chanId, UINT8 *pInput, UINT16 length);
 void      nmSocketFreeSendInfo(void);
+CmsRetId  nmECNETCLATCFG(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  nmECNETCFG(const AtCmdInputContext *pAtCmdReq);
 CmsRetId  nmECNETDEVCTL(const AtCmdInputContext *pAtCmdReq);
 

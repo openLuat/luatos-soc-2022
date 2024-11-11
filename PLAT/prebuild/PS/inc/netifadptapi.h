@@ -281,5 +281,19 @@ void NetifClearPortMappingTable(UINT8 connSource, UINT8 cid);
 
 struct netif *NetGetBindLanNetifByIp4WanNetifAndLanType(struct netif *wanNetif, UINT8 lanNetifType);
 
+//#if LWIP_XLAT_ENABLE /*Closed source part enabeles XLAT by default*/
+
+#if LWIP_ENABLE_PPP_RNDIS_LAN
+struct netif *NetGetBindLanNetifByIp4ClatWanNetif(struct netif *pWanNetif);
+struct netif *NetGetBindLanNetifByIp4ClatWanNetifAndLanType(struct netif *pWanNetif, UINT8 lanNetifType);
+struct netif *NetGetBindIp4ClatWanNetifByLanNetif(struct netif *lanNetif);
+#endif
+
+BOOL NetifGernIp4AddrFromIp6ClatAddr(ip6_addr_t *pIp6ClatAddr, UINT8 ip6PrefixLen, ip4_addr_t *pOutIp4Addr);
+err_t NetifIp4PkgFwdClatWanAddrProcess(struct pbuf *p, struct netif *wanIf);
+err_t NetifIp6PkgClatWanProcess(struct pbuf *p, struct netif *wanIf);
+
+//#endif /*#if LWIP_XLAT_ENABLE*/
+
 #endif
 

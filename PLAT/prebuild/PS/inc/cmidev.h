@@ -9,7 +9,8 @@ History:        - 08/09/2020, Originated by Jason
 #include "cmimm.h"
 
 #define CMI_DEV_NUESTATS_THP_PERIOD_SECOND      2
-#define CMI_DEV_NCELL_INFO_CELL_NUM             6
+#define CMI_DEV_NCELL_INFO_CELL_NUM             20
+#define CCM_TINY_NCELL_INFO_CELL_NUM            6
 
 #define CMI_DEV_QENG_INTRA_NCELL_NUM            4
 #define CMI_DEV_QENG_INTER_NCELL_NUM            16
@@ -470,12 +471,12 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    emergencyCamp;
 
     BOOL    ipv6GetPrefixTimePresent;
-    BOOL    rsvd1;
+    BOOL    ccmRsvd1;
     UINT16  ipv6GetPrefixTime;          //the maximum time of getting IPv6 prefix
 
     /* EMM */
     BOOL    powerLevelPresent;
-    UINT8   plmnSearchPowerLevel;   /*range [0..3]*/
+    UINT8   plmnSearchPowerLevel;   /* range [0..4] */
     BOOL    epcoPresent;
     BOOL    enableEpco;
 
@@ -509,10 +510,10 @@ typedef struct CmiDevSetExtCfgReq_Tag
     BOOL    roamModePresent;
     BOOL    enableRoam;
     BOOL    roamModeEffect;
-    UINT8   rsvd2;
+    UINT8   emmRsvd1;
 
-    BOOL    enableAclPresent;   /*if AT+ECCFG,  input 'EnableAcl' parameter */
-    BOOL    enableAcl;          /*0, disable ACL,1,Enable ACL, default is 0*/
+    BOOL    enableAclPresent;   /* if AT+ECCFG,  input 'EnableAcl' parameter */
+    BOOL    enableAcl;          /* 0, disable ACL,1,Enable ACL, default is 0 */
     BOOL    pdpRemapPresent;
     UINT8   bPdpRemap;          /* PDP remap config: 0/1/2 */
 
@@ -523,17 +524,21 @@ typedef struct CmiDevSetExtCfgReq_Tag
 
     BOOL    ignoreEmmCausePresent;
     BOOL    ignoreEmmCause;
-    UINT8   rsvd3[2];
+    UINT8   emmRsvd2[2];
 
     BOOL    enableFakeCellOptPresent;
     BOOL    enableFakeCellOpt;
     UINT16  fakeCellBarTimerS;
 
+    BOOL    t3402OptPresent;
+    BOOL    t3402Opt;
+    UINT16  emmRsvd3;
+
     /* ERRC */
     BOOL    dataInactTimerPresent;
-    UINT8   dataInactTimerS;    /*DataInactivityTimer-r14, used in CERRC; should > 40s; 0 - just means not use DataInactivityTimer feature */
+    UINT8   dataInactTimerS;    /* DataInactivityTimer-r14, used in CERRC; should > 40s; 0 - just means not use DataInactivityTimer feature */
     BOOL    relaxMonitorPresent;
-    UINT8   relaxMonitorDeltaP; /*range [0..15], value in dB, 0 means relaxed monitoring(36.304, 5.2.4.12) in is not used, used in CERRC*/
+    UINT8   relaxMonitorDeltaP; /* range [0..15], value in dB, 0 means relaxed monitoring(36.304, 5.2.4.12) in is not used, used in CERRC */
 
     BOOL    relVersionPresent;
     UINT8   relVersion;         //release version, 13-14
@@ -541,12 +546,11 @@ typedef struct CmiDevSetExtCfgReq_Tag
     UINT8   ueCategory;         /* Configure the UE category. */
 
     BOOL    enableABCheckPresent;
-    BOOL    enableABCheck;      /*False, diable Access Barring Check; True, enable Access Barring Check*/
-
+    BOOL    enableABCheck;      /* False, diable Access Barring Check; True, enable Access Barring Check */
     BOOL    weakCellOptPresent;
     BOOL    weakCellOpt;
 
-    UINT8   rsvd4;
+    UINT8   errcRsvd1;
     BOOL    qRxLevMinPresent;
     INT16   qRxLevMinWeakCell;
 
@@ -658,7 +662,8 @@ typedef struct CmiDevGetExtCfgCnf_Tag
 
     BOOL    updateFreqCtrl;
     BOOL    ignoreEmmCause;
-    UINT8   rsvd1[2];
+    BOOL    t3402Opt;
+    UINT8   rsvd1;
 
     BOOL    enableFakeCellOpt;
     UINT8   rsvd2;
@@ -2242,21 +2247,26 @@ typedef struct CmiDevSCellBasicInfo_Tag
     //value in dB, value range: -30 ~ 30(NB) or -20 ~ 40(CAT1bis)
     BOOL            snrPresent;   /*serving cell SNR some case not present*/
     INT8            snr;
-
     //value in units of dBm, value range: -156 ~ -44
     INT16           rsrp;
+
     //value in units of dB, value range: -34 ~ 25
     INT16           rsrq;
-
     //Srxlev, refer to TS36.304 section 5.2.3.2
     INT16           srxlev;
+
+    UINT8           rsvd;
+    BOOL            squalPresent;
+    //Squal, refer to TS36.304 section 5.2.3.2
+    INT16           squal;
+
     //FDD or TDD
     BOOL            isTdd;
     //The current selected band accoring to BandIndicator or mFBI, value range: 0 ~ 85
     UINT8           band;
-
     //the weighted value of RSSI measurement based on N*PRB's bandwidth
     UINT16          rssiCompensation;
+
     //BandWidth
     UINT8           ulBandWidth;
     //BandWidth
@@ -2273,6 +2283,13 @@ typedef struct CmiDevNCellBasicInfo_Tag
     UINT16          phyCellId;
     //Srxlev, refer to TS36.304 section 5.2.3.2
     INT16           srxlev;
+
+    //The earfcn belongs to band, value range: 0 ~ 85
+    UINT8           band;
+    BOOL            squalPresent;
+    //Squal, refer to TS36.304 section 5.2.3.2
+    INT16           squal;
+
     //value in units of dBm, value range: -156 ~ -44
     INT16           rsrp;
     //value in units of dB, value range: -34 ~ 25
@@ -2671,8 +2688,11 @@ typedef struct CmiDevGetWifiScanCnf_Tag
     UINT8   maxBssidNum;        //wifiscan max report num
     UINT8   scanTimeOut;        //s, max time of each round executed by RRC
     UINT8   wifiPriority;       //0 - data Perferred, 1 - wifi Perferred
+
     UINT8   channelCount;       //channel count
-    UINT8   rsvd[3];
+    BOOL    specificBssidPresent;//whether search a specific WIFI BSSID
+    UINT8   specificBssid[6];   //only valid when specificBssidPresent is TRUE
+
     UINT16  channelRecLen;      //ms, max scantime of each channel
     UINT8   channelId[CMI_DEV_MAX_CHANNEL_NUM];          //channel id 1-14: scan a specific channel
 }CmiDevGetWifiScanCnf;
@@ -2693,8 +2713,11 @@ typedef struct CmiDevSetWifiSacnReq_Tag
     UINT8   maxBssidNum;        //wifiscan max report num
     UINT8   scanTimeOut;        //s, max time of each round executed by RRC
     UINT8   wifiPriority;       //CmiWifiScanPriority
+
     UINT8   channelCount;       //channel count; if count is 1 and all channelId are 0, UE will scan all frequecny channel
-    UINT8   rsvd[3];
+    BOOL    specificBssidPresent;//whether search a specific WIFI BSSID
+    UINT8   specificBssid[6];   //only valid when specificBssidPresent is TRUE
+
     UINT16  channelRecLen;      //ms, max scantime of each channel
     UINT8   channelId[CMI_DEV_MAX_CHANNEL_NUM];          //channel id 1-14: scan a specific channel
 }CmiDevSetWifiSacnReq;
@@ -2829,8 +2852,9 @@ typedef struct CmiDevGetBarCellCnf_Tag
 typedef enum CmiDevRrcEventTypeEnum_Tag
 {
     CMI_DEV_RRC_NONE = 0,
-    CMI_DEV_RRC_CELL_CHANGED = 1,       /* UE reselect/handover/reestablish to another cell and success */
+    CMI_DEV_RRC_CELL_CHANGED = 1,           /* UE reselect/handover/reestablish to another cell and success */
     CMI_DEV_RRC_ESTABLISH_FAIL_CAUSE = 2,   /* report rrc establish fail reason */
+    CMI_DEV_RRC_BAND_NOT_SUPPORTED = 3,     /* report the un-supported band indicated in SIB5(corresponding to dl-CarrierFreq) */
 }CmiDevRrcEventTypeEnum;
 
 typedef struct CmiDevErrcCellChangedInd_Tag
@@ -2865,6 +2889,22 @@ typedef enum CmiDevErrcEstablishFailCauseTag
     CMI_DEV_RRC_CESTABLISH_FAIL_RESELECTION             = 4,    //aborted by reselection
 }CmiDevErrcEstablishFailCause;
 
+typedef enum CmiDevUnsupportedBandTypeTag
+{
+    CMI_DEV_BAND_NOT_SUPPORT_RF                         = 0,    //the band is not supported due to RF
+    CMI_DEV_BAND_NOT_SUPPORT_USER_SETTING               = 1,    //the band is supported in RF, but USER not setting it (AT+ECBAND)
+}CmiDevUnsupportedBandType;
+
+typedef struct CmiDevErrcUnSupportedBandList_Tag
+{
+    UINT8                           numOfBand;
+    UINT8                           rsvd[3];
+    CmiDevUnsupportedBandType       bandType[16];
+    //the band(s) which indicated in SIB5(corresponding to dl-carrierFreq), but it's not supported by UE
+    //the band list = neighbouring inter-frequencies (max num is 8) and additional neighbour inter-frequencies (max num is 8)
+    UINT8                           band[16];
+}CmiDevErrcUnSupportedBandList;
+
 typedef struct CmiDevErrcEventInd_Tag
 {
     UINT8   eventType; // CmiDevRrcEventTypeEnum
@@ -2872,6 +2912,7 @@ typedef struct CmiDevErrcEventInd_Tag
 
     CmiDevErrcEstablishFailCause    establishFailCause;
     CmiDevErrcCellChangedInd        cellChangedInd;
+    CmiDevErrcUnSupportedBandList   bandList;
 }CmiDevErrcEventInd;
 
 /******************************************************************************

@@ -96,6 +96,7 @@ u8_t nd6_find_netif_neighbor_cache_entry(struct netif* netif, ip6_addr_t *ip6pre
 
 u8_t nd6_find_netif_neighbor_link_local_cache_entry(struct netif* netif,  ip6_addr_t *ip6dest, u8_t lladdr[NETIF_MAX_HWADDR_LEN]);
 
+err_t nd6_send_rs(struct netif *netif);
 #if LWIP_ND6_TCP_REACHABILITY_HINTS
 void nd6_reachability_hint(const ip6_addr_t *ip6addr);
 #endif /* LWIP_ND6_TCP_REACHABILITY_HINTS */

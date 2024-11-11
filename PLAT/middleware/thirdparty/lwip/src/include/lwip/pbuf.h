@@ -65,6 +65,11 @@ extern "C" {
 #define PBUF_IP_HLEN        20
 #endif
 
+//#if LWIP_XLAT_ENABLE /*Closed source part enabeles XLAT by default*/
+#define PBUF_CLAT_OFFSET (IP6_HLEN - IP_HLEN)
+//#endif /*#if LWIP_XLAT_ENABLE*/
+
+
 /**
  * @ingroup pbuf
  * Enumeration of pbuf layers
@@ -92,6 +97,11 @@ typedef enum {
   /** Use this for input packets in a netif driver when calling netif->input()
    * in the most common case - ethernet-layer netif driver. */
   PBUF_RAW,
+
+//#if LWIP_XLAT_ENABLE /*Closed source part enabeles XLAT by default*/
+    PBUF_CLAT,
+//#endif /*#if LWIP_XLAT_ENABLE*/
+
 #if ENABLE_PSIF
   /*
   *Use this for ps input packets if pd dl buffer high water

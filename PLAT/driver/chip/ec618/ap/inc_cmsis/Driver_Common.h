@@ -77,10 +77,14 @@ typedef struct _PIN {
 } PIN;
 
 #ifndef ASSERT
-#ifdef FEATURE_OS_ENABLE 
+#ifdef FEATURE_OS_ENABLE
 #define ASSERT(X)   EC_ASSERT(X,0,0,0)
 #else
+#ifdef FEATURE_BOOTLOADER_PROJECT_ENABLE
+#define ASSERT(X)   if(X)
+#else
 #define ASSERT(X)   assert(X)
+#endif
 #endif
 #endif
 

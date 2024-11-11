@@ -15,7 +15,7 @@ int vcomx_send(uint8_t vcom_num, uint8_t* buf, uint16_t len);
 
 
 #ifdef VCOM_DBGEN
-void vcom_dbg_putchar(uint8_t ch);
+void LOGPutChar(uint8_t ch);
 
 void vcomdbg_hex(uint32_t hex)
 {
@@ -27,7 +27,7 @@ void vcomdbg_hex(uint32_t hex)
         {
            val = val + 0x27;
         }
-        vcom_dbg_putchar(val);
+        LOGPutChar(val);
     }
 }
 
@@ -35,7 +35,7 @@ void vcomdbg_str(uint8_t* str)
 {
     while(*str)
     {
-        vcom_dbg_putchar(*str);
+        LOGPutChar(*str);
         str++;
     }
 }

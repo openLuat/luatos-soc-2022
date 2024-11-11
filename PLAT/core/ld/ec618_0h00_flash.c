@@ -125,15 +125,13 @@ SECTIONS
    *(.psFANoInitData)
    *(.exceptCheck)
   } >ASMB_AREA
-
+  PROVIDE(load_ap_zidata_asmb_end_addr = . );
+  
+  ASSERT(CP_AONMEMBACKUP_START_ADDR>load_ap_zidata_asmb_end_addr,"load ap use too much ram, exceed to unload_cpaon")
+ 
   .unload_cpaon CP_AONMEMBACKUP_START_ADDR (NOLOAD):
   {
 
-  } >ASMB_AREA
-  
-  .load_keepmem 0xA800 (NOLOAD):
-  {
-    *(.keepMem)
   } >ASMB_AREA
   
   .load_rrcmem 0xB000 (NOLOAD):

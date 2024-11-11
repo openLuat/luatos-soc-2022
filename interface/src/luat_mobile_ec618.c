@@ -606,15 +606,19 @@ static void ec618_signal_to_luat_signal(CmiMmCesqInd *cesq_info, luat_mobile_sig
 
 int luat_mobile_get_cell_info(luat_mobile_cell_info_t  *info)
 {
-	BasicCellListInfo bcListInfo;
-	int result = appGetECBCInfoSync(&bcListInfo);
+	BasicCellListInfo *bcListInfo = (BasicCellListInfo *)malloc(sizeof(BasicCellListInfo));
+	if (!bcListInfo) return -1;
+	memset(bcListInfo, 0, sizeof(BasicCellListInfo));
+	int result = appGetECBCInfoSync(bcListInfo);
 	if (!result)
 	{
-		ec618_cell_to_luat_cell(&bcListInfo, info);
+		ec618_cell_to_luat_cell(bcListInfo, info);
+		free(bcListInfo);
 		return 0;
 	}
 	else
 	{
+		free(bcListInfo);
 		return -1;
 	}
 }
@@ -627,12 +631,14 @@ int luat_mobile_get_cell_info_async(uint8_t max_time)
 
 int luat_mobile_get_last_notify_cell_info(luat_mobile_cell_info_t  *info)
 {
-	BasicCellListInfo bcListInfo = {0};
-	soc_mobile_get_cell_info(&bcListInfo);
-	ec618_cell_to_luat_cell(&bcListInfo, info);
+	BasicCellListInfo *bcListInfo = (BasicCellListInfo *)malloc(sizeof(BasicCellListInfo));
+	if (!bcListInfo) return -1;
+	memset(bcListInfo, 0, sizeof(BasicCellListInfo));
+	soc_mobile_get_cell_info(bcListInfo);
+	ec618_cell_to_luat_cell(bcListInfo, info);
+	free(bcListInfo);
 	return 0;
 }
-
 
 int luat_mobile_get_signal_strength_info(luat_mobile_signal_strength_info_t *info)
 {
@@ -903,6 +909,7 @@ static void luat_mobile_sim_write_mode(UINT16 paramSize, void *pParam) {
 int luat_mobile_config(uint8_t item, uint32_t value)
 {
 	EcCfgSetParamsReq req = {0};
+	TxPowerSettingReq TReq = {0};
 	switch(item)
 	{
 	case MOBILE_CONF_RESELTOWEAKNCELL:
@@ -950,6 +957,16 @@ int luat_mobile_config(uint8_t item, uint32_t value)
 	case MOBILE_CONF_DISABLE_NCELL_MEAS:
 		req.disableNCellMeasPresent = 1;
 		req.disableNCellMeas = value;
+		break;
+	case MOBILE_CONF_MAX_TX_POWER:
+		TReq.setTxPowerFixedReq.maxPowerPresent = 1;
+		TReq.setTxPowerFixedReq.maxPower = value;
+		if (appSetTxPowerSetting(&TReq) != CMS_RET_SUCC)
+		{
+			return -1;
+		} else {
+			return 0;
+		}
 		break;
 	default:
 		return -1;

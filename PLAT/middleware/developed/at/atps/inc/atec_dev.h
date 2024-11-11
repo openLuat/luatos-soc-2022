@@ -270,6 +270,12 @@
 #define ATC_ECCFG_1_ENABLE_LOGGED_MDT_VAL_MAX       (1)
 #define ATC_ECCFG_1_ENABLE_LOGGED_MDT_VAL_DEFAULT   (0)
 
+//AT+ECCFG="T3402Opt"
+#define ATC_ECCFG_1_T3402_OPT_VAL_MIN     (0)
+#define ATC_ECCFG_1_T3402_OPT_VAL_MAX     (1)
+#define ATC_ECCFG_1_T3402_OPT_VAL_DEF     (1)
+
+
 #define ATEC_ECCFG_GET_RSP_STR_LEN           512
 
 /* AT+ECMEASCFG */
@@ -309,8 +315,8 @@
 #define ATC_ECBCINFO_2_VAL_DEFAULT              0       /*not need to save*/
 
 #define ATC_ECBCINFO_3_VAL_MIN                  1       /*max_cell_number*/
-#define ATC_ECBCINFO_3_VAL_MAX                  7       /*max_cell_number, 1 serving cell + 6 neighber cell */
-#define ATC_ECBCINFO_3_VAL_DEFAULT              7
+#define ATC_ECBCINFO_3_VAL_MAX                  21      /*max_cell_number, 1 serving cell + 20 neighber cell */
+#define ATC_ECBCINFO_3_VAL_DEFAULT              21
 
 #define ATC_ECBCINFO_4_VAL_MIN                  0       /*report mode, 0 - report in AT response */
 #define ATC_ECBCINFO_4_VAL_MAX                  1       /*report mode, 1 - report in URC response */
@@ -456,6 +462,9 @@
 #define ATC_ECWIFISCAN_7_CHANNELID_VAL_DEF       0
 
 #define ATC_ECWIFISCAN_CHANNELID_MAX_NUM         14
+
+#define ATC_ECWIFISCAN_8_BSSID_STR_MAX_LEN       20  //the length of WIFI BSSID (MAC address) is 17, such as: "aa:bb:cc:dd:ee:ff"
+#define ATC_ECWIFISCAN_8_BSSID_STR_DEF_VAL       NULL
 
 /* AT+ECBARCELL */
 #define ATC_ECBARCELL_0_EARFCN_VAL_MIN          (1)

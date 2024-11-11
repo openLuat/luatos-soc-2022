@@ -74,7 +74,7 @@ typedef enum atecMoSmsType_enum
 #define ATC_CSCA_0_ADDR_STR_DEFAULT             NULL
 #define ATC_CSCA_1_TYPE_VAL_MIN                 0
 #define ATC_CSCA_1_TYPE_VAL_MAX                 255
-#define ATC_CSCA_1_TYPE_VAL_DEFAULT             PSIL_SMS_TOA_NUMBER_INTERNATIONAL
+#define ATC_CSCA_1_TYPE_VAL_DEFAULT             PSIL_SMS_TOA_NUMBER_UNKNOWN
 
 /* AT+CNMI */
 #define ATC_CNMI_0_MODE_VAL_MIN                 0

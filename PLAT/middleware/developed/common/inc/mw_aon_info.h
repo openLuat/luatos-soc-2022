@@ -70,7 +70,7 @@ typedef struct MidWareSockAonInfo_Tag
     CmsRefSockCfgParam   refSockConfig;
     UINT32               refSockErr;//CmsRefSockErrorCode
 #endif
-}MidWareSockAonInfo;
+}MidWareSockAonInfo; //124bytes
 
 typedef struct MidWareSimSmsAddress_Tag
 {
@@ -105,9 +105,10 @@ typedef struct MidWareDefaultAonDnsCfg_Tag
     UINT8           cid;
     UINT8           bValid;
     UINT8           magic; //MID_WARE_AON_DNS_CFG_MAGIC
+    UINT8           rsvd;
     ip4_addr_t      ipv4Dns[MID_WARE_DEFAULT_DNS_NUM];
     ip6_addr_t      ipv6Dns[MID_WARE_DEFAULT_DNS_NUM];
-}MidWareDefaultAonDnsCfg;     //48 bytes
+}MidWareDefaultAonDnsCfg;     //44 bytes
 
 
 typedef MWCfgAtChanConfig   MWAonAtChanConfig;
@@ -124,7 +125,11 @@ typedef struct MWAonNetParamCfg_Tag
     UINT32      resvd2          :16;
 
     UINT8       localHostAddr[MID_WARE_IPV4_ADDR_LEN];
-}MWAonNetParamCfg;  // 8 bytes
+    UINT8       gateway[MID_WARE_IPV4_ADDR_LEN];
+    UINT8       mask[MID_WARE_IPV4_ADDR_LEN];
+    UINT8       localDns1[MID_WARE_IPV4_ADDR_LEN];
+    UINT8       localDns2[MID_WARE_IPV4_ADDR_LEN];
+}MWAonNetParamCfg;  // 24 bytes
 
 
 /*
@@ -144,15 +149,26 @@ typedef struct MWAonPppParamCfg_Tag
     UINT16       atHandle;
     UINT32       bPppNeedActBearer : 1; // records whether ppp need to active the bearer.
     UINT32       rsvd : 31;
-}MWAonPppParamCfg;     // 4 bytes
+}MWAonPppParamCfg;     //8 bytes
 
 
 typedef struct MWAonUrcCacheParamCfg_Tag
 {
     /* Wehther URC need to be suspended/cached. If enable, all URC should be cached in URC FIFO list and RI should be cached. */
     UINT8        urcCacheEnableFlag[MID_WARE_USED_AT_CHAN_NUM];
-}MWAonUrcCacheParamCfg;     // 4 bytes
+}MWAonUrcCacheParamCfg;     // 8 bytes
 
+typedef struct MWAonNetClatParamCfg_Tag
+{
+    BOOL    bEnable; /*whether enable xlat feature*/
+    UINT8   bindIpv6Cid; //the ipv6 cid bind with
+    UINT8   ipv6PrefixLen; //the trans ipv6 prefix len
+    BOOL    bEnablePrefixDiscovery; /*whether enable prefix discover function. Ref: RFC7050*/
+    UINT8   ipv6Preix[MID_WARE_IPV6_ADDR_LEN]; //the trans ipv6 prefix info
+    UINT8   ipv4Local[MID_WARE_IPV4_ADDR_LEN]; //ue local private ipv4 address
+    UINT8   ipv4Dns1[MID_WARE_IPV4_ADDR_LEN]; //ipv4 dns server 1 for clat dns resolve
+    UINT8   ipv4Dns2[MID_WARE_IPV4_ADDR_LEN]; //ipv4 dns server 2 for clat dns resolve
+}MWAonNetClatParamCfg;  // 16 bytes
 
 /******************************************************************************
  *
@@ -206,6 +222,12 @@ typedef struct MidWareAonInfo_Tag
     * mw aon urc cache param cfg
     */
     MWAonUrcCacheParamCfg   mwUrcCacheParamCfgAonInfo;
+
+    /*
+    * mw net CLAT cfg param
+    */
+    MWAonNetClatParamCfg        mwNetClatParamCfgAonInfo;
+
 
 }MidWareAonInfo;
 
@@ -405,6 +427,9 @@ UINT8 mwAonGetUrcCacheParamCfg(UINT8 chanId);
 
 void mwAonSetUrcCacheParamCfgAndSave(UINT8 chanId, UINT8 urcCacheEnableFlag);
 
+
+void mwAonSetNetClatParamCfgAndSave(MWAonNetClatParamCfg *pMwAonNetClatParamCfg);
+void mwAonGetNetClatParamCfg(MWAonNetClatParamCfg *pMwAonNetClatParamCfg);
 
 #endif
 
