@@ -1,8 +1,8 @@
 DbVersion
-184557730,100
+516957102,100
 <end>
 BuildInfo
-The current data file was built by the Application Ver. 2.2.73.199, Fri Nov  8 16:28:33 2024
+The current data file was built by the Application Ver. 2.2.73.199, Tue Nov 12 15:59:23 2024
 <end>
 EnumVals
 0,2048,0,0,PHY_ONLINE,PHY_ICS_MODULE,PhyIcsMeasMainEntrance_0,P_INFO,swLogPrintf("ICS MEAS of euArfcn %d will be started ");
@@ -4813,7 +4813,7 @@ EnumVals
 318464,652232703,0,0,PLAT_AP,NAS_PLMN,CePlmnCurPlmnSearchDone_5,P_WARNING,swLogPrintf("PLMN , no valid PLMN found , since PLMN is currently blocked ");
 318464,652234751,0,0,PLAT_AP,NAS_PLMN,CePlmnDelPhyCellId_1,P_VALUE,swLogPrintf("CE PLMN , cell locked , can ' t delete the PHY cell id ");
 318464,652236799,0,0,PLAT_AP,NAS_PLMN,CePlmnDelPhyCellId_2,P_VALUE,swLogPrintf("CE PLMN , delete the PHY cell id ");
-318464,652238847,0,0,PLAT_AP,PLA_APP,synctime100,P_INFO,swLogPrintf("sync NITZ time fail ");
+318464,652238847,0,0,PLAT_AP,PLA_APP,synctime100,P_SIG,swLogPrintf("sync NITZ time fail ");
 318464,652240895,0,0,PLAT_AP,PLA_APP,enter_NMI_handler,P_ERROR,swLogPrintf("WDT timeout!!! Enter NMI Handler!!! ");
 318464,652241408,0,0,PLAT_AP,PLA_APP,appSetPinOperationSync_1,P_INFO,swLogPrintf("PIN oper mode %d , pinStrLen %d , newPinStrLen %d ");
 318464,652243200,0,0,PLAT_AP,PLA_APP,appSetTxPowerSetting_warn1,P_WARNING,swLogPrintf("The maxPower ( %d ) should not less than minPower ( %d ) ");
@@ -9024,12 +9024,12 @@ EnumVals
 611328,1252079615,0,0,PS1,CAM_SMS,CamSmsSetMemCapCnfFunc_1,P_WARNING,swLogPrintf("CAM SMS , no CMI_SMS_SET_MEM_CAP_REQ pending , when process CMI_SMS_SET_MEM_CAP_CNF ");
 786432,1610615813,0,0,CUSTOMER,LUATOS,airm2m_service_14,P_SIG,swLogPrintf("%s , %u , %s , %x , %u ");
 786432,1610618879,0,0,CUSTOMER,LUATOS,airm2m_service_20,P_SIG,swLogPrintf("rrc no check ");
-786432,1610619392,0,0,CUSTOMER,LUATOS,airm2m_service_1,P_INFO,swLogPrintf("cnf %d , %d , %d ");
+786432,1610619392,0,0,CUSTOMER,LUATOS,airm2m_service_1,P_SIG,swLogPrintf("cnf %d , %d , %d ");
 786432,1610621184,0,0,CUSTOMER,LUATOS,airm2m_service_11,P_SIG,swLogPrintf("new cell %u , %u ");
-786432,1610623488,0,0,CUSTOMER,LUATOS,airm2m_service_2,P_INFO,swLogPrintf("ind %d , %d , %d ");
-786432,1610625025,0,0,CUSTOMER,LUATOS,airm2m_service_3,P_INFO,swLogPrintf("nst result %s ");
+786432,1610623488,0,0,CUSTOMER,LUATOS,airm2m_service_2,P_SIG,swLogPrintf("ind %d , %d , %d ");
+786432,1610625025,0,0,CUSTOMER,LUATOS,airm2m_service_3,P_SIG,swLogPrintf("nst result %s ");
 786432,1610627072,0,0,CUSTOMER,LUATOS,airm2m_service_4,P_ERROR,swLogPrintf("param len %d ");
-786432,1610629121,0,0,CUSTOMER,LUATOS,airm2m_service_6,P_INFO,swLogPrintf("find %s ");
+786432,1610629121,0,0,CUSTOMER,LUATOS,airm2m_service_6,P_SIG,swLogPrintf("find %s ");
 786432,1610633215,0,0,CUSTOMER,LUATOS,airm2m_service_5,P_ERROR,swLogPrintf("find at , but no end ");
 786432,1610633217,0,0,CUSTOMER,LUATOS,debug,P_ERROR,swLogPrintf("%s ");
 786432,1610635520,0,0,CUSTOMER,LUATOS,uart_rx_2,P_INFO,swLogPrintf("uart%d , rx buffer len %d ");
@@ -9271,5 +9271,5 @@ MW_INFO_PHY_EDRX_PARAM,midWareNvmInfoPhyEdrxParam
 plat_config,plat_config_fs_t
 <end>
 OptionalSegment
-optional_sk_01,4B8E55FC5785B13220EAF8AF5C067A28FEFF7F6B0748F741F2ADA42921A4ECD6
+optional_sk_01,24474138CDB33D8444E13DB492958F2F003CAFBABFD8C0E00E19C16BF3A6F6A6
 <end>
