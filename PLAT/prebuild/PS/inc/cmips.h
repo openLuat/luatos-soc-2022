@@ -642,7 +642,13 @@ typedef struct CmiDefPdpDefinition_Tag
 
     BOOL    imCnSigFlagPresent;
     UINT8   imCnSigFlag;        //CmiPsImCnSigFlag
-}CmiPsDefPdpDefinition;     /* 120 bytes */
+
+    BOOL    noSaveNvmFlag;      /* When cid equal to EPS attach cid, this flag indicate whether save in pdp nv context.
+                                 * 0: pdp context save in nv context, default value.
+                                 * 1: pdp context don`t save in nv context;
+                                 */
+    UINT8   reserved[3];
+}CmiPsDefPdpDefinition;     /* 124 bytes */
 
 typedef struct DefineDedBearerCtxInfoTag
 {

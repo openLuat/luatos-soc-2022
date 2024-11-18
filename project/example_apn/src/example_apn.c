@@ -215,7 +215,7 @@ static void task_run(void *param)
 	while(1)
 	{
 		luat_rtos_task_sleep(10000);
-		luat_mobile_get_apn(0, 0, apn, 10);	//这里故意不获取完整的
+		luat_mobile_get_apn(0, 0, apn, 20);	//这里故意不获取完整的
 		DBG("%s", apn);
 	}
 }
