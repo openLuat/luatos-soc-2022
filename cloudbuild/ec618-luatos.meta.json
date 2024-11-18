@@ -535,8 +535,22 @@
                         "dft": false
                     },
                     {
-                        "name": "@rev_release_v1110",
-                        "content": "选用V1110发行版的代码进行编译, 发布日期 2024.6.7",
+                        "name": "@rev_release_v1113",
+                        "content": "选用V1113发行版的代码进行编译, 发布日期 2024.11.18",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "@rev_release_v1112",
+                        "content": "选用V1112发行版的代码进行编译",
+                        "rsize": 0,
+                        "fsize": 1024,
+                        "dft": false
+                    },
+                    {
+                        "name": "@rev_release_v1111",
+                        "content": "选用V1111发行版的代码进行编译",
                         "rsize": 0,
                         "fsize": 1024,
                         "dft": false
