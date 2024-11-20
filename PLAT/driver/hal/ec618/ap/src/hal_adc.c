@@ -156,7 +156,9 @@ uint32_t HAL_ADC_CalibrateRawCode(uint32_t input)
 int32_t HAL_ADC_ConvertThermalRawCodeToTemperatureHighAccuracy(uint32_t input)
 {
     static int32_t gain = 0;
-
+#ifdef __USER_CODE__
+    static int32_t last_t_value = 0;
+#endif
     int32_t temp;
 
     AdcEfuseCalCode_t * efuseCalcodePtr = trimAdcGetCalCode();
@@ -171,9 +173,23 @@ int32_t HAL_ADC_ConvertThermalRawCodeToTemperatureHighAccuracy(uint32_t input)
     }
 
     temp = gain * (int32_t)(input - efuseT0CodePtr->codet0) + (int32_t)(efuseT0CodePtr->t0 * 1000);
+#ifdef __USER_CODE__
+extern void soc_fast_printf(const char *fmt, ...);
+    int32_t result = (temp > 0) ? (temp + 2000) / 4 : (temp - 2000) / 4;
 
+    if (result >= 180 * 1000)
+    {
+    	soc_fast_printf("Temperature error %x,%d, use old value %d", input, result, last_t_value);
+    	result = last_t_value;
+    }
+    else
+    {
+    	last_t_value = result;
+    }
+    return result;
+#else
     return (temp > 0) ? (temp + 2000) / 4 : (temp - 2000) / 4;
-
+#endif
 }
 
 
