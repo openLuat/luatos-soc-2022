@@ -14,6 +14,7 @@ extern const uint32_t DayTable[2][12];
 struct tm *__wrap_localtime (const time_t *_timer)
 {
 	uint64_t Sec = 1732535217;
+	int64_t tz = 32;
 	if (pMwAonInfo)
 	{
 		uint32_t tick = slpManGet6P25HZGlobalCnt();
@@ -23,17 +24,21 @@ struct tm *__wrap_localtime (const time_t *_timer)
 			Sec = pMwAonInfo->utc_tamp;
 			uint64_t diff = (tick - pMwAonInfo->rtc_tamp);
 			Sec += diff * 4 / 25;
+			tz = pMwAonInfo->tz;
 		}
 		else
 		{
-			pMwAonInfo->tz = 32;
 			DBG("rtc record error!");
 		}
 		OS_ExitCritical(cr);
 	}
 	Time_UserDataStruct Time;
 	Date_UserDataStruct Date;
-	Tamp2UTC(Sec + pMwAonInfo->tz * 900, &Date, &Time, 0);
+	if (_timer)
+	{
+		Sec = *_timer;
+	}
+	Tamp2UTC(Sec + tz * 900, &Date, &Time, 0);
 
 	prvTM.tm_year = Date.Year - 1900;
 	prvTM.tm_mon = Date.Mon - 1;
@@ -51,25 +56,33 @@ struct tm *__wrap_gmtime (const time_t *_timer)
 {
 	Time_UserDataStruct Time;
 	Date_UserDataStruct Date;
-	uint64_t Sec = 1732535217;
-	if (pMwAonInfo)
+	if (_timer)
 	{
-		uint32_t tick = slpManGet6P25HZGlobalCnt();
-		uint32_t cr = OS_EnterCritical();
-		if (pMwAonInfo->crc16 == CRC16Cal(&pMwAonInfo->utc_tamp, 9, CRC16_CCITT_SEED, CRC16_CCITT_GEN, 0))
-		{
-			Sec = pMwAonInfo->utc_tamp;
-			uint64_t diff = (tick - pMwAonInfo->rtc_tamp);
-			Sec += diff * 4 / 25;
-		}
-		else
-		{
-			pMwAonInfo->tz = 32;
-			DBG("rtc record error!");
-		}
-		OS_ExitCritical(cr);
+		Tamp2UTC(*_timer, &Date, &Time, 0);
 	}
-	Tamp2UTC(Sec, &Date, &Time, 0);
+	else
+	{
+
+		uint64_t Sec = 1732535217;
+		if (pMwAonInfo)
+		{
+			uint32_t tick = slpManGet6P25HZGlobalCnt();
+			uint32_t cr = OS_EnterCritical();
+			if (pMwAonInfo->crc16 == CRC16Cal(&pMwAonInfo->utc_tamp, 9, CRC16_CCITT_SEED, CRC16_CCITT_GEN, 0))
+			{
+				Sec = pMwAonInfo->utc_tamp;
+				uint64_t diff = (tick - pMwAonInfo->rtc_tamp);
+				Sec += diff * 4 / 25;
+			}
+			else
+			{
+				DBG("rtc record error!");
+			}
+			OS_ExitCritical(cr);
+		}
+		Tamp2UTC(Sec, &Date, &Time, 0);
+	}
+
 	prvTM.tm_year = Date.Year - 1900;
 	prvTM.tm_mon = Date.Mon - 1;
 	prvTM.tm_mday = Date.Day;
@@ -97,12 +110,11 @@ time_t	   __wrap_time (time_t *_Time)
 		if (pMwAonInfo->crc16 == CRC16Cal(&pMwAonInfo->utc_tamp, 9, CRC16_CCITT_SEED, CRC16_CCITT_GEN, 0))
 		{
 			Sec = pMwAonInfo->utc_tamp;
-			uint64_t diff = (tick - pMwAonInfo->rtc_tamp);
+			time_t diff = (tick - pMwAonInfo->rtc_tamp);
 			Sec += diff * 4 / 25;
 		}
 		else
 		{
-			pMwAonInfo->tz = 32;
 			DBG("rtc record error!");
 		}
 		OS_ExitCritical(cr);
