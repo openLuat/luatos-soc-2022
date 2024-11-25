@@ -1,6 +1,8 @@
 #include "common_api.h"
 #include "time.h"
 #include "osasys.h"
+#include "mw_aon_info.h"
+extern MidWareAonInfo      *pMwAonInfo;
 
 void RTC_GetDateTime(Date_UserDataStruct *pDate, Time_UserDataStruct *pTime)
 {
@@ -11,19 +13,28 @@ static struct tm prvTM;
 extern const uint32_t DayTable[2][12];
 struct tm *__wrap_localtime (const time_t *_timer)
 {
+	uint64_t Sec = 1732535217;
+	if (pMwAonInfo)
+	{
+		uint32_t tick = slpManGet6P25HZGlobalCnt();
+		uint32_t cr = OS_EnterCritical();
+		if (pMwAonInfo->crc16 == CRC16Cal(&pMwAonInfo->utc_tamp, 9, CRC16_CCITT_SEED, CRC16_CCITT_GEN, 0))
+		{
+			Sec = pMwAonInfo->utc_tamp;
+			uint64_t diff = (tick - pMwAonInfo->rtc_tamp);
+			Sec += diff * 4 / 25;
+		}
+		else
+		{
+			pMwAonInfo->tz = 32;
+			DBG("rtc record error!");
+		}
+		OS_ExitCritical(cr);
+	}
 	Time_UserDataStruct Time;
 	Date_UserDataStruct Date;
-	uint64_t Sec;
-	utc_timer_value_t *timeUtc = OsaSystemTimeReadRamUtc();
-	if (_timer)
-	{
-		Sec = *_timer;
-		Tamp2UTC(Sec + timeUtc->timeZone * 900, &Date, &Time, 0);
-	}
-	else
-	{
-		Tamp2UTC(timeUtc->UTCsecs + timeUtc->timeZone * 900, &Date, &Time, 0);
-	}
+	Tamp2UTC(Sec + pMwAonInfo->tz * 900, &Date, &Time, 0);
+
 	prvTM.tm_year = Date.Year - 1900;
 	prvTM.tm_mon = Date.Mon - 1;
 	prvTM.tm_mday = Date.Day;
@@ -40,16 +51,25 @@ struct tm *__wrap_gmtime (const time_t *_timer)
 {
 	Time_UserDataStruct Time;
 	Date_UserDataStruct Date;
-	uint64_t Sec;
-	if (_timer)
+	uint64_t Sec = 1732535217;
+	if (pMwAonInfo)
 	{
-		Sec = *_timer;
-		Tamp2UTC(Sec, &Date, &Time, 0);
+		uint32_t tick = slpManGet6P25HZGlobalCnt();
+		uint32_t cr = OS_EnterCritical();
+		if (pMwAonInfo->crc16 == CRC16Cal(&pMwAonInfo->utc_tamp, 9, CRC16_CCITT_SEED, CRC16_CCITT_GEN, 0))
+		{
+			Sec = pMwAonInfo->utc_tamp;
+			uint64_t diff = (tick - pMwAonInfo->rtc_tamp);
+			Sec += diff * 4 / 25;
+		}
+		else
+		{
+			pMwAonInfo->tz = 32;
+			DBG("rtc record error!");
+		}
+		OS_ExitCritical(cr);
 	}
-	else
-	{
-		RTC_GetDateTime(&Date, &Time);
-	}
+	Tamp2UTC(Sec, &Date, &Time, 0);
 	prvTM.tm_year = Date.Year - 1900;
 	prvTM.tm_mon = Date.Mon - 1;
 	prvTM.tm_mday = Date.Day;
@@ -69,9 +89,26 @@ clock_t	   __wrap_clock (void)
 
 time_t	   __wrap_time (time_t *_Time)
 {
-  utc_timer_value_t *timeUtc = OsaSystemTimeReadRamUtc();
+	time_t Sec = 1732535217;
+	if (pMwAonInfo)
+	{
+		uint32_t tick = slpManGet6P25HZGlobalCnt();
+		uint32_t cr = OS_EnterCritical();
+		if (pMwAonInfo->crc16 == CRC16Cal(&pMwAonInfo->utc_tamp, 9, CRC16_CCITT_SEED, CRC16_CCITT_GEN, 0))
+		{
+			Sec = pMwAonInfo->utc_tamp;
+			uint64_t diff = (tick - pMwAonInfo->rtc_tamp);
+			Sec += diff * 4 / 25;
+		}
+		else
+		{
+			pMwAonInfo->tz = 32;
+			DBG("rtc record error!");
+		}
+		OS_ExitCritical(cr);
+	}
   if (_Time != NULL) {
-    *_Time = timeUtc->UTCsecs;
+    *_Time = Sec;
   }
-  return timeUtc->UTCsecs;
+  return Sec;
 }

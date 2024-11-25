@@ -26,17 +26,23 @@
 #include "osasys.h"
 #include "luat_debug.h"
 #include "mw_aon_info.h"
-extern int soc_check_time(uint16_t year, uint8_t mon, uint8_t day, uint8_t h, uint8_t m, uint8_t s, uint8_t force);
-static int8_t g_s_local_tz = 32;
+extern MidWareAonInfo      *pMwAonInfo;
+extern void soc_save_rtc_tamp_u32_with_tz(uint32_t utc, int8_t tz);
+extern void soc_set_rtc_time_u32_with_tz(uint16_t year, uint8_t mon, uint8_t day, uint8_t h, uint8_t m, uint8_t s, int8_t tz);
+extern void soc_save_tz(int8_t tz);
+void soc_save_rtc_tamp_u32(uint32_t utc);
+
 int luat_rtc_set(struct tm *tblock){
-    uint32_t Timer1 = (((tblock->tm_year+1900)<<16)&0xfff0000) | (((tblock->tm_mon+1)<<8)&0xff00) | ((tblock->tm_mday)&0xff);
-    uint32_t Timer2 = ((tblock->tm_hour<<24)&0xff000000) | ((tblock->tm_min<<16)&0xff0000) | ((tblock->tm_sec<<8)&0xff00) | (0xff&(g_s_local_tz));
-    uint32_t ret = OsaTimerSync(0, SET_LOCAL_TIME, Timer1, Timer2, 0);
-    if (ret == 0){
-        mwAonSetUtcTimeSyncFlag(1);
-        mwAonSetNitzUtcTimeSyncFlag(1);
-        soc_check_time(tblock->tm_year+1900, tblock->tm_mon+1, tblock->tm_mday, tblock->tm_hour, tblock->tm_min, tblock->tm_sec, 1);
-    }
+
+	Date_UserDataStruct Date;
+	Time_UserDataStruct Time;
+	Date.Year = tblock->tm_year+1900;
+	Date.Mon = tblock->tm_mon+1;
+	Date.Day = tblock->tm_mday;
+	Time.Hour = tblock->tm_hour;
+	Time.Min = tblock->tm_min;
+	Time.Sec = tblock->tm_sec;
+	soc_save_rtc_tamp_u32(UTC2Tamp(&Date, &Time));
     return 0;
 }
 
@@ -49,23 +55,7 @@ int luat_rtc_get(struct tm *tblock){
 #ifdef __LUATOS__
 
 void luat_rtc_set_tamp32(uint32_t tamp) {
-	Time_UserDataStruct Time;
-	Date_UserDataStruct Date;
-	Tamp2UTC(tamp, &Date, &Time, 0);
-    if (OsaTimerSync(0,
-                     SET_LOCAL_TIME,
-                     ((uint32_t)Date.Year<<16)|((uint32_t)Date.Mon<<8)|((uint32_t)Date.Day),
-                     ((uint32_t)Time.Hour<<24)|((uint32_t)Time.Min<<16)|((uint32_t)Time.Sec<<8)|(0xff&(g_s_local_tz)),0
-                     ))
-    {
-    	LUAT_DEBUG_PRINT("sync NITZ time fail");
-    }
-    else
-    {
-        mwAonSetUtcTimeSyncFlag(TRUE);  //set to 1 when NITZ triggered
-        mwAonSetNitzUtcTimeSyncFlag(1);
-        soc_check_time(Date.Year, Date.Mon, Date.Day, Time.Hour, Time.Min, Time.Sec, 1);
-    }
+	soc_save_rtc_tamp_u32(tamp);
 }
 
 int luat_rtc_timer_start(int id, struct tm *tblock){
@@ -84,10 +74,10 @@ int luat_rtc_timezone(int* timezone) {
     if (timezone != NULL) {
         struct tm tblock;
         luat_rtc_get(&tblock);
-        g_s_local_tz = *timezone;
+        soc_save_tz(*timezone);
         luat_rtc_set(&tblock);
     }
-    return g_s_local_tz;
+    return pMwAonInfo->tz;
 }
 
 #endif
