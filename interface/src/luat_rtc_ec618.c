@@ -80,13 +80,8 @@ int luat_rtc_timer_stop(int id){
 }
 
 int luat_rtc_timezone(int* timezone) {
-
-
     if (timezone != NULL) {
-        struct tm tblock;
-        luat_rtc_get(&tblock);
         soc_save_tz(*timezone);
-        luat_rtc_set(&tblock);
     }
     return pMwAonInfo->tz;
 }
