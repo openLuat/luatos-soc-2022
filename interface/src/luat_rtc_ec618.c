@@ -32,7 +32,8 @@ extern void soc_set_rtc_time_u32_with_tz(uint16_t year, uint8_t mon, uint8_t day
 extern void soc_save_tz(int8_t tz);
 void soc_save_rtc_tamp_u32(uint32_t utc);
 
-int luat_rtc_set(struct tm *tblock){
+int luat_rtc_get_timezone(void)
+{
 	int8_t tz = 32;
 	if (pMwAonInfo)
 	{
@@ -43,6 +44,11 @@ int luat_rtc_set(struct tm *tblock){
 		}
 		OS_ExitCritical(cr);
 	}
+	return tz;
+}
+
+int luat_rtc_set(struct tm *tblock){
+	int8_t tz = luat_rtc_get_timezone();
 	Date_UserDataStruct Date;
 	Time_UserDataStruct Time;
 	Date.Year = tblock->tm_year+1900;
@@ -64,16 +70,7 @@ int luat_rtc_get(struct tm *tblock){
 #ifdef __LUATOS__
 
 void luat_rtc_set_tamp32(uint32_t tamp) {
-	int8_t tz = 32;
-	if (pMwAonInfo)
-	{
-		uint32_t cr = OS_EnterCritical();
-		if (pMwAonInfo->crc16 == CRC16Cal(&pMwAonInfo->utc_tamp, 9, CRC16_CCITT_SEED, CRC16_CCITT_GEN, 0))
-		{
-			tz = pMwAonInfo->tz;
-		}
-		OS_ExitCritical(cr);
-	}
+	int8_t tz = luat_rtc_get_timezone();
 	soc_save_rtc_tamp_u32_with_tz(tamp, tz);
 }
 
@@ -88,14 +85,15 @@ int luat_rtc_timer_stop(int id){
     (void)id;
     return -1;
 }
+#endif
 
 int luat_rtc_timezone(int* timezone) {
     if (timezone != NULL) {
         soc_save_tz(*timezone);
+        return pMwAonInfo->tz;
     }
-    return pMwAonInfo->tz;
+    else
+    {
+    	return luat_rtc_get_timezone();
+    }
 }
-
-#endif
-
-
