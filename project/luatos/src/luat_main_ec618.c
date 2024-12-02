@@ -288,3 +288,5 @@ bool soc_init_unilog_uart(uint8_t port, uint32_t baudrate, bool startRecv)
 	return true;
 }
 #endif
+
+void luat_ota_reboot(int timeout_ms) {luat_os_reboot(1);}
