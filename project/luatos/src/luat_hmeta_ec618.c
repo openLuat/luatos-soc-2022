@@ -22,3 +22,7 @@ int luat_hmeta_hwversion(char* buff2) {
     }
     return -1;
 }
+
+int luat_hmeta_chip(char* buff) {
+    memcpy(buff, "EC618");
+}
