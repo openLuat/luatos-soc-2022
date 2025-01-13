@@ -12,6 +12,7 @@
 
 #ifdef __LUATOS__
 #include "luat_conf_bsp.h"
+#include "luat_network_adapter.h"
 #endif
 
 err_t __wrap_ps_ip_input(struct pbuf *p, struct netif *inp) {
@@ -20,6 +21,13 @@ err_t __wrap_ps_ip_input(struct pbuf *p, struct netif *inp) {
     #ifdef LUAT_USE_ULWIP
     extern err_t ulwip_ip_input_cb(struct pbuf *p, struct netif *inp);
     if (ERR_OK == ulwip_ip_input_cb(p, inp)) {
+      pbuf_free(p);   // free the pbuf
+      return ERR_OK;
+    }
+    #endif
+    #ifdef LUAT_USE_NETDRV
+    extern err_t netdrv_ip_input_cb(int id, struct pbuf *p, struct netif *inp);
+    if (ERR_OK == netdrv_ip_input_cb(NW_ADAPTER_INDEX_LWIP_GPRS, p, inp)) {
       pbuf_free(p);   // free the pbuf
       return ERR_OK;
     }

@@ -40,7 +40,7 @@
 #include "luat_lvgl.h"
 #endif
 #include "luat_errdump.h"
-
+#include "luat_netdrv.h"
 #include "cmisim.h"
 
 extern int luat_main(void);
@@ -232,6 +232,11 @@ static void luatos_mobile_event_callback(LUAT_MOBILE_EVENT_E event, uint8_t inde
 				}
 			}
 			net_lwip_set_link_state(NW_ADAPTER_INDEX_LWIP_GPRS, 1);
+			#ifdef LUAT_USE_NETDRV
+			extern luat_netdrv_t netdrv_gprs;
+			extern struct netif * net_lwip_get_netif(uint8_t adapter_index);
+			netdrv_gprs.netif = net_lwip_get_netif(NW_ADAPTER_INDEX_LWIP_GPRS);
+			#endif
 		}
 	}
 	luat_mobile_event_cb(event, index, status, NULL);
@@ -256,6 +261,10 @@ extern void soc_aon_gpio_save_state_enable(uint8_t on_off);
 	net_lwip_init();
 	net_lwip_register_adapter(NW_ADAPTER_INDEX_LWIP_GPRS);
 	network_register_set_default(NW_ADAPTER_INDEX_LWIP_GPRS);
+	#ifdef LUAT_USE_NETDRV
+	extern void luat_napt_native_init(void);
+	luat_napt_native_init();
+	#endif
 	luat_rtos_task_handle task_handle;
 	luat_rtos_task_create(&task_handle, 16 * 1024, 80, "luatos", luatos_task, NULL, 32);
 
