@@ -13,12 +13,15 @@
 #ifdef __LUATOS__
 #include "luat_conf_bsp.h"
 #include "luat_network_adapter.h"
+#define LUAT_LOG_TAG "ps_ip_input"
+#include "luat_log.h"
 #endif
 
 err_t __wrap_ps_ip_input(struct pbuf *p, struct netif *inp) {
   u8_t ipVersion;
   if (p != NULL) {
     #ifdef LUAT_USE_ULWIP
+    //LLOGD("数据包下行 len %d", p->tot_len);
     extern err_t ulwip_ip_input_cb(struct pbuf *p, struct netif *inp);
     if (ERR_OK == ulwip_ip_input_cb(p, inp)) {
       pbuf_free(p);   // free the pbuf
