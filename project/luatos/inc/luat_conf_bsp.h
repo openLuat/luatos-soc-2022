@@ -29,6 +29,7 @@
 #define LUAT_USE_WEBSOCKET 1
 #define LUAT_USE_MQTT 1
 // #define LUAT_USE_ULWIP 1
+// #define LUAT_USE_NETDRV 1
 
 #define LUAT_USE_SOFT_UART 1
 //----------------------------

@@ -372,6 +372,11 @@ target(TARGET_NAME)
     add_files(LUATOS_ROOT.."components/ht1621/src/*.c")
     add_files(LUATOS_ROOT.."components/ht1621/binding/*.c")
 
+    -- netdrv
+    add_includedirs(LUATOS_ROOT.."components/network/netdrv/include",{public = true})
+    add_files(LUATOS_ROOT.."components/network/netdrv/src/*.c")
+    add_files(LUATOS_ROOT.."components/network/netdrv/binding/*.c")
+
     
     -- 作为最后补充, 不然总是报主库没有的头文件
     add_includedirs(SDK_TOP .. "/interface/include")
